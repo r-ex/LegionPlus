@@ -15,6 +15,7 @@
 #include "CastAsset.h"
 
 #include "RpakAnimDecompress.h"
+#include "RpakDecompress.h"
 
 VpkLib::VpkLib()
 {
@@ -230,12 +231,13 @@ void VpkLib::ExportRMdl(const string& Asset, const string& Path)
 							auto Vtx = Reader.Read<RMdlStripVert>();
 							auto& Vertex = VertexBuffers[0][(uint64_t)Vtx.VertexIndex + VertexOffset];
 
-							auto NewVertex = Mesh.Vertices.Emplace(Vertex.Position, Vertex.Normal, Assets::VertexColor(), Vertex.UVs);
+							// TODO(rx):
+							//auto NewVertex = Mesh.Vertices.Emplace(Vertex.Position, Vertex.Normal, Assets::VertexColor(), Vertex.UVs);
 
-							for (uint8_t w = 0; w < Vertex.NumWeights; w++)
-							{
-								NewVertex.SetWeight({ Vertex.WeightIds[w], Vertex.SimpleWeights[w] }, w);
-							}
+							//for (uint8_t w = 0; w < Vertex.NumWeights; w++)
+							//{
+							//	NewVertex.SetWeight({ Vertex.WeightIds[w], Vertex.SimpleWeights[w] }, w);
+							//}
 						}
 
 						Stream->SetPosition(StripGroupPosition + StripGroup.IndexOffset);
@@ -245,12 +247,14 @@ void VpkLib::ExportRMdl(const string& Asset, const string& Path)
 							uint32_t i1 = Reader.Read<uint16_t>();
 							uint32_t i2 = Reader.Read<uint16_t>();
 							uint32_t i3 = Reader.Read<uint16_t>();
-							Mesh.Faces.EmplaceBack(i1, i2, i3);
+							// TODO(rx):
+							//Mesh.Faces.EmplaceBack(i1, i2, i3);
 						}
 					}
 
 					VertexOffset += PartMesh.Meshes[s].LodVertCounts[0];
-					Mesh.MaterialIndices.EmplaceBack(Model->AddMaterial(Materials[PartMesh.Meshes[s].Index], ""));
+					// TODO(rx):
+					//Mesh.MaterialIndices.EmplaceBack(Model->AddMaterial(Materials[PartMesh.Meshes[s].Index], ""));
 				}
 			}
 		}
@@ -427,6 +431,9 @@ void VpkLib::ExportRMdl(const string& Asset, const string& Path)
 
 void VpkLib::ParseRAnimBoneTranslationTrack(const RAnimBoneHeader& BoneFlags, const RMdlTitanfallBone& Bone, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
 {
+	printf("***** ParseRAnimBoneTranslationTrack is STUBBED.\n");
+
+
 	uint16_t* TranslationDataPtr = *BoneTrackData;
 	uint8_t* DataPointer = (uint8_t*)TranslationDataPtr;
 
@@ -438,19 +445,19 @@ void VpkLib::ParseRAnimBoneTranslationTrack(const RAnimBoneHeader& BoneFlags, co
 
 	if (BoneFlags.TranslationX)
 	{
-		Titanfall2TrackDecompress(Frame, TranslationDataX, BoneFlags.TranslationScale, &v37, &v34);
+		//Titanfall2TrackDecompress(Frame, TranslationDataX, BoneFlags.TranslationScale, &v37, &v34);
 		Result[0] += v37;
 	}
 
 	if (BoneFlags.TranslationY)
 	{
-		Titanfall2TrackDecompress(Frame, TranslationDataY, BoneFlags.TranslationScale, &v37, &v34);
+		//Titanfall2TrackDecompress(Frame, TranslationDataY, BoneFlags.TranslationScale, &v37, &v34);
 		Result[1] += v37;
 	}
 
 	if (BoneFlags.TranslationZ)
 	{
-		Titanfall2TrackDecompress(Frame, TranslationDataZ, BoneFlags.TranslationScale, &v37, &v34);
+		//Titanfall2TrackDecompress(Frame, TranslationDataZ, BoneFlags.TranslationScale, &v37, &v34);
 		Result[2] += v37;
 	}
 
@@ -463,6 +470,8 @@ void VpkLib::ParseRAnimBoneTranslationTrack(const RAnimBoneHeader& BoneFlags, co
 
 void VpkLib::ParseRAnimBoneRotationTrack(const RAnimBoneHeader& BoneFlags, const RMdlTitanfallBone& Bone, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
 {
+	printf("ParseRAnimBoneRotationTrack is STUBBED.\n");
+
 	uint16_t* RotationDataPtr = *BoneTrackData;
 	uint8_t* DataPointer = (uint8_t*)RotationDataPtr;
 
@@ -478,19 +487,19 @@ void VpkLib::ParseRAnimBoneRotationTrack(const RAnimBoneHeader& BoneFlags, const
 	
 	if (BoneFlags.RotationInfo.OffsetX)
 	{
-		Titanfall2TrackDecompress(Frame, TranslationDataX, Bone.RotationScale[0], &v37, &v34);
+		//Titanfall2TrackDecompress(Frame, TranslationDataX, Bone.RotationScale[0], &v37, &v34);
 		EulerResult[0] += v37;
 	}
 
 	if (BoneFlags.RotationInfo.OffsetY)
 	{
-		Titanfall2TrackDecompress(Frame, TranslationDataY, Bone.RotationScale[1], &v37, &v34);
+		//Titanfall2TrackDecompress(Frame, TranslationDataY, Bone.RotationScale[1], &v37, &v34);
 		EulerResult[1] += v37;
 	}
 
 	if (BoneFlags.RotationInfo.OffsetZ)
 	{
-		Titanfall2TrackDecompress(Frame, TranslationDataZ, Bone.RotationScale[2], &v37, &v34);
+		//Titanfall2TrackDecompress(Frame, TranslationDataZ, Bone.RotationScale[2], &v37, &v34);
 		EulerResult[2] += v37;
 	}
 

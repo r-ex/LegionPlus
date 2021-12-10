@@ -42,13 +42,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -153,7 +153,6 @@
   <ItemGroup>
     <ClCompile Include="ApexAsset.cpp" />
     <ClCompile Include="ExportManager.cpp" />
-    <ClCompile Include="Legion.cpp" />
     <ClCompile Include="LegionMain.cpp" />
     <ClCompile Include="LegionPreview.cpp" />
     <ClCompile Include="LegionProgress.cpp" />
@@ -193,7 +192,7 @@
     <ClInclude Include="VpkLib.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\cppnet\cppkore\cppkore.vcxproj">
+    <ProjectReference Include="..\cppnet\cppkore\cppkore.vcxproj">
       <Project>{88bc2d60-a093-4e61-b194-59ab8be4e33e}</Project>
     </ProjectReference>
   </ItemGroup>

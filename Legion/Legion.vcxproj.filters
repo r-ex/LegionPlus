@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Legion.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="RpakLib.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

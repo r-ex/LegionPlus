@@ -544,6 +544,8 @@ void LegionMain::OnLoadClick(Forms::Control* Sender)
 		OpenFileD = OpenFileDialog::ShowMultiFileDialog("Legion: Select file(s) to load", "", "Apex Legends Files (MBnk, RPak)|*.mbnk;*.rpak;", Sender->FindForm());
 	}
 
+	printf("OpenFileD.Count() == %i\n", OpenFileD.Count());
+
 	if (OpenFileD.Count() == 0)
 		return;
 	else if (OpenFileD.Count() > 4)

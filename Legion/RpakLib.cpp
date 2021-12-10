@@ -21,9 +21,11 @@
 
 // Rpak asset formats
 #include "RpakDecompress.h"
+#include "rtech.h"
 #include "RpakDecompressSnowflake.h"
 #include "RpakAnimDecompress.h"
 #include "RpakImageTiles.h"
+#include <vector>
 
 RpakFile::RpakFile()
 	: SegmentData(nullptr), StartSegmentIndex(0), SegmentDataSize(0), PatchData(nullptr), PatchDataSize(0), Version(RpakGameVersion::Apex), EmbeddedStarpakOffset(0), EmbeddedStarpakSize(0)
@@ -360,23 +362,24 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 {
 	if (Format == 0x1)
 	{
-		RpakDecompressState State{};
-		RpakDecompressInit((long long)&State, (long long)Data, RpakCalcMask(0x400000), DataSize, 0, 0);
+		std::int64_t params[18];
 
-		auto Result = new uint8_t[State.DecompressedSize]{};
+		uint32_t dSize = g_pRtech->DecompressedSize((std::int64_t)params, (uint8_t*)Data, DataSize, 0, PAK_HEADER_SIZE);
 
-		State.DecompressedBuffer = (uint64_t)Result;
+		std::vector<std::uint8_t> pakbuf(dSize, 0);
 
-		RpakDecompress((long long*)&State, DataSize, 0x400000);
+		params[1] = std::int64_t(pakbuf.data());
+		params[3] = -1i64;
 
-		DataSize = State.DecompressedSize;
+		std::uint8_t decomp_result = g_pRtech->Decompress(params, dSize, pakbuf.size());
 
-		return std::make_unique<IO::MemoryStream>(Result, 0, State.DecompressedSize);
+
+		return std::make_unique<IO::MemoryStream>(pakbuf.data(), 0, dSize);
 	}
 	else if (Format == 0x2)
 	{
 		auto State = std::make_unique<uint8_t[]>(0x25000);
-		RpakDecompressInitSnowflake((long long)&State.get()[0], (long long)Data, DataSize);
+		RpakDecompressInitSnowflake((long long)&State.get()[0], (uint8_t*)Data, DataSize);
 
 		auto EditState = (__int64*)&State.get()[0];
 		auto DecompressedSize = EditState[0x48D3];
@@ -1493,7 +1496,8 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 
 						if (Point.Opcode == 0x41)
 						{
-							Texture->CopyTextureSlice(*Bc7Texture, { (x * 32),(y * 32),32,32 }, (x * 32), (y * 32));
+							// TODO(rx): reimplement?
+							//Texture->CopyTextureSlice(*Bc7Texture, { (x * 32),(y * 32),32,32 }, (x * 32), (y * 32));
 						}
 					}
 				}
@@ -2117,6 +2121,7 @@ bool RpakLib::ParseApexRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 		File->SegmentBlocks.EmplaceBack(Offset, VirtualSegmentBlocks[i].DataSize);
 		Offset += VirtualSegmentBlocks[i].DataSize;
 	}
+
 	for (auto& Asset : AssetEntries)
 	{
 		File->AssetHashmap.Add(Asset.NameHash, Asset);
@@ -2324,39 +2329,23 @@ bool RpakLib::MountApexRpak(const string& Path, bool Dump)
 	}
 
 	auto CompressedBuffer = std::make_unique<uint8_t[]>(Header.CompressedSize);
-	auto TemporaryBuffer = std::make_unique<uint8_t[]>(0x400000);
-
-	std::memcpy(TemporaryBuffer.get(), &Header, sizeof(RpakApexHeader));
-	std::memcpy(TemporaryBuffer.get() + sizeof(RpakApexHeader), &Header, sizeof(RpakApexHeader));
 
 	Reader.Read(CompressedBuffer.get() + sizeof(RpakApexHeader), 0, Header.CompressedSize - sizeof(RpakApexHeader));
 
-	auto DecompressedBuffer = new uint8_t[Header.DecompressedSize];
+	std::int64_t params[18];
 
-	RpakDecompressState State{};
-	RpakDecompressInit((long long)&State, (long long)CompressedBuffer.get(), RpakCalcMask(Header.DecompressedSize), Header.CompressedSize, 0, sizeof(RpakApexHeader));
-	State.DecompressedBuffer = (uint64_t)TemporaryBuffer.get();
+	uint32_t dSize = g_pRtech->DecompressedSize((std::int64_t)params, CompressedBuffer.get(), Header.CompressedSize, 0, sizeof(RpakApexHeader));
 
-	uint64_t OutputOffset = 0;
-	uint64_t DecompressedOffset = sizeof(RpakApexHeader);
-	uint64_t TrueDecompressedOffset = 0;
+	std::vector<std::uint8_t> pakbuf(dSize, 0);
 
-	do
-	{
+	params[1] = std::int64_t(pakbuf.data());
+	params[3] = -1i64;
 
-		auto SizeDiff = Header.DecompressedSize - TrueDecompressedOffset;
-		auto Wanted = (SizeDiff) > 0x400000 ? 0x400000 : SizeDiff;
+	std::uint8_t decomp_result = g_pRtech->Decompress(params, dSize, pakbuf.size());
 
-		RpakDecompress((long long*)&State, Header.CompressedSize, DecompressedOffset + 0x400000);
-		std::memcpy(DecompressedBuffer + OutputOffset, TemporaryBuffer.get(), Wanted);
+	std::memcpy(pakbuf.data(), &Header, sizeof(RpakApexHeader));
 
-		DecompressedOffset = State.DecompressOffset;
-		TrueDecompressedOffset = State.DecompressOffset;
-		OutputOffset += 0x400000;
-
-	} while (Header.DecompressedSize != State.DecompressOffset);
-
-	auto ResultStream = std::make_unique<IO::MemoryStream>(DecompressedBuffer, 0, Header.DecompressedSize, true, false, true);
+	auto ResultStream = std::make_unique<IO::MemoryStream>(pakbuf.data(), 0, Header.DecompressedSize, true, false, true);
 
 #if _DEBUG
 	if (Dump)
@@ -2366,8 +2355,11 @@ bool RpakLib::MountApexRpak(const string& Path, bool Dump)
 		ResultStream->SetPosition(0);
 	}
 #endif
+	bool r = ParseApexRpak(Path, ResultStream);
 
-	return ParseApexRpak(Path, ResultStream);
+	printf("Parse: %i\n", r);
+
+	return r;
 }
 
 bool RpakLib::MountTitanfallRpak(const string& Path, bool Dump)
@@ -2385,51 +2377,52 @@ bool RpakLib::MountTitanfallRpak(const string& Path, bool Dump)
 		return ParseTitanfallRpak(Path, Stream);
 	}
 
-	auto CompressedBuffer = std::make_unique<uint8_t[]>(Header.CompressedSize);
-	auto TemporaryBuffer = std::make_unique<uint8_t[]>(0x400000);
-
-	std::memcpy(TemporaryBuffer.get(), &Header, sizeof(RpakTitanfallHeader));
-	std::memcpy(TemporaryBuffer.get() + sizeof(RpakTitanfallHeader), &Header, sizeof(RpakTitanfallHeader));
-
-	Reader.Read(CompressedBuffer.get() + sizeof(RpakTitanfallHeader), 0, Header.CompressedSize - sizeof(RpakTitanfallHeader));
-
-	auto DecompressedBuffer = new uint8_t[Header.DecompressedSize];
-
-	RpakDecompressState State{};
-	RpakDecompressInit((long long)&State, (long long)CompressedBuffer.get(), RpakCalcMask(Header.DecompressedSize), Header.CompressedSize, 0, sizeof(RpakTitanfallHeader));
-	State.DecompressedBuffer = (uint64_t)TemporaryBuffer.get();
-
-	uint64_t OutputOffset = 0;
-	uint64_t DecompressedOffset = sizeof(RpakTitanfallHeader);
-	uint64_t TrueDecompressedOffset = 0;
-
-	do
-	{
-
-		auto SizeDiff = Header.DecompressedSize - TrueDecompressedOffset;
-		auto Wanted = (SizeDiff) > 0x400000 ? 0x400000 : SizeDiff;
-
-		RpakDecompress((long long*)&State, Header.CompressedSize, DecompressedOffset + 0x400000);
-		std::memcpy(DecompressedBuffer + OutputOffset, TemporaryBuffer.get(), Wanted);
-
-		DecompressedOffset = State.DecompressOffset;
-		TrueDecompressedOffset = State.DecompressOffset;
-		OutputOffset += 0x400000;
-
-	} while (Header.DecompressedSize != State.DecompressOffset);
-
-	auto ResultStream = std::make_unique<IO::MemoryStream>(DecompressedBuffer, 0, Header.DecompressedSize, true, false, true);
-
-#if _DEBUG
-	if (Dump)
-	{
-		auto OutStream = IO::File::Create(IO::Path::Combine("D:\\", IO::Path::GetFileName(Path)));
-		ResultStream->CopyTo(OutStream.get());
-		ResultStream->SetPosition(0);
-	}
-#endif
-
-	return ParseTitanfallRpak(Path, ResultStream);
+	//todo(rx)
+//	auto CompressedBuffer = std::make_unique<uint8_t[]>(Header.CompressedSize);
+//	auto TemporaryBuffer = std::make_unique<uint8_t[]>(0x400000);
+//
+//	std::memcpy(TemporaryBuffer.get(), &Header, sizeof(RpakTitanfallHeader));
+//	std::memcpy(TemporaryBuffer.get() + sizeof(RpakTitanfallHeader), &Header, sizeof(RpakTitanfallHeader));
+//
+//	Reader.Read(CompressedBuffer.get() + sizeof(RpakTitanfallHeader), 0, Header.CompressedSize - sizeof(RpakTitanfallHeader));
+//
+//	auto DecompressedBuffer = new uint8_t[Header.DecompressedSize];
+//
+//	RpakDecompressState State{};
+//	RpakDecompressInit((long long)&State, CompressedBuffer.get(), Header.CompressedSize, 0, sizeof(RpakTitanfallHeader));
+//	State.DecompressedBuffer = (uint64_t)TemporaryBuffer.get();
+//
+//	uint64_t OutputOffset = 0;
+//	uint64_t DecompressedOffset = sizeof(RpakTitanfallHeader);
+//	uint64_t TrueDecompressedOffset = 0;
+//
+//	do
+//	{
+//
+//		auto SizeDiff = Header.DecompressedSize - TrueDecompressedOffset;
+//		auto Wanted = (SizeDiff) > 0x400000 ? 0x400000 : SizeDiff;
+//
+//		RpakDecompress((long long*)&State, Header.CompressedSize, DecompressedOffset + 0x400000);
+//		std::memcpy(DecompressedBuffer + OutputOffset, TemporaryBuffer.get(), Wanted);
+//
+//		DecompressedOffset = State.DecompressOffset;
+//		TrueDecompressedOffset = State.DecompressOffset;
+//		OutputOffset += 0x400000;
+//
+//	} while (Header.DecompressedSize != State.DecompressOffset);
+//
+//	auto ResultStream = std::make_unique<IO::MemoryStream>(DecompressedBuffer, 0, Header.DecompressedSize, true, false, true);
+//
+//#if _DEBUG
+//	if (Dump)
+//	{
+//		auto OutStream = IO::File::Create(IO::Path::Combine("D:\\", IO::Path::GetFileName(Path)));
+//		ResultStream->CopyTo(OutStream.get());
+//		ResultStream->SetPosition(0);
+//	}
+//#endif
+//
+//	return ParseTitanfallRpak(Path, ResultStream);
 }
 
 RpakLoadAsset::RpakLoadAsset(uint64_t NameHash, uint32_t FileIndex, uint32_t AssetType, uint32_t SubHeaderIndex, uint32_t SubHeaderOffset, uint32_t SubHeaderSize, uint32_t RawDataIndex, uint32_t RawDataOffset, uint64_t StarpakOffset, uint64_t OptimalStarpakOffset, RpakGameVersion Version)

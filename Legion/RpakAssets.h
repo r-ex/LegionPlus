@@ -749,7 +749,9 @@ struct RMdlPackedVertexPosition
 
 	Math::Vector3 Unpack()
 	{
-        // Redacted
+		return Math::Vector3(0, 0, 0);
+		// TODO(rx): re-implement this from dump
+		// Redacted
 	}
 };
 
@@ -759,6 +761,8 @@ struct RMdlPackedVertexNormal
 
 	Math::Vector3 Unpack()
 	{
+		return Math::Vector3(0, 0, 0);
+		// TODO(rx): re-implement this from dump
         // Redacted
 	}
 };
