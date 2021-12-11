@@ -485,12 +485,26 @@ namespace Assets
 
 				const GLint DiffuseSlot = 0;
 				glUniform1iv(this->_ModelShader.GetUniformLocation("diffuseTexture"), 1, &DiffuseSlot);
+
+
+				glActiveTexture(GL_TEXTURE1);
+				glBindTexture(GL_TEXTURE_2D, Draw.Material.NormalMap);
+
+
+				const GLint NormalSlot = 1; 
+				glUniform1iv(this->_ModelShader.GetUniformLocation("normalTexture"), 1, &NormalSlot);
+
+
 			}
 			else
 			{
 				const GLint DiffuseLoaded = 0;
 				glUniform1iv(this->_ModelShader.GetUniformLocation("diffuseLoaded"), 1, &DiffuseLoaded);
+
+
 			}
+
+			glActiveTexture(GL_TEXTURE0);
 
 			glBindBuffer(GL_ARRAY_BUFFER, Draw.VertexBuffer);
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, Stride, (void*)0);
