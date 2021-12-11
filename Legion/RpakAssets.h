@@ -788,31 +788,61 @@ struct RMdlPackedVertexNormal
 	{
 		float x, y, z;
 
-		float v80 = _Value;
-		float v81 = ((2 * LODWORD(v80)) >> 30);
-		int v82 = 255;
-		if (((8 * LODWORD(v80)) >> 31) != 0.0)
-			v82 = -255;
-		float v83 = v82;
-		float v84 = ((LODWORD(v80) << 13) >> 23) + -256.0;
-		float v85 = ((16 * LODWORD(_Value)) >> 23) + -256.0;
-		float v86 = ((v85 * v85) + 65025.0) + (v84 * v84);
+		uint32_t v86 = _Value;
+		float v87 = ((2 * LODWORD(v86)) >> 30);
+		int v88 = 255;
+		if (((8 * LODWORD(v86)) >> 31) != 0.0)
+			v88 = -255;
+		float v89 = (float)v88;
+		float v90 = ((LODWORD(v86) << 13) >> 23) + -256.0;
+		float v91 = ((16 * LODWORD(_Value)) >> 23) + -256.0;
+		float v92 = ((v91 * v91) + 65025.0) + (v90 * v90);
 
-		float v87;
-		if (v86 < 0.0)
+		float v93;
+
+		if (v92 < 0.0)
 		{
-			v87 = sqrtf(v86);
+			v93 = sqrtf(v92);
 		}
 		else
 		{
-			v87 = sqrtf(v86); // fsqrt - not supposed to be a function call
+			v93 = sqrtf(v92); // fsqrt
 		}
 
-		x = v83 * (1.0 / v87);
-		y = v84 * (1.0 / v87); // if you multiply this by 10 you get the correct value for y (the second number in the vn entry)
-		z = v85 * (1.0 / v87);
+		// file offset: 0x23771
 
-		return Math::Vector3(x,y,z);
+		int v97 = 0;
+
+		float v98, v99, v100;
+
+		float v1, v2, v3;
+
+		v1 = v90 * (1.0 / v93);
+		v2 = v89 * (1.0 / v93);
+		v3 = v91 * (1.0 / v93);
+		if (v87 == 1.0)
+			v97 = -1;
+		else
+			v97 = 0;
+		if (v87 == 2.0)
+		{
+			x = v3;
+			y = v1;
+			z = v2;
+		}
+		else
+		{
+			x = v2;
+			y = v3;
+			z = v1;
+		}
+		if (!v97)
+		{
+			v1 = x;
+			v2 = y;
+			v3 = z;
+		}
+		return Math::Vector3(v1,v2,v3);
 	}
 };
 
