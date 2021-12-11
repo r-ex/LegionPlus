@@ -62,7 +62,7 @@ namespace Assets
 			Draw.FaceCount = Submesh.Faces.Count();
 			Draw.VertexCount = Submesh.Vertices.Count();
 
-			if (Submesh.MaterialIndices.Count() > 0 && this->_MaterialStreamer != nullptr)
+			if (Submesh.MaterialIndices.Count() > 0 && this->_MaterialStreamer != nullptr && Model.Materials.Count() != 0)
 			{
 				auto& Material = Model.Materials[Submesh.MaterialIndices[0]];
 				auto MaterialDiffuseMap = this->_MaterialStreamer(Material.SourceString, Material.SourceHash);
