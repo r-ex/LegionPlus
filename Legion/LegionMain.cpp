@@ -494,8 +494,9 @@ void LegionMain::RefreshView()
 		const bool ShowImages = ExportManager::Config.Get<System::SettingType::Boolean>("LoadImages");
 		const bool ShowMaterials = ExportManager::Config.Get<System::SettingType::Boolean>("LoadMaterials");
 		const bool ShowUIImages = ExportManager::Config.Get<System::SettingType::Boolean>("LoadUIImages");
+		const bool ShowDataTables = ExportManager::Config.Get<System::SettingType::Boolean>("LoadDataTables");
 
-		this->LoadedAssets = this->RpakFileSystem->BuildAssetList(ShowModels, ShowAnimations, ShowImages, ShowMaterials, ShowUIImages);
+		this->LoadedAssets = this->RpakFileSystem->BuildAssetList(ShowModels, ShowAnimations, ShowImages, ShowMaterials, ShowUIImages, ShowDataTables);
 		this->LoadedAssets->Sort([](const ApexAsset& lhs, const ApexAsset& rhs) { return lhs.Name.Compare(rhs.Name) < 0; });
 
 		this->ResetDisplayIndices();
@@ -660,11 +661,12 @@ void LegionMain::GetVirtualItem(const std::unique_ptr<Forms::RetrieveVirtualItem
 	static const char* AssetTypes[] = { "Model", "AnimationSet", "Image", "Material", "DataTable", "Sound" };
 	static const Drawing::Color AssetTypesColors[] = 
 	{
-		Drawing::Color(0, 157, 220),
-		Drawing::Color(219, 80, 74),
-		Drawing::Color(202, 97, 195),
-		Drawing::Color(27, 153, 139),
-		Drawing::Color(216, 30, 91),
+		Drawing::Color(0, 157, 220), // Model
+		Drawing::Color(219, 80, 74), // AnimationSet
+		Drawing::Color(202, 97, 195),// Image
+		Drawing::Color(27, 153, 139),// Material
+		Drawing::Color(216, 30, 91), // DataTable
+		Drawing::Color(216, 30, 91)  // Sound
 	};
 
 	static const char* AssetStatus[] = { "Loaded", "Exporting", "Exported" };

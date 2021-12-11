@@ -291,7 +291,7 @@ void RBspLib::ExportBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, const st
 	auto VertexUnlitTS = List<RBspVertexUnlitTS>(Lumps[VERTEX_UNLIT_TS].DataSize / sizeof(RBspVertexUnlitTS), true);
 	READ_LUMP(VertexUnlitTS, VERTEX_UNLIT_TS);
 
-	auto RpakMaterials = RpakFileSystem->BuildAssetList(false, false, false, true, false);
+	auto RpakMaterials = RpakFileSystem->BuildAssetList(false, false, false, true, false, false);
 	Dictionary<string, RpakLoadAsset> RpakMaterialLookup;
 
 	for (auto& Mat : *RpakMaterials)

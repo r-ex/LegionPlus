@@ -51,8 +51,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			const bool ShowImages = ExportManager::Config.Get<System::SettingType::Boolean>("LoadImages");
 			const bool ShowMaterials = ExportManager::Config.Get<System::SettingType::Boolean>("LoadMaterials");
 			const bool ShowUIImages = ExportManager::Config.Get<System::SettingType::Boolean>("LoadUIImages");
+			const bool ShowDataTables = ExportManager::Config.Get<System::SettingType::Boolean>("LoadDataTables");
 
-			auto AssetList = Rpak->BuildAssetList(ShowModels, ShowAnimations, ShowImages, ShowMaterials, ShowUIImages);
+			auto AssetList = Rpak->BuildAssetList(ShowModels, ShowAnimations, ShowImages, ShowMaterials, ShowUIImages, ShowDataTables);
 
 			for (auto& Asset : *AssetList.get())
 			{

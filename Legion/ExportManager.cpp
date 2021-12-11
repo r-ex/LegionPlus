@@ -58,6 +58,8 @@ void ExportManager::InitializeExporter()
 		Config.Set<System::SettingType::Boolean>("LoadMaterials", true);
 	if (!Config.Has<System::SettingType::Boolean>("LoadUIImages"))
 		Config.Set<System::SettingType::Boolean>("LoadUIImages", true);
+	if (!Config.Has<System::SettingType::Boolean>("LoadDataTables"))
+		Config.Set<System::SettingType::Boolean>("LoadDataTables", true);
 		
 	Config.Save(ConfigPath);
 }
@@ -142,6 +144,7 @@ void ExportManager::ExportRpakAssets(const std::unique_ptr<RpakLib>& RpakFileSys
 	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "materials"));
 	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "models"));
 	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "animations"));
+	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "datatables"));
 
 	RpakFileSystem->InitializeModelExporter((RpakModelExportFormat)Config.Get<System::SettingType::Integer>("ModelFormat"));
 	RpakFileSystem->InitializeAnimExporter((RpakAnimExportFormat)Config.Get<System::SettingType::Integer>("AnimFormat"));
@@ -179,6 +182,9 @@ void ExportManager::ExportRpakAssets(const std::unique_ptr<RpakLib>& RpakFileSys
 				break;
 			case (uint32_t)RpakAssetType::AnimationRig:
 				RpakFileSystem->ExportAnimationRig(AssetToExport, IO::Path::Combine(ExportDirectory, "animations"));
+				break;
+			case (uint32_t)RpakAssetType::DataTable:
+				RpakFileSystem->ExportDataTable(AssetToExport, IO::Path::Combine(ExportDirectory, "datatables"));
 				break;
 			}
 

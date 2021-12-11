@@ -93,13 +93,46 @@ struct DataTableHeader
 	uint32_t Padding;
 };
 
+//struct DataTableColumn
+//{
+//	uint32_t Flags;
+//	uint32_t StringOffset;
+//	uint32_t ColumnDataType;
+//	uint32_t RowDataOffset;
+//};
+
 struct DataTableColumn
 {
-	uint32_t Flags;
-	uint32_t StringOffset;
-	uint32_t ColumnDataType;
-	uint32_t RowDataOffset;
+	uint64_t Unk0Seek;
+	uint64_t Unk8;
+	uint32_t Type;
+	uint32_t RowOffset;
 };
+
+enum DataTableColumnDataType
+{
+	Bool,
+	Int,
+	Float,
+	Vector,
+	StringT,
+	Asset,
+	AssetNoPrecache
+};
+
+struct DataTableColumnData
+{
+	DataTableColumnDataType Type;
+	bool bValue = 0;
+	int iValue = -1;
+	float fValue = -1;
+	Math::Vector3 vValue;
+	string stringValue;
+	string assetValue;
+	string assetNPValue;
+};
+
+
 
 struct SettingsHeader
 {
@@ -1086,7 +1119,7 @@ struct StarpakStreamEntry
 // APEX
 static_assert(sizeof(TextureHeader) == 0x38, "Invalid Header Size");
 static_assert(sizeof(DataTableHeader) == 0x28, "Invalid Header Size");
-static_assert(sizeof(DataTableColumn) == 0x10, "Invalid Header Size");
+static_assert(sizeof(DataTableColumn) == 0x18, "Invalid Header Size");
 static_assert(sizeof(SettingsHeader) == 0x48, "Invalid Header Size");
 static_assert(sizeof(PatchHeader) == 0x18, "Invalid Header Size");
 static_assert(sizeof(UIIAHeader) == 0x40, "Invalid Header Size");

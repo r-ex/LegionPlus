@@ -102,6 +102,14 @@ void LegionSettings::InitializeComponent()
 	this->LoadUIImages->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->groupBox4->AddControl(this->LoadUIImages);
 
+	this->LoadDataTables = new UIX::UIXCheckBox();
+	this->LoadDataTables->SetSize({ 108, 18 });
+	this->LoadDataTables->SetLocation({ 430, 30 });
+	this->LoadDataTables->SetTabIndex(2);
+	this->LoadDataTables->SetText("Load DataTables");
+	this->LoadDataTables->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox4->AddControl(this->LoadDataTables);
+
 	this->LoadAnimations = new UIX::UIXCheckBox();
 	this->LoadAnimations->SetSize({ 108, 18 });
 	this->LoadAnimations->SetLocation({ 52, 53 });
@@ -344,6 +352,8 @@ void LegionSettings::LoadSettings()
 	this->LoadImages->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadImages"));
 	this->LoadMaterials->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadMaterials"));
 	this->LoadUIImages->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadUIImages"));
+	this->LoadDataTables->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadDataTables"));
+
 
 	if (ExportManager::Config.Has<System::SettingType::String>("ExportDirectory"))
 	{
@@ -407,6 +417,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	ExportManager::Config.Set<System::SettingType::Boolean>("LoadImages", ThisPtr->LoadImages->Checked());
 	ExportManager::Config.Set<System::SettingType::Boolean>("LoadMaterials", ThisPtr->LoadMaterials->Checked());
 	ExportManager::Config.Set<System::SettingType::Boolean>("LoadUIImages", ThisPtr->LoadUIImages->Checked());
+	ExportManager::Config.Set<System::SettingType::Boolean>("LoadDataTables", ThisPtr->LoadDataTables->Checked());
 	ExportManager::Config.Set<System::SettingType::Integer>("ModelFormat", (uint32_t)ModelExportFormat);
 	ExportManager::Config.Set<System::SettingType::Integer>("AnimFormat", (uint32_t)AnimExportFormat);
 	ExportManager::Config.Set<System::SettingType::Integer>("ImageFormat", (uint32_t)ImageExportFormat);

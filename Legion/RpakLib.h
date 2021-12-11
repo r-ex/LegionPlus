@@ -312,7 +312,7 @@ public:
 	Dictionary<uint64_t, RpakLoadAsset> Assets;
 
 	// Builds the viewer list of assets
-	std::unique_ptr<List<ApexAsset>> BuildAssetList(bool Models, bool Anims, bool Images, bool Materials, bool UIImages);
+	std::unique_ptr<List<ApexAsset>> BuildAssetList(bool Models, bool Anims, bool Images, bool Materials, bool UIImages, bool DataTables);
 	// Builds the preview model mesh
 	std::unique_ptr<Assets::Model> BuildPreviewModel(uint64_t Hash);
 	// Builds the preview texture
@@ -332,6 +332,7 @@ public:
 	void ExportTexture(const RpakLoadAsset& Asset, const string& Path);
 	void ExportUIIA(const RpakLoadAsset& Asset, const string& Path);
 	void ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path);
+	void ExportDataTable(const RpakLoadAsset& Asset, const string& Path);
 
 	// Used by the BSP system.
 	RMdlMaterial ExtractMaterial(const RpakLoadAsset& Asset, const string& Path, bool IncludeImages);
@@ -361,6 +362,7 @@ private:
 	void BuildMaterialInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildTextureInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildUIIAInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
+	void BuildDataTableInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 
 	std::unique_ptr<Assets::Model> ExtractModel(const RpakLoadAsset& Asset, const string& Path, const string& AnimPath, bool IncludeMaterials, bool IncludeAnimations);
 	void ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO::MemoryStream>& RpakStream, string Name, uint64_t Offset, const std::unique_ptr<Assets::Model>& Model, RMdlFixupPatches& Fixup, bool IncludeMaterials);
@@ -368,6 +370,7 @@ private:
 	void ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Texture>& Texture);
 	void ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bone>& Skeleton, const string& Path);
 	List<Assets::Bone> ExtractSkeleton(IO::BinaryReader& Reader, uint64_t SkeletonOffset);
+	void ExtractDataTable(const RpakLoadAsset& Asset, const string& Path);
 
 	void ParseRAnimBoneTranslationTrack(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex);
 	void ParseRAnimBoneRotationTrack(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex);

@@ -26,6 +26,8 @@
 #include "RpakAnimDecompress.h"
 #include "RpakImageTiles.h"
 #include <vector>
+#include <iostream>
+#include <fstream>
 
 RpakFile::RpakFile()
 	: SegmentData(nullptr), StartSegmentIndex(0), SegmentDataSize(0), PatchData(nullptr), PatchDataSize(0), Version(RpakGameVersion::Apex), EmbeddedStarpakOffset(0), EmbeddedStarpakSize(0)
@@ -154,7 +156,7 @@ void RpakLib::PatchAssets()
 	}
 }
 
-std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims, bool Images, bool Materials, bool UIImages)
+std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims, bool Images, bool Materials, bool UIImages, bool DataTables)
 {
 	auto Result = std::make_unique<List<ApexAsset>>();
 
@@ -191,6 +193,11 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims
 			if (!UIImages)
 				continue;
 			BuildUIIAInfo(Asset, NewAsset);
+			break;
+		case (uint32_t)RpakAssetType::DataTable:
+			if (!DataTables)
+				continue;
+			BuildDataTableInfo(Asset, NewAsset);
 			break;
 		default:
 			continue;
@@ -459,6 +466,12 @@ void RpakLib::ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path)
 	}
 }
 
+void RpakLib::ExportDataTable(const RpakLoadAsset& Asset, const string& Path)
+{
+	auto DestinationPath = IO::Path::Combine(Path, string::Format("0x%llx.csv", Asset.NameHash));
+
+	this->ExtractDataTable(Asset, DestinationPath);
+}
 std::unique_ptr<IO::MemoryStream> RpakLib::GetFileStream(const RpakLoadAsset& Asset)
 {
 	auto& File = this->LoadedFiles[Asset.FileIndex];
@@ -618,6 +631,20 @@ void RpakLib::BuildUIIAInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	Info.Type = ApexAssetType::Image;
 	Info.Status = ApexAssetStatus::Loaded;
 	Info.Info = string::Format("Width: %d Height %d", TexHeader.Width, TexHeader.Height);
+}
+
+void RpakLib::BuildDataTableInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
+{
+	auto RpakStream = this->GetFileStream(Asset);
+	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
+	auto DtblHeader = Reader.Read<DataTableHeader>();
+
+	Info.Name = string::Format("datatable_0x%llx", Asset.NameHash);
+	Info.Type = ApexAssetType::DataTable;
+	Info.Status = ApexAssetStatus::Loaded;
+	Info.Info = string::Format("Columns: %d Rows: %d", DtblHeader.ColumnCount, DtblHeader.RowCount);
 }
 
 std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset, const string& Path, const string& AnimPath, bool IncludeMaterials, bool IncludeAnimations)
@@ -1729,6 +1756,179 @@ List<Assets::Bone> RpakLib::ExtractSkeleton(IO::BinaryReader& Reader, uint64_t S
 	return Result;
 }
 
+void RpakLib::ExtractDataTable(const RpakLoadAsset& Asset, const string& Path)
+{
+	auto RpakStream = this->GetFileStream(Asset);
+	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
+
+	auto DtblHeader = Reader.Read<DataTableHeader>();
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, DtblHeader.ColumnHeaderBlock, DtblHeader.ColumnHeaderOffset));
+
+	List<DataTableColumn> Columns;
+	List<string> ColumnNames;
+	List<List<DataTableColumnData>> Data;
+
+	for (int i = 0; i < DtblHeader.ColumnCount; ++i)
+	{
+		DataTableColumn col;
+
+		uint32_t id = Reader.Read<uint32_t>();
+		uint32_t offset = Reader.Read<uint32_t>();
+
+		col.Unk0Seek = this->GetFileOffset(Asset, id, offset);
+
+		col.Unk8 = Reader.Read<uint64_t>();
+		col.Type = Reader.Read<uint32_t>();
+		col.RowOffset = Reader.Read<uint32_t>();
+
+		Columns.EmplaceBack(col);
+	}
+
+	for (int i = 0; i < DtblHeader.ColumnCount; ++i)
+	{
+		DataTableColumn col = Columns[i];
+
+		RpakStream->SetPosition(col.Unk0Seek);
+		ColumnNames.EmplaceBack(Reader.ReadCString());
+	}
+
+	uint64_t rows_seek = this->GetFileOffset(Asset, DtblHeader.RowHeaderBlock, DtblHeader.RowHeaderOffset);
+
+	for (int i = 0; i < DtblHeader.RowCount; ++i)
+	{
+		List<DataTableColumnData> RowData;
+
+		for (int c = 0; c < DtblHeader.ColumnCount; ++c)
+		{
+			DataTableColumn col = Columns[c];
+
+			uint64_t base_pos = rows_seek + (DtblHeader.RowStride * i);
+			RpakStream->SetPosition(base_pos + col.RowOffset);
+
+			DataTableColumnData d;
+
+			d.Type = (DataTableColumnDataType)col.Type;
+
+			switch (col.Type)
+			{
+			case DataTableColumnDataType::Bool:
+				d.bValue = Reader.Read<uint32_t>() != 0;
+				break;
+			case DataTableColumnDataType::Int:
+				d.iValue = Reader.Read<int32_t>();
+				break;
+			case DataTableColumnDataType::Float:
+				d.fValue = Reader.Read<float>();
+				break;
+			case DataTableColumnDataType::Vector:
+				d.vValue = Reader.Read<Math::Vector3>();
+				break;
+
+			case DataTableColumnDataType::Asset:
+			{
+				uint32_t id = Reader.Read<uint32_t>();
+				uint32_t off = Reader.Read<uint32_t>();
+				uint64_t pos = this->GetFileOffset(Asset, id, off);
+				RpakStream->SetPosition(pos);
+				d.assetValue = Reader.ReadCString();
+				break;
+			}
+			case DataTableColumnDataType::AssetNoPrecache:
+			{
+				uint32_t id = Reader.Read<uint32_t>();
+				uint32_t off = Reader.Read<uint32_t>();
+				uint64_t pos = this->GetFileOffset(Asset, id, off);
+				RpakStream->SetPosition(pos);
+
+				d.assetNPValue = Reader.ReadCString();
+				break;
+			}
+			case DataTableColumnDataType::StringT:
+			{
+				uint32_t id = Reader.Read<uint32_t>();
+				uint32_t off = Reader.Read<uint32_t>();
+				uint64_t pos = this->GetFileOffset(Asset, id, off);
+				RpakStream->SetPosition(pos);
+
+				d.stringValue = Reader.ReadCString();
+				break;
+			}
+
+			}
+
+
+			RowData.EmplaceBack(d);
+		}
+		Data.EmplaceBack(RowData);
+	}
+
+	std::ofstream dtbl_out(Path.ToCString(), std::ios::out);
+
+	for (int i = 0; i < ColumnNames.Count(); ++i)
+	{
+		dtbl_out.write(ColumnNames[i].ToCString(), ColumnNames[i].Length());
+		if (i != ColumnNames.Count() - 1)
+		{
+			dtbl_out << ",";
+		}
+	}
+	dtbl_out << "\n";
+
+	for (int i = 0; i < Data.Count(); ++i)
+	{
+		List<DataTableColumnData> Row = Data[i];
+
+		for (int c = 0; c < Row.Count(); ++c)
+		{
+			DataTableColumnData cd = Row[c];
+
+			switch (cd.Type)
+			{
+			case DataTableColumnDataType::Bool:
+				dtbl_out << cd.bValue;
+				break;
+			case DataTableColumnDataType::Int:
+				dtbl_out << cd.iValue;
+				break;
+			case DataTableColumnDataType::Float:
+				dtbl_out << cd.fValue;
+				break;
+			case DataTableColumnDataType::Vector:
+			{
+				dtbl_out << "<" << cd.vValue.X << "," << cd.vValue.Y << "," << cd.vValue.Z << ">";
+				break;
+			}
+			case DataTableColumnDataType::Asset:
+			{
+				dtbl_out << "\"" + cd.assetValue + "\"";
+				break;
+			}
+			case DataTableColumnDataType::AssetNoPrecache:
+			{
+				dtbl_out << "\"" + cd.assetNPValue + "\"";
+				break;
+			}
+			case DataTableColumnDataType::StringT:
+			{
+				dtbl_out << "\"" + cd.stringValue + "\"";
+				break;
+			}
+			}
+			if (c != Row.Count() - 1)
+			{
+				dtbl_out << ",";
+			}
+			else {
+				dtbl_out << "\n";
+			}
+		}
+	}
+	dtbl_out.close();
+
+}
 void RpakLib::ParseRAnimBoneTranslationTrack(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
 {
 	uint16_t* TranslationDataPtr = *BoneTrackData;
@@ -1987,6 +2187,11 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 		{
 			auto SubHeader = Reader.Read<AnimHeader>();
 			return (SubHeader.AnimationIndex >= LoadedFile.StartSegmentIndex);
+		}
+		case (uint32_t)RpakAssetType::DataTable:
+		{
+			auto SubHeader = Reader.Read<DataTableHeader>();
+			return (SubHeader.ColumnCount != 0 && SubHeader.RowCount != 0);
 		}
 		default:
 			return false;

@@ -39,6 +39,7 @@ private:
 	UIX::UIXCheckBox* LoadMaterials;
 	UIX::UIXCheckBox* LoadImages;
 	UIX::UIXCheckBox* LoadUIImages;
+	UIX::UIXCheckBox* LoadDataTables;
 	UIX::UIXCheckBox* LoadAnimations;
 	UIX::UIXCheckBox* LoadModels;
 	UIX::UIXGroupBox* groupBox3;
