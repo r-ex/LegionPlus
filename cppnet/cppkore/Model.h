@@ -55,7 +55,8 @@ namespace Assets
 					return i;
 
 			if constexpr (std::is_integral<T>::value) {
-				Materials.Emplace(MaterialName, MaterialHashCode).Hash = SourceMap;
+				auto& Mat = Materials.Emplace(MaterialName, MaterialHashCode);
+				Mat.SourceHash = Mat.Hash = SourceMap;
 			}
 			else {
 				Materials.Emplace(MaterialName, MaterialHashCode).SourceString = SourceMap;
