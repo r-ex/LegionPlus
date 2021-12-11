@@ -96,9 +96,9 @@ namespace Assets::Exporters
 
 		string DiffuseMap = "";
 		if (Material.Slots.ContainsKey(MaterialSlotType::Albedo))
-			DiffuseMap = Material.Slots[MaterialSlotType::Albedo];
+			DiffuseMap = Material.Slots[MaterialSlotType::Albedo].first;
 		else if (Material.Slots.ContainsKey(MaterialSlotType::Diffuse))
-			DiffuseMap = Material.Slots[MaterialSlotType::Diffuse];
+			DiffuseMap = Material.Slots[MaterialSlotType::Diffuse].first;
 
 		Texture.Children.Emplace("FileName").AddPropertyString(DiffuseMap.Replace("\\", "/"));
 		Texture.Children.Emplace("RelativeFilename").AddPropertyString(DiffuseMap);
@@ -328,9 +328,9 @@ namespace Assets::Exporters
 
 			string DiffuseMap = "";
 			if (Mat.Slots.ContainsKey(MaterialSlotType::Albedo))
-				DiffuseMap = Mat.Slots[MaterialSlotType::Albedo];
+				DiffuseMap = Mat.Slots[MaterialSlotType::Albedo].first;
 			else if (Mat.Slots.ContainsKey(MaterialSlotType::Diffuse))
-				DiffuseMap = Mat.Slots[MaterialSlotType::Diffuse];
+				DiffuseMap = Mat.Slots[MaterialSlotType::Diffuse].first;
 
 			if (!string::IsNullOrWhiteSpace(DiffuseMap))
 			{

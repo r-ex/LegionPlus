@@ -209,7 +209,7 @@ namespace Assets::Exporters
 					"createNode file -n \"%sFILE\";\n"
 					"setAttr \".ftn\" -type \"string\" \"%s\";",
 					MaterialName,
-					(char*)string(Material.Slots[DiffuseTexture]).Replace("\\", "\\\\")
+					(char*)string(Material.Slots[DiffuseTexture].first).Replace("\\", "\\\\")
 				);
 			}
 		}

@@ -65,15 +65,40 @@ namespace Assets
 			if (Submesh.MaterialIndices.Count() > 0 && this->_MaterialStreamer != nullptr)
 			{
 				auto& Material = Model.Materials[Submesh.MaterialIndices[0]];
-				auto MaterialDiffuseMap = this->_MaterialStreamer(Material.SourceString, Material.SourceHash);
 
-				if (MaterialDiffuseMap != nullptr)
+				if (Material.Slots.ContainsKey(MaterialSlotType::Albedo))
 				{
-					glGenTextures(1, &Draw.Material.AlbedoMap);
-					this->LoadDXTextureOGL(*MaterialDiffuseMap.get(), Draw.Material.AlbedoMap);
-
-					Draw.LoadedMaterial = true;
+					auto MaterialDiffuseMap = this->_MaterialStreamer("", Material.Slots[MaterialSlotType::Albedo].second);
+					if (MaterialDiffuseMap != nullptr)
+					{
+						glGenTextures(1, &Draw.Material.AlbedoMap);
+						this->LoadDXTextureOGL(*MaterialDiffuseMap.get(), Draw.Material.AlbedoMap);
+					}
 				}
+				
+				if (Material.Slots.ContainsKey(MaterialSlotType::Normal))
+				{
+					auto MaterialNormalMap = this->_MaterialStreamer("", Material.Slots[MaterialSlotType::Normal].second);
+					if (MaterialNormalMap != nullptr)
+					{
+						glGenTextures(1, &Draw.Material.NormalMap);
+						this->LoadDXTextureOGL(*MaterialNormalMap.get(), Draw.Material.NormalMap);
+
+					}
+				}
+
+				if (Material.Slots.ContainsKey(MaterialSlotType::Gloss))
+				{
+					auto MaterialGlossMap = this->_MaterialStreamer("", Material.Slots[MaterialSlotType::Gloss].second);
+					if (MaterialGlossMap != nullptr)
+					{
+						glGenTextures(1, &Draw.Material.RoughnessMap);
+						this->LoadDXTextureOGL(*MaterialGlossMap.get(), Draw.Material.RoughnessMap);
+
+					}
+				}
+
+				Draw.LoadedMaterial = true;
 			}
 
 			this->_DrawObjects.Emplace(Draw);
