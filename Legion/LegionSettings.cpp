@@ -126,16 +126,16 @@ void LegionSettings::InitializeComponent()
 	this->groupBox3->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left | Forms::AnchorStyles::Right);
 	this->AddControl(this->groupBox3);
 
-	this->DonateButton = new UIX::UIXButton();
-	this->DonateButton->SetSize({ 78, 25 });
-	this->DonateButton->SetLocation({ 108, 127 });
-	this->DonateButton->SetTabIndex(1);
-	this->DonateButton->SetText("Donate");
-	this->groupBox3->AddControl(this->DonateButton);
+	//this->DonateButton = new UIX::UIXButton();
+	//this->DonateButton->SetSize({ 78, 25 });
+	//this->DonateButton->SetLocation({ 108, 127 });
+	//this->DonateButton->SetTabIndex(1);
+	//this->DonateButton->SetText("Donate");
+	//this->groupBox3->AddControl(this->DonateButton);
 
 	this->TwitterButton = new UIX::UIXButton();
 	this->TwitterButton->SetSize({ 78, 25 });
-	this->TwitterButton->SetLocation({ 192, 127 });
+	this->TwitterButton->SetLocation({ 18, 127 });
 	this->TwitterButton->SetTabIndex(1);
 	this->TwitterButton->SetText("DTZxPorter");
 	this->groupBox3->AddControl(this->TwitterButton);
@@ -274,7 +274,7 @@ void LegionSettings::InitializeComponent()
 
 	this->Load += &OnLoad;
 	this->FormClosing += &OnClose;
-	this->DonateButton->Click += &OnDonateClick;
+	//this->DonateButton->Click += &OnDonateClick;
 	this->TwitterButton->Click += &OnTwitterClick;
 	this->ExportBrowseButton->Click += &OnBrowseClick;
 }

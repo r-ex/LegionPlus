@@ -743,15 +743,40 @@ struct RMdlVGLod
 	float Distance;
 };
 
+#define LAST_IND(x,part_type)    (sizeof(x)/sizeof(part_type) - 1)
+#if defined(__BYTE_ORDER) && __BYTE_ORDER == __BIG_ENDIAN
+#  define LOW_IND(x,part_type)   LAST_IND(x,part_type)
+#  define HIGH_IND(x,part_type)  0
+#else
+#  define HIGH_IND(x,part_type)  LAST_IND(x,part_type)
+#  define LOW_IND(x,part_type)   0
+#endif
+
+#define BYTEn(x, n)   (*((uint8_t*)&(x)+n))
+#define WORDn(x, n)   (*((uint16_t*)&(x)+n))
+#define DWORDn(x, n)  (*((uint32_t*)&(x)+n))
+#define LOBYTE(x)  BYTEn(x,LOW_IND(x,uint8_t))
+#define LOWORD(x)  WORDn(x,LOW_IND(x,uint16_t))
+#define LODWORD(x) DWORDn(x,LOW_IND(x,uint32_t))
+#define HIBYTE(x)  BYTEn(x,HIGH_IND(x,uint8_t))
+#define HIWORD(x)  WORDn(x,HIGH_IND(x,uint16_t))
+#define HIDWORD(x) DWORDn(x,HIGH_IND(x,uint32_t))
+#define BYTE1(x)   BYTEn(x,  1)         // byte 1 (counting from 0)
+#define BYTE2(x)   BYTEn(x,  2)
+
 struct RMdlPackedVertexPosition
 {
 	uint32_t _Value[2];
 
 	Math::Vector3 Unpack()
 	{
-		return Math::Vector3(0, 0, 0);
-		// TODO(rx): re-implement this from dump
-		// Redacted
+		float x, y, z;
+
+		x = ((*_Value & 0x1FFFFF) * 0.0009765625) - 1024.0;
+		y = ((((_Value[1] & 0x3FFu) << 11) + (*_Value >> 21)) * 0.0009765625) - 1024.0;
+		z = ((*(_Value + 1) >> 10) * 0.0009765625) - 2048.0;
+
+		return Math::Vector3(x, y, z);
 	}
 };
 
@@ -761,9 +786,33 @@ struct RMdlPackedVertexNormal
 
 	Math::Vector3 Unpack()
 	{
-		return Math::Vector3(0, 0, 0);
-		// TODO(rx): re-implement this from dump
-        // Redacted
+		float x, y, z;
+
+		float v80 = _Value;
+		float v81 = ((2 * LODWORD(v80)) >> 30);
+		int v82 = 255;
+		if (((8 * LODWORD(v80)) >> 31) != 0.0)
+			v82 = -255;
+		float v83 = v82;
+		float v84 = ((LODWORD(v80) << 13) >> 23) + -256.0;
+		float v85 = ((16 * LODWORD(_Value)) >> 23) + -256.0;
+		float v86 = ((v85 * v85) + 65025.0) + (v84 * v84);
+
+		float v87;
+		if (v86 < 0.0)
+		{
+			v87 = sqrtf(v86);
+		}
+		else
+		{
+			v87 = sqrtf(v86); // fsqrt - not supposed to be a function call
+		}
+
+		x = v83 * (1.0 / v87);
+		y = v84 * (1.0 / v87); // if you multiply this by 10 you get the correct value for y (the second number in the vn entry)
+		z = v85 * (1.0 / v87);
+
+		return Math::Vector3(x,y,z);
 	}
 };
 

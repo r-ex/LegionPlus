@@ -28,7 +28,7 @@ void LegionPreview::InitializeComponent()
 	this->SuspendLayout();
 	this->SetAutoScaleDimensions({ 6, 13 });
 	this->SetAutoScaleMode(Forms::AutoScaleMode::Font);
-	this->SetText("Legion (Apex Legends Extraction Tool) DTZxPorter | Asset Preview");
+	this->SetText("Asset Preview");
 	this->SetClientSize({ 775, 481 });
 	this->SetMinimumSize({ 791, 520 });
 	this->SetStartPosition(Forms::FormStartPosition::CenterParent);

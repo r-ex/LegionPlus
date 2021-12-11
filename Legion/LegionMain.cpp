@@ -17,7 +17,7 @@ void LegionMain::InitializeComponent()
 	this->SuspendLayout();
 	this->SetAutoScaleDimensions({ 6, 13 });
 	this->SetAutoScaleMode(Forms::AutoScaleMode::Font);
-	this->SetText("Legion (Apex Legends Extraction Tool) DTZxPorter");
+	this->SetText("Legion");
 	this->SetClientSize({ 775, 481 });
 	this->SetMinimumSize({ 791, 520 });
 	this->SetStartPosition(Forms::FormStartPosition::CenterScreen);
@@ -678,14 +678,18 @@ void LegionMain::GetVirtualItem(const std::unique_ptr<Forms::RetrieveVirtualItem
 
 	switch (EventArgs->SubItemIndex)
 	{
+	case 0:
 		EventArgs->Text = Asset.Name;
 		break;
+	case 1:
 		EventArgs->Text = AssetTypes[(uint32_t)Asset.Type];
 		EventArgs->Style.ForeColor = AssetTypesColors[(uint32_t)Asset.Type];
 		break;
+	case 2:
 		EventArgs->Text = AssetStatus[(uint32_t)Asset.Status];
 		EventArgs->Style.ForeColor = AssetStatusColors[(uint32_t)Asset.Status];
 		break;
+	case 3:
 		EventArgs->Text = Asset.Info;
 		break;
 	}
