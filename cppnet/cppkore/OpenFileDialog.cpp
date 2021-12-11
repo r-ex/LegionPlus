@@ -77,7 +77,7 @@ namespace Forms
 
 			auto BasePath = string(Path);
 
-			//Path += ((size_t)BasePath.Length() + 1);
+			Path += ((size_t)BasePath.Length() + 1);
 
 			while (*Path)
 			{
