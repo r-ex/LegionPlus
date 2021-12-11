@@ -813,8 +813,6 @@ struct RMdlPackedVertexNormal
 
 		int v97 = 0;
 
-		float v98, v99, v100;
-
 		float v1, v2, v3;
 
 		v1 = v90 * (1.0 / v93);
