@@ -554,7 +554,7 @@ void LegionMain::OnLoadClick(Forms::Control* Sender)
 
 	if (OpenFileD.Count() == 0)
 		return;
-	else if (OpenFileD.Count() > 4)
+	else if (OpenFileD.Count() > MAX_LOADED_RPAKS)
 	{
 		MessageBox::Show("Please select 4 or less files, Legion will run out of memory processing all of the files at once.", "Legion", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
 		return;

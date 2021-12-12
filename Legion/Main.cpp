@@ -6,14 +6,14 @@
 #include "RpakLib.h"
 #include "KoreTheme.h"
 #include "RBspLib.h"
+#include "CommandLine.h"
 
 #pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
 using namespace System;
 
 #if _DEBUG
-int main(int argc, char* argv[])
-
+int main(int argc, char** argv)
 #else
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 #endif
@@ -26,26 +26,29 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	bool ShowGUI = true;
 
 #ifndef _DEBUG
-	Forms::Application::Run(new LegionSplash());
-
 	LPWSTR* argv;
 	int argc;
 
 	argv = CommandLineToArgvW(GetCommandLineW(), &argc);
 
-	if (argc == 3)
-	{
-		auto Opcode = wstring(argv[1]).ToString();
-		auto Parameters = wstring(argv[2]).ToString();
+	CommandLine cmdline(argc, argv);
 
-		if (Opcode == "--export")
+	if (!cmdline.HasParam(L"--export"))
+	{
+		Forms::Application::Run(new LegionSplash());
+	}
+	else {
+		string rpakPath = wstring(cmdline.GetParamValue(L"--export")).ToString();
+
+		if (rpakPath != "")
 		{
 			auto Rpak = std::make_unique<RpakLib>();
 			auto ExportAssets = List<ExportAsset>();
 
-			Rpak->LoadRpak(Parameters);
+			Rpak->LoadRpak(rpakPath);
 			Rpak->PatchAssets();
 
+			// todo(rx): allow command line flags to toggle these
 			const bool ShowModels = ExportManager::Config.Get<System::SettingType::Boolean>("LoadModels");
 			const bool ShowAnimations = ExportManager::Config.Get<System::SettingType::Boolean>("LoadAnimations");
 			const bool ShowImages = ExportManager::Config.Get<System::SettingType::Boolean>("LoadImages");

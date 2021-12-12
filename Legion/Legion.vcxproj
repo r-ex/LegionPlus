@@ -152,6 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ApexAsset.cpp" />
+    <ClCompile Include="CommandLine.cpp" />
     <ClCompile Include="ExportManager.cpp" />
     <ClCompile Include="LegionMain.cpp" />
     <ClCompile Include="LegionPreview.cpp" />
@@ -171,6 +172,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ApexAsset.h" />
+    <ClInclude Include="CommandLine.h" />
     <ClInclude Include="ExportAsset.h" />
     <ClInclude Include="ExportManager.h" />
     <ClInclude Include="LegionMain.h" />

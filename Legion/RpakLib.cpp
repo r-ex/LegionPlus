@@ -371,6 +371,9 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 	{
 		std::int64_t params[18];
 
+		// todo: this needs to be implemented properly for streamed uiia to work
+
+		/*
 		uint32_t dSize = g_pRtech->DecompressedSize((std::int64_t)params, (uint8_t*)Data, DataSize, 0, PAK_HEADER_SIZE);
 
 		std::vector<std::uint8_t> pakbuf(dSize, 0);
@@ -379,9 +382,10 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 		params[3] = -1i64;
 
 		std::uint8_t decomp_result = g_pRtech->Decompress(params, dSize, pakbuf.size());
+		*/
 
 
-		return std::make_unique<IO::MemoryStream>(pakbuf.data(), 0, dSize);
+		return std::make_unique<IO::MemoryStream>((uint8_t*)Data, 0, DataSize);
 	}
 	else if (Format == 0x2)
 	{
@@ -1904,7 +1908,7 @@ void RpakLib::ExtractDataTable(const RpakLoadAsset& Asset, const string& Path)
 				break;
 			case DataTableColumnDataType::Vector:
 			{
-				dtbl_out << "<" << cd.vValue.X << "," << cd.vValue.Y << "," << cd.vValue.Z << ">";
+				dtbl_out << "\"<" << cd.vValue.X << "," << cd.vValue.Y << "," << cd.vValue.Z << ">\"";
 				break;
 			}
 			case DataTableColumnDataType::Asset:
