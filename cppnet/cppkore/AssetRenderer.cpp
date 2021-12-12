@@ -98,6 +98,17 @@ namespace Assets
 					}
 				}
 
+				if (Material.Slots.ContainsKey(MaterialSlotType::Specular))
+				{
+					auto MaterialSpecMap = this->_MaterialStreamer("", Material.Slots[MaterialSlotType::Specular].second);
+					if (MaterialSpecMap != nullptr)
+					{
+						glGenTextures(1, &Draw.Material.MetallicMap);
+						this->LoadDXTextureOGL(*MaterialSpecMap.get(), Draw.Material.MetallicMap);
+
+					}
+				}
+
 				Draw.LoadedMaterial = true;
 			}
 
@@ -377,7 +388,7 @@ namespace Assets
 		}
 		else if (this->_DrawingMode == DrawMode::Model)
 		{
-			this->_Camera.Zoom((float)EventArgs->Delta * .2f);
+			this->_Camera.Zoom((float)EventArgs->Delta * .04f);
 		}
 
 		this->Redraw();
@@ -474,25 +485,11 @@ namespace Assets
 
 		for (auto& Draw : this->_DrawObjects)
 		{
+
 			if (Draw.LoadedMaterial && this->_ShowMaterials)
 			{
 				const GLint DiffuseLoaded = 1;
 				glUniform1iv(this->_ModelShader.GetUniformLocation("diffuseLoaded"), 1, &DiffuseLoaded);
-
-				glEnable(GL_TEXTURE_2D);
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, Draw.Material.AlbedoMap);
-
-				const GLint DiffuseSlot = 0;
-				glUniform1iv(this->_ModelShader.GetUniformLocation("diffuseTexture"), 1, &DiffuseSlot);
-
-
-				glActiveTexture(GL_TEXTURE1);
-				glBindTexture(GL_TEXTURE_2D, Draw.Material.NormalMap);
-
-
-				const GLint NormalSlot = 1; 
-				glUniform1iv(this->_ModelShader.GetUniformLocation("normalTexture"), 1, &NormalSlot);
 
 
 			}
@@ -503,6 +500,41 @@ namespace Assets
 
 
 			}
+
+
+
+			glEnable(GL_TEXTURE_2D);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, Draw.Material.AlbedoMap);
+
+			const GLint DiffuseSlot = 0;
+			glUniform1iv(this->_ModelShader.GetUniformLocation("diffuseTexture"), 1, &DiffuseSlot);
+
+
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, Draw.Material.NormalMap);
+
+
+			const GLint NormalSlot = 1;
+			glUniform1iv(this->_ModelShader.GetUniformLocation("normalTexture"), 1, &NormalSlot);
+
+
+
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, Draw.Material.RoughnessMap);
+
+
+			const GLint GlossSlot = 2;
+			glUniform1iv(this->_ModelShader.GetUniformLocation("glossTexture"), 1, &GlossSlot);
+
+
+
+			glActiveTexture(GL_TEXTURE3);
+			glBindTexture(GL_TEXTURE_2D, Draw.Material.MetallicMap);
+
+
+			const GLint SpecularSlot = 3;
+			glUniform1iv(this->_ModelShader.GetUniformLocation("specularTexture"), 1, &SpecularSlot);
 
 			glActiveTexture(GL_TEXTURE0);
 
