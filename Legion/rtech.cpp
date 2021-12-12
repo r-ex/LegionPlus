@@ -1,6 +1,5 @@
 #include <cmath>
 #include "rtech.h"
-#include <intrin.h>
 
 /******************************************************************************
 -------------------------------------------------------------------------------
@@ -536,6 +535,23 @@ float* __fastcall RTech::RpakDecompressDynamicTrack(int a1, unsigned __int8* a2,
 	float v42; // [rsp+F0h] [rbp+8h]
 	float v43; // [rsp+F8h] [rbp+10h]
 	float v44; // [rsp+100h] [rbp+18h]
+	int v73[16];
+
+	v73[0] = 0x2100F01;
+	v73[1] = 0xF020807;
+	v73[2] = 0xF0300;
+	v73[3] = 0x5000F04;
+	v73[4] = 0xF06000F;
+	v73[5] = 0xF0700;
+	v73[6] = 0x3020F02;
+	v73[7] = 0xF04020F;
+	v73[8] = 0x20F0502;
+	v73[9] = 0x7020F06;
+	v73[10] = 0xF02020F;
+	v73[11] = 0x40F0304;
+	v73[12] = 0x5040F04;
+	v73[13] = 0xF06040F;
+	v73[14] = 0x40F0704;
 
 	v44 = a3;
 	v5 = a1;
@@ -545,11 +561,11 @@ float* __fastcall RTech::RpakDecompressDynamicTrack(int a1, unsigned __int8* a2,
 	v9 = a2;
 	if (v5 >= (int)v6)
 	{
+		LOBYTE(v10) = v6;
 		do
 		{
 			v5 -= (unsigned __int8)v6;
-			v6 = byte_1412288D8[3 * *v9]
-				+ (__int64)((byte_1412288D8[3 * *v9 + 1] + (unsigned __int8)v6 * byte_1412288D8[3 * *v9 + 2]) / 16);
+			v6 = *((unsigned __int8*)v73 + 3 * *v9) + ((unsigned __int64)(*((unsigned __int8*)v73 + 3 * *v9 + 1) + (unsigned __int8)v10 * (unsigned int)*((unsigned __int8*)v73 + 3 * *v9 + 2)) >> 4);
 			v10 = v9[2 * v6 + 1];
 			v9 += 2 * v6;
 			LOBYTE(v6) = v10;
@@ -561,8 +577,7 @@ float* __fastcall RTech::RpakDecompressDynamicTrack(int a1, unsigned __int8* a2,
 		*a4 = sub_14014E340(v9, v5, a3);
 		v41 = sub_14014E340(
 			&v9[2
-			* (byte_1412288D8[3 * *v9]
-				+ (__int64)((byte_1412288D8[3 * *v9 + 1] + v9[1] * byte_1412288D8[3 * *v9 + 2]) / 16))],
+			* *((unsigned __int8*)v73 + 3 * *v9) + ((unsigned __int64)(*((unsigned __int8*)v73 + 3 * *v9 + 1) + (unsigned __int8)v9[1] * (unsigned int)*((unsigned __int8*)v73 + 3 * *v9 + 2)) >> 4)],
 			0,
 			a3);
 		result = a5;
