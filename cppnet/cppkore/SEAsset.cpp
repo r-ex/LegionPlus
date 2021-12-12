@@ -547,19 +547,19 @@ namespace Assets::Exporters
 			Writer.Write<bool>(true);
 
 			if (Material.Slots.ContainsKey(MaterialSlotType::Albedo))
-				Writer.WriteCString(Material.Slots[MaterialSlotType::Albedo]);
+				Writer.WriteCString(Material.Slots[MaterialSlotType::Albedo].first);
 			else if (Material.Slots.ContainsKey(MaterialSlotType::Diffuse))
-				Writer.WriteCString(Material.Slots[MaterialSlotType::Diffuse]);
+				Writer.WriteCString(Material.Slots[MaterialSlotType::Diffuse].first);
 			else
 				Writer.Write<uint8_t>(0);
 
 			if (Material.Slots.ContainsKey(MaterialSlotType::Normal))
-				Writer.WriteCString(Material.Slots[MaterialSlotType::Normal]);
+				Writer.WriteCString(Material.Slots[MaterialSlotType::Normal].first);
 			else
 				Writer.Write<uint8_t>(0);
 
 			if (Material.Slots.ContainsKey(MaterialSlotType::Specular))
-				Writer.WriteCString(Material.Slots[MaterialSlotType::Specular]);
+				Writer.WriteCString(Material.Slots[MaterialSlotType::Specular].first);
 			else
 				Writer.Write<uint8_t>(0);
 		}

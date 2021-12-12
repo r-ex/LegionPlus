@@ -132,14 +132,14 @@ namespace Assets::Exporters
 			);
 
 			if (Material.Slots.ContainsKey(MaterialSlotType::Albedo))
-				MatWriter.WriteLineFmt("map_Kd %s", (char*)Material.Slots[MaterialSlotType::Albedo]);
+				MatWriter.WriteLineFmt("map_Kd %s", (char*)Material.Slots[MaterialSlotType::Albedo].first);
 			else if (Material.Slots.ContainsKey(MaterialSlotType::Diffuse))
-				MatWriter.WriteLineFmt("map_Kd %s", (char*)Material.Slots[MaterialSlotType::Diffuse]);
+				MatWriter.WriteLineFmt("map_Kd %s", (char*)Material.Slots[MaterialSlotType::Diffuse].first);
 
 			if (Material.Slots.ContainsKey(MaterialSlotType::Normal))
-				MatWriter.WriteLineFmt("map_bump %s", (char*)Material.Slots[MaterialSlotType::Normal]);
+				MatWriter.WriteLineFmt("map_bump %s", (char*)Material.Slots[MaterialSlotType::Normal].first);
 			if (Material.Slots.ContainsKey(MaterialSlotType::Specular))
-				MatWriter.WriteLineFmt("map_Ks %s", (char*)Material.Slots[MaterialSlotType::Specular]);
+				MatWriter.WriteLineFmt("map_Ks %s", (char*)Material.Slots[MaterialSlotType::Specular].first);
 		}
 
 		return true;

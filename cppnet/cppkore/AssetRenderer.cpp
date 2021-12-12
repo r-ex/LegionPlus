@@ -65,15 +65,51 @@ namespace Assets
 			if (Submesh.MaterialIndices.Count() > 0 && this->_MaterialStreamer != nullptr && Model.Materials.Count() != 0)
 			{
 				auto& Material = Model.Materials[Submesh.MaterialIndices[0]];
-				auto MaterialDiffuseMap = this->_MaterialStreamer(Material.SourceString, Material.SourceHash);
 
-				if (MaterialDiffuseMap != nullptr)
+				if (Material.Slots.ContainsKey(MaterialSlotType::Albedo))
 				{
-					glGenTextures(1, &Draw.Material.AlbedoMap);
-					this->LoadDXTextureOGL(*MaterialDiffuseMap.get(), Draw.Material.AlbedoMap);
-
-					Draw.LoadedMaterial = true;
+					auto MaterialDiffuseMap = this->_MaterialStreamer("", Material.Slots[MaterialSlotType::Albedo].second);
+					if (MaterialDiffuseMap != nullptr)
+					{
+						glGenTextures(1, &Draw.Material.AlbedoMap);
+						this->LoadDXTextureOGL(*MaterialDiffuseMap.get(), Draw.Material.AlbedoMap);
+					}
 				}
+				
+				if (Material.Slots.ContainsKey(MaterialSlotType::Normal))
+				{
+					auto MaterialNormalMap = this->_MaterialStreamer("", Material.Slots[MaterialSlotType::Normal].second);
+					if (MaterialNormalMap != nullptr)
+					{
+						glGenTextures(1, &Draw.Material.NormalMap);
+						this->LoadDXTextureOGL(*MaterialNormalMap.get(), Draw.Material.NormalMap);
+
+					}
+				}
+
+				if (Material.Slots.ContainsKey(MaterialSlotType::Gloss))
+				{
+					auto MaterialGlossMap = this->_MaterialStreamer("", Material.Slots[MaterialSlotType::Gloss].second);
+					if (MaterialGlossMap != nullptr)
+					{
+						glGenTextures(1, &Draw.Material.RoughnessMap);
+						this->LoadDXTextureOGL(*MaterialGlossMap.get(), Draw.Material.RoughnessMap);
+
+					}
+				}
+
+				if (Material.Slots.ContainsKey(MaterialSlotType::Specular))
+				{
+					auto MaterialSpecMap = this->_MaterialStreamer("", Material.Slots[MaterialSlotType::Specular].second);
+					if (MaterialSpecMap != nullptr)
+					{
+						glGenTextures(1, &Draw.Material.MetallicMap);
+						this->LoadDXTextureOGL(*MaterialSpecMap.get(), Draw.Material.MetallicMap);
+
+					}
+				}
+
+				Draw.LoadedMaterial = true;
 			}
 
 			this->_DrawObjects.Emplace(Draw);
@@ -352,7 +388,7 @@ namespace Assets
 		}
 		else if (this->_DrawingMode == DrawMode::Model)
 		{
-			this->_Camera.Zoom((float)EventArgs->Delta * .2f);
+			this->_Camera.Zoom((float)EventArgs->Delta * .04f);
 		}
 
 		this->Redraw();
@@ -449,23 +485,58 @@ namespace Assets
 
 		for (auto& Draw : this->_DrawObjects)
 		{
+
 			if (Draw.LoadedMaterial && this->_ShowMaterials)
 			{
 				const GLint DiffuseLoaded = 1;
 				glUniform1iv(this->_ModelShader.GetUniformLocation("diffuseLoaded"), 1, &DiffuseLoaded);
 
-				glEnable(GL_TEXTURE_2D);
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, Draw.Material.AlbedoMap);
 
-				const GLint DiffuseSlot = 0;
-				glUniform1iv(this->_ModelShader.GetUniformLocation("diffuseTexture"), 1, &DiffuseSlot);
 			}
 			else
 			{
 				const GLint DiffuseLoaded = 0;
 				glUniform1iv(this->_ModelShader.GetUniformLocation("diffuseLoaded"), 1, &DiffuseLoaded);
+
+
 			}
+
+
+
+			glEnable(GL_TEXTURE_2D);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, Draw.Material.AlbedoMap);
+
+			const GLint DiffuseSlot = 0;
+			glUniform1iv(this->_ModelShader.GetUniformLocation("diffuseTexture"), 1, &DiffuseSlot);
+
+
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, Draw.Material.NormalMap);
+
+
+			const GLint NormalSlot = 1;
+			glUniform1iv(this->_ModelShader.GetUniformLocation("normalTexture"), 1, &NormalSlot);
+
+
+
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, Draw.Material.RoughnessMap);
+
+
+			const GLint GlossSlot = 2;
+			glUniform1iv(this->_ModelShader.GetUniformLocation("glossTexture"), 1, &GlossSlot);
+
+
+
+			glActiveTexture(GL_TEXTURE3);
+			glBindTexture(GL_TEXTURE_2D, Draw.Material.MetallicMap);
+
+
+			const GLint SpecularSlot = 3;
+			glUniform1iv(this->_ModelShader.GetUniformLocation("specularTexture"), 1, &SpecularSlot);
+
+			glActiveTexture(GL_TEXTURE0);
 
 			glBindBuffer(GL_ARRAY_BUFFER, Draw.VertexBuffer);
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, Stride, (void*)0);

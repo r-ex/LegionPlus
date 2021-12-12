@@ -1174,6 +1174,12 @@ struct RMdlMaterial
 	string CavityMapName;
 
 	uint64_t AlbedoHash;
+	uint64_t NormalHash;
+	uint64_t GlossHash;
+	uint64_t SpecularHash;
+	uint64_t EmissiveHash;
+	uint64_t AmbientOcclusionHash;
+	uint64_t CavityHash;
 };
 
 struct RUIImageTile

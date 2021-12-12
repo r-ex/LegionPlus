@@ -213,9 +213,9 @@ namespace Assets::Exporters
 			Writer.WriteFmt("MATERIAL %d \"%s\" \"Phong\" \"", MaterialIndex, (char*)Material.Name);
 
 			if (Material.Slots.ContainsKey(MaterialSlotType::Albedo))
-				Writer.WriteFmt("color:%s", (char*)Material.Slots[MaterialSlotType::Albedo]);
+				Writer.WriteFmt("color:%s", (char*)Material.Slots[MaterialSlotType::Albedo].first);
 			else if (Material.Slots.ContainsKey(MaterialSlotType::Diffuse))
-				Writer.WriteFmt("color:%s", (char*)Material.Slots[MaterialSlotType::Diffuse]);
+				Writer.WriteFmt("color:%s", (char*)Material.Slots[MaterialSlotType::Diffuse].first);
 
 			Writer.WriteLine("\"\nCOLOR 0.000000 0.000000 0.000000 1.000000\nTRANSPARENCY 0.000000 0.000000 0.000000 1.000000\nAMBIENTCOLOR 1.000000 1.000000 1.000000 1.000000\nINCANDESCENCE 0.000000 0.000000 0.000000 1.000000\nCOEFFS 0.800000 0.000000\nGLOW 0.000000 0\nREFRACTIVE 6 1.000000\nSPECULARCOLOR 0.500000 0.500000 0.500000 1.000000\nREFLECTIVECOLOR 0.000000 0.000000 0.000000 1.000000\nREFLECTIVE 1 0.500000\nBLINN -1.000000 -1.000000\nPHONG 20.000000");
 

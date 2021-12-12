@@ -243,8 +243,8 @@ namespace Assets::Exporters
 
 			for (auto& Kvp : Mat.Slots)
 			{
-				auto FileHash = Hashing::XXHash::HashString(Kvp.second);
-				MatNode.Children.Emplace(CastId::File, FileHash).Properties.Emplace(CastPropertyId::String, "p").SetString(Kvp.second);
+				auto FileHash = Hashing::XXHash::HashString(Kvp.second.first);
+				MatNode.Children.Emplace(CastId::File, FileHash).Properties.Emplace(CastPropertyId::String, "p").SetString(Kvp.second.first);
 
 				// Cast material property mapping
 				constexpr const char* MaterialSlotNames[] =

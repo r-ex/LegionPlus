@@ -57,7 +57,7 @@ namespace Assets
 		uint64_t SourceHash;
 		
 		// The material texture slots
-		Dictionary<MaterialSlotType, string> Slots;
+		Dictionary<MaterialSlotType, std::pair<string, uint64_t>> Slots;
 
 		// The unique hash identifier for this material.
 		uint64_t Hash;

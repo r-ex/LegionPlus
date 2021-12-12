@@ -1017,19 +1017,19 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 			auto& MaterialInstance = Model->Materials[MaterialIndex];
 
 			if (ParsedMaterial.AlbedoMapName != "")
-				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Albedo, "_images\\" + ParsedMaterial.AlbedoMapName);
+				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Albedo, { "_images\\" + ParsedMaterial.AlbedoMapName, ParsedMaterial.AlbedoHash });
 			if (ParsedMaterial.NormalMapName != "")
-				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Normal, "_images\\" + ParsedMaterial.NormalMapName);
+				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Normal, { "_images\\" + ParsedMaterial.NormalMapName, ParsedMaterial.NormalHash });
 			if (ParsedMaterial.GlossMapName != "")
-				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Gloss, "_images\\" + ParsedMaterial.GlossMapName);
+				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Gloss, { "_images\\" + ParsedMaterial.GlossMapName, ParsedMaterial.GlossHash });
 			if (ParsedMaterial.SpecularMapName != "")
-				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Specular, "_images\\" + ParsedMaterial.SpecularMapName);
+				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Specular, { "_images\\" + ParsedMaterial.SpecularMapName, ParsedMaterial.SpecularHash });
 			if (ParsedMaterial.EmissiveMapName != "")
-				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Emissive, "_images\\" + ParsedMaterial.EmissiveMapName);
+				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Emissive, { "_images\\" + ParsedMaterial.EmissiveMapName, ParsedMaterial.EmissiveHash });
 			if (ParsedMaterial.AmbientOcclusionMapName != "")
-				MaterialInstance.Slots.Add(Assets::MaterialSlotType::AmbientOcclusion, "_images\\" + ParsedMaterial.AmbientOcclusionMapName);
+				MaterialInstance.Slots.Add(Assets::MaterialSlotType::AmbientOcclusion, { "_images\\" + ParsedMaterial.AmbientOcclusionMapName, ParsedMaterial.AmbientOcclusionHash });
 			if (ParsedMaterial.CavityMapName != "")
-				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Cavity, "_images\\" + ParsedMaterial.CavityMapName);
+				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Cavity, { "_images\\" + ParsedMaterial.CavityMapName, ParsedMaterial.CavityHash });
 
 			Mesh.MaterialIndices.EmplaceBack(MaterialIndex);
 		}
@@ -1084,21 +1084,27 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 				Result.AlbedoMapName = TextureName;
 				break;
 			case 1:
+				Result.NormalHash = TextureHash;
 				Result.NormalMapName = TextureName;
 				break;
 			case 2:
+				Result.GlossHash = TextureHash;
 				Result.GlossMapName = TextureName;
 				break;
 			case 3:
+				Result.SpecularHash = TextureHash;
 				Result.SpecularMapName = TextureName;
 				break;
 			case 4:
+				Result.EmissiveHash = TextureHash;
 				Result.EmissiveMapName = TextureName;
 				break;
 			case 5:
+				Result.AmbientOcclusionHash = TextureHash;
 				Result.AmbientOcclusionMapName = TextureName;
 				break;
 			case 6:
+				Result.CavityHash = TextureHash;
 				Result.CavityMapName = TextureName;
 				break;
 			}
