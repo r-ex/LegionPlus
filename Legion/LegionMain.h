@@ -37,6 +37,7 @@ protected:
 	static void OnSearchClick(Forms::Control* Sender);
 	static void OnClearClick(Forms::Control* Sender);
 	static void OnTitanfallClick(Forms::Control* Sender);
+	static void OnRefreshClick(Forms::Control* Sender);
 	static void OnListDoubleClick(Forms::Control* Sender);
 	static void OnListKeyUp(const std::unique_ptr<KeyEventArgs>& EventArgs, Forms::Control* Sender);
 	static void OnListKeyPressed(const std::unique_ptr<KeyPressEventArgs>& EventArgs, Forms::Control* Sender);
@@ -83,6 +84,7 @@ private:
 	UIX::UIXButton* ExportSelectedButton;
 	UIX::UIXButton* LoadRPakButton;
 	UIX::UIXButton* SettingsButton;
+	UIX::UIXButton* RefreshAssetsButton;
 	UIX::UIXListView* AssetsListView;
 
 	// Internal RPak buffer

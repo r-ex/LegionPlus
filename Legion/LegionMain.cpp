@@ -31,6 +31,15 @@ void LegionMain::InitializeComponent()
 	this->TitanfallConverterButton->Click += &OnTitanfallClick;
 	this->AddControl(this->TitanfallConverterButton);
 
+	this->RefreshAssetsButton = new UIX::UIXButton();
+	this->RefreshAssetsButton->SetSize({ 78, 27 });
+	this->RefreshAssetsButton->SetLocation({ 374, 442 });
+	this->RefreshAssetsButton->SetTabIndex(9);
+	this->RefreshAssetsButton->SetText("Refresh");
+	this->RefreshAssetsButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
+	this->RefreshAssetsButton->Click += &OnRefreshClick;
+	this->AddControl(this->RefreshAssetsButton);
+
 	this->ClearSearchButton = new UIX::UIXButton();
 	this->ClearSearchButton->SetSize({ 85, 24 });
 	this->ClearSearchButton->SetLocation({ 381, 8 });
@@ -593,6 +602,13 @@ void LegionMain::OnTitanfallClick(Forms::Control* Sender)
 {
 	auto Titanfall = std::make_unique<LegionTitanfallConverter>();
 	Titanfall->ShowDialog((Forms::Form*)Sender->FindForm());
+}
+
+void LegionMain::OnRefreshClick(Forms::Control* Sender)
+{
+	auto ThisPtr = (LegionMain*)Sender->FindForm();
+
+	ThisPtr->RefreshView();
 }
 
 void LegionMain::OnListDoubleClick(Forms::Control* Sender)
