@@ -48,15 +48,33 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			Rpak->LoadRpak(rpakPath);
 			Rpak->PatchAssets();
 
-			// todo(rx): allow command line flags to toggle these
-			const bool ShowModels = ExportManager::Config.Get<System::SettingType::Boolean>("LoadModels");
-			const bool ShowAnimations = ExportManager::Config.Get<System::SettingType::Boolean>("LoadAnimations");
-			const bool ShowImages = ExportManager::Config.Get<System::SettingType::Boolean>("LoadImages");
-			const bool ShowMaterials = ExportManager::Config.Get<System::SettingType::Boolean>("LoadMaterials");
-			const bool ShowUIImages = ExportManager::Config.Get<System::SettingType::Boolean>("LoadUIImages");
-			const bool ShowDataTables = ExportManager::Config.Get<System::SettingType::Boolean>("LoadDataTables");
+			bool bLoadModels = cmdline.HasParam(L"--loadmodels");
+			bool bLoadAnims = cmdline.HasParam(L"--loadanimations");
+			bool bLoadImages = cmdline.HasParam(L"--loadimages");
+			bool bLoadMaterials = cmdline.HasParam(L"--loadmaterials");
+			bool bLoadUIImages = cmdline.HasParam(L"--loaduiimages");
+			bool bLoadDataTables = cmdline.HasParam(L"--loaddatatables");
 
-			auto AssetList = Rpak->BuildAssetList(ShowModels, ShowAnimations, ShowImages, ShowMaterials, ShowUIImages, ShowDataTables);
+			std::unique_ptr<List<ApexAsset>> AssetList;
+
+			bool bNoFlagsSpecified = !bLoadModels && !bLoadAnims && !bLoadImages && !bLoadMaterials && !bLoadUIImages && !bLoadDataTables;
+
+			if (bNoFlagsSpecified)
+			{
+				const bool ShowModels = ExportManager::Config.Get<System::SettingType::Boolean>("LoadModels");
+				const bool ShowAnimations = ExportManager::Config.Get<System::SettingType::Boolean>("LoadAnimations");
+				const bool ShowImages = ExportManager::Config.Get<System::SettingType::Boolean>("LoadImages");
+				const bool ShowMaterials = ExportManager::Config.Get<System::SettingType::Boolean>("LoadMaterials");
+				const bool ShowUIImages = ExportManager::Config.Get<System::SettingType::Boolean>("LoadUIImages");
+				const bool ShowDataTables = ExportManager::Config.Get<System::SettingType::Boolean>("LoadDataTables");
+
+				AssetList = Rpak->BuildAssetList(ShowModels, ShowAnimations, ShowImages, ShowMaterials, ShowUIImages, ShowDataTables);
+			}
+			else {
+				AssetList = Rpak->BuildAssetList(bLoadModels, bLoadAnims, bLoadImages, bLoadMaterials, bLoadUIImages, bLoadDataTables);
+			}
+
+
 
 			for (auto& Asset : *AssetList.get())
 			{
