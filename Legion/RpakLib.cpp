@@ -474,7 +474,62 @@ void RpakLib::ExportDataTable(const RpakLoadAsset& Asset, const string& Path)
 {
 	auto DestinationPath = IO::Path::Combine(Path, string::Format("0x%llx.csv", Asset.NameHash));
 
-	this->ExtractDataTable(Asset, DestinationPath);
+	auto DataTable = this->ExtractDataTable(Asset);
+
+	std::ofstream dtbl_out(DestinationPath.ToCString(), std::ios::out);
+
+	for (int i = 0; i < DataTable.Count(); ++i)
+	{
+		List<DataTableColumnData> Row = DataTable[i];
+
+		for (int c = 0; c < Row.Count(); ++c)
+		{
+			DataTableColumnData cd = Row[c];
+
+			switch (cd.Type)
+			{
+			case DataTableColumnDataType::Bool:
+				dtbl_out << cd.bValue;
+				break;
+			case DataTableColumnDataType::Int:
+				dtbl_out << cd.iValue;
+				break;
+			case DataTableColumnDataType::Float:
+				dtbl_out << cd.fValue;
+				break;
+			case DataTableColumnDataType::Vector:
+			{
+				dtbl_out << "\"<" << cd.vValue.X << "," << cd.vValue.Y << "," << cd.vValue.Z << ">\"";
+				break;
+			}
+			case DataTableColumnDataType::Asset:
+			{
+				dtbl_out << "\"" + cd.assetValue + "\"";
+				break;
+			}
+			case DataTableColumnDataType::AssetNoPrecache:
+			{
+				dtbl_out << "\"" + cd.assetNPValue + "\"";
+				break;
+			}
+			case DataTableColumnDataType::StringT:
+			{
+				dtbl_out << "\"" + cd.stringValue + "\"";
+				break;
+			}
+			}
+			if (c != Row.Count() - 1)
+			{
+				dtbl_out << ",";
+			}
+			else {
+				dtbl_out << "\n";
+			}
+		}
+	}
+
+	dtbl_out.close();
+
 }
 std::unique_ptr<IO::MemoryStream> RpakLib::GetFileStream(const RpakLoadAsset& Asset)
 {
@@ -1766,7 +1821,7 @@ List<Assets::Bone> RpakLib::ExtractSkeleton(IO::BinaryReader& Reader, uint64_t S
 	return Result;
 }
 
-void RpakLib::ExtractDataTable(const RpakLoadAsset& Asset, const string& Path)
+List<List<DataTableColumnData>> RpakLib::ExtractDataTable(const RpakLoadAsset& Asset)
 {
 	auto RpakStream = this->GetFileStream(Asset);
 	auto Reader = IO::BinaryReader(RpakStream.get(), true);
@@ -1778,7 +1833,7 @@ void RpakLib::ExtractDataTable(const RpakLoadAsset& Asset, const string& Path)
 	RpakStream->SetPosition(this->GetFileOffset(Asset, DtblHeader.ColumnHeaderBlock, DtblHeader.ColumnHeaderOffset));
 
 	List<DataTableColumn> Columns;
-	List<string> ColumnNames;
+	//List<string> ColumnNames;
 	List<List<DataTableColumnData>> Data;
 
 	for (int i = 0; i < DtblHeader.ColumnCount; ++i)
@@ -1797,13 +1852,25 @@ void RpakLib::ExtractDataTable(const RpakLoadAsset& Asset, const string& Path)
 		Columns.EmplaceBack(col);
 	}
 
+	List<DataTableColumnData> ColumnNameData;
+
 	for (int i = 0; i < DtblHeader.ColumnCount; ++i)
 	{
 		DataTableColumn col = Columns[i];
 
 		RpakStream->SetPosition(col.Unk0Seek);
-		ColumnNames.EmplaceBack(Reader.ReadCString());
+		string name = Reader.ReadCString();
+
+		//ColumnNames.EmplaceBack();
+		DataTableColumnData cd;
+
+		cd.stringValue = name;
+		cd.Type = DataTableColumnDataType::StringT;
+
+		ColumnNameData.EmplaceBack(cd);
 	}
+
+	Data.EmplaceBack(ColumnNameData);
 
 	uint64_t rows_seek = this->GetFileOffset(Asset, DtblHeader.RowHeaderBlock, DtblHeader.RowHeaderOffset);
 
@@ -1836,7 +1903,6 @@ void RpakLib::ExtractDataTable(const RpakLoadAsset& Asset, const string& Path)
 			case DataTableColumnDataType::Vector:
 				d.vValue = Reader.Read<Math::Vector3>();
 				break;
-
 			case DataTableColumnDataType::Asset:
 			{
 				uint32_t id = Reader.Read<uint32_t>();
@@ -1868,76 +1934,11 @@ void RpakLib::ExtractDataTable(const RpakLoadAsset& Asset, const string& Path)
 			}
 
 			}
-
-
 			RowData.EmplaceBack(d);
 		}
 		Data.EmplaceBack(RowData);
 	}
-
-	std::ofstream dtbl_out(Path.ToCString(), std::ios::out);
-
-	for (int i = 0; i < ColumnNames.Count(); ++i)
-	{
-		dtbl_out.write(ColumnNames[i].ToCString(), ColumnNames[i].Length());
-		if (i != ColumnNames.Count() - 1)
-		{
-			dtbl_out << ",";
-		}
-	}
-	dtbl_out << "\n";
-
-	for (int i = 0; i < Data.Count(); ++i)
-	{
-		List<DataTableColumnData> Row = Data[i];
-
-		for (int c = 0; c < Row.Count(); ++c)
-		{
-			DataTableColumnData cd = Row[c];
-
-			switch (cd.Type)
-			{
-			case DataTableColumnDataType::Bool:
-				dtbl_out << cd.bValue;
-				break;
-			case DataTableColumnDataType::Int:
-				dtbl_out << cd.iValue;
-				break;
-			case DataTableColumnDataType::Float:
-				dtbl_out << cd.fValue;
-				break;
-			case DataTableColumnDataType::Vector:
-			{
-				dtbl_out << "\"<" << cd.vValue.X << "," << cd.vValue.Y << "," << cd.vValue.Z << ">\"";
-				break;
-			}
-			case DataTableColumnDataType::Asset:
-			{
-				dtbl_out << "\"" + cd.assetValue + "\"";
-				break;
-			}
-			case DataTableColumnDataType::AssetNoPrecache:
-			{
-				dtbl_out << "\"" + cd.assetNPValue + "\"";
-				break;
-			}
-			case DataTableColumnDataType::StringT:
-			{
-				dtbl_out << "\"" + cd.stringValue + "\"";
-				break;
-			}
-			}
-			if (c != Row.Count() - 1)
-			{
-				dtbl_out << ",";
-			}
-			else {
-				dtbl_out << "\n";
-			}
-		}
-	}
-	dtbl_out.close();
-
+	return Data;
 }
 void RpakLib::ParseRAnimBoneTranslationTrack(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
 {
