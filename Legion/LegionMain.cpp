@@ -549,7 +549,7 @@ void LegionMain::OnLoadClick(Forms::Control* Sender)
 
 	for (int i = 0; i < OpenFileD.Count(); i++)
 	{
-		printf("Loading: %s\n", OpenFileD[i].ToCString());
+		printf("Load rpak: %s\n", OpenFileD[i].ToCString());
 	}
 
 	if (OpenFileD.Count() == 0)

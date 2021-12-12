@@ -55,6 +55,8 @@ namespace Forms
 		HWND OwnerHandle = (Owner != nullptr) ? Owner->GetHandle() : NULL;
 		char Buffer[0x2000]{};
 
+		static bool bFileLessPath = false;
+
 		OPENFILENAMEA oFileDialog{};
 		oFileDialog.lStructSize = sizeof(OPENFILENAMEA);
 
@@ -77,17 +79,21 @@ namespace Forms
 
 			auto BasePath = string(Path);
 
-			Path += ((size_t)BasePath.Length() + 1);
-
 			while (*Path)
 			{
+				if (!bFileLessPath)
+				{
+					Path += ((size_t)BasePath.Length() + 1);
+					bFileLessPath = true;
+				}
+
 				auto FileName = string(Path);
 				ResultList.EmplaceBack(IO::Path::Combine(BasePath, FileName));
 				Path += ((size_t)FileName.Length() + 1);
 			}
 		}
 
-		// We need an empty list as default because we didn't get a return value
-		return ResultList;
+		bFileLessPath = false;
+		return ResultList; // We need an empty list as default because we didn't get a return value
 	}
 }
