@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include "emmintrin.h"
 
 #define PAK_HEADER_SIZE   0x80
 #define PAK_PARAM_SIZE    0xB0
@@ -244,6 +245,7 @@ public:
 	std::uint32_t __fastcall DecompressedSize(std::int64_t param_buf, std::uint8_t* file_buf, std::int64_t file_size, std::int64_t off_no_header, std::int64_t header_size);
 	float* __fastcall RpakDecompressDynamicTrack(int a1, unsigned __int8* a2, float a3, float* a4, float* a5);
 	float __fastcall sub_14014E340(unsigned __int8* a1, int a2, float a3);
+	void __fastcall RpakDecompressConvertRotation(const __m128i* a1, float* a2);
 };
 
 ///////////////////////////////////////////////////////////////////////////////

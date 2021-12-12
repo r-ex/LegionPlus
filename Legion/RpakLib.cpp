@@ -2074,7 +2074,7 @@ void RpakLib::ParseRAnimBoneRotationTrack(const RAnimBoneFlag& BoneFlags, uint16
 		} while (v31 < 3);
 
 		Math::Quaternion Result;
-		RpakDecompressConvertRotation((const __m128i*) & EulerResult[0], (float*)&Result);
+		g_pRtech->RpakDecompressConvertRotation((const __m128i*) & EulerResult[0], (float*)&Result);
 
 		Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name())[0].Keyframes.Emplace(FrameIndex, Result);
 
