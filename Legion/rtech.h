@@ -4,6 +4,19 @@
 #define PAK_HEADER_SIZE   0x80
 #define PAK_PARAM_SIZE    0xB0
 #define DCMP_BUF_SIZE 0x400000
+#define _LONGLONG __int128
+
+#define BYTEn(x, n)   (*((uint8_t*)&(x)+n))
+#define WORDn(x, n)   (*((uint16_t*)&(x)+n))
+#define DWORDn(x, n)  (*((uint32_t*)&(x)+n))
+#define LOBYTE(x)   (*((uint8_t*)&(x)))
+#define LOWORD(x)  WORDn(x,LOW_IND(x,uint16_t))
+#define LODWORD(x)  (*((uint32_t*)&(x)))
+#define HIBYTE(x)  BYTEn(x,HIGH_IND(x,uint8_t))
+#define HIWORD(x)  WORDn(x,HIGH_IND(x,uint16_t))
+#define HIDWORD(x) DWORDn(x,HIGH_IND(x,uint32_t))
+#define BYTE1(x)   BYTEn(x,  1)         // byte 1 (counting from 0)
+#define BYTE2(x)   BYTEn(x,  2)
 
 namespace
 {
@@ -125,6 +138,71 @@ namespace
 		0x00, 0x10, 0xC9, 0x3F, 0x00, 0x10, 0xC9, 0x3F, 0x00, 0x10, 0xC9, 0x3F, 0x00, 0x10, 0xC9, 0x3F,
 		0x4C, 0x39, 0x56, 0x75, 0x42, 0x52, 0x65, 0x75, 0x70, 0x35, 0x31, 0x77, 0x4C, 0x51, 0x64, 0x61,
 	};
+	const char byte_1412288D8[60] =
+	{
+	  0x01,
+	  0x0F,
+	  0x10,
+	  0x02,
+	  0x0a,
+	  0x0b,
+	  0x02,
+	  0x0F,
+	  0x00,
+	  0x03,
+	  0x0F,
+	  0x00,
+	  0x04,
+	  0x0F,
+	  0x00,
+	  0x05,
+	  0x0F,
+	  0x00,
+	  0x06,
+	  0x0F,
+	  0x00,
+	  0x0a,
+	  0x0F,
+	  0x00,
+	  0x02,
+	  0x0F,
+	  0x02,
+	  0x03,
+	  0x0F,
+	  0x02,
+	  0x04,
+	  0x0F,
+	  0x02,
+	  0x05,
+	  0x0F,
+	  0x02,
+	  0x06,
+	  0x0F,
+	  0x02,
+	  0x0a,
+	  0x0F,
+	  0x02,
+	  0x02,
+	  0x0F,
+	  0x04,
+	  0x03,
+	  0x0F,
+	  0x04,
+	  0x04,
+	  0x0F,
+	  0x04,
+	  0x05,
+	  0x0F,
+	  0x04,
+	  0x06,
+	  0x0F,
+	  0x04,
+	  0x0a,
+	  0x0F,
+	  0x04,
+	};
+	const unsigned char off_5384508116[0x04] = { 0x0,  0x2,  0x4,  0x0 };
+	const float dword_140F13EE0[4] = { 0.0,  3.0,  15.0,  0.0 };
 }
 
 struct rpak_h
@@ -164,6 +242,8 @@ public:
 	std::uint64_t __fastcall StringToGuid(const char* pData);
 	std::uint8_t __fastcall Decompress(std::int64_t* params, std::uint64_t file_size, std::uint64_t buffer_size);
 	std::uint32_t __fastcall DecompressedSize(std::int64_t param_buf, std::uint8_t* file_buf, std::int64_t file_size, std::int64_t off_no_header, std::int64_t header_size);
+	float* __fastcall RpakDecompressDynamicTrack(int a1, unsigned __int8* a2, float a3, float* a4, float* a5);
+	float __fastcall sub_14014E340(unsigned __int8* a1, int a2, float a3);
 };
 
 ///////////////////////////////////////////////////////////////////////////////

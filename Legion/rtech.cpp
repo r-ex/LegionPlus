@@ -1,5 +1,6 @@
 #include <cmath>
 #include "rtech.h"
+#include <intrin.h>
 
 /******************************************************************************
 -------------------------------------------------------------------------------
@@ -490,6 +491,284 @@ std::uint8_t __fastcall RTech::Decompress(std::int64_t* param_buffer, std::uint6
 LABEL_69:
 	param_buffer[10] = v5;
 	param_buffer[9] = v9;
+	return result;
+}
+
+float* __fastcall RTech::RpakDecompressDynamicTrack(int a1, unsigned __int8* a2, float a3, float* a4, float* a5)
+{
+	int v5; // er10
+	__int64 v6; // rcx
+	float* v7; // rdi
+	float v8; // xmm15_4
+	unsigned __int8* v9; // rbx
+	int v10; // eax
+	int v11; // er11
+	int v12; // er8
+	int v13; // er8
+	__int64 v14; // xmm12
+	__int64 v15; // xmm14
+	__int64 v16; // r9
+	unsigned int v17; // edx
+	unsigned int v18; // er8
+	float v19; // xmm1_4
+	float v20; // xmm11_4
+	float v21; // xmm13_4
+	unsigned int v22; // er11
+	float v23; // xmm0_4
+	float v24; // xmm15_4
+	__int64 v25; // rax
+	__int64 v26; // xmm9
+	float v27; // xmm10_4
+	__int64 v28; // xmm1
+	__m128i v29; // xmm7
+	__int64 v30; // xmm5
+	__int64 v31; // xmm2
+	float v32; // xmm8_4
+	int v33; // ecx
+	float v34; // xmm6_4
+	__int64 v35; // rax
+	__int64 v36; // rax
+	int v37; // er9
+	float v38; // xmm1_4
+	float* result; // rax
+	__int16 v40; // dx
+	float v41; // xmm0_4
+	float v42; // [rsp+F0h] [rbp+8h]
+	float v43; // [rsp+F8h] [rbp+10h]
+	float v44; // [rsp+100h] [rbp+18h]
+
+	v44 = a3;
+	v5 = a1;
+	LODWORD(v6) = a2[1];
+	v7 = a4;
+	v8 = a3;
+	v9 = a2;
+	if (v5 >= (int)v6)
+	{
+		do
+		{
+			v5 -= (unsigned __int8)v6;
+			v6 = byte_1412288D8[3 * *v9]
+				+ (__int64)((byte_1412288D8[3 * *v9 + 1] + (unsigned __int8)v6 * byte_1412288D8[3 * *v9 + 2]) / 16);
+			v10 = v9[2 * v6 + 1];
+			v9 += 2 * v6;
+			LOBYTE(v6) = v10;
+		} while (v5 >= v10);
+	}
+	v11 = v9[1] - 1;
+	if (v5 >= v11)
+	{
+		*a4 = sub_14014E340(v9, v5, a3);
+		v41 = sub_14014E340(
+			&v9[2
+			* (byte_1412288D8[3 * *v9]
+				+ (__int64)((byte_1412288D8[3 * *v9 + 1] + v9[1] * byte_1412288D8[3 * *v9 + 2]) / 16))],
+			0,
+			a3);
+		result = a5;
+		*a5 = v41;
+	}
+	else
+	{
+		v12 = *v9;
+		if (*v9)
+		{
+			if (v12 == 1)
+			{
+				v40 = *((uint16_t*)v9 + 1);
+				*a5 = (float)(*((__int16*)v9 + 1) + (char)v9[v5 + 4]) * a3;
+				if (v5 > 0)
+					v40 += (char)v9[v5 + 3];
+				result = (float*)(unsigned int)v40;
+				*a4 = (float)v40 * a3;
+			}
+			else
+			{
+				v13 = v12 - 2;
+				v14 = 0x3F800000u;
+				v15 = 0x3F800000u;
+				v16 = (unsigned int)(v13 / 6);
+				v17 = 1;
+				v18 = v13 % 6;
+				v19 = 1.0 / (float)v11;
+				v43 = 1.0 / (float)v11;
+				v20 = (float)*((__int16*)v9 + 1);
+				v21 = (float)*((__int16*)v9 + 1);
+				if (v18 >= 1)
+				{
+					if (v18 >= 4)
+					{
+						v22 = 3;
+						v23 = (float)(v5 + 1) * v19;
+						v24 = (float)v5 * v19;
+						v42 = (float)(v5 + 1) * v19;
+						do
+						{
+							*(float*)&v15 = *(float*)&v15 * v23;
+							v25 = v17;
+							v17 += 4;
+							*(float*)&v14 = *(float*)&v14 * v24;
+							v26 = v15;
+							v27 = *(float*)&v15;
+							*(float*)&v26 = *(float*)&v15 * v23;
+							v28 = v14;
+							*(float*)&v28 = *(float*)&v14 * v24;
+							v29 = _mm_cvtsi32_si128(*(__int16*)&v9[2 * v22]);
+							v30 = v26;
+							*(float*)&v30 = (float)(*(float*)&v15 * v23) * v23;
+							v31 = v28;
+							v32 = (float)*(__int16*)&v9[2 * v25 + 2];
+							v33 = *(__int16*)&v9[2 * v22 + 2];
+							LODWORD(v25) = *(__int16*)&v9[2 * v22 + 4];
+							v22 += 4;
+							*(float*)&v31 = (float)(*(float*)&v14 * v24) * v24;
+							v15 = v30;
+							*(float*)&v15 = *(float*)&v30 * v23;
+							v34 = *(float*)&v14 * v32;
+							v14 = v31;
+							*(float*)&v14 = *(float*)&v31 * v24;
+							v29.m128i_i32[0] = _mm_extract_ps(_mm_cvtepi32_ps(v29), 0);
+							v21 = (float)((float)((float)((float)(v27 * v32) + v21) + (float)(*(float*)v29.m128i_i8 * *(float*)&v26))
+								+ (float)((float)v33 * *(float*)&v30))
+								+ (float)((float)(int)v25 * (float)(*(float*)&v30 * v23));
+							v20 = (float)((float)((float)(v34 + v20) + (float)(*(float*)v29.m128i_i8 * *(float*)&v28))
+								+ (float)((float)v33 * *(float*)&v31))
+								+ (float)((float)(int)v25 * (float)(*(float*)&v31 * v24));
+							v23 = v42;
+						} while (v17 <= v18 - 3);
+						v8 = v44;
+						v19 = v43;
+					}
+					for (; v17 <= v18; v20 = v20 + (float)((float)*(__int16*)&v9[2 * v35 + 2] * *(float*)&v14))
+					{
+						v35 = v17++;
+						*(float*)&v14 = *(float*)&v14 * (float)((float)v5 * v19);
+						*(float*)&v15 = *(float*)&v15 * (float)((float)(v5 + 1) * v19);
+						v21 = v21 + (float)((float)*(__int16*)&v9[2 * v35 + 2] * *(float*)&v15);
+					}
+				}
+				if ((uint32_t)v16)
+				{
+					v36 = (unsigned int)v16;
+					v37 = off_5384508116[v16];
+					v38 = dword_140F13EE0[v36];
+					v20 = (float)(2
+						* (unsigned __int16)(((1 << v37) - 1) & (*(uint16_t*)&v9[2 * (v18 + (__int64)(v5 * v37 / 16)) + 4] >> (v5 * v37 % -16))))
+						+ (float)(v20 - v38);
+					v21 = (float)(2
+						* (unsigned __int16)(((1 << v37) - 1) & (*(uint16_t*)&v9[2
+							* (v18 + (__int64)((v37 + v5 * v37) / 16))
+							+ 4] >> ((v37 + v5 * v37) % -16))))
+						+ (float)(v21 - v38);
+				}
+				result = a5;
+				*v7 = v20 * v8;
+				*a5 = v21 * v8;
+			}
+		}
+		else
+		{
+			*a4 = (float)*(__int16*)&v9[2 * v5 + 2] * a3;
+			result = a5;
+			*a5 = (float)*(__int16*)&v9[2 * v5 + 4] * a3;
+		}
+	}
+	return result;
+}
+
+//----- (000000014014E340) ----------------------------------------------------
+float __fastcall RTech::sub_14014E340(unsigned __int8* a1, int a2, float a3)
+{
+	int v3; // ebx
+	float v4; // xmm4_4
+	__int64 v5; // rdi
+	unsigned __int8* v6; // r11
+	float v7; // xmm1_4
+	int v8; // ebx
+	__int64 v9; // r10
+	unsigned int v10; // edx
+	unsigned int v11; // ebx
+	float v12; // xmm5_4
+	float v13; // xmm2_4
+	unsigned int v14; // er8
+	float v15; // xmm3_4
+	__int64 v16; // rax
+	float v17; // xmm1_4
+	float v18; // xmm0_4
+	float v19; // xmm1_4
+	float v20; // xmm2_4
+	float v21; // xmm0_4
+	int v22; // ecx
+	float v23; // xmm0_4
+	float v24; // xmm1_4
+	float v25; // xmm2_4
+	float v26; // xmm0_4
+	__int64 v27; // rax
+	float result; // xmm0_4
+	__int16 v29; // dx
+
+	v3 = *a1;
+	v4 = a3;
+	v5 = a2;
+	v6 = a1;
+	if (!*a1)
+		return (float)*(__int16*)&a1[2 * a2 + 2] * a3;
+	if (v3 == 1)
+	{
+		v29 = *((uint16_t*)a1 + 1);
+		if ((int)v5 > 0)
+			v29 += (char)a1[v5 + 3];
+		result = (float)v29 * a3;
+	}
+	else
+	{
+		v7 = 1.0;
+		v8 = v3 - 2;
+		v9 = (unsigned int)(v8 / 6);
+		v10 = 1;
+		v11 = v8 % 6;
+		v12 = 1.0 / (float)(a1[1] - 1);
+		v13 = (float)*((__int16*)a1 + 1);
+		if (v11 >= 1)
+		{
+			if (v11 >= 4)
+			{
+				v14 = 3;
+				v15 = (float)(int)v5 * v12;
+				do
+				{
+					v16 = v10;
+					v17 = v7 * v15;
+					v10 += 4;
+					v18 = (float)*(__int16*)&v6[2 * v16 + 2] * v17;
+					v19 = v17 * v15;
+					v20 = v13 + v18;
+					v21 = (float)*(__int16*)&v6[2 * v14];
+					v22 = *(__int16*)&v6[2 * v14 + 2];
+					LODWORD(v16) = *(__int16*)&v6[2 * v14 + 4];
+					v14 += 4;
+					v23 = v21 * v19;
+					v24 = v19 * v15;
+					v25 = v20 + v23;
+					v26 = (float)v22 * v24;
+					v7 = v24 * v15;
+					v13 = (float)(v25 + v26) + (float)((float)(int)v16 * v7);
+				} while (v10 <= v11 - 3);
+			}
+			for (; v10 <= v11; v13 = v13 + (float)((float)*(__int16*)&v6[2 * v27 + 2] * v7))
+			{
+				v27 = v10++;
+				v7 = v7 * (float)((float)(int)v5 * v12);
+			}
+		}
+		if ((uint32_t)v9)
+			v13 = 
+			(float)(2 * (unsigned __int16)(((1 << (uint8_t)off_5384508116[v9]) - 1)
+				& (*(uint16_t*)&v6[2 * (v11 + (__int64)((int)v5 * off_5384508116[v9] / 16)) + 4]
+					>> ((int)v5 * off_5384508116[v9] % -16))))
+						+ (float)(v13 - dword_140F13EE0[v9]);
+		result = v13 * v4;
+	}
 	return result;
 }
 ///////////////////////////////////////////////////////////////////////////////

@@ -1983,7 +1983,7 @@ void RpakLib::ParseRAnimBoneTranslationTrack(const RAnimBoneFlag& BoneFlags, uin
 		{
 			if (_bittest((const long*)&TranslationFlags, v32))
 			{
-				RpakDecompressDynamicTrack(Frame, dataPtrs[v31], TranslationScale, &v37, &v34);
+				g_pRtech->RpakDecompressDynamicTrack(Frame, dataPtrs[v31], TranslationScale, &v37, &v34);
 
 				if (BoneFlags.bAdditiveCustom)
 					Result[v31] = (float)((float)((float)(1.0 - a2) * v37) + (float)(v34 * a2));
@@ -2065,7 +2065,7 @@ void RpakLib::ParseRAnimBoneRotationTrack(const RAnimBoneFlag& BoneFlags, uint16
 		{
 			if (_bittest((const long*)&RotationFlags, v32))
 			{
-				RpakDecompressDynamicTrack(Frame, dataPtrs[v31], 0.00019175345f, &v37, &v34);
+				g_pRtech->RpakDecompressDynamicTrack(Frame, dataPtrs[v31], 0.00019175345f, &v37, &v34);
 				EulerResult[v31] = v37;
 			}
 
@@ -2124,7 +2124,7 @@ void RpakLib::ParseRAnimBoneScaleTrack(const RAnimBoneFlag& BoneFlags, uint16_t*
 		{
 			if (_bittest((const long*)&ScaleFlags, v32))
 			{
-				RpakDecompressDynamicTrack(Frame, dataPtrs[v31], 0.0030518509f, &v37, &v34);
+				g_pRtech->RpakDecompressDynamicTrack(Frame, dataPtrs[v31], 0.0030518509f, &v37, &v34);
 				Result[v31] = (float)((float)((float)(1.0 - a2) * v37) + (float)(v34 * a2)) + Result[v31];
 			}
 
