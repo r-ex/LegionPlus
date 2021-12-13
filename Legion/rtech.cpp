@@ -17,48 +17,6 @@ History:
 ******************************************************************************/
 
 //-----------------------------------------------------------------------------
-// Purpose: calculate 'GUID' from input data
-//-----------------------------------------------------------------------------
-uint64_t __fastcall RTech::StringToGuid(const char* asset_name)
-{
-	uint32_t*        v1; // r8
-	uint64_t         v2; // r10
-	int              v3; // er11
-	uint32_t         v4; // er9
-	uint32_t          i; // edx
-	uint64_t         v6; // rcx
-	int              v7; // er9
-	int              v8; // edx
-	int              v9; // eax
-	uint32_t        v10; // er8
-	int             v12; // ecx
-	uint32_t* a1 = (uint32_t*)asset_name;
-
-	v1 = a1;
-	v2 = 0i64;
-	v3 = 0;
-	v4 = (*a1 - 45 * ((~(*a1 ^ 0x5C5C5C5Cu) >> 7) & (((*a1 ^ 0x5C5C5C5Cu) - 0x1010101) >> 7) & 0x1010101)) & 0xDFDFDFDF;
-	for (i = ~*a1 & (*a1 - 0x1010101) & 0x80808080; !i; i = v8 & 0x80808080)
-	{
-		v6 = v4;
-		v7 = v1[1];
-		++v1;
-		v3 += 4;
-		v2 = ((((uint64_t)(0xFB8C4D96501i64 * v6) >> 24) + 0x633D5F1 * v2) >> 61) ^ (((uint64_t)(0xFB8C4D96501i64 * v6) >> 24)
-			+ 0x633D5F1 * v2);
-		v8 = ~v7 & (v7 - 0x1010101);
-		v4 = (v7 - 45 * ((~(v7 ^ 0x5C5C5C5Cu) >> 7) & (((v7 ^ 0x5C5C5C5Cu) - 0x1010101) >> 7) & 0x1010101)) & 0xDFDFDFDF;
-	}
-	v9 = -1;
-	v10 = (i & -(signed)i) - 1;
-	if (_BitScanReverse((unsigned long*)&v12, v10))
-	{
-		v9 = v12;
-	}
-	return 0x633D5F1 * v2 + ((0xFB8C4D96501i64 * (uint64_t)(v4 & v10)) >> 24) - 0xAE502812AA7333i64 * (uint32_t)(v3 + v9 / 8);
-}
-
-//-----------------------------------------------------------------------------
 // Purpose: calculate 'decompressed' size and commit parameters
 //-----------------------------------------------------------------------------
 uint32_t __fastcall RTech::DecompressInit(int64_t param_buffer, uint8_t* file_buffer, int64_t file_size, int64_t off_no_header, int64_t header_size)
@@ -151,7 +109,7 @@ uint32_t __fastcall RTech::DecompressInit(int64_t param_buffer, uint8_t* file_bu
 //-----------------------------------------------------------------------------
 // Purpose: decompress input pakfile
 //-----------------------------------------------------------------------------
-uint8_t __fastcall RTech::DecompressPakFile(int64_t* param_buffer, uint64_t file_size, uint64_t buffer_size)
+uint8_t __fastcall RTech::DecompressPakFile(int64_t* param_buffer, uint64_t data_size, uint64_t buffer_size)
 {
 	char   result; // al
 	int64_t    v5; // r15
@@ -223,7 +181,7 @@ uint8_t __fastcall RTech::DecompressPakFile(int64_t* param_buffer, uint64_t file
 	int       v71; // [rsp+60h] [rbp+8h]
 	uint64_t  v74; // [rsp+78h] [rbp+20h]
 	
-	if (file_size < param_buffer[11])
+	if (data_size < param_buffer[11])
 	{
 		return 0;
 	}
@@ -462,7 +420,7 @@ uint8_t __fastcall RTech::DecompressPakFile(int64_t* param_buffer, uint64_t file
 		param_buffer[15] = v32 + v39;
 	}
 	param_buffer[16] = v36;
-	if (file_size >= v38 && buffer_size >= v36)
+	if (data_size >= v38 && buffer_size >= v36)
 	{
 	LABEL_25:
 		v10 = param_buffer[14];
@@ -492,6 +450,22 @@ LABEL_69:
 	param_buffer[10] = v5;
 	param_buffer[9] = v9;
 	return result;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: calculate 'decompressed' size and commit parameters
+//-----------------------------------------------------------------------------
+void RTech::DecompressSnowflakeInit(int64_t param_buffer, uint8_t* data_buffer, uint64_t buffer_size)
+{
+	/*TODO 'UIIA'*/
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: decompress input streamed data
+//-----------------------------------------------------------------------------
+void RTech::DecompressSnowflake(int64_t param_buffer, uint64_t data_size, uint64_t buffer_size)
+{
+	/*TODO 'UIIA'*/
 }
 
 //-----------------------------------------------------------------------------
@@ -691,6 +665,119 @@ float* __fastcall RTech::DecompressDynamicTrack(int frame_count, uint8_t* in_tra
 }
 
 //-----------------------------------------------------------------------------
+// Purpose: convert bone rotations from input
+//-----------------------------------------------------------------------------
+void __fastcall RTech::DecompressConvertRotation(const __m128i* in_rotation_buffer, float* out_rotation_buffer)
+{
+	__m128  v2; // xmm4
+	__m128i v3; // xmm9
+	__m128i v4; // xmm1
+	__m128i v5; // xmm8
+	__m128i v6; // xmm5
+	__m128i v7; // xmm9
+	__m128  v8; // xmm2
+	__m128  v9; // xmm8
+	__m128 v10; // xmm4
+	__m128 v11; // xmm2
+	__m128 v12; // xmm3
+	__m128 v13; // xmm1
+	__m128 v14; // xmm7
+	__m128 v15; // xmm6
+
+	v2 = _mm_mul_ps(_mm_and_ps(_mm_castsi128_ps(_mm_set_epi32(0x0, 0xffffffff, 0xffffffff, 0xffffffff)), _mm_castsi128_ps(_mm_lddqu_si128(in_rotation_buffer))), _mm_castsi128_ps(_mm_set_epi32(0x3F000000, 0x3F000000, 0x3F000000, 0x3F000000)));
+	__m128i m1 = _mm_set_epi32(0x1, 0x1, 0x1, 0x1);
+	v3 = _mm_load_si128(&m1);
+	v4 = _mm_cvtps_epi32(_mm_mul_ps((__m128)_mm_castsi128_ps(_mm_set_epi32(0x3F22F983, 0x3F22F983, 0x3F22F983, 0x3F22F983)), v2));
+	v5 = v3;
+	__m128i m2 = _mm_set_epi32(0x2, 0x2, 0x2, 0x2);
+	__m128i m3 = _mm_set_epi32(0x2, 0x2, 0x2, 0x2);
+	v6 = _mm_and_si128(_mm_load_si128(&m2), v4);
+	v7 = _mm_and_si128(_mm_add_epi32(v3, v4), m3);
+	v8 = _mm_cvtepi32_ps(v4);
+	v9 = _mm_castsi128_ps(_mm_cmpeq_epi32(_mm_and_si128(v5, v4), _mm_setzero_si128()));
+	v10 = _mm_sub_ps(
+		_mm_sub_ps(
+			_mm_sub_ps(v2, _mm_mul_ps(_mm_castsi128_ps(_mm_set_epi32(0x3FC91000, 0x3FC91000, 0x3FC91000, 0x3FC91000)), v8)),
+			_mm_mul_ps(_mm_castsi128_ps(_mm_set_epi32(0xB6957000, 0xB6957000, 0xB6957000, 0xB6957000)), v8)),
+		_mm_mul_ps(_mm_castsi128_ps(_mm_set_epi32(0xB06F4B9E, 0xB06F4B9E, 0xB06F4B9E, 0xB06F4B9E)), v8));
+	v11 = _mm_mul_ps(v10, v10);
+	v12 = _mm_add_ps(
+		_mm_mul_ps(
+			_mm_add_ps(
+				_mm_mul_ps(_mm_add_ps(_mm_mul_ps(_mm_castsi128_ps(_mm_set_epi32(0xB94D6102, 0xB94D6102, 0xB94D6102, 0xB94D6102)), v11), _mm_castsi128_ps(_mm_set_epi32(0x3C0885D2, 0x3C0885D2, 0x3C0885D2, 0x3C0885D2))), v11),
+				_mm_castsi128_ps(_mm_set_epi32(0xBE2AAAA8, 0xBE2AAAA8, 0xBE2AAAA8, 0xBE2AAAA8))),
+			_mm_mul_ps(v11, v10)),
+		v10);
+	v13 = _mm_add_ps(
+		_mm_mul_ps(
+			_mm_add_ps(
+				_mm_mul_ps(
+					_mm_add_ps(
+						_mm_mul_ps(_mm_add_ps(_mm_mul_ps(_mm_castsi128_ps(_mm_set_epi32(0x37CF14C2, 0x37CF14C2, 0x37CF14C2, 0x37CF14C2)), v11), _mm_castsi128_ps(_mm_set_epi32(0xBAB60B22, 0xBAB60B22, 0xBAB60B22, 0xBAB60B22))), v11),
+						_mm_castsi128_ps(_mm_set_epi32(0x3D2AAAA9, 0x3D2AAAA9, 0x3D2AAAA9, 0x3D2AAAA9))),
+					v11),
+				_mm_castsi128_ps(_mm_set_epi32(0xBF000000, 0xBF000000, 0xBF000000, 0xBF000000))),
+			v11),
+		_mm_castsi128_ps(_mm_set_epi32(0x3F800000, 0x3F800000, 0x3F800000, 0x3F800000)));
+	v14 = _mm_xor_ps(_mm_or_ps(_mm_andnot_ps(v9, v13), _mm_and_ps(v12, v9)), _mm_castsi128_ps(_mm_slli_epi32(v6, 0x1Eu)));
+	v15 = _mm_xor_ps(_mm_or_ps(_mm_andnot_ps(v9, v12), _mm_and_ps(v13, v9)), _mm_castsi128_ps(_mm_slli_epi32(v7, 0x1Eu)));
+	v6.m128i_i32[0] = _mm_extract_ps(_mm_shuffle_ps(v15, v15, 85), 0);
+	v10.m128_i32[0] = _mm_extract_ps(_mm_shuffle_ps(v14, v14, 85), 0);
+	v11.m128_f32[0] = v15.m128_f32[0] * v10.m128_f32[0];
+	v12.m128_f32[0] = *(float*)v6.m128i_i8 * v14.m128_f32[0];
+	*(float*)v6.m128i_i8 = *(float*)v6.m128i_i8 * v15.m128_f32[0];
+	v10.m128_f32[0] = v10.m128_f32[0] * v14.m128_f32[0];
+	v14.m128_i32[0] = _mm_extract_ps(_mm_shuffle_ps(v14, v14, 170), 0);
+	v15.m128_i32[0] = _mm_extract_ps(_mm_shuffle_ps(v15, v15, 170), 0);
+	*out_rotation_buffer = (float)(v15.m128_f32[0] * v12.m128_f32[0]) - (float)(v14.m128_f32[0] * v11.m128_f32[0]);
+	out_rotation_buffer[1] = (float)(v15.m128_f32[0] * v11.m128_f32[0]) + (float)(v14.m128_f32[0] * v12.m128_f32[0]);
+	out_rotation_buffer[3] = (float)(v15.m128_f32[0] * *(float*)v6.m128i_i8) + (float)(v14.m128_f32[0] * v10.m128_f32[0]);
+	out_rotation_buffer[2] = (float)(v14.m128_f32[0] * *(float*)v6.m128i_i8) - (float)(v15.m128_f32[0] * v10.m128_f32[0]);
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: calculate 'GUID' from input data
+//-----------------------------------------------------------------------------
+uint64_t __fastcall RTech::StringToGuid(const char* asset_name)
+{
+	uint32_t* v1; // r8
+	uint64_t         v2; // r10
+	int              v3; // er11
+	uint32_t         v4; // er9
+	uint32_t          i; // edx
+	uint64_t         v6; // rcx
+	int              v7; // er9
+	int              v8; // edx
+	int              v9; // eax
+	uint32_t        v10; // er8
+	int             v12; // ecx
+	uint32_t* a1 = (uint32_t*)asset_name;
+
+	v1 = a1;
+	v2 = 0i64;
+	v3 = 0;
+	v4 = (*a1 - 45 * ((~(*a1 ^ 0x5C5C5C5Cu) >> 7) & (((*a1 ^ 0x5C5C5C5Cu) - 0x1010101) >> 7) & 0x1010101)) & 0xDFDFDFDF;
+	for (i = ~*a1 & (*a1 - 0x1010101) & 0x80808080; !i; i = v8 & 0x80808080)
+	{
+		v6 = v4;
+		v7 = v1[1];
+		++v1;
+		v3 += 4;
+		v2 = ((((uint64_t)(0xFB8C4D96501i64 * v6) >> 24) + 0x633D5F1 * v2) >> 61) ^ (((uint64_t)(0xFB8C4D96501i64 * v6) >> 24)
+			+ 0x633D5F1 * v2);
+		v8 = ~v7 & (v7 - 0x1010101);
+		v4 = (v7 - 45 * ((~(v7 ^ 0x5C5C5C5Cu) >> 7) & (((v7 ^ 0x5C5C5C5Cu) - 0x1010101) >> 7) & 0x1010101)) & 0xDFDFDFDF;
+	}
+	v9 = -1;
+	v10 = (i & -(signed)i) - 1;
+	if (_BitScanReverse((unsigned long*)&v12, v10))
+	{
+		v9 = v12;
+	}
+	return 0x633D5F1 * v2 + ((0xFB8C4D96501i64 * (uint64_t)(v4 & v10)) >> 24) - 0xAE502812AA7333i64 * (uint32_t)(v3 + v9 / 8);
+}
+
+//-----------------------------------------------------------------------------
 // Purpose: calculate 'euler' translations for each frame
 //-----------------------------------------------------------------------------
 float __fastcall RTech::FrameToEulerTranslation(uint8_t* translation_buffer, int frame_count, float translation_scale)
@@ -793,74 +880,11 @@ float __fastcall RTech::FrameToEulerTranslation(uint8_t* translation_buffer, int
 }
 
 //-----------------------------------------------------------------------------
-// Purpose: convert bone rotations from input
+// Purpose: unswizzle 'UIIA' datablock
 //-----------------------------------------------------------------------------
-void __fastcall RTech::DecompressConvertRotation(const __m128i* in_rotation_buffer, float* out_rotation_buffer)
+void RTech::UnswizzleBlock(uint32_t x, uint32_t y, uint32_t a3, uint32_t a4, uint32_t x1, uint32_t y2)
 {
-	__m128  v2; // xmm4
-	__m128i v3; // xmm9
-	__m128i v4; // xmm1
-	__m128i v5; // xmm8
-	__m128i v6; // xmm5
-	__m128i v7; // xmm9
-	__m128  v8; // xmm2
-	__m128  v9; // xmm8
-	__m128 v10; // xmm4
-	__m128 v11; // xmm2
-	__m128 v12; // xmm3
-	__m128 v13; // xmm1
-	__m128 v14; // xmm7
-	__m128 v15; // xmm6
-
-	v2 = _mm_mul_ps(_mm_and_ps(_mm_castsi128_ps(_mm_set_epi32(0x0, 0xffffffff, 0xffffffff, 0xffffffff)), _mm_castsi128_ps(_mm_lddqu_si128(in_rotation_buffer))), _mm_castsi128_ps(_mm_set_epi32(0x3F000000, 0x3F000000, 0x3F000000, 0x3F000000)));
-	__m128i m1 = _mm_set_epi32(0x1, 0x1, 0x1, 0x1);
-	v3 = _mm_load_si128(&m1);
-	v4 = _mm_cvtps_epi32(_mm_mul_ps((__m128)_mm_castsi128_ps(_mm_set_epi32(0x3F22F983, 0x3F22F983, 0x3F22F983, 0x3F22F983)), v2));
-	v5 = v3;
-	__m128i m2 = _mm_set_epi32(0x2, 0x2, 0x2, 0x2);
-	__m128i m3 = _mm_set_epi32(0x2, 0x2, 0x2, 0x2);
-	v6 = _mm_and_si128(_mm_load_si128(&m2), v4);
-	v7 = _mm_and_si128(_mm_add_epi32(v3, v4), m3);
-	v8 = _mm_cvtepi32_ps(v4);
-	v9 = _mm_castsi128_ps(_mm_cmpeq_epi32(_mm_and_si128(v5, v4), _mm_setzero_si128()));
-	v10 = _mm_sub_ps(
-		_mm_sub_ps(
-			_mm_sub_ps(v2, _mm_mul_ps(_mm_castsi128_ps(_mm_set_epi32(0x3FC91000, 0x3FC91000, 0x3FC91000, 0x3FC91000)), v8)),
-			_mm_mul_ps(_mm_castsi128_ps(_mm_set_epi32(0xB6957000, 0xB6957000, 0xB6957000, 0xB6957000)), v8)),
-		_mm_mul_ps(_mm_castsi128_ps(_mm_set_epi32(0xB06F4B9E, 0xB06F4B9E, 0xB06F4B9E, 0xB06F4B9E)), v8));
-	v11 = _mm_mul_ps(v10, v10);
-	v12 = _mm_add_ps(
-		_mm_mul_ps(
-			_mm_add_ps(
-				_mm_mul_ps(_mm_add_ps(_mm_mul_ps(_mm_castsi128_ps(_mm_set_epi32(0xB94D6102, 0xB94D6102, 0xB94D6102, 0xB94D6102)), v11), _mm_castsi128_ps(_mm_set_epi32(0x3C0885D2, 0x3C0885D2, 0x3C0885D2, 0x3C0885D2))), v11),
-				_mm_castsi128_ps(_mm_set_epi32(0xBE2AAAA8, 0xBE2AAAA8, 0xBE2AAAA8, 0xBE2AAAA8))),
-			_mm_mul_ps(v11, v10)),
-		v10);
-	v13 = _mm_add_ps(
-		_mm_mul_ps(
-			_mm_add_ps(
-				_mm_mul_ps(
-					_mm_add_ps(
-						_mm_mul_ps(_mm_add_ps(_mm_mul_ps(_mm_castsi128_ps(_mm_set_epi32(0x37CF14C2, 0x37CF14C2, 0x37CF14C2, 0x37CF14C2)), v11), _mm_castsi128_ps(_mm_set_epi32(0xBAB60B22, 0xBAB60B22, 0xBAB60B22, 0xBAB60B22))), v11),
-						_mm_castsi128_ps(_mm_set_epi32(0x3D2AAAA9, 0x3D2AAAA9, 0x3D2AAAA9, 0x3D2AAAA9))),
-					v11),
-				_mm_castsi128_ps(_mm_set_epi32(0xBF000000, 0xBF000000, 0xBF000000, 0xBF000000))),
-			v11),
-		_mm_castsi128_ps(_mm_set_epi32(0x3F800000, 0x3F800000, 0x3F800000, 0x3F800000)));
-	v14 = _mm_xor_ps(_mm_or_ps(_mm_andnot_ps(v9, v13), _mm_and_ps(v12, v9)), _mm_castsi128_ps(_mm_slli_epi32(v6, 0x1Eu)));
-	v15 = _mm_xor_ps(_mm_or_ps(_mm_andnot_ps(v9, v12), _mm_and_ps(v13, v9)), _mm_castsi128_ps(_mm_slli_epi32(v7, 0x1Eu)));
-	v6.m128i_i32[0] = _mm_extract_ps(_mm_shuffle_ps(v15, v15, 85), 0);
-	v10.m128_i32[0] = _mm_extract_ps(_mm_shuffle_ps(v14, v14, 85), 0);
-	v11.m128_f32[0] = v15.m128_f32[0] * v10.m128_f32[0];
-	v12.m128_f32[0] = *(float*)v6.m128i_i8 * v14.m128_f32[0];
-	*(float*)v6.m128i_i8 = *(float*)v6.m128i_i8 * v15.m128_f32[0];
-	v10.m128_f32[0] = v10.m128_f32[0] * v14.m128_f32[0];
-	v14.m128_i32[0] = _mm_extract_ps(_mm_shuffle_ps(v14, v14, 170), 0);
-	v15.m128_i32[0] = _mm_extract_ps(_mm_shuffle_ps(v15, v15, 170), 0);
-	*out_rotation_buffer = (float)(v15.m128_f32[0] * v12.m128_f32[0]) - (float)(v14.m128_f32[0] * v11.m128_f32[0]);
-	out_rotation_buffer[1] = (float)(v15.m128_f32[0] * v11.m128_f32[0]) + (float)(v14.m128_f32[0] * v12.m128_f32[0]);
-	out_rotation_buffer[3] = (float)(v15.m128_f32[0] * *(float*)v6.m128i_i8) + (float)(v14.m128_f32[0] * v10.m128_f32[0]);
-	out_rotation_buffer[2] = (float)(v14.m128_f32[0] * *(float*)v6.m128i_i8) - (float)(v15.m128_f32[0] * v10.m128_f32[0]);
-}
+	/*TODO 'UIIA'*/
+};
 ///////////////////////////////////////////////////////////////////////////////
 RTech* g_pRtech;

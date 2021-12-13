@@ -14,8 +14,6 @@
 #include "CoDXAssetExport.h"
 #include "CastAsset.h"
 
-#include "RpakAnimDecompress.h"
-#include "RpakDecompress.h"
 #include "rtech.h"
 
 VpkLib::VpkLib()

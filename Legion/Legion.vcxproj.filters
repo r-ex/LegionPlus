@@ -36,15 +36,6 @@
     <ClCompile Include="RpakLib.cpp">
       <Filter>RPak</Filter>
     </ClCompile>
-    <ClCompile Include="RpakDecompressSnowflake.cpp">
-      <Filter>RPak</Filter>
-    </ClCompile>
-    <ClCompile Include="RpakDecompress.cpp">
-      <Filter>RPak</Filter>
-    </ClCompile>
-    <ClCompile Include="RpakAnimDecompress.cpp">
-      <Filter>RPak</Filter>
-    </ClCompile>
     <ClCompile Include="RBspLib.cpp">
       <Filter>BSP</Filter>
     </ClCompile>
@@ -92,19 +83,10 @@
     <ClInclude Include="RpakLib.h">
       <Filter>RPak</Filter>
     </ClInclude>
-    <ClInclude Include="RpakDecompressSnowflake.h">
-      <Filter>RPak</Filter>
-    </ClInclude>
     <ClInclude Include="RpakImageTiles.h">
       <Filter>RPak</Filter>
     </ClInclude>
-    <ClInclude Include="RpakDecompress.h">
-      <Filter>RPak</Filter>
-    </ClInclude>
     <ClInclude Include="RpakAssets.h">
-      <Filter>RPak</Filter>
-    </ClInclude>
-    <ClInclude Include="RpakAnimDecompress.h">
       <Filter>RPak</Filter>
     </ClInclude>
     <ClInclude Include="RBspLib.h">

@@ -1,3 +1,7 @@
+#include <vector>
+#include <iostream>
+#include <fstream>
+
 #include "RpakLib.h"
 #include "Path.h"
 #include "File.h"
@@ -20,14 +24,8 @@
 #include "SEAsset.h"
 
 // Rpak asset formats
-#include "RpakDecompress.h"
 #include "rtech.h"
-#include "RpakDecompressSnowflake.h"
-#include "RpakAnimDecompress.h"
 #include "RpakImageTiles.h"
-#include <vector>
-#include <iostream>
-#include <fstream>
 
 RpakFile::RpakFile()
 	: SegmentData(nullptr), StartSegmentIndex(0), SegmentDataSize(0), PatchData(nullptr), PatchDataSize(0), Version(RpakGameVersion::Apex), EmbeddedStarpakOffset(0), EmbeddedStarpakSize(0)
@@ -390,7 +388,7 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 	else if (Format == 0x2)
 	{
 		auto State = std::make_unique<uint8_t[]>(0x25000);
-		RpakDecompressInitSnowflake((long long)&State.get()[0], (uint8_t*)Data, DataSize);
+		g_pRtech->DecompressSnowflakeInit((long long)&State.get()[0], (uint8_t*)Data, DataSize);
 
 		auto EditState = (__int64*)&State.get()[0];
 		auto DecompressedSize = EditState[0x48D3];
@@ -400,7 +398,7 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 		EditState[0x48DA] = (__int64)Result;
 		EditState[0x48DB] = 0;
 
-		RpakDecompressSnowflake((long long)&State.get()[0], DataSize, DecompressedSize);
+		g_pRtech->DecompressSnowflake((long long)&State.get()[0], DataSize, DecompressedSize);
 
 		DataSize = EditState[0x48db];
 
@@ -1493,9 +1491,9 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 					int mx = j;
 					int my = i;
 
-					RpakUnswizzleBlock(j, i, Num6, 2, mx, my);
-					RpakUnswizzleBlock(mx, my, Num6, 4, mx, my);
-					RpakUnswizzleBlock(mx, my, Num6, 8, mx, my);
+					g_pRtech->UnswizzleBlock(j, i, Num6, 2, mx, my);
+					g_pRtech->UnswizzleBlock(mx, my, Num6, 4, mx, my);
+					g_pRtech->UnswizzleBlock(mx, my, Num6, 8, mx, my);
 
 					uint64_t destination = Bc1Bpp2x * (my * Num6 + mx);
 
@@ -1563,9 +1561,9 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 					int mx = j;
 					int my = i;
 
-					RpakUnswizzleBlock(j, i, Num6, 2, mx, my);
-					RpakUnswizzleBlock(mx, my, Num6, 4, mx, my);
-					RpakUnswizzleBlock(mx, my, Num6, 8, mx, my);
+					g_pRtech->UnswizzleBlock(j, i, Num6, 2, mx, my);
+					g_pRtech->UnswizzleBlock(mx, my, Num6, 4, mx, my);
+					g_pRtech->UnswizzleBlock(mx, my, Num6, 8, mx, my);
 
 					uint64_t destination = Bc7Bpp2x * (my * Num6 + mx);
 
