@@ -14,8 +14,7 @@
 #include "CoDXAssetExport.h"
 #include "CastAsset.h"
 
-#include "RpakAnimDecompress.h"
-#include "RpakDecompress.h"
+#include "rtech.h"
 
 VpkLib::VpkLib()
 {
@@ -504,7 +503,7 @@ void VpkLib::ParseRAnimBoneRotationTrack(const RAnimBoneHeader& BoneFlags, const
 	}
 
 	Math::Quaternion Result;
-	RpakDecompressConvertRotation((const __m128i*) & EulerResult[0], (float*)&Result);
+	g_pRtech->DecompressConvertRotation((const __m128i*) & EulerResult[0], (float*)&Result);
 
 	Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name())[0].Keyframes.Emplace(FrameIndex, Result);
 }

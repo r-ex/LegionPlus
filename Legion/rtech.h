@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include "intrin.h"
 
 #define PAK_HEADER_SIZE   0x80
 #define PAK_PARAM_SIZE    0xB0
@@ -8,7 +9,7 @@
 namespace
 {
 	/*unk_141313180*/
-	const unsigned char LUT_0[0x720] =
+	const unsigned char LUT_Pakfile_Decompress_0[0x720] =
 	{
 		0x04, 0xFE, 0xFC, 0x08, 0x04, 0xEF, 0x11, 0xF9, 0x04, 0xFD, 0xFC, 0x07, 0x04, 0x05, 0xFF, 0xF4,
 		0x04, 0xFE, 0xFC, 0x10, 0x04, 0xEF, 0x11, 0xF6, 0x04, 0xFD, 0xFC, 0xFB, 0x04, 0x06, 0xFF, 0x0B,
@@ -125,45 +126,26 @@ namespace
 		0x00, 0x10, 0xC9, 0x3F, 0x00, 0x10, 0xC9, 0x3F, 0x00, 0x10, 0xC9, 0x3F, 0x00, 0x10, 0xC9, 0x3F,
 		0x4C, 0x39, 0x56, 0x75, 0x42, 0x52, 0x65, 0x75, 0x70, 0x35, 0x31, 0x77, 0x4C, 0x51, 0x64, 0x61,
 	};
-}
 
-struct rpak_h
-{
-	std::uint32_t m_nMagic;        // 'RPak'
-	std::uint16_t m_nVersion;      // R2 = '7' R5 = '8'
-	std::uint8_t  m_nFlag;         // only set in ui.rpak
-	bool          m_bIsCompressed; // Has to be false when uncompressed
-	std::uint64_t m_nType;         //
-	std::uint8_t  unk0[8];         //
-	std::uint32_t m_nSizeDisk;     // Compressed size
-	std::uint8_t  unk1[20];        //
-	std::uint32_t m_nSizeMem;      // Decompressed size
-	std::uint8_t  unk3[26];        //
-	std::uint16_t unk4;            //
-	std::uint32_t m_nPad;          //
-	std::uint32_t unk6;            //
-	std::uint32_t m_nEntry;        // File entry count
-	std::uint32_t unk7;            //
-	std::uint32_t unk8;            //
-	std::uint8_t  unk9[28];        //
+	/*off_5384508116*/
+	const unsigned char LUT_Dynamic_Track_0[4] = { 0x00, 0x02, 0x04, 0x00 };
+
+	/*dword_140F13EE0*/
+	const float LUT_Dynamic_Track_1[4] = { 0.0, 3.0, 15.0, 0.0 };
 };
-
-namespace
-{
-	/* ==== RTECH =========================================================================================================================================================== */
-	//DWORD64 p_RTech_Decompress = FindPatternV2("r5apex.exe", (const unsigned char*)"\x4C\x89\x44\x24\x18\x48\x89\x54\x24\x10\x53\x48\x83\xEC\x50\x48", "xxxxxxxxxxxxxxxx");
-	//char (*RTech_Decompress)(int64_t* parameter, std::uint64_t input, std::uint64_t output) = (char (*)(std::int64_t*, std::uint64_t, std::uint64_t))p_RTech_Decompress; /*4C 89 44 24 18 48 89 54 24 10 53 48 83 EC 50 48*/
-
-	//DWORD64 p_RTech_DecompressedSize = FindPatternV2("r5apex.exe", (const unsigned char*)"\x48\x89\x5C\x24\x08\x48\x89\x6C\x24\x18\x48\x89\x74\x24\x20\x48\x89\x54\x24\x10\x57\x41\x54\x41\x55\x41\x56\x41\x57\x4C\x8B\x74", "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-	//std::int64_t (*RTech_DecompressedSize)(std::int64_t parameter, std::uint8_t* input, std::int64_t magic, std::int64_t a4, std::int64_t a5) = (std::int64_t (*)(std::int64_t, std::uint8_t*, std::int64_t, std::int64_t, std::int64_t))p_RTech_DecompressedSize; /*48 89 5C 24 08 48 89 6C 24 18 48 89 74 24 20 48 89 54 24 10 57 41 54 41 55 41 56 41 57 4C 8B 74*/
-}
 
 class RTech
 {
 public:
-	std::uint64_t __fastcall StringToGuid(const char* pData);
-	std::uint8_t __fastcall Decompress(std::int64_t* params, std::uint64_t file_size, std::uint64_t buffer_size);
-	std::uint32_t __fastcall DecompressedSize(std::int64_t param_buf, std::uint8_t* file_buf, std::int64_t file_size, std::int64_t off_no_header, std::int64_t header_size);
+	uint32_t __fastcall DecompressInit(int64_t param_buffer, uint8_t* file_buffer, int64_t file_size, int64_t off_no_header, int64_t header_size);
+	uint8_t __fastcall DecompressPakFile(int64_t* param_buffer, uint64_t file_size, uint64_t buffer_size);
+	void DecompressSnowflakeInit(int64_t param_buf, uint8_t* data_buf, uint64_t data_size);
+	void DecompressSnowflake(int64_t param_buffer, uint64_t data_size, uint64_t buffer_size);
+	float* __fastcall DecompressDynamicTrack(int frame_count, uint8_t* in_translation_buffer, float translation_scale, float* out_translation_buffer, float* time_scale/*'time_scale' might nit be correct*/);
+	void __fastcall DecompressConvertRotation(const __m128i* rotation_buffer, float* result_buffer);
+	uint64_t __fastcall StringToGuid(const char* asset_name);
+	float __fastcall FrameToEulerTranslation(uint8_t* translation_buffer, int frame_count, float translation_scale);
+	void UnswizzleBlock(uint32_t x, uint32_t y, uint32_t a3, uint32_t a4, uint32_t x1, uint32_t y2);
 };
 
 ///////////////////////////////////////////////////////////////////////////////

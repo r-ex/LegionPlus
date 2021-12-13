@@ -1,141 +1,138 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    <Filter Include="Miles">
+      <UniqueIdentifier>{40db7276-b9ff-4b26-94d2-9dafe6317cdc}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    <Filter Include="Legion">
+      <UniqueIdentifier>{4adac555-ff17-4801-8d18-d0bf34cafea1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    <Filter Include="Legion\Main">
+      <UniqueIdentifier>{4028e0e9-cfed-4f20-840c-cb8f35400108}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Legion\UI">
+      <UniqueIdentifier>{67f8e4f0-3227-4208-bbce-8d0ef26dc57a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="BSP">
+      <UniqueIdentifier>{f59c98a7-f049-459a-b95c-b439ba81ba60}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="VPK">
+      <UniqueIdentifier>{170ac90b-2b2a-4217-8d72-626bc1a423c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RPak">
+      <UniqueIdentifier>{3cea731c-f915-4ff8-a8c9-67e9c01b2f9b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Legion\Core">
+      <UniqueIdentifier>{2ad5041f-9602-4aa4-ac5c-3d94598651ec}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="RpakLib.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="VpkLib.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="RBspLib.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MilesLib.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="LegionSplash.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="LegionTitanfallConverter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="LegionSettings.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="LegionProgress.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="LegionPreview.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="LegionMain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ExportManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ApexAsset.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="RpakDecompress.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="RpakDecompressSnowflake.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="RpakAnimDecompress.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Miles</Filter>
     </ClCompile>
     <ClCompile Include="rtech.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>RPak</Filter>
+    </ClCompile>
+    <ClCompile Include="RpakLib.cpp">
+      <Filter>RPak</Filter>
+    </ClCompile>
+    <ClCompile Include="RBspLib.cpp">
+      <Filter>BSP</Filter>
+    </ClCompile>
+    <ClCompile Include="VpkLib.cpp">
+      <Filter>VPK</Filter>
     </ClCompile>
     <ClCompile Include="CommandLine.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Legion\Main</Filter>
+    </ClCompile>
+    <ClCompile Include="LegionMain.cpp">
+      <Filter>Legion\Main</Filter>
+    </ClCompile>
+    <ClCompile Include="LegionPreview.cpp">
+      <Filter>Legion\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="LegionSettings.cpp">
+      <Filter>Legion\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="LegionSplash.cpp">
+      <Filter>Legion\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp">
+      <Filter>Legion\Main</Filter>
+    </ClCompile>
+    <ClCompile Include="LegionProgress.cpp">
+      <Filter>Legion\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="LegionTitanfallConverter.cpp">
+      <Filter>Legion\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="ApexAsset.cpp">
+      <Filter>Legion\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="ExportManager.cpp">
+      <Filter>Legion\Core</Filter>
     </ClCompile>
     <ClCompile Include="LegionTablePreview.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="VpkLib.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="RpakLib.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="RpakAssets.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="RpakImageTiles.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="RBspLib.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MilesLib.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LegionTitanfallConverter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LegionSplash.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LegionSettings.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LegionPreview.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LegionProgress.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LegionMain.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ExportManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ApexAsset.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ExportAsset.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="RpakDecompress.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="RpakDecompressSnowflake.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="RpakAnimDecompress.h">
-      <Filter>Header Files</Filter>
+      <Filter>Miles</Filter>
     </ClInclude>
     <ClInclude Include="rtech.h">
-      <Filter>Header Files</Filter>
+      <Filter>RPak</Filter>
+    </ClInclude>
+    <ClInclude Include="RpakLib.h">
+      <Filter>RPak</Filter>
+    </ClInclude>
+    <ClInclude Include="RpakImageTiles.h">
+      <Filter>RPak</Filter>
+    </ClInclude>
+    <ClInclude Include="RpakAssets.h">
+      <Filter>RPak</Filter>
+    </ClInclude>
+    <ClInclude Include="RBspLib.h">
+      <Filter>BSP</Filter>
+    </ClInclude>
+    <ClInclude Include="VpkLib.h">
+      <Filter>VPK</Filter>
     </ClInclude>
     <ClInclude Include="CommandLine.h">
-      <Filter>Header Files</Filter>
+      <Filter>Legion\Main</Filter>
+    </ClInclude>
+    <ClInclude Include="LegionMain.h">
+      <Filter>Legion\Main</Filter>
+    </ClInclude>
+    <ClInclude Include="LegionPreview.h">
+      <Filter>Legion\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="LegionProgress.h">
+      <Filter>Legion\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="LegionSettings.h">
+      <Filter>Legion\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="LegionSplash.h">
+      <Filter>Legion\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="LegionTitanfallConverter.h">
+      <Filter>Legion\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Legion\Main</Filter>
+    </ClInclude>
+    <ClInclude Include="ApexAsset.h">
+      <Filter>Legion\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="ExportAsset.h">
+      <Filter>Legion\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="ExportManager.h">
+      <Filter>Legion\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="basetypes.h">
+      <Filter>Legion\Core</Filter>
     </ClInclude>
     <ClInclude Include="LegionTablePreview.h">
       <Filter>Header Files</Filter>
