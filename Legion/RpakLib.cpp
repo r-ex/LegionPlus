@@ -1972,28 +1972,28 @@ void RpakLib::ParseRAnimBoneTranslationTrack(const RAnimBoneFlag& BoneFlags, uin
 
 		float Result[3]{ Bone.X, Bone.Y, Bone.Z };
 
-		uint32_t v31 = 0;
+		uint32_t TranslationIndex = 0;
 		uint32_t v32 = 0xF;
 
 		uint8_t* dataPtrs[] = { TranslationDataX,TranslationDataY,TranslationDataZ };
 
-		float v37 = 0, v34 = 0;
-		float a2 = 0;	// time but doesn't matter
+		float TranslationFinal = 0, TimeScale = 0 /*Might not be 'TimeScale'*/;
+		float Time = 0;	// time but doesn't matter
 		do
 		{
 			if (_bittest((const long*)&TranslationFlags, v32))
 			{
-				g_pRtech->RpakDecompressDynamicTrack(Frame, dataPtrs[v31], TranslationScale, &v37, &v34);
+				g_pRtech->DecompressDynamicTrack(Frame, dataPtrs[TranslationIndex], TranslationScale, &TranslationFinal, &TimeScale);
 
 				if (BoneFlags.bAdditiveCustom)
-					Result[v31] = (float)((float)((float)(1.0 - a2) * v37) + (float)(v34 * a2));
+					Result[TranslationIndex] = (float)((float)((float)(1.0 - Time) * TranslationFinal) + (float)(TimeScale * Time));
 				else
-					Result[v31] = (float)((float)((float)(1.0 - a2) * v37) + (float)(v34 * a2)) + Result[v31];
+					Result[TranslationIndex] = (float)((float)((float)(1.0 - Time) * TranslationFinal) + (float)(TimeScale * Time)) + Result[TranslationIndex];
 			}
 
 			--v32;
-			++v31;
-		} while (v31 < 3);
+			++TranslationIndex;
+		} while (TranslationIndex < 3);
 
 		auto& Curves = Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name());
 
@@ -2059,14 +2059,14 @@ void RpakLib::ParseRAnimBoneRotationTrack(const RAnimBoneFlag& BoneFlags, uint16
 
 		uint8_t* dataPtrs[] = { TranslationDataX,TranslationDataY,TranslationDataZ };
 
-		float v37 = 0, v34 = 0;
+		float TranslationFinal = 0, TimeScale = 0 /*Might not be 'TimeScale'*/;
 		float a2 = 0;	// time?
 		do
 		{
 			if (_bittest((const long*)&RotationFlags, v32))
 			{
-				g_pRtech->RpakDecompressDynamicTrack(Frame, dataPtrs[v31], 0.00019175345f, &v37, &v34);
-				EulerResult[v31] = v37;
+				g_pRtech->DecompressDynamicTrack(Frame, dataPtrs[v31], 0.00019175345f, &TranslationFinal, &TimeScale);
+				EulerResult[v31] = TranslationFinal;
 			}
 
 			--v32;
@@ -2074,7 +2074,7 @@ void RpakLib::ParseRAnimBoneRotationTrack(const RAnimBoneFlag& BoneFlags, uint16
 		} while (v31 < 3);
 
 		Math::Quaternion Result;
-		g_pRtech->RpakDecompressConvertRotation((const __m128i*) & EulerResult[0], (float*)&Result);
+		g_pRtech->DecompressConvertRotation((const __m128i*) & EulerResult[0], (float*)&Result);
 
 		Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name())[0].Keyframes.Emplace(FrameIndex, Result);
 
@@ -2118,14 +2118,14 @@ void RpakLib::ParseRAnimBoneScaleTrack(const RAnimBoneFlag& BoneFlags, uint16_t*
 
 		uint8_t* dataPtrs[] = { TranslationDataX,TranslationDataY,TranslationDataZ };
 
-		float v37 = 0, v34 = 0;
+		float TranslationFinal = 0, TimeScale = 0 /*Might not be 'TimeScale'*/;
 		float a2 = 0;	// time but doesn't matter
 		do
 		{
 			if (_bittest((const long*)&ScaleFlags, v32))
 			{
-				g_pRtech->RpakDecompressDynamicTrack(Frame, dataPtrs[v31], 0.0030518509f, &v37, &v34);
-				Result[v31] = (float)((float)((float)(1.0 - a2) * v37) + (float)(v34 * a2)) + Result[v31];
+				g_pRtech->DecompressDynamicTrack(Frame, dataPtrs[v31], 0.0030518509f, &TranslationFinal, &TimeScale);
+				Result[v31] = (float)((float)((float)(1.0 - a2) * TranslationFinal) + (float)(TimeScale * a2)) + Result[v31];
 			}
 
 			--v32;
@@ -2550,14 +2550,14 @@ bool RpakLib::MountApexRpak(const string& Path, bool Dump)
 
 	std::int64_t params[18];
 
-	uint32_t dSize = g_pRtech->DecompressedSize((std::int64_t)params, CompressedBuffer.get(), Header.CompressedSize, 0, sizeof(RpakApexHeader));
+	uint32_t dSize = g_pRtech->DecompressInit((std::int64_t)params, CompressedBuffer.get(), Header.CompressedSize, 0, sizeof(RpakApexHeader));
 
 	std::vector<std::uint8_t> pakbuf(dSize, 0);
 
 	params[1] = std::int64_t(pakbuf.data());
 	params[3] = -1i64;
 
-	std::uint8_t decomp_result = g_pRtech->Decompress(params, dSize, pakbuf.size());
+	std::uint8_t decomp_result = g_pRtech->DecompressPakFile(params, dSize, pakbuf.size());
 
 	std::memcpy(pakbuf.data(), &Header, sizeof(RpakApexHeader));
 
