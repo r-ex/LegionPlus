@@ -137,7 +137,7 @@ namespace
 class RTech
 {
 public:
-	uint32_t __fastcall DecompressInit(int64_t param_buffer, uint8_t* file_buffer, int64_t file_size, int64_t off_no_header, int64_t header_size);
+	uint32_t __fastcall DecompressPakfileInit(int64_t param_buffer, uint8_t* file_buffer, int64_t file_size, int64_t off_no_header, int64_t header_size);
 	uint8_t __fastcall DecompressPakFile(int64_t* param_buffer, uint64_t file_size, uint64_t buffer_size);
 	void DecompressSnowflakeInit(int64_t param_buf, uint8_t* data_buf, uint64_t data_size);
 	void DecompressSnowflake(int64_t param_buffer, uint64_t data_size, uint64_t buffer_size);

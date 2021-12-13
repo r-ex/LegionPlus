@@ -2548,7 +2548,7 @@ bool RpakLib::MountApexRpak(const string& Path, bool Dump)
 
 	std::int64_t params[18];
 
-	uint32_t dSize = g_pRtech->DecompressInit((std::int64_t)params, CompressedBuffer.get(), Header.CompressedSize, 0, sizeof(RpakApexHeader));
+	uint32_t dSize = g_pRtech->DecompressPakfileInit((std::int64_t)params, CompressedBuffer.get(), Header.CompressedSize, 0, sizeof(RpakApexHeader));
 
 	std::vector<std::uint8_t> pakbuf(dSize, 0);
 

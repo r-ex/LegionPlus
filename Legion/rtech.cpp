@@ -19,7 +19,7 @@ History:
 //-----------------------------------------------------------------------------
 // Purpose: calculate 'decompressed' size and commit parameters
 //-----------------------------------------------------------------------------
-uint32_t __fastcall RTech::DecompressInit(int64_t param_buffer, uint8_t* file_buffer, int64_t file_size, int64_t off_no_header, int64_t header_size)
+uint32_t __fastcall RTech::DecompressPakfileInit(int64_t param_buffer, uint8_t* file_buffer, int64_t file_size, int64_t off_no_header, int64_t header_size)
 {
 	int64_t       v8; // r9
 	uint64_t      v9; // r11
