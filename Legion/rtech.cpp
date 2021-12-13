@@ -576,8 +576,7 @@ float* __fastcall RTech::RpakDecompressDynamicTrack(int a1, unsigned __int8* a2,
 	{
 		*a4 = sub_14014E340(v9, v5, a3);
 		v41 = sub_14014E340(
-			&v9[2
-			* *((unsigned __int8*)v73 + 3 * *v9) + ((unsigned __int64)(*((unsigned __int8*)v73 + 3 * *v9 + 1) + (unsigned __int8)v9[1] * (unsigned int)*((unsigned __int8*)v73 + 3 * *v9 + 2)) >> 4)],
+			v9,
 			0,
 			a3);
 		result = a5;
@@ -777,11 +776,12 @@ float __fastcall RTech::sub_14014E340(unsigned __int8* a1, int a2, float a3)
 			}
 		}
 		if ((uint32_t)v9)
-			v13 = 
-			(float)(2 * (unsigned __int16)(((1 << (uint8_t)off_5384508116[v9]) - 1)
-				& (*(uint16_t*)&v6[2 * (v11 + (__int64)((int)v5 * off_5384508116[v9] / 16)) + 4]
-					>> ((int)v5 * off_5384508116[v9] % -16))))
-						+ (float)(v13 - dword_140F13EE0[v9]);
+		{
+			v13 = (float)(2 * (unsigned __int16)(((1 << (uint8_t)off_5384508116[v9]) - 1)
+					& (*(uint16_t*)&v6[2 * (v11 + (__int64)((int)v5 * off_5384508116[v9] / 16)) + 4]
+						>> ((int)v5 * off_5384508116[v9] % -16))))
+				+ (float)(v13 - dword_140F13EE0[v9]);
+		}
 		result = v13 * v4;
 	}
 	return result;
@@ -807,24 +807,25 @@ void __fastcall RTech::RpakDecompressConvertRotation(const __m128i* a1, float* a
 	v2 = _mm_mul_ps(_mm_and_ps(_mm_castsi128_ps(_mm_set_epi32(0x0, 0xffffffff, 0xffffffff, 0xffffffff)), _mm_castsi128_ps(_mm_lddqu_si128(a1))), _mm_castsi128_ps(_mm_set_epi32(0x3F000000, 0x3F000000, 0x3F000000, 0x3F000000)));
 	__m128i m1 = _mm_set_epi32(0x1, 0x1, 0x1, 0x1);
 	v3 = _mm_load_si128(&m1);
-	v4 = _mm_cvtps_epi32(_mm_mul_ps((__m128)_mm_castsi128_ps(_mm_setr_epi32(0x3F22F983, 0x3F22F983, 0x3F22F983, 0x3F22F983)), v2));
+	v4 = _mm_cvtps_epi32(_mm_mul_ps((__m128)_mm_castsi128_ps(_mm_set_epi32(0x3F22F983, 0x3F22F983, 0x3F22F983, 0x3F22F983)), v2));
 	v5 = v3;
-	__m128i m2 = _mm_setr_epi32(0x2, 0x2, 0x2, 0x2);
+	__m128i m2 = _mm_set_epi32(0x2, 0x2, 0x2, 0x2);
+	__m128i m3 = _mm_set_epi32(0x2, 0x2, 0x2, 0x2);
 	v6 = _mm_and_si128(_mm_load_si128(&m2), v4);
-	v7 = _mm_and_si128(_mm_add_epi32(v3, v4), m2);
+	v7 = _mm_and_si128(_mm_add_epi32(v3, v4), m3);
 	v8 = _mm_cvtepi32_ps(v4);
-	v9 = _mm_castsi128_ps(_mm_cmpeq_epi32(_mm_and_si128(v5, v4), _mm_setr_epi32(0x0, 0x0, 0x0, 0x0)));
+	v9 = _mm_castsi128_ps(_mm_cmpeq_epi32(_mm_and_si128(v5, v4), _mm_setzero_si128()));
 	v10 = _mm_sub_ps(
 		_mm_sub_ps(
-			_mm_sub_ps(v2, _mm_mul_ps(_mm_castsi128_ps(_mm_setr_epi32(0x3FC91000, 0x3FC91000, 0x3FC91000, 0x3FC91000)), v8)),
-			_mm_mul_ps(_mm_castsi128_ps(_mm_setr_epi32(0xB6957000, 0xB6957000, 0xB6957000, 0xB6957000)), v8)),
-		_mm_mul_ps(_mm_castsi128_ps(_mm_setr_epi32(0xB06F4B9E, 0xB06F4B9E, 0xB06F4B9E, 0xB06F4B9E)), v8));
+			_mm_sub_ps(v2, _mm_mul_ps(_mm_castsi128_ps(_mm_set_epi32(0x3FC91000, 0x3FC91000, 0x3FC91000, 0x3FC91000)), v8)),
+			_mm_mul_ps(_mm_castsi128_ps(_mm_set_epi32(0xB6957000, 0xB6957000, 0xB6957000, 0xB6957000)), v8)),
+		_mm_mul_ps(_mm_castsi128_ps(_mm_set_epi32(0xB06F4B9E, 0xB06F4B9E, 0xB06F4B9E, 0xB06F4B9E)), v8));
 	v11 = _mm_mul_ps(v10, v10);
 	v12 = _mm_add_ps(
 		_mm_mul_ps(
 			_mm_add_ps(
-				_mm_mul_ps(_mm_add_ps(_mm_mul_ps(_mm_castsi128_ps(_mm_setr_epi32(0xB94D6102, 0xB94D6102, 0xB94D6102, 0xB94D6102)), v11), _mm_castsi128_ps(_mm_setr_epi32(0x3C0885D2, 0x3C0885D2, 0x3C0885D2, 0x3C0885D2))), v11),
-				_mm_castsi128_ps(_mm_setr_epi32(0xBE2AAAA8, 0xBE2AAAA8, 0xBE2AAAA8, 0xBE2AAAA8))),
+				_mm_mul_ps(_mm_add_ps(_mm_mul_ps(_mm_castsi128_ps(_mm_set_epi32(0xB94D6102, 0xB94D6102, 0xB94D6102, 0xB94D6102)), v11), _mm_castsi128_ps(_mm_set_epi32(0x3C0885D2, 0x3C0885D2, 0x3C0885D2, 0x3C0885D2))), v11),
+				_mm_castsi128_ps(_mm_set_epi32(0xBE2AAAA8, 0xBE2AAAA8, 0xBE2AAAA8, 0xBE2AAAA8))),
 			_mm_mul_ps(v11, v10)),
 		v10);
 	v13 = _mm_add_ps(
@@ -832,12 +833,12 @@ void __fastcall RTech::RpakDecompressConvertRotation(const __m128i* a1, float* a
 			_mm_add_ps(
 				_mm_mul_ps(
 					_mm_add_ps(
-						_mm_mul_ps(_mm_add_ps(_mm_mul_ps(_mm_castsi128_ps(_mm_setr_epi32(0x37CF14C2, 0x37CF14C2, 0x37CF14C2, 0x37CF14C2)), v11), _mm_castsi128_ps(_mm_setr_epi32(0xBAB60B22, 0xBAB60B22, 0xBAB60B22, 0xBAB60B22))), v11),
-						_mm_castsi128_ps(_mm_setr_epi32(0x3D2AAAA9, 0x3D2AAAA9, 0x3D2AAAA9, 0x3D2AAAA9))),
+						_mm_mul_ps(_mm_add_ps(_mm_mul_ps(_mm_castsi128_ps(_mm_set_epi32(0x37CF14C2, 0x37CF14C2, 0x37CF14C2, 0x37CF14C2)), v11), _mm_castsi128_ps(_mm_set_epi32(0xBAB60B22, 0xBAB60B22, 0xBAB60B22, 0xBAB60B22))), v11),
+						_mm_castsi128_ps(_mm_set_epi32(0x3D2AAAA9, 0x3D2AAAA9, 0x3D2AAAA9, 0x3D2AAAA9))),
 					v11),
-				_mm_castsi128_ps(_mm_setr_epi32(0xBF000000, 0xBF000000, 0xBF000000, 0xBF000000))),
+				_mm_castsi128_ps(_mm_set_epi32(0xBF000000, 0xBF000000, 0xBF000000, 0xBF000000))),
 			v11),
-		_mm_castsi128_ps(_mm_setr_epi32(0x3F800000, 0x3F800000, 0x3F800000, 0x3F800000)));
+		_mm_castsi128_ps(_mm_set_epi32(0x3F800000, 0x3F800000, 0x3F800000, 0x3F800000)));
 	v14 = _mm_xor_ps(_mm_or_ps(_mm_andnot_ps(v9, v13), _mm_and_ps(v12, v9)), _mm_castsi128_ps(_mm_slli_epi32(v6, 0x1Eu)));
 	v15 = _mm_xor_ps(_mm_or_ps(_mm_andnot_ps(v9, v12), _mm_and_ps(v13, v9)), _mm_castsi128_ps(_mm_slli_epi32(v7, 0x1Eu)));
 	v6.m128i_i32[0] = _mm_extract_ps(_mm_shuffle_ps(v15, v15, 85), 0);

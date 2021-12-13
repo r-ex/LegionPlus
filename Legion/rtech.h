@@ -202,7 +202,7 @@ namespace
 	0x0f,
 	0x04
 	};
-	const unsigned char off_5384508116[0x04] = { 0x0,  0x2,  0x4,  0x0 };
+	const unsigned char off_5384508116[4] = { 0x00,0x02,0x04,0x00 };
 	const float dword_140F13EE0[4] = { 0.0,  3.0,  15.0,  0.0 };
 };
 
