@@ -260,7 +260,7 @@ namespace Assets
 				break;
 			}
 
-			SaveResult = DirectX::SaveToWICFile(*InternalScratchImage->GetImages(), DirectX::WIC_FLAGS::WIC_FLAGS_NONE, Wc, (const wchar_t*)OutputWide, nullptr, PropertyWriter);
+			SaveResult = DirectX::SaveToWICFile(*InternalScratchImage->GetImages(), DirectX::WIC_FLAGS::WIC_FLAGS_FORCE_SRGB, Wc, (const wchar_t*)OutputWide, nullptr, PropertyWriter);
 		}
 		break;
 		}
