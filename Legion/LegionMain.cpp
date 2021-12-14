@@ -182,6 +182,7 @@ void LegionMain::LoadApexFile(const List<string>& File)
 			try
 			{
 				ThisPtr->RpakFileSystem->InitializeImageExporter((RpakImageExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat"));
+				ThisPtr->RpakFileSystem->InitializeModelExporter((RpakModelExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"));
 				BspLibrary->InitializeModelExporter((RpakModelExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"));
 				BspLibrary->ExportBsp(ThisPtr->RpakFileSystem, ThisPtr->LoadPath[0], ExportManager::GetMapExportPath());
 
@@ -681,7 +682,7 @@ void LegionMain::GetVirtualItem(const std::unique_ptr<Forms::RetrieveVirtualItem
 		Drawing::Color(219, 80, 74), // AnimationSet
 		Drawing::Color(202, 97, 195),// Image
 		Drawing::Color(27, 153, 139),// Material
-		Drawing::Color(216, 30, 91), // DataTable
+		Drawing::Color(211, 7, 247), // DataTable
 		Drawing::Color(216, 30, 91)  // Sound
 	};
 

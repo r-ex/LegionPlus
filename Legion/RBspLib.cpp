@@ -191,6 +191,9 @@ void RBspLib::ExportPropContainer(std::unique_ptr<IO::MemoryStream>& Stream, con
 		auto Prop = Reader.Read<RBspProp>();
 		auto Name = IO::Path::GetFileNameWithoutExtension(Names[Prop.NameIndex]);
 
+		if (!this->PropModelNames.Contains(Name))
+			this->PropModelNames.EmplaceBack(Name);
+
 		Output.WriteCString(Name);
 		Output.Write<Math::Vector3>(Prop.Position);
 		Output.Write<Math::Vector3>(Math::Vector3(Prop.Rotation.Z, Prop.Rotation.X, Prop.Rotation.Y));
@@ -432,4 +435,27 @@ void RBspLib::ExportBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, const st
 
 	auto Stream2 = std::make_unique<IO::MemoryStream>(Buffer, 0, Lumps[GAME_LUMPS].DataSize);
 	this->ExportPropContainer(Stream2, Model->Name + "_LOD0", ModelPath);
+
+	// Export all of the bsp's prop models
+
+	auto ExportedModelsPath = IO::Path::Combine(ModelPath, "_models");
+	auto ExportedModelAnimsPath = IO::Path::Combine(ExportedModelsPath, "_animations");
+
+	auto RpakModels = RpakFileSystem->BuildAssetList(true, false, false, false, false, false);
+	Dictionary<string, RpakLoadAsset> RpakModelLookup;
+
+	for (auto& tm : *RpakModels)
+	{
+		RpakModelLookup.Add(tm.Name, RpakFileSystem->Assets[tm.Hash]);
+	}
+
+	for (uint32_t i = 0; i < this->PropModelNames.Count(); ++i)
+	{
+		string ModelName = this->PropModelNames[i];
+		if (RpakModelLookup.ContainsKey(ModelName))
+		{
+			auto ModelAsset = RpakModelLookup[ModelName];
+			RpakFileSystem->ExportModel(ModelAsset, ExportedModelsPath, ExportedModelAnimsPath);
+		}
+	}
 }

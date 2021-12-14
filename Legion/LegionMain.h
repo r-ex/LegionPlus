@@ -16,8 +16,6 @@
 #include "LegionPreview.h"
 #include "LegionProgress.h"
 
-#define MAX_LOADED_RPAKS 4
-
 class LegionMain : public Forms::Form
 {
 public:

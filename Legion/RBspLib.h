@@ -32,4 +32,7 @@ public:
 	// Exports an on-disk bsp asset
 	void ExportPropContainer(std::unique_ptr<IO::MemoryStream>& Stream, const string& Name, const string& Path);
 	void ExportBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, const string& Asset, const string& Path);
+
+private:
+	List<string> PropModelNames;
 };

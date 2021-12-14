@@ -285,6 +285,8 @@ void RpakLib::InitializeModelExporter(RpakModelExportFormat Format)
 		ModelExporter = std::make_unique<Assets::Exporters::SEAsset>();
 		break;
 	}
+
+	m_bModelExporterInitialized = true;
 }
 
 void RpakLib::InitializeAnimExporter(RpakAnimExportFormat Format)
@@ -298,6 +300,8 @@ void RpakLib::InitializeAnimExporter(RpakAnimExportFormat Format)
 		AnimExporter = std::make_unique<Assets::Exporters::SEAsset>();
 		break;
 	}
+
+	m_bAnimExporterInitialized = true;
 }
 
 void RpakLib::InitializeImageExporter(RpakImageExportFormat Format)
@@ -317,6 +321,8 @@ void RpakLib::InitializeImageExporter(RpakImageExportFormat Format)
 		ImageExtension = Assets::Texture::GetExtensionForType(ImageSaveType);
 		break;
 	}
+
+	m_bImageExporterInitialized = true;
 }
 
 void RpakLib::ExportModel(const RpakLoadAsset& Asset, const string& Path, const string& AnimPath)

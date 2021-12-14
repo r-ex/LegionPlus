@@ -17,6 +17,8 @@
 #include "Texture.h"
 #include "Exporter.h"
 
+#define MAX_LOADED_RPAKS 4096
+
 #pragma pack(push, 1)
 struct RpakBaseHeader
 {
@@ -311,6 +313,10 @@ public:
 
 	Dictionary<uint64_t, RpakLoadAsset> Assets;
 
+	bool m_bModelExporterInitialized = false;
+	bool m_bAnimExporterInitialized = false;
+	bool m_bImageExporterInitialized = false;
+
 	// Builds the viewer list of assets
 	std::unique_ptr<List<ApexAsset>> BuildAssetList(bool Models, bool Anims, bool Images, bool Materials, bool UIImages, bool DataTables);
 	// Builds the preview model mesh
@@ -338,7 +344,7 @@ public:
 	RMdlMaterial ExtractMaterial(const RpakLoadAsset& Asset, const string& Path, bool IncludeImages);
 
 private:
-	std::array<RpakFile, 8> LoadedFiles;
+	std::array<RpakFile, MAX_LOADED_RPAKS> LoadedFiles;
 	uint32_t LoadedFileIndex;
 
 	List<string> LoadFileQueue;
