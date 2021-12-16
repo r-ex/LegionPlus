@@ -33,13 +33,16 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	CommandLine cmdline(argc, argv);
 
-	if (!cmdline.HasParam(L"--export"))
+	if (!cmdline.HasParam(L"--export") && !cmdline.HasParam(L"--list"))
 	{
 		Forms::Application::Run(new LegionSplash());
 	}
 	else {
-		string rpakPath = wstring(cmdline.GetParamValue(L"--export")).ToString();
-
+		string rpakPath;
+		if (cmdline.HasParam(L"--export"))
+			rpakPath = wstring(cmdline.GetParamValue(L"--export")).ToString();
+		else
+			rpakPath = wstring(cmdline.GetParamValue(L"--list")).ToString();
 		if (rpakPath != "")
 		{
 			auto Rpak = std::make_unique<RpakLib>();
@@ -74,17 +77,23 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				AssetList = Rpak->BuildAssetList(bLoadModels, bLoadAnims, bLoadImages, bLoadMaterials, bLoadUIImages, bLoadDataTables);
 			}
 
-
-
-			for (auto& Asset : *AssetList.get())
+			if (cmdline.HasParam(L"--export"))
 			{
-				ExportAsset EAsset;
-				EAsset.AssetHash = Asset.Hash;
-				EAsset.AssetIndex = 0;
-				ExportAssets.EmplaceBack(EAsset);
+				for (auto& Asset : *AssetList.get())
+				{
+					ExportAsset EAsset;
+					EAsset.AssetHash = Asset.Hash;
+					EAsset.AssetIndex = 0;
+					ExportAssets.EmplaceBack(EAsset);
+				}
+				ExportManager::ExportRpakAssets(Rpak, ExportAssets, [](uint32_t i, Forms::Form*, bool) {}, [](int32_t i, Forms::Form*) -> bool { return false; }, nullptr);
+			}
+			else
+			{
+				string filename = IO::Path::GetFileNameWithoutExtension(rpakPath);
+				ExportManager::ExportRpakAssetList(AssetList, filename);
 			}
 
-			ExportManager::ExportRpakAssets(Rpak, ExportAssets, [](uint32_t i, Forms::Form*, bool) {}, [](int32_t i, Forms::Form*) -> bool { return false; }, nullptr);
 
 			ShowGUI = false;
 		}

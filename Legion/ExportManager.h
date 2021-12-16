@@ -38,4 +38,6 @@ public:
 	static void ExportRpakAssets(const std::unique_ptr<RpakLib>& RpakFileSystem, List<ExportAsset> ExportAssets, ExportProgressCallback ProgressCallback, CheckStatusCallback StatusCallback, Forms::Form* MainForm);
 	// Handles exporting vpk assets in parallel
 	static void ExportVpkAssets(const std::unique_ptr<VpkLib>& VpkFileSystem, List<string>& ExportAssets);
+	// Write a list of loaded rpak assets to disk
+	static void ExportRpakAssetList(std::unique_ptr<List<ApexAsset>>& AssetList, string RpakName);
 };

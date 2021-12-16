@@ -246,3 +246,15 @@ void ExportManager::ExportVpkAssets(const std::unique_ptr<VpkLib>& VpkFileSystem
 		CoUninitialize();
 	});
 }
+
+void ExportManager::ExportRpakAssetList(std::unique_ptr<List<ApexAsset>>& AssetList, string RpakName)
+{
+	String ExportDirectory = IO::Path::Combine(ExportPath, "lists");
+	IO::Directory::CreateDirectory(ExportDirectory);
+	List<String> NameList;
+	for (auto& Asset : *AssetList)
+		NameList.EmplaceBack(Asset.Name);
+
+	NameList.Sort([](const String& lhs, const String& rhs) { return lhs.Compare(rhs) < 0; });
+	IO::File::WriteAllLines(IO::Path::Combine(ExportDirectory, RpakName + ".txt"), NameList);
+}
