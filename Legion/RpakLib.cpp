@@ -373,21 +373,46 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 {
 	if (Format == 0x1)
 	{
+		/* 
+		*  Below might be only 16 params actually.
+		*  If I didn't fuck up with math.
+		*  char v23[8]; // [rsp+40h] [rbp-E8h] BYREF\
+		*  memset_0(v23, 0, 176ui64);
+		*/
 		std::int64_t params[18];
 
-		// todo: this needs to be implemented properly for streamed uiia to work
-
+		// sig to containing function in retail: (+0x195) E8 ? ? ? ? 0F B6 06 3C 01 
+		// v13 = RTech::DecompressedSize(*(_QWORD*)(a1 + 32),*(_QWORD*)(a1 + 40), -1i64, *(unsigned int*)(a1 + 8), 0i64, 0i64);
+		// Compiler decided here to make that function have 6 args, -1 is inlined in our function.
+		// Porter originally calculated a mask for the -1 input field
+		// RpakCalcMask(0x400000)
 		/*
-		uint32_t dSize = g_pRtech->DecompressedSize((std::int64_t)params, (uint8_t*)Data, DataSize, 0, PAK_HEADER_SIZE);
+		*  v7 = 1;
+		*  v8 = 0x200000i64;
+		*  do
+		*  {
+		*	 ++v7;
+		*     8 >>= 1;
+		*  } while ( v8 );
+		* 
+		* (1 << v7) - 1 as input for the -1 param.
+		*/
+
+		uint32_t dSize = g_pRtech->DecompressPakfileInit((std::int64_t)params, (uint8_t*)Data, DataSize, 0, 0);
 
 		std::vector<std::uint8_t> pakbuf(dSize, 0);
 
 		params[1] = std::int64_t(pakbuf.data());
 		params[3] = -1i64;
 
-		std::uint8_t decomp_result = g_pRtech->Decompress(params, dSize, pakbuf.size());
+		// Porter originally passed 0x400000ui64 here after calculating the actual rpak mask, we will push pakbuf.size() for the time being.
+		// Retail passes 16 as the buffer_size
+		/*
+		*  v14 = *(__int64 (__fastcall ***)(_QWORD, _QWORD, __int64))(a1 + 56);
+        *  *(_DWORD *)(a1 + 12) = decompressed_size;
+        *  v15 = (*v14)(v14, decompressed_size, 16i64);
 		*/
-
+		std::uint8_t decomp_result = g_pRtech->DecompressPakFile(params, dSize, pakbuf.size());
 
 		return std::make_unique<IO::MemoryStream>((uint8_t*)Data, 0, DataSize);
 	}
