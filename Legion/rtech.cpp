@@ -455,9 +455,300 @@ LABEL_69:
 //-----------------------------------------------------------------------------
 // Purpose: calculate 'decompressed' size and commit parameters
 //-----------------------------------------------------------------------------
-void RTech::DecompressSnowflakeInit(int64_t param_buffer, uint8_t* data_buffer, uint64_t buffer_size)
+int64_t RTech::DecompressSnowflakeInit(int64_t param_buffer, int64_t data_buffer, uint64_t buffer_size)
 {
-	/*TODO 'UIIA'*/
+	return 0; // return gaming for now
+
+	// dmp location: 49 8B 0F 48 89 9E ? ? ? ? 
+	// retail location: sig to containing function: (+0x11) E8 ? ? ? ? 4C 8B 53 38 44 8D 47 10
+
+	auto sub_140A44040 = [](int64_t param_buffer, uint32_t unk1) -> int64_t
+	{
+		// dmp location: sig: 8B 49 2C 
+		// retail location: direct reference: [actual address in first opcode] E8 ? ? ? ? 8D 4B 09 
+		uint32_t v4; // ecx
+		int64_t v5; // r8
+		char v6; // bl
+		int64_t v7; // rbp
+		uint32_t v8; // er11
+		int64_t v9; // rsi
+		int64_t v10; // rdi
+		uint64_t v11; // rdx
+		uint32_t v12; // er8
+		int v13; // er8
+		int64_t result; // rax
+		uint32_t v15; // edx
+
+		v4 = *(uint32_t*)(param_buffer + 44);
+		if (v4 >= unk1)
+		{
+			v15 = *(uint32_t*)(param_buffer + 40);
+			*(uint32_t*)(param_buffer + 44) = v4 - unk1;
+			*(uint32_t*)(param_buffer + 40) = v15 >> unk1;
+			result = v15 & ((1 << unk1) - 1);
+		}
+		else
+		{
+			v5 = *(uint64_t*)(param_buffer + 149184);
+			v6 = v4 + 32;
+			v7 = *(uint64_t*)(param_buffer + 149168);
+			v8 = v4 + 32 - unk1;
+			v9 = v5 + 4;
+			v10 = *(uint64_t*)(param_buffer + 149192);
+			v11 = *(uint32_t*)(param_buffer + 40) | ((uint64_t)*(uint32_t*)((v5 & v10) + v7) << v4);
+			*(uint64_t*)(param_buffer + 149184) = v5 + 4;
+			*(uint32_t*)(param_buffer + 44) = v4 + 32;
+			if (v4 + 32 >= unk1)
+			{
+				v13 = v11 >> unk1;
+			}
+			else
+			{
+				v12 = *(uint32_t*)((v9 & v10) + v7);
+				*(uint64_t*)(param_buffer + 149184) = v9 + 4;
+				v11 |= (uint64_t)v12 << v6;
+				v13 = v12 >> (unk1 - v6);
+				v8 += 32;
+			}
+			*(uint32_t*)(param_buffer + 44) = v8;
+			result = v11 & ((1i64 << unk1) - 1);
+			*(uint32_t*)(param_buffer + 40) = v13;
+		}
+
+		return result;
+	};
+
+	auto sub_140A43530 = [](int64_t param_buffer, uint8_t a2, int64_t a3) -> int64_t
+	{
+		// dmp location: direct reference: [actual address in first opcode] E8 ? ? ? ? 44 8D 04 33
+		// retail location: direct reference: [actual address in first opcode] E8 ? ? ? ? 8D 0C 33  
+
+		int64_t v4; // rax
+		int64_t v5; // rdx
+		uint16_t* v6; // rcx
+		uint32_t* v7; // rax
+		int64_t v8; // rax
+		int64_t v9; // rcx
+		int64_t v10; // rcx
+		int64_t v11; // rax
+		int64_t result; // rax
+
+		v4 = a2;
+		v5 = 4i64;
+		v6 = (uint16_t*)(param_buffer + 216);
+		*(uint8_t*)(param_buffer + 1108) = LUT_Snowflake_0[v4];
+		*(uint16_t*)(param_buffer + 1088) = 2048;
+		v7 = (uint32_t*)v6 + 65;
+		*(uint32_t*)param_buffer = 126353408;
+		*(uint32_t*)(param_buffer + 4) = 378998543;
+		*(uint32_t*)(param_buffer + 8) = 631643678;
+		*(uint32_t*)(param_buffer + 12) = 884288813;
+		*(uint32_t*)(param_buffer + 16) = 1136933948;
+		*(uint32_t*)(param_buffer + 20) = 1389579083;
+		*(uint32_t*)(param_buffer + 24) = 1642224218;
+		*(uint32_t*)(param_buffer + 28) = 1894869353;
+		*(uint32_t*)(param_buffer + 32) = -2147452808;
+		*(uint32_t*)(param_buffer + 36) = 119275520;
+		*(uint32_t*)(param_buffer + 40) = 357895737;
+		*(uint32_t*)(param_buffer + 44) = 596515954;
+		*(uint32_t*)(param_buffer + 48) = 835136171;
+		*(uint32_t*)(param_buffer + 52) = 1073756388;
+		*(uint32_t*)(param_buffer + 56) = 0x10000000;
+		*(uint32_t*)(param_buffer + 60) = 805314560;
+		*(uint32_t*)(param_buffer + 64) = 1342193664;
+		*(uint32_t*)(param_buffer + 68) = 1879072768;
+		*(uint16_t*)(param_buffer + 72) = 0x8000;
+		*(uint32_t*)(param_buffer + 74) = 126353408;
+		*(uint32_t*)(param_buffer + 78) = 378998543;
+		*(uint32_t*)(param_buffer + 82) = 631643678;
+		*(uint32_t*)(param_buffer + 86) = 884288813;
+		*(uint32_t*)(param_buffer + 90) = 1136933948;
+		*(uint32_t*)(param_buffer + 94) = 1389579083;
+		*(uint32_t*)(param_buffer + 98) = 1642224218;
+		*(uint32_t*)(param_buffer + 102) = 1894869353;
+		*(uint32_t*)(param_buffer + 106) = -2147452808;
+		*(uint32_t*)(param_buffer + 110) = 63176704;
+		*(uint32_t*)(param_buffer + 114) = 189466504;
+		*(uint32_t*)(param_buffer + 118) = 315821839;
+		*(uint32_t*)(param_buffer + 122) = 442111639;
+		*(uint32_t*)(param_buffer + 126) = 568466974;
+		*(uint32_t*)(param_buffer + 130) = 694756774;
+		*(uint32_t*)(param_buffer + 134) = 821112109;
+		*(uint32_t*)(param_buffer + 138) = 947401909;
+		*(uint32_t*)(param_buffer + 142) = 1073757244;
+		*(uint32_t*)(param_buffer + 146) = 126353408;
+		*(uint32_t*)(param_buffer + 150) = 378998543;
+		*(uint32_t*)(param_buffer + 154) = 631643678;
+		*(uint32_t*)(param_buffer + 158) = 884288813;
+		*(uint32_t*)(param_buffer + 162) = 1136933948;
+		*(uint32_t*)(param_buffer + 166) = 1389579083;
+		*(uint32_t*)(param_buffer + 170) = 1642224218;
+		*(uint32_t*)(param_buffer + 174) = 1894869353;
+		*(uint32_t*)(param_buffer + 178) = -2147452808;
+		*(uint32_t*)(param_buffer + 182) = 0x4000000;
+		*(uint32_t*)(param_buffer + 186) = 201328640;
+		*(uint32_t*)(param_buffer + 190) = 335548416;
+		*(uint32_t*)(param_buffer + 194) = 469768192;
+		*(uint32_t*)(param_buffer + 198) = 603987968;
+		*(uint32_t*)(param_buffer + 202) = 738207744;
+		*(uint32_t*)(param_buffer + 206) = 872427520;
+		*(uint32_t*)(param_buffer + 210) = 1006647296;
+		*(uint16_t*)(param_buffer + 214) = 0x4000;
+		do
+		{
+			*(v7 - 32) = 67109376;
+			*v6 = 0;
+			v6 += 109;
+			*(v7 - 31) = 134219264;
+			*(v7 - 30) = 201329152;
+			*(v7 - 29) = 268439040;
+			*(v7 - 28) = 0x10000000;
+			*(v7 - 27) = 805314560;
+			*(v7 - 26) = 0x4000;
+			*(v7 - 25) = 536875008;
+			*(v7 - 24) = 1073754112;
+			*(v7 - 23) = 0x10000000;
+			*(v7 - 22) = 805314560;
+			*(v7 - 21) = 0x4000;
+			*(v7 - 20) = 536875008;
+			*(v7 - 19) = 1073754112;
+			*(v7 - 18) = 0x10000000;
+			*(v7 - 17) = 805314560;
+			*(v7 - 16) = 0x4000;
+			*(v7 - 15) = 536875008;
+			*(v7 - 14) = 1073754112;
+			*(v7 - 13) = 1610633216;
+			*(v7 - 12) = -2147454976;
+			*(v7 - 11) = 0x10000000;
+			*(v7 - 10) = 805314560;
+			*(v7 - 9) = 1342193664;
+			*(v7 - 8) = 1879072768;
+			*((uint16_t*)v7 - 14) = 0x8000;
+			*(v7 - 2) = 76677120;
+			*(v7 - 1) = 230099237;
+			*v7 = 383455817;
+			v7[1] = 536877934;
+			v7[2] = 76677120;
+			v7[3] = 230099237;
+			v7[4] = 383455817;
+			v7[5] = 536877934;
+			v7[6] = 76677120;
+			v7[7] = 230099237;
+			v7[8] = 383455817;
+			v7[9] = 536877934;
+			v7[10] = 76677120;
+			v7[11] = 230099237;
+			v7[12] = 383455817;
+			v7[13] = 536877934;
+			v7[14] = 76677120;
+			v7[15] = 230099237;
+			v7[16] = 383455817;
+			v7[17] = 536877934;
+			v7[18] = 76677120;
+			v7[19] = 230099237;
+			v7[20] = 383455817;
+			v7[21] = 536877934;
+			*(uint32_t*)((char*)v7 - 26) = 0x10000000;
+			*(uint32_t*)((char*)v7 - 22) = 805314560;
+			*(uint32_t*)((char*)v7 - 18) = 1342193664;
+			*(uint32_t*)((char*)v7 - 14) = 1879072768;
+			*((uint16_t*)v7 - 5) = 0x8000;
+			v7 = (uint32_t*)((char*)v7 + 218);
+			--v5;
+		} while (v5);
+
+		if (a3)
+		{
+		//  todo implement this(pix);
+		//	sub_7FF7FC23BA70(param_buffer, a3);
+		}
+		else
+		{
+			v8 = param_buffer + 1116;
+			v9 = 256i64;
+			do
+			{
+				*(uint32_t*)(v8 - 4) = 0x8000000;
+				*(uint16_t*)(v8 + 28) = 0x8000;
+				*(uint32_t*)v8 = 402657280;
+				*(uint32_t*)(v8 + 4) = 671096832;
+				*(uint32_t*)(v8 + 8) = 939536384;
+				*(uint32_t*)(v8 + 12) = 1207975936;
+				*(uint32_t*)(v8 + 16) = 1476415488;
+				*(uint32_t*)(v8 + 20) = 1744855040;
+				*(uint32_t*)(v8 + 24) = 2013294592;
+				v8 += 34i64;
+				--v9;
+			} while (v9);
+			v10 = 4096i64;
+			v11 = param_buffer + 9820;
+			do
+			{
+				*(uint32_t*)(v11 - 4) = 0x8000000;
+				*(uint16_t*)(v11 + 28) = 0x8000;
+				*(uint32_t*)v11 = 402657280;
+				*(uint32_t*)(v11 + 4) = 671096832;
+				*(uint32_t*)(v11 + 8) = 939536384;
+				*(uint32_t*)(v11 + 12) = 1207975936;
+				*(uint32_t*)(v11 + 16) = 1476415488;
+				*(uint32_t*)(v11 + 20) = 1744855040;
+				*(uint32_t*)(v11 + 24) = 2013294592;
+				v11 += 34i64;
+				--v10;
+			} while (v10);
+		}
+		*(uint32_t*)(param_buffer + 1092) = 96;
+		*(uint16_t*)(param_buffer + 1090) = 1024;
+		result = 0i64;
+		*(uint32_t*)(param_buffer + 1096) = 128;
+		*(uint32_t*)(param_buffer + 1100) = 80;
+		*(uint32_t*)(param_buffer + 1104) = 112;
+
+		return result;
+	};
+
+	uint32_t v2; // eax
+	int v3; // edi
+	uint64_t v4; // rax
+	int64_t v6; // rcx
+	int v7; // ebx
+	char v8; // al
+	uint8_t v9; // r14
+	uint32_t v10; // ecx
+	int64_t result; // rax
+	int v12; // eax
+	uint32_t v13; // esi
+	int64_t v14; // rdi
+	int v15; // ebx
+	int64_t v16; // rcx
+	int v17; // er8
+	char v18[256]; // [rsp+30h] [rbp-128h] BYREF
+
+	*(uint64_t*)(param_buffer + 0x246B0) = data_buffer;
+	*(uint64_t*)(param_buffer + 0x246B8) = buffer_size;
+	*(uint64_t*)(param_buffer + 0x246C8) = -1;
+	*(uint64_t*)(param_buffer + 0x40) = 0;
+
+	// Cut alot of stuff from retail here, actual legion didn't use em either.
+
+	v2 = sub_140A44040(param_buffer, 6);
+	v3 = -1;
+	v4 = (sub_140A44040(param_buffer, v2) | (1i64 << v2)) - 1;
+	*(uint64_t*)(param_buffer + 149144) = v4;
+	if (_BitScanReverse64((unsigned long*)&v6, (v4 >> 6) + 100 + v4)) // Had to cast v6 to unsigned long here, it might cause issues.
+		v3 = v6;
+	*(uint64_t*)(param_buffer + 149160) = sub_140A44040(param_buffer, (unsigned int)(v3 + 1));
+	v7 = sub_140A44040(param_buffer, 4i64);
+	v8 = sub_140A44040(param_buffer, 4i64);
+	*(uint32_t*)(param_buffer + 149136) = 1i64 << ((unsigned __int8)v7 + 9);
+	*(uint32_t*)(param_buffer + 149140) = 1i64 << (v8 + 9);
+	*(uint32_t*)(param_buffer + 149132) = v7 + 8;
+	v9 = sub_140A44040(param_buffer, 2i64);
+	v10 = sub_140A44040(param_buffer, 3i64) | 8;
+	if (v10 <= 8)
+		return sub_140A43530(param_buffer + 48, v9, 0i64);
+
+	// continue this yeet.
 }
 
 //-----------------------------------------------------------------------------
@@ -782,55 +1073,16 @@ uint64_t __fastcall RTech::StringToGuid(const char* asset_name)
 //-----------------------------------------------------------------------------
 float __fastcall RTech::FrameToEulerTranslation(uint8_t* translation_buffer, int frame_count, float translation_scale)
 {
-	int           v3; // ebx
-	float         v4; // xmm4_4
-	int64_t       v5; // rdi
-	uint8_t*      v6; // r11
-	float         v7; // xmm1_4
-	int           v8; // ebx
-	int64_t       v9; // r10
-	unsigned int v10; // edx
-	unsigned int v11; // ebx
-	float        v12; // xmm5_4
-	float        v13; // xmm2_4
-	unsigned int v14; // er8
-	float        v15; // xmm3_4
-	int64_t      v16; // rax
-	float        v17; // xmm1_4
-	float        v18; // xmm0_4
-	float        v19; // xmm1_4
-	float        v20; // xmm2_4
-	float        v21; // xmm0_4
-	int          v22; // ecx
-	float        v23; // xmm0_4
-	float        v24; // xmm1_4
-	float        v25; // xmm2_4
-	float        v26; // xmm0_4
-	int64_t      v27; // rax
-	float     result; // xmm0_4
-	int16_t      v29; // dx
-
-	v3 = *translation_buffer;
-	v4 = translation_scale;
-	v5 = frame_count;
-	v6 = translation_buffer;
-	if (!*translation_buffer)
 	{
 		return (float)*(int16_t*)&translation_buffer[2 * frame_count + 2] * translation_scale;
 	}
-	if (v3 == 1)
 	{
-		v29 = *((uint16_t*)translation_buffer + 1);
-		if ((int)v5 > 0)
 		{
-			v29 += (char)translation_buffer[v5 + 3];
 		}
-		result = (float)v29 * translation_scale;
 	}
 	else
 	{
 		v7 = 1.0;
-		v8 = v3 - 2;
 		v9 = (unsigned int)(v8 / 6);
 		v10 = 1;
 		v11 = v8 % 6;
@@ -841,18 +1093,13 @@ float __fastcall RTech::FrameToEulerTranslation(uint8_t* translation_buffer, int
 			if (v11 >= 4)
 			{
 				v14 = 3;
-				v15 = (float)(int)v5 * v12;
 				do
 				{
 					v16 = v10;
 					v17 = v7 * v15;
 					v10 += 4;
-					v18 = (float)*(int16_t*)&v6[2 * v16 + 2] * v17;
 					v19 = v17 * v15;
 					v20 = v13 + v18;
-					v21 = (float)*(int16_t*)&v6[2 * v14];
-					v22 = *(int16_t*)&v6[2 * v14 + 2];
-					LODWORD(v16) = *(int16_t*)&v6[2 * v14 + 4];
 					v14 += 4;
 					v23 = v21 * v19;
 					v24 = v19 * v15;
@@ -862,19 +1109,15 @@ float __fastcall RTech::FrameToEulerTranslation(uint8_t* translation_buffer, int
 					v13 = (float)(v25 + v26) + (float)((float)(int)v16 * v7);
 				} while (v10 <= v11 - 3);
 			}
-			for (; v10 <= v11; v13 = v13 + (float)((float)*(int16_t*)&v6[2 * v27 + 2] * v7))
 			{
 				v27 = v10++;
-				v7 = v7 * (float)((float)(int)v5 * v12);
 			}
 		}
 		if ((uint32_t)v9)
 		{
 			v13 = (float)(2 * (uint16_t)(((1 << (uint8_t)LUT_Dynamic_Track_0[v9]) - 1)
-				& (*(uint16_t*)&v6[2 * (v11 + (int64_t)((int)v5 * LUT_Dynamic_Track_0[v9] / 16)) + 4] >> ((int)v5 * LUT_Dynamic_Track_0[v9] % -16))))
 				+ (float)(v13 - LUT_Dynamic_Track_1[v9]);
 		}
-		result = v13 * v4;
 	}
 	return result;
 }

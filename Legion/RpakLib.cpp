@@ -426,7 +426,7 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 	else if (Format == 0x2)
 	{
 		auto State = std::make_unique<uint8_t[]>(0x25000);
-		g_pRtech->DecompressSnowflakeInit((long long)&State.get()[0], (uint8_t*)Data, DataSize);
+		g_pRtech->DecompressSnowflakeInit((long long)&State.get()[0], (int64_t)Data, DataSize);
 
 		auto EditState = (__int64*)&State.get()[0];
 		auto DecompressedSize = EditState[0x48D3];

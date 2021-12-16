@@ -132,6 +132,9 @@ namespace
 
 	/*dword_140F13EE0*/
 	const float LUT_Dynamic_Track_1[4] = { 0.0, 3.0, 15.0, 0.0 };
+
+	/*byte_1410B0CE0*/
+	unsigned char LUT_Snowflake_0[16] = { 0x00, 0x03, 0x07, 0x0F, 0x23, 0x3F, 0x52, 0x47, 0x42, 0x45, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 };
 
 class RTech
@@ -139,7 +142,7 @@ class RTech
 public:
 	uint32_t __fastcall DecompressPakfileInit(int64_t param_buffer, uint8_t* file_buffer, int64_t file_size, int64_t off_no_header, int64_t header_size);
 	uint8_t __fastcall DecompressPakFile(int64_t* param_buffer, uint64_t file_size, uint64_t buffer_size);
-	void DecompressSnowflakeInit(int64_t param_buf, uint8_t* data_buf, uint64_t data_size);
+	int64_t DecompressSnowflakeInit(int64_t param_buf, int64_t data_buf, uint64_t data_size);
 	void DecompressSnowflake(int64_t param_buffer, uint64_t data_size, uint64_t buffer_size);
 	float* __fastcall DecompressDynamicTrack(int frame_count, uint8_t* in_translation_buffer, float translation_scale, float* out_translation_buffer, float* time_scale/*'time_scale' might nit be correct*/);
 	void __fastcall DecompressConvertRotation(const __m128i* rotation_buffer, float* result_buffer);
