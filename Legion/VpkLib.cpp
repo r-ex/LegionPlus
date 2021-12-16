@@ -215,6 +215,14 @@ void VpkLib::ExportRMdl(const string& Asset, const string& Path)
 					Stream->SetPosition(SubmeshPosition);
 					auto Submesh = Reader.Read<RMdlSubmesh>();
 
+					// there's a good chance that this isn't a good way of doing it, however:
+					// it works well enough for now so it will do.
+					// this should probably be checked later and likely changed
+					// - rex
+					Assets::Mesh m;
+
+					// todo: check this
+					Model->Meshes.EmplaceBack(m);
 
 					for (uint32_t g = 0; g < Submesh.NumStripGroups; g++)
 					{
@@ -230,13 +238,14 @@ void VpkLib::ExportRMdl(const string& Asset, const string& Path)
 							auto Vtx = Reader.Read<RMdlStripVert>();
 							auto& Vertex = VertexBuffers[0][(uint64_t)Vtx.VertexIndex + VertexOffset];
 
-							// TODO(rx):
-							//auto NewVertex = Mesh.Vertices.Emplace(Vertex.Position, Vertex.Normal, Assets::VertexColor(), Vertex.UVs);
 
-							//for (uint8_t w = 0; w < Vertex.NumWeights; w++)
-							//{
-							//	NewVertex.SetWeight({ Vertex.WeightIds[w], Vertex.SimpleWeights[w] }, w);
-							//}
+							// todo: check this
+							auto NewVertex = Model->Meshes[s].Vertices.Emplace(Vertex.Position, Vertex.Normal, Assets::VertexColor(), Vertex.UVs);
+
+							for (uint8_t w = 0; w < Vertex.NumWeights; w++)
+							{
+								NewVertex.SetWeight({ Vertex.WeightIds[w], Vertex.SimpleWeights[w] }, w);
+							}
 						}
 
 						Stream->SetPosition(StripGroupPosition + StripGroup.IndexOffset);
@@ -246,14 +255,16 @@ void VpkLib::ExportRMdl(const string& Asset, const string& Path)
 							uint32_t i1 = Reader.Read<uint16_t>();
 							uint32_t i2 = Reader.Read<uint16_t>();
 							uint32_t i3 = Reader.Read<uint16_t>();
-							// TODO(rx):
-							//Mesh.Faces.EmplaceBack(i1, i2, i3);
+
+							// todo: check this
+							Model->Meshes[s].Faces.EmplaceBack(i1, i2, i3);
 						}
 					}
 
 					VertexOffset += PartMesh.Meshes[s].LodVertCounts[0];
-					// TODO(rx):
-					//Mesh.MaterialIndices.EmplaceBack(Model->AddMaterial(Materials[PartMesh.Meshes[s].Index], ""));
+
+					// todo: check this
+					Model->Meshes[s].MaterialIndices.EmplaceBack(Model->AddMaterial(Materials[PartMesh.Meshes[s].Index], ""));
 				}
 			}
 		}
