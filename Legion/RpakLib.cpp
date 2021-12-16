@@ -235,11 +235,12 @@ std::unique_ptr<Assets::Texture> RpakLib::BuildPreviewTexture(uint64_t Hash)
 	auto& Asset = this->Assets[Hash];
 
 	std::unique_ptr<Assets::Texture> Result = nullptr;
+	string Name;
 
 	switch (Asset.AssetType)
 	{
 	case (uint32_t)RpakAssetType::Texture:
-		this->ExtractTexture(Asset, Result);
+		this->ExtractTexture(Asset, Result, Name);
 		return Result;
 	case (uint32_t)RpakAssetType::UIIA:
 		this->ExtractUIIA(Asset, Result);
@@ -362,8 +363,12 @@ void RpakLib::ExportTexture(const RpakLoadAsset& Asset, const string& Path)
 #endif
 
 	std::unique_ptr<Assets::Texture> Texture = nullptr;
+	string Name;
 
-	this->ExtractTexture(Asset, Texture);
+	this->ExtractTexture(Asset, Texture, Name);
+
+	if (Name.Length() > 0)
+		DestinationPath = IO::Path::Combine(Path, string::Format("%s%s", Name, (const char*)ImageExtension));
 
 	try
 	{
@@ -736,7 +741,20 @@ void RpakLib::BuildTextureInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	auto TexHeader = Reader.Read<TextureHeader>();
 
-	Info.Name = string::Format("texture_0x%llx", Asset.NameHash);
+	string Name = "";
+
+	if (TexHeader.NameOffset)
+	{
+		RpakStream->SetPosition(this->GetFileOffset(Asset, TexHeader.NameIndex, TexHeader.NameOffset));
+
+		Name = Reader.ReadCString();
+	}
+
+	if (Name.Length() > 0)
+		Info.Name = IO::Path::GetFileNameWithoutExtension(Name);
+	else
+		Info.Name = string::Format("texture_0x%llx", Asset.NameHash);
+
 	Info.Type = ApexAssetType::Image;
 	Info.Status = ApexAssetStatus::Loaded;
 	Info.Info = string::Format("Width: %d Height %d", TexHeader.Width, TexHeader.Height);
@@ -1262,7 +1280,7 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 	return Result;
 }
 
-void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Texture>& Texture)
+void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Texture>& Texture, string& Name)
 {
 	auto RpakStream = this->GetFileStream(Asset);
 	auto Reader = IO::BinaryReader(RpakStream.get(), true);
@@ -1310,6 +1328,18 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		__debugbreak();
 #endif
 		return;
+	}
+
+	if (TexHeader.NameOffset)
+	{
+		uint64_t NameOffset = this->GetFileOffset(Asset, TexHeader.NameIndex, TexHeader.NameOffset);
+
+		RpakStream->SetPosition(NameOffset);
+
+		Name = Reader.ReadCString();
+	}
+	else {
+		Name = "";
 	}
 
 	Texture = std::make_unique<Assets::Texture>(TexHeader.Width, TexHeader.Height, Fmt.Format);

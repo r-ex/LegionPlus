@@ -12,7 +12,8 @@
 struct TextureHeader
 {
 	uint64_t NameHash;
-	uint64_t Unknown;
+	uint32_t NameIndex;
+	uint32_t NameOffset;
 
 	uint16_t Width;
 	uint16_t Height;
