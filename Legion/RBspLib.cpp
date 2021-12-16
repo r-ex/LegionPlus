@@ -231,7 +231,7 @@ void RBspLib::ExportBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, const st
 	auto Reader = IO::BinaryReader(Stream.get(), true);
 	auto Header = Reader.Read<RBspHeader>();
 
-	if (Header.Magic != 0x50534272 || (Header.Version != 0x31 && Header.Version != 0x32))
+	if (Header.Magic != 0x50534272 /*|| (Header.Version != 0x31 && Header.Version != 0x32)*/)
 		return;
 
 	auto Model = std::make_unique<Assets::Model>(0, 0);
