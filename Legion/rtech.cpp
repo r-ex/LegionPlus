@@ -1073,16 +1073,55 @@ uint64_t __fastcall RTech::StringToGuid(const char* asset_name)
 //-----------------------------------------------------------------------------
 float __fastcall RTech::FrameToEulerTranslation(uint8_t* translation_buffer, int frame_count, float translation_scale)
 {
+	int           v3; // ebx
+	float         v4; // xmm4_4
+	int64_t       v5; // rdi
+	uint8_t* v6; // r11
+	float         v7; // xmm1_4
+	int           v8; // ebx
+	int64_t       v9; // r10
+	unsigned int v10; // edx
+	unsigned int v11; // ebx
+	float        v12; // xmm5_4
+	float        v13; // xmm2_4
+	unsigned int v14; // er8
+	float        v15; // xmm3_4
+	int64_t      v16; // rax
+	float        v17; // xmm1_4
+	float        v18; // xmm0_4
+	float        v19; // xmm1_4
+	float        v20; // xmm2_4
+	float        v21; // xmm0_4
+	int          v22; // ecx
+	float        v23; // xmm0_4
+	float        v24; // xmm1_4
+	float        v25; // xmm2_4
+	float        v26; // xmm0_4
+	int64_t      v27; // rax
+	float     result; // xmm0_4
+	int16_t      v29; // dx
+
+	v3 = *translation_buffer;
+	v4 = translation_scale;
+	v5 = frame_count;
+	v6 = translation_buffer;
+	if (!*translation_buffer)
 	{
 		return (float)*(int16_t*)&translation_buffer[2 * frame_count + 2] * translation_scale;
 	}
+	if (v3 == 1)
 	{
+		v29 = *((uint16_t*)translation_buffer + 1);
+		if ((int)v5 > 0)
 		{
+			v29 += (char)translation_buffer[v5 + 3];
 		}
+		result = (float)v29 * translation_scale;
 	}
 	else
 	{
 		v7 = 1.0;
+		v8 = v3 - 2;
 		v9 = (unsigned int)(v8 / 6);
 		v10 = 1;
 		v11 = v8 % 6;
@@ -1093,13 +1132,18 @@ float __fastcall RTech::FrameToEulerTranslation(uint8_t* translation_buffer, int
 			if (v11 >= 4)
 			{
 				v14 = 3;
+				v15 = (float)(int)v5 * v12;
 				do
 				{
 					v16 = v10;
 					v17 = v7 * v15;
 					v10 += 4;
+					v18 = (float)*(int16_t*)&v6[2 * v16 + 2] * v17;
 					v19 = v17 * v15;
 					v20 = v13 + v18;
+					v21 = (float)*(int16_t*)&v6[2 * v14];
+					v22 = *(int16_t*)&v6[2 * v14 + 2];
+					LODWORD(v16) = *(int16_t*)&v6[2 * v14 + 4];
 					v14 += 4;
 					v23 = v21 * v19;
 					v24 = v19 * v15;
@@ -1109,15 +1153,19 @@ float __fastcall RTech::FrameToEulerTranslation(uint8_t* translation_buffer, int
 					v13 = (float)(v25 + v26) + (float)((float)(int)v16 * v7);
 				} while (v10 <= v11 - 3);
 			}
+			for (; v10 <= v11; v13 = v13 + (float)((float)*(int16_t*)&v6[2 * v27 + 2] * v7))
 			{
 				v27 = v10++;
+				v7 = v7 * (float)((float)(int)v5 * v12);
 			}
 		}
 		if ((uint32_t)v9)
 		{
 			v13 = (float)(2 * (uint16_t)(((1 << (uint8_t)LUT_Dynamic_Track_0[v9]) - 1)
+				& (*(uint16_t*)&v6[2 * (v11 + (int64_t)((int)v5 * LUT_Dynamic_Track_0[v9] / 16)) + 4] >> ((int)v5 * LUT_Dynamic_Track_0[v9] % -16))))
 				+ (float)(v13 - LUT_Dynamic_Track_1[v9]);
 		}
+		result = v13 * v4;
 	}
 	return result;
 }
