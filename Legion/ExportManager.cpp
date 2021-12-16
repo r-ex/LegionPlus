@@ -144,6 +144,7 @@ void ExportManager::ExportRpakAssets(const std::unique_ptr<RpakLib>& RpakFileSys
 	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "materials"));
 	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "models"));
 	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "animations"));
+	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "subtitles"));
 	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "datatables"));
 
 	RpakFileSystem->InitializeModelExporter((RpakModelExportFormat)Config.Get<System::SettingType::Integer>("ModelFormat"));
@@ -185,6 +186,9 @@ void ExportManager::ExportRpakAssets(const std::unique_ptr<RpakLib>& RpakFileSys
 				break;
 			case (uint32_t)RpakAssetType::DataTable:
 				RpakFileSystem->ExportDataTable(AssetToExport, IO::Path::Combine(ExportDirectory, "datatables"));
+				break;
+			case (uint32_t)RpakAssetType::Subtitles:
+				RpakFileSystem->ExportSubtitles(AssetToExport, IO::Path::Combine(ExportDirectory, "subtitles"));
 				break;
 			}
 

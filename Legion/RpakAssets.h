@@ -132,7 +132,19 @@ struct DataTableColumnData
 	string assetNPValue;
 };
 
+struct SubtitleHeader
+{
+	char padding[0x10];
 
+	uint32_t EntriesIndex;
+	uint32_t EntriesOffset;
+};
+
+struct SubtitleEntry
+{
+	Math::Vector3 Color;
+	string SubtitleText;
+};
 
 struct SettingsHeader
 {
@@ -1120,6 +1132,7 @@ struct StarpakStreamEntry
 static_assert(sizeof(TextureHeader) == 0x38, "Invalid Header Size");
 static_assert(sizeof(DataTableHeader) == 0x28, "Invalid Header Size");
 static_assert(sizeof(DataTableColumn) == 0x18, "Invalid Header Size");
+static_assert(sizeof(SubtitleHeader) == 0x18, "Invalid Header Size");
 static_assert(sizeof(SettingsHeader) == 0x48, "Invalid Header Size");
 static_assert(sizeof(PatchHeader) == 0x18, "Invalid Header Size");
 static_assert(sizeof(UIIAHeader) == 0x40, "Invalid Header Size");

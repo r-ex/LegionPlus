@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <array>
+#include <map>
 #include "StringBase.h"
 #include "ListBase.h"
 #include "DictionaryBase.h"
@@ -272,7 +273,8 @@ enum class RpakAssetType : uint32_t
 	Settings = 0x73677473,
 	Material = 0x6C74616D,
 	AnimationRig = 0x67697261,
-	Animation = 0x71657361
+	Animation = 0x71657361,
+	Subtitles = 0x74627573
 };
 
 enum class RpakModelExportFormat
@@ -299,6 +301,40 @@ enum class RpakImageExportFormat
 	Dds,
 	Png,
 	Tiff
+};
+
+// this is bad
+enum class SubtitleLanguageHash : uint64_t
+{
+	English = 0x655f79f11377196a,
+	French = 0x3d5404cd608d7068,
+	German = 0x2f5ecc4608e4c647,
+	Italian = 0x9234d8a930fe0ab6,
+	Japanese = 0x8cabeba1b904a76b,
+	Korean = 0x818477c5f5ce54dc,
+	MSpanish = 0x2ccda3809873d4bd,
+	Polish = 0x8d4239b4dc6f2169,
+	Portuguese = 0x33b3081c5185bace,
+	Russian = 0x770d3abd7e3e286,
+	SChinese = 0x4468b090e02fd5e9,
+	TChinese = 0x92a5954c745ecd89,
+	Spanish = 0xe4d57ced5b16779,
+};
+
+static std::map<SubtitleLanguageHash, string> SubtitleLanguageMap{
+	{SubtitleLanguageHash::English, "english"},
+	{SubtitleLanguageHash::French, "french"},
+	{SubtitleLanguageHash::German, "german"},
+	{SubtitleLanguageHash::Italian, "italian"},
+	{SubtitleLanguageHash::Japanese, "japanese"},
+	{SubtitleLanguageHash::Korean, "korean"},
+	{SubtitleLanguageHash::MSpanish, "mspanish"},
+	{SubtitleLanguageHash::Polish, "polish"},
+	{SubtitleLanguageHash::Portuguese, "portuguese"},
+	{SubtitleLanguageHash::Russian, "russian"},
+	{SubtitleLanguageHash::SChinese, "schinese"},
+	{SubtitleLanguageHash::TChinese, "tchinese"},
+	{SubtitleLanguageHash::Spanish, "spanish"},
 };
 
 class RpakLib
@@ -339,6 +375,7 @@ public:
 	void ExportUIIA(const RpakLoadAsset& Asset, const string& Path);
 	void ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path);
 	void ExportDataTable(const RpakLoadAsset& Asset, const string& Path);
+	void ExportSubtitles(const RpakLoadAsset& Asset, const string& Path);
 
 	// Used by the BSP system.
 	RMdlMaterial ExtractMaterial(const RpakLoadAsset& Asset, const string& Path, bool IncludeImages);
@@ -369,6 +406,7 @@ private:
 	void BuildTextureInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildUIIAInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildDataTableInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
+	void BuildSubtitleInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 
 	std::unique_ptr<Assets::Model> ExtractModel(const RpakLoadAsset& Asset, const string& Path, const string& AnimPath, bool IncludeMaterials, bool IncludeAnimations);
 	void ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO::MemoryStream>& RpakStream, string Name, uint64_t Offset, const std::unique_ptr<Assets::Model>& Model, RMdlFixupPatches& Fixup, bool IncludeMaterials);
@@ -377,7 +415,9 @@ private:
 	void ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bone>& Skeleton, const string& Path);
 	List<Assets::Bone> ExtractSkeleton(IO::BinaryReader& Reader, uint64_t SkeletonOffset);
 	List<List<DataTableColumnData>> ExtractDataTable(const RpakLoadAsset& Asset);
+	List<SubtitleEntry> ExtractSubtitles(const RpakLoadAsset& Asset);
 
+	string GetSubtitlesNameFromHash(uint64_t Hash);
 	void ParseRAnimBoneTranslationTrack(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex);
 	void ParseRAnimBoneRotationTrack(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex);
 	void ParseRAnimBoneScaleTrack(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex);

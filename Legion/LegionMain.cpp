@@ -675,7 +675,7 @@ void LegionMain::GetVirtualItem(const std::unique_ptr<Forms::RetrieveVirtualItem
 
 	auto RemappedDisplayIndex = ThisPtr->DisplayIndices[EventArgs->ItemIndex];
 
-	static const char* AssetTypes[] = { "Model", "AnimationSet", "Image", "Material", "DataTable", "Sound" };
+	static const char* AssetTypes[] = { "Model", "AnimationSet", "Image", "Material", "DataTable", "Sound", "Subtitles"};
 	static const Drawing::Color AssetTypesColors[] = 
 	{
 		Drawing::Color(0, 157, 220), // Model
@@ -683,7 +683,8 @@ void LegionMain::GetVirtualItem(const std::unique_ptr<Forms::RetrieveVirtualItem
 		Drawing::Color(202, 97, 195),// Image
 		Drawing::Color(27, 153, 139),// Material
 		Drawing::Color(211, 7, 247), // DataTable
-		Drawing::Color(216, 30, 91)  // Sound
+		Drawing::Color(216, 30, 91), // Sound,
+		Drawing::Color(239, 130, 13),// Subtitles
 	};
 
 	static const char* AssetStatus[] = { "Loaded", "Exporting", "Exported" };

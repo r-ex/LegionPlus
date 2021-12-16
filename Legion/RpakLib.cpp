@@ -1,6 +1,9 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <regex>
+#include <iomanip>
+#include <sstream>
 
 #include "RpakLib.h"
 #include "Path.h"
@@ -196,6 +199,10 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims
 			if (!DataTables)
 				continue;
 			BuildDataTableInfo(Asset, NewAsset);
+			break;
+		case (uint32_t)RpakAssetType::Subtitles:
+			// todo: subtitle loading setting
+			BuildSubtitleInfo(Asset, NewAsset);
 			break;
 		default:
 			continue;
@@ -560,6 +567,32 @@ void RpakLib::ExportDataTable(const RpakLoadAsset& Asset, const string& Path)
 	dtbl_out.close();
 
 }
+
+string Vector3ToHexColor(Math::Vector3 vec)
+{
+	std::stringstream stream;
+
+	stream << std::hex << (uint16_t)vec.X << (uint16_t)vec.Y << (uint16_t)vec.Z;
+
+	return stream.str().c_str();
+}
+
+void RpakLib::ExportSubtitles(const RpakLoadAsset& Asset, const string& Path)
+{
+	auto DestinationPath = IO::Path::Combine(Path, GetSubtitlesNameFromHash(Asset.NameHash) + ".csv");
+
+	auto Subtitles = this->ExtractSubtitles(Asset);
+
+	std::ofstream subt_out(DestinationPath.ToCString(), std::ios::out);
+
+	subt_out << "color,text\n";
+	for (auto& Entry : Subtitles)
+	{
+		subt_out << "\"#" << Vector3ToHexColor(Entry.Color) << "\",\"" << Entry.SubtitleText << "\"\n";
+	}
+	subt_out.close();
+}
+
 std::unique_ptr<IO::MemoryStream> RpakLib::GetFileStream(const RpakLoadAsset& Asset)
 {
 	auto& File = this->LoadedFiles[Asset.FileIndex];
@@ -733,6 +766,19 @@ void RpakLib::BuildDataTableInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	Info.Type = ApexAssetType::DataTable;
 	Info.Status = ApexAssetStatus::Loaded;
 	Info.Info = string::Format("Columns: %d Rows: %d", DtblHeader.ColumnCount, DtblHeader.RowCount);
+}
+
+void RpakLib::BuildSubtitleInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
+{
+	auto RpakStream = this->GetFileStream(Asset);
+	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
+
+	Info.Name = GetSubtitlesNameFromHash(Asset.NameHash);
+	Info.Type = ApexAssetType::Subtitles;
+	Info.Status = ApexAssetStatus::Loaded;
+	Info.Info = "N/A";
 }
 
 std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset, const string& Path, const string& AnimPath, bool IncludeMaterials, bool IncludeAnimations)
@@ -1969,6 +2015,55 @@ List<List<DataTableColumnData>> RpakLib::ExtractDataTable(const RpakLoadAsset& A
 	}
 	return Data;
 }
+
+List<SubtitleEntry> RpakLib::ExtractSubtitles(const RpakLoadAsset& Asset)
+{
+	auto RpakStream = this->GetFileStream(Asset);
+	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
+
+	auto SubtHdr = Reader.Read<SubtitleHeader>();
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, SubtHdr.EntriesIndex, SubtHdr.EntriesOffset));
+
+	List<SubtitleEntry> Subtitles;
+
+	std::regex ClrRegex("<clr:([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3})>");
+
+
+	while (!RpakStream->GetIsEndOfFile())
+	{
+		SubtitleEntry se;
+		
+		string temp_string = Reader.ReadCString();
+
+		std::smatch sm;
+
+		std::string s(temp_string);
+
+		std::regex_search(s, sm, ClrRegex);
+
+		if (sm.size() == 4)
+			se.Color = Math::Vector3(atof(sm[1].str().c_str()), atof(sm[2].str().c_str()), atof(sm[3].str().c_str()));
+		else
+			se.Color = Math::Vector3(255, 255, 255);
+
+		se.SubtitleText = temp_string.Substring(sm[0].str().length());
+
+		Subtitles.EmplaceBack(se);
+	}
+	return Subtitles;
+}
+
+string RpakLib::GetSubtitlesNameFromHash(uint64_t Hash)
+{
+	if (SubtitleLanguageMap.count((SubtitleLanguageHash)Hash))
+		return "subtitles_" + SubtitleLanguageMap[(SubtitleLanguageHash)Hash];
+
+	return string::Format("subt_0x%llx", Hash);
+}
+
 void RpakLib::ParseRAnimBoneTranslationTrack(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
 {
 	uint16_t* TranslationDataPtr = *BoneTrackData;
@@ -2232,6 +2327,10 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 		{
 			auto SubHeader = Reader.Read<DataTableHeader>();
 			return (SubHeader.ColumnCount != 0 && SubHeader.RowCount != 0);
+		}
+		case (uint32_t)RpakAssetType::Subtitles:
+		{
+			return true;
 		}
 		default:
 			return false;
@@ -2622,52 +2721,34 @@ bool RpakLib::MountTitanfallRpak(const string& Path, bool Dump)
 		return ParseTitanfallRpak(Path, Stream);
 	}
 
-	//todo(rx)
-//	auto CompressedBuffer = std::make_unique<uint8_t[]>(Header.CompressedSize);
-//	auto TemporaryBuffer = std::make_unique<uint8_t[]>(0x400000);
-//
-//	std::memcpy(TemporaryBuffer.get(), &Header, sizeof(RpakTitanfallHeader));
-//	std::memcpy(TemporaryBuffer.get() + sizeof(RpakTitanfallHeader), &Header, sizeof(RpakTitanfallHeader));
-//
-//	Reader.Read(CompressedBuffer.get() + sizeof(RpakTitanfallHeader), 0, Header.CompressedSize - sizeof(RpakTitanfallHeader));
-//
-//	auto DecompressedBuffer = new uint8_t[Header.DecompressedSize];
-//
-//	RpakDecompressState State{};
-//	RpakDecompressInit((long long)&State, CompressedBuffer.get(), Header.CompressedSize, 0, sizeof(RpakTitanfallHeader));
-//	State.DecompressedBuffer = (uint64_t)TemporaryBuffer.get();
-//
-//	uint64_t OutputOffset = 0;
-//	uint64_t DecompressedOffset = sizeof(RpakTitanfallHeader);
-//	uint64_t TrueDecompressedOffset = 0;
-//
-//	do
-//	{
-//
-//		auto SizeDiff = Header.DecompressedSize - TrueDecompressedOffset;
-//		auto Wanted = (SizeDiff) > 0x400000 ? 0x400000 : SizeDiff;
-//
-//		RpakDecompress((long long*)&State, Header.CompressedSize, DecompressedOffset + 0x400000);
-//		std::memcpy(DecompressedBuffer + OutputOffset, TemporaryBuffer.get(), Wanted);
-//
-//		DecompressedOffset = State.DecompressOffset;
-//		TrueDecompressedOffset = State.DecompressOffset;
-//		OutputOffset += 0x400000;
-//
-//	} while (Header.DecompressedSize != State.DecompressOffset);
-//
-//	auto ResultStream = std::make_unique<IO::MemoryStream>(DecompressedBuffer, 0, Header.DecompressedSize, true, false, true);
-//
-//#if _DEBUG
-//	if (Dump)
-//	{
-//		auto OutStream = IO::File::Create(IO::Path::Combine("D:\\", IO::Path::GetFileName(Path)));
-//		ResultStream->CopyTo(OutStream.get());
-//		ResultStream->SetPosition(0);
-//	}
-//#endif
-//
-//	return ParseTitanfallRpak(Path, ResultStream);
+	auto CompressedBuffer = std::make_unique<uint8_t[]>(Header.CompressedSize);
+
+	Reader.Read(CompressedBuffer.get() + sizeof(RpakTitanfallHeader), 0, Header.CompressedSize - sizeof(RpakTitanfallHeader));
+
+	std::int64_t params[18];
+
+	uint32_t dSize = g_pRtech->DecompressPakfileInit((std::int64_t)params, CompressedBuffer.get(), Header.CompressedSize, 0, sizeof(RpakTitanfallHeader));
+
+	std::vector<std::uint8_t> pakbuf(dSize, 0);
+
+	params[1] = std::int64_t(pakbuf.data());
+	params[3] = -1i64;
+
+	std::uint8_t decomp_result = g_pRtech->DecompressPakFile(params, dSize, pakbuf.size());
+
+	std::memcpy(pakbuf.data(), &Header, sizeof(RpakTitanfallHeader));
+
+	auto ResultStream = std::make_unique<IO::MemoryStream>(pakbuf.data(), 0, Header.DecompressedSize, true, false, true);
+
+#if _DEBUG
+	if (Dump)
+	{
+		auto OutStream = IO::File::Create(IO::Path::Combine("D:\\", IO::Path::GetFileName(Path)));
+		ResultStream->CopyTo(OutStream.get());
+		ResultStream->SetPosition(0);
+	}
+#endif
+	return ParseTitanfallRpak(Path, ResultStream);
 }
 
 RpakLoadAsset::RpakLoadAsset(uint64_t NameHash, uint32_t FileIndex, uint32_t AssetType, uint32_t SubHeaderIndex, uint32_t SubHeaderOffset, uint32_t SubHeaderSize, uint32_t RawDataIndex, uint32_t RawDataOffset, uint64_t StarpakOffset, uint64_t OptimalStarpakOffset, RpakGameVersion Version)
