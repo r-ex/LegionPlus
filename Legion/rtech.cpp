@@ -19,89 +19,92 @@ History:
 //-----------------------------------------------------------------------------
 // Purpose: calculate 'decompressed' size and commit parameters
 //-----------------------------------------------------------------------------
-uint32_t __fastcall RTech::DecompressPakfileInit(int64_t param_buffer, uint8_t* file_buffer, int64_t file_size, int64_t off_no_header, int64_t header_size)
+uint64_t __fastcall RTech::DecompressPakfileInit(rpak_decomp_state* state, uint8_t* file_buffer, int64_t file_size, int64_t off_no_header, int64_t header_size)
 {
-	int64_t       v8; // r9
-	uint64_t      v9; // r11
-	char         v10; // r8
-	int          v11; // er8
-	int64_t      v12; // rbx
-	unsigned int v13; // ebp
-	uint64_t     v14; // rbx
-	int64_t      v15; // rax
-	unsigned int v16; // er9
-	uint64_t     v17; // r12
-	uint64_t     v18; // r11
-	uint64_t     v19; // r10
-	uint64_t     v20; // rax
-	int          v21; // ebp
-	uint64_t     v22; // r10
-	unsigned int v23; // er9
-	int64_t      v24; // rax
-	int64_t      v25; // rsi
-	int64_t      v26; // rdx
-	int64_t      v28; // rdx
-	int64_t      v29; // [rsp+48h] [rbp+18h]
-	int64_t   result; // rax
+	__int64 input_byte_pos_init; // r9
+	unsigned __int64 byte_init; // r11
+	int decompressed_size_bits; // ecx
+	__int64 byte_1_low; // rdi
+	unsigned __int64 input_byte_pos_1; // r10
+	unsigned int bit_pos_final; // ebp
+	unsigned __int64 byte_1; // rdi
+	unsigned int brih_bits; // er11
+	unsigned __int64 inv_mask_in; // r8
+	unsigned __int64 byte_final_full; // rbx
+	unsigned __int64 bit_pos_final_1; // rax
+	int byte_bit_offset_final; // ebp
+	unsigned __int64 input_byte_pos_final; // r10
+	unsigned __int64 byte_final; // rbx
+	unsigned int brih_bytes; // er11
+	__int64 byte_tmp; // rdx
+	__int64 stream_len_needed; // r14
+	__int64 result; // rax
+	unsigned __int64 inv_mask_out; // r8
+	__int64 qw70; // rcx
+	__int64 stream_compressed_size_new; // rdx
 
-	v29 = 0xFFFFFFi64;
-	*(uint64_t*)param_buffer = (uint64_t)file_buffer;
-	*(uint64_t*)(param_buffer + 32) = off_no_header + file_size;
-	*(uint64_t*)(param_buffer + 8) = 0i64;
-	*(uint64_t*)(param_buffer + 24) = 0i64;
-	*(uint32_t*)(param_buffer + 68) = 0;
-	*(uint64_t*)(param_buffer + 16) = -1i64;
-	v8 = off_no_header + header_size + 8;
-	v9 = *(uint64_t*)((0xFFFFFFi64 & (off_no_header + header_size)) + file_buffer);
-	*(uint64_t*)(param_buffer + 80) = header_size;
-	*(uint64_t*)(param_buffer + 72) = v8;
-	v10 = v9;
-	v9 >>= 6;
-	v11 = v10 & 0x3F;
-	*(uint64_t*)(param_buffer + 40) = (1i64 << v11) | v9 & ((1i64 << v11) - 1);
-	v12 = *(uint64_t*)((0xFFFFFFi64 & v8) + file_buffer) << (64 - ((uint8_t)v11 + 6));
-	*(uint64_t*)(param_buffer + 72) = v8 + ((uint8_t)(unsigned int)(v11 + 6) >> 3);
-	v13 = ((v11 + 6) & 7) + 13;
-	v14 = (0xFFFFFFFFFFFFFFFFui64 >> ((v11 + 6) & 7)) & ((v9 >> v11) | v12);
-	v15 = v29 & *(uint64_t*)(param_buffer + 72);
-	v16 = (((uint8_t)v14 - 1) & 0x3F) + 1;
-	v17 = 0xFFFFFFFFFFFFFFFFui64 >> (64 - (uint8_t)v16);
-	*(uint64_t*)(param_buffer + 48) = v17;
-	v18 = 0xFFFFFFFFFFFFFFFFui64 >> (64 - ((((v14 >> 6) - 1) & 0x3F) + 1));
-	*(uint64_t*)(param_buffer + 56) = v18;
-	v19 = (v14 >> 13) | (*(uint64_t*)(v15 + file_buffer) << (64 - (uint8_t)v13));
-	v20 = v13;
-	v21 = v13 & 7;
-	*(uint64_t*)(param_buffer + 72) += v20 >> 3;
-	v22 = (0xFFFFFFFFFFFFFFFFui64 >> v21) & v19;
-	if (v17 == -1i64)
+	const uintptr_t mask = UINT64_MAX;
+	const auto file_buf = uintptr_t(file_buffer);
+
+	state->input_buf = file_buf;
+	state->out = 0i64;
+	state->out_mask = 0i64;
+	state->dword44 = 0;                           // y r u gay
+	state->file_len_total = file_size + off_no_header;
+	state->mask = mask;
+	input_byte_pos_init = off_no_header + header_size + 8;
+	byte_init = *(uint64_t*)((mask & (off_no_header + header_size)) + file_buf);
+	state->decompressed_position = header_size;
+	decompressed_size_bits = byte_init & 0x3F;
+	byte_init >>= 6;
+	state->input_byte_pos = input_byte_pos_init;
+	state->decompressed_size = byte_init & ((1i64 << decompressed_size_bits) - 1) | (1i64 << decompressed_size_bits);
+	byte_1_low = *(uint64_t*)((mask & input_byte_pos_init) + file_buf) << (64
+		- ((unsigned __int8)decompressed_size_bits
+			+ 6));
+	input_byte_pos_1 = input_byte_pos_init + ((unsigned __int64)(unsigned int)(decompressed_size_bits + 6) >> 3);
+	state->input_byte_pos = input_byte_pos_1;
+	bit_pos_final = ((decompressed_size_bits + 6) & 7) + 13;
+	byte_1 = (0xFFFFFFFFFFFFFFFFui64 >> ((decompressed_size_bits + 6) & 7)) & ((byte_init >> decompressed_size_bits) | byte_1_low);
+	brih_bits = (((uint8_t)byte_1 - 1) & 0x3F) + 1;
+	inv_mask_in = 0xFFFFFFFFFFFFFFFFui64 >> (64 - (unsigned __int8)brih_bits);
+	state->inv_mask_in = inv_mask_in;
+	state->inv_mask_out = 0xFFFFFFFFFFFFFFFFui64 >> (63 - (((byte_1 >> 6) - 1) & 0x3F));
+	byte_final_full = (byte_1 >> 13) | (*(uint64_t*)((mask & input_byte_pos_1) + file_buf) << (64
+		- (unsigned __int8)bit_pos_final));
+	bit_pos_final_1 = bit_pos_final;
+	byte_bit_offset_final = bit_pos_final & 7;
+	input_byte_pos_final = (bit_pos_final_1 >> 3) + input_byte_pos_1;
+	byte_final = (0xFFFFFFFFFFFFFFFFui64 >> byte_bit_offset_final) & byte_final_full;
+	state->input_byte_pos = input_byte_pos_final;
+	if (inv_mask_in == -1i64)
 	{
-		*(uint32_t*)(param_buffer + 64) = 0;
-		*(uint64_t*)(param_buffer + 88) = file_size;
+		state->header_skip_bytes_bs = 0;
+		stream_len_needed = file_size;
 	}
 	else
 	{
-		v23 = v16 >> 3;
-	 	v24 = v29 & *(uint64_t*)(param_buffer + 72);
-		*(uint32_t*)(param_buffer + 64) = v23 + 1;
-	 	v25 = *(uint64_t*)(v24 + file_buffer) & ((1i64 << (8 * ((uint8_t)v23 + 1))) - 1);
-		*(uint64_t*)(param_buffer + 72) += v23 + 1;
-		*(uint64_t*)(param_buffer + 88) = v25;
+		brih_bytes = brih_bits >> 3;
+		state->header_skip_bytes_bs = brih_bytes + 1;
+		byte_tmp = *(uint64_t*)((mask & input_byte_pos_final) + file_buf);
+		state->input_byte_pos = input_byte_pos_final + brih_bytes + 1;
+		stream_len_needed = byte_tmp & ((1i64 << (8 * ((unsigned __int8)brih_bytes + 1))) - 1);
 	}
-	*(uint64_t*)(param_buffer + 88) += off_no_header;
-	v26 = *(uint64_t*)(param_buffer + 88);
-	*(uint64_t*)(param_buffer + 96) = v22;
-	*(uint32_t*)(param_buffer + 104) = v21;
-	*(uint64_t*)(param_buffer + 112) = v17 + off_no_header - 6;
-	result = *(uint64_t*)(param_buffer + 40);
-	*(uint32_t*)(param_buffer + 108) = 0;
-	*(uint64_t*)(param_buffer + 120) = v26;
-	*(uint64_t*)(param_buffer + 128) = result;
-	if ((((uint8_t)(v14 >> 6) - 1) & 0x3F) != -1i64 && result - 1 > v18)
+	result = state->decompressed_size;
+	inv_mask_out = state->inv_mask_out;
+	qw70 = off_no_header + state->inv_mask_in - 6i64;
+	state->len_needed = stream_len_needed + off_no_header;
+	state->qword70 = qw70;
+	state->byte = byte_final;
+	state->byte_bit_offset = byte_bit_offset_final;
+	state->dword6C = 0;
+	state->stream_compressed_size = stream_len_needed + off_no_header;
+	state->stream_decompressed_size = result;
+	if (result - 1 > inv_mask_out)
 	{
-		v28 = v26 - *(unsigned int*)(param_buffer + 64);
-		*(uint64_t*)(param_buffer + 128) = v18 + 1;
-		*(uint64_t*)(param_buffer + 120) = v28;
+		stream_compressed_size_new = stream_len_needed + off_no_header - state->header_skip_bytes_bs;
+		state->stream_decompressed_size = inv_mask_out + 1;
+		state->stream_compressed_size = stream_compressed_size_new;
 	}
 	return result;
 }

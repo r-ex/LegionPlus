@@ -6,6 +6,30 @@
 #define PAK_PARAM_SIZE    0xB0
 #define DCMP_BUF_SIZE 0x400000
 
+struct __declspec(align(8)) rpak_decomp_state
+{
+  uint64_t input_buf;
+  uint64_t out;
+  uint64_t mask;
+  uint64_t out_mask;
+  uint64_t file_len_total;
+  uint64_t decompressed_size;
+  uint64_t inv_mask_in;
+  uint64_t inv_mask_out;
+  unsigned int header_skip_bytes_bs;
+  uint32_t dword44;
+  uint64_t input_byte_pos;
+  uint64_t decompressed_position;
+  uint64_t len_needed;
+  uint64_t byte;
+  uint32_t byte_bit_offset;
+  uint32_t dword6C;
+  uint64_t qword70;
+  uint64_t stream_compressed_size;
+  uint64_t stream_decompressed_size;
+};
+static_assert(sizeof(rpak_decomp_state) == 0x88);
+
 namespace
 {
 	/*unk_141313180*/
@@ -140,7 +164,7 @@ namespace
 class RTech
 {
 public:
-	uint32_t __fastcall DecompressPakfileInit(int64_t param_buffer, uint8_t* file_buffer, int64_t file_size, int64_t off_no_header, int64_t header_size);
+	uint64_t __fastcall DecompressPakfileInit(rpak_decomp_state* state, uint8_t* file_buffer, int64_t file_size, int64_t off_no_header, int64_t header_size);
 	uint8_t __fastcall DecompressPakFile(int64_t* param_buffer, uint64_t file_size, uint64_t buffer_size);
 	int64_t DecompressSnowflakeInit(int64_t param_buf, int64_t data_buf, uint64_t data_size);
 	void DecompressSnowflake(int64_t param_buffer, uint64_t data_size, uint64_t buffer_size);

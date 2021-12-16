@@ -386,7 +386,8 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 		*  char v23[8]; // [rsp+40h] [rbp-E8h] BYREF\
 		*  memset_0(v23, 0, 176ui64);
 		*/
-		std::int64_t params[18];
+		//std::int64_t params[18];
+		rpak_decomp_state state;
 
 		// sig to containing function in retail: (+0x195) E8 ? ? ? ? 0F B6 06 3C 01 
 		// v13 = RTech::DecompressedSize(*(_QWORD*)(a1 + 32),*(_QWORD*)(a1 + 40), -1i64, *(unsigned int*)(a1 + 8), 0i64, 0i64);
@@ -405,12 +406,14 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 		* (1 << v7) - 1 as input for the -1 param.
 		*/
 
-		uint32_t dSize = g_pRtech->DecompressPakfileInit((std::int64_t)params, (uint8_t*)Data, DataSize, 0, 0);
+		uint32_t dSize = g_pRtech->DecompressPakfileInit(&state, (uint8_t*)Data, DataSize, 0, 0);
 
 		std::vector<std::uint8_t> pakbuf(dSize, 0);
 
-		params[1] = std::int64_t(pakbuf.data());
-		params[3] = -1i64;
+		//params[1] = std::int64_t(pakbuf.data());
+		//params[3] = -1i64;
+		state.out_mask = UINT64_MAX;
+		state.out = uint64_t(pakbuf.data());
 
 		// Porter originally passed 0x400000ui64 here after calculating the actual rpak mask, we will push pakbuf.size() for the time being.
 		// Retail passes 16 as the buffer_size
@@ -419,7 +422,7 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
         *  *(_DWORD *)(a1 + 12) = decompressed_size;
         *  v15 = (*v14)(v14, decompressed_size, 16i64);
 		*/
-		std::uint8_t decomp_result = g_pRtech->DecompressPakFile(params, dSize, pakbuf.size());
+		std::uint8_t decomp_result = g_pRtech->DecompressPakFile((int64_t*)&state, dSize, pakbuf.size());
 
 		return std::make_unique<IO::MemoryStream>((uint8_t*)Data, 0, DataSize);
 	}
@@ -2676,16 +2679,19 @@ bool RpakLib::MountApexRpak(const string& Path, bool Dump)
 
 	Reader.Read(CompressedBuffer.get() + sizeof(RpakApexHeader), 0, Header.CompressedSize - sizeof(RpakApexHeader));
 
-	std::int64_t params[18];
+	//std::int64_t params[18];
+	rpak_decomp_state state;
 
-	uint32_t dSize = g_pRtech->DecompressPakfileInit((std::int64_t)params, CompressedBuffer.get(), Header.CompressedSize, 0, sizeof(RpakApexHeader));
+	uint32_t dSize = g_pRtech->DecompressPakfileInit(&state, CompressedBuffer.get(), Header.CompressedSize, 0, sizeof(RpakApexHeader));
 
 	std::vector<std::uint8_t> pakbuf(dSize, 0);
 
-	params[1] = std::int64_t(pakbuf.data());
-	params[3] = -1i64;
+	//params[1] = std::int64_t(pakbuf.data());
+	//params[3] = -1i64;
+	state.out_mask = UINT64_MAX;
+	state.out = uint64_t(pakbuf.data());
 
-	std::uint8_t decomp_result = g_pRtech->DecompressPakFile(params, dSize, pakbuf.size());
+	std::uint8_t decomp_result = g_pRtech->DecompressPakFile((int64_t*)&state, dSize, pakbuf.size());
 
 	std::memcpy(pakbuf.data(), &Header, sizeof(RpakApexHeader));
 
@@ -2725,16 +2731,19 @@ bool RpakLib::MountTitanfallRpak(const string& Path, bool Dump)
 
 	Reader.Read(CompressedBuffer.get() + sizeof(RpakTitanfallHeader), 0, Header.CompressedSize - sizeof(RpakTitanfallHeader));
 
-	std::int64_t params[18];
+	//std::int64_t params[18];
+	rpak_decomp_state state;
 
-	uint32_t dSize = g_pRtech->DecompressPakfileInit((std::int64_t)params, CompressedBuffer.get(), Header.CompressedSize, 0, sizeof(RpakTitanfallHeader));
+	uint32_t dSize = g_pRtech->DecompressPakfileInit(&state, CompressedBuffer.get(), Header.CompressedSize, 0, sizeof(RpakTitanfallHeader));
 
 	std::vector<std::uint8_t> pakbuf(dSize, 0);
 
-	params[1] = std::int64_t(pakbuf.data());
-	params[3] = -1i64;
+	//params[1] = std::int64_t(pakbuf.data());
+	//params[3] = -1i64;
+	state.out_mask = UINT64_MAX;
+	state.out = uint64_t(pakbuf.data());
 
-	std::uint8_t decomp_result = g_pRtech->DecompressPakFile(params, dSize, pakbuf.size());
+	std::uint8_t decomp_result = g_pRtech->DecompressPakFile((int64_t*)&state, dSize, pakbuf.size());
 
 	std::memcpy(pakbuf.data(), &Header, sizeof(RpakTitanfallHeader));
 
