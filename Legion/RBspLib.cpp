@@ -325,7 +325,7 @@ void RBspLib::ExportBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, const st
 			if (RpakMaterialLookup.ContainsKey(CleanedMaterialName))
 			{
 				auto MaterialAsset = RpakMaterialLookup[CleanedMaterialName];
-				auto ParsedMaterial = RpakFileSystem->ExtractMaterial(MaterialAsset, TexturePath, true);
+				auto ParsedMaterial = RpakFileSystem->ExtractMaterial(MaterialAsset, TexturePath, true, false);
 				auto MaterialIndex = Model->AddMaterial(ParsedMaterial.MaterialName, ParsedMaterial.AlbedoHash);
 
 				auto& MaterialInstance = Model->Materials[MaterialIndex];

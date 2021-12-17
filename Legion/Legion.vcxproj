@@ -163,6 +163,10 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MilesLib.cpp" />
     <ClCompile Include="RBspLib.cpp" />
+    <ClCompile Include="RpakAssetBuildInfo.cpp" />
+    <ClCompile Include="RpakAssetExport.cpp" />
+    <ClCompile Include="RpakAssetExtract.cpp" />
+    <ClCompile Include="RpakAssetPreview.cpp" />
     <ClCompile Include="RpakLib.cpp" />
     <ClCompile Include="rtech.cpp" />
     <ClCompile Include="VpkLib.cpp" />

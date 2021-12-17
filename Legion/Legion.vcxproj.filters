@@ -72,6 +72,18 @@
     <ClCompile Include="ExportManager.cpp">
       <Filter>Legion\Core</Filter>
     </ClCompile>
+    <ClCompile Include="RpakAssetExport.cpp">
+      <Filter>RPak</Filter>
+    </ClCompile>
+    <ClCompile Include="RpakAssetExtract.cpp">
+      <Filter>RPak</Filter>
+    </ClCompile>
+    <ClCompile Include="RpakAssetBuildInfo.cpp">
+      <Filter>RPak</Filter>
+    </ClCompile>
+    <ClCompile Include="RpakAssetPreview.cpp">
+      <Filter>RPak</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MilesLib.h">

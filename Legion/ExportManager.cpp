@@ -170,7 +170,7 @@ void ExportManager::ExportRpakAssets(const std::unique_ptr<RpakLib>& RpakFileSys
 			switch (AssetToExport.AssetType)
 			{
 			case (uint32_t)RpakAssetType::Texture:
-				RpakFileSystem->ExportTexture(AssetToExport, IO::Path::Combine(ExportDirectory, "images"));
+				RpakFileSystem->ExportTexture(AssetToExport, IO::Path::Combine(ExportDirectory, "images"), true);
 				break;
 			case (uint32_t)RpakAssetType::UIIA:
 				RpakFileSystem->ExportUIIA(AssetToExport, IO::Path::Combine(ExportDirectory, "images"));

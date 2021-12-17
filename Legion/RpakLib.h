@@ -369,16 +369,17 @@ public:
 	// Initializes a image exporter
 	void InitializeImageExporter(RpakImageExportFormat Format = RpakImageExportFormat::Dds);
 
+	// RpakAssetExport.cpp
 	void ExportModel(const RpakLoadAsset& Asset, const string& Path, const string& AnimPath);
 	void ExportMaterial(const RpakLoadAsset& Asset, const string& Path);
-	void ExportTexture(const RpakLoadAsset& Asset, const string& Path);
+	void ExportTexture(const RpakLoadAsset& Asset, const string& Path, bool IncludeImageNames);
 	void ExportUIIA(const RpakLoadAsset& Asset, const string& Path);
 	void ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path);
 	void ExportDataTable(const RpakLoadAsset& Asset, const string& Path);
 	void ExportSubtitles(const RpakLoadAsset& Asset, const string& Path);
 
 	// Used by the BSP system.
-	RMdlMaterial ExtractMaterial(const RpakLoadAsset& Asset, const string& Path, bool IncludeImages);
+	RMdlMaterial ExtractMaterial(const RpakLoadAsset& Asset, const string& Path, bool IncludeImages, bool IncludeImageNames);
 
 private:
 	std::array<RpakFile, MAX_LOADED_RPAKS> LoadedFiles;
@@ -408,6 +409,7 @@ private:
 	void BuildDataTableInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildSubtitleInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 
+	// RpakAssetExtract.cpp
 	std::unique_ptr<Assets::Model> ExtractModel(const RpakLoadAsset& Asset, const string& Path, const string& AnimPath, bool IncludeMaterials, bool IncludeAnimations);
 	void ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO::MemoryStream>& RpakStream, string Name, uint64_t Offset, const std::unique_ptr<Assets::Model>& Model, RMdlFixupPatches& Fixup, bool IncludeMaterials);
 	void ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Texture>& Texture, string& Name);
