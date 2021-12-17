@@ -84,6 +84,9 @@
     <ClCompile Include="RpakAssetPreview.cpp">
       <Filter>RPak</Filter>
     </ClCompile>
+    <ClCompile Include="LegionAbout.cpp">
+      <Filter>Legion\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MilesLib.h">
@@ -142,6 +145,9 @@
     </ClInclude>
     <ClInclude Include="basetypes.h">
       <Filter>Legion\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="LegionAbout.h">
+      <Filter>Legion\UI</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

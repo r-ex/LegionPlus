@@ -154,6 +154,7 @@
     <ClCompile Include="ApexAsset.cpp" />
     <ClCompile Include="CommandLine.cpp" />
     <ClCompile Include="ExportManager.cpp" />
+    <ClCompile Include="LegionAbout.cpp" />
     <ClCompile Include="LegionMain.cpp" />
     <ClCompile Include="LegionPreview.cpp" />
     <ClCompile Include="LegionProgress.cpp" />
@@ -177,6 +178,7 @@
     <ClInclude Include="CommandLine.h" />
     <ClInclude Include="ExportAsset.h" />
     <ClInclude Include="ExportManager.h" />
+    <ClInclude Include="LegionAbout.h" />
     <ClInclude Include="LegionMain.h" />
     <ClInclude Include="LegionPreview.h" />
     <ClInclude Include="LegionProgress.h" />

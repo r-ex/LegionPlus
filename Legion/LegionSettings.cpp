@@ -10,51 +10,24 @@ LegionSettings::LegionSettings()
 
 void LegionSettings::InitializeComponent()
 {
+	const INT WindowX = 752;
+	const INT WindowY = 315;
+
 	this->SuspendLayout();
 	this->SetAutoScaleDimensions({ 6, 13 });
 	this->SetAutoScaleMode(Forms::AutoScaleMode::Font);
 	this->SetText("Legion | Application Settings");
-	this->SetClientSize({ 752, 421 });
+	this->SetClientSize({ WindowX, WindowY });
 	this->SetFormBorderStyle(Forms::FormBorderStyle::FixedSingle);
 	this->SetStartPosition(Forms::FormStartPosition::CenterParent);
 	this->SetMinimizeBox(false);
 	this->SetMaximizeBox(false);
 
-	this->groupBox5 = new UIX::UIXGroupBox();
-	this->groupBox5->SetSize({ 320, 111 });
-	this->groupBox5->SetLocation({ 12, 298 });
-	this->groupBox5->SetTabIndex(4);
-	this->groupBox5->SetText("Animation Settings");
-	this->groupBox5->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
-	this->AddControl(this->groupBox5);
-
-	this->ExportCastAnim = new UIX::UIXRadioButton();
-	this->ExportCastAnim->SetSize({ 79, 18 });
-	this->ExportCastAnim->SetLocation({ 28, 61 });
-	this->ExportCastAnim->SetTabIndex(12);
-	this->ExportCastAnim->SetText("Cast (Beta)");
-	this->ExportCastAnim->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox5->AddControl(this->ExportCastAnim);
-
-	this->label4 = new UIX::UIXLabel();
-	this->label4->SetSize({ 72, 17 });
-	this->label4->SetLocation({ 25, 35 });
-	this->label4->SetTabIndex(11);
-	this->label4->SetText("Export format");
-	this->label4->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->label4->SetTextAlign(Drawing::ContentAlignment::TopLeft);
-	this->groupBox5->AddControl(this->label4);
-
-	this->ExportSEAnim = new UIX::UIXRadioButton();
-	this->ExportSEAnim->SetSize({ 63, 18 });
-	this->ExportSEAnim->SetLocation({ 189, 61 });
-	this->ExportSEAnim->SetTabIndex(10);
-	this->ExportSEAnim->SetText("SEAnim");
-	this->ExportSEAnim->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox5->AddControl(this->ExportSEAnim);
-
+	//
+	//	General Settings Box
+	//
 	this->groupBox4 = new UIX::UIXGroupBox();
-	this->groupBox4->SetSize({ 728, 82 });
+	this->groupBox4->SetSize({ 728, 110 });
 	this->groupBox4->SetLocation({ 12, 12 });
 	this->groupBox4->SetTabIndex(3);
 	this->groupBox4->SetText("General Settings");
@@ -63,7 +36,7 @@ void LegionSettings::InitializeComponent()
 
 	this->ExportBrowseButton = new UIX::UIXButton();
 	this->ExportBrowseButton->SetSize({ 80, 25 });
-	this->ExportBrowseButton->SetLocation({ 642, 51 });
+	this->ExportBrowseButton->SetLocation({ 642, 26 });
 	this->ExportBrowseButton->SetTabIndex(5);
 	this->ExportBrowseButton->SetText("Browse");
 	this->ExportBrowseButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Right);
@@ -71,112 +44,130 @@ void LegionSettings::InitializeComponent()
 
 	this->ExportBrowseFolder = new UIX::UIXTextBox();
 	this->ExportBrowseFolder->SetSize({ 342, 25 });
-	this->ExportBrowseFolder->SetLocation({ 296, 51 });
+	this->ExportBrowseFolder->SetLocation({ 296, 26 });
 	this->ExportBrowseFolder->SetTabIndex(5);
 	this->ExportBrowseFolder->SetReadOnly(true);
 	this->ExportBrowseFolder->SetText("Click on \"Browse\" to set a custom export directory");
 	this->ExportBrowseFolder->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Right);
 	this->groupBox4->AddControl(this->ExportBrowseFolder);
-
-	this->LoadMaterials = new UIX::UIXCheckBox();
-	this->LoadMaterials->SetSize({ 97, 18 });
-	this->LoadMaterials->SetLocation({ 174, 53 });
-	this->LoadMaterials->SetTabIndex(3);
-	this->LoadMaterials->SetText("Load Materials");
-	this->LoadMaterials->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox4->AddControl(this->LoadMaterials);
-
-	this->LoadImages = new UIX::UIXCheckBox();
-	this->LoadImages->SetSize({ 89, 18 });
-	this->LoadImages->SetLocation({ 174, 30 });
-	this->LoadImages->SetTabIndex(2);
-	this->LoadImages->SetText("Load Images");
-	this->LoadImages->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox4->AddControl(this->LoadImages);
-
-	this->LoadUIImages = new UIX::UIXCheckBox();
-	this->LoadUIImages->SetSize({ 108, 18 });
-	this->LoadUIImages->SetLocation({ 296, 30 });
-	this->LoadUIImages->SetTabIndex(2);
-	this->LoadUIImages->SetText("Load UI Images");
-	this->LoadUIImages->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox4->AddControl(this->LoadUIImages);
-
-	this->LoadDataTables = new UIX::UIXCheckBox();
-	this->LoadDataTables->SetSize({ 108, 18 });
-	this->LoadDataTables->SetLocation({ 430, 30 });
-	this->LoadDataTables->SetTabIndex(2);
-	this->LoadDataTables->SetText("Load DataTables");
-	this->LoadDataTables->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox4->AddControl(this->LoadDataTables);
-
-	this->LoadAnimations = new UIX::UIXCheckBox();
-	this->LoadAnimations->SetSize({ 108, 18 });
-	this->LoadAnimations->SetLocation({ 52, 53 });
-	this->LoadAnimations->SetTabIndex(1);
-	this->LoadAnimations->SetText("Load Animations");
-	this->LoadAnimations->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox4->AddControl(this->LoadAnimations);
-
+	//
+	//	Load Flags
+	//
 	this->LoadModels = new UIX::UIXCheckBox();
 	this->LoadModels->SetSize({ 88, 18 });
-	this->LoadModels->SetLocation({ 52, 30 });
+	this->LoadModels->SetLocation({ 20, 30 });
 	this->LoadModels->SetTabIndex(0);
 	this->LoadModels->SetText("Load Models");
 	this->LoadModels->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->groupBox4->AddControl(this->LoadModels);
 
-	this->groupBox3 = new UIX::UIXGroupBox();
-	this->groupBox3->SetSize({ 402, 192 });
-	this->groupBox3->SetLocation({ 338, 100 });
-	this->groupBox3->SetTabIndex(2);
-	this->groupBox3->SetText("About");
-	this->groupBox3->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left | Forms::AnchorStyles::Right);
-	this->AddControl(this->groupBox3);
+	this->LoadAnimations = new UIX::UIXCheckBox();
+	this->LoadAnimations->SetSize({ 108, 18 });
+	this->LoadAnimations->SetLocation({ 20, 53 });
+	this->LoadAnimations->SetTabIndex(1);
+	this->LoadAnimations->SetText("Load Animations");
+	this->LoadAnimations->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox4->AddControl(this->LoadAnimations);
 
-	//this->DonateButton = new UIX::UIXButton();
-	//this->DonateButton->SetSize({ 78, 25 });
-	//this->DonateButton->SetLocation({ 108, 127 });
-	//this->DonateButton->SetTabIndex(1);
-	//this->DonateButton->SetText("Donate");
-	//this->groupBox3->AddControl(this->DonateButton);
+	this->LoadUIImages = new UIX::UIXCheckBox();
+	this->LoadUIImages->SetSize({ 108, 18 });
+	this->LoadUIImages->SetLocation({ 20, 76 });
+	this->LoadUIImages->SetTabIndex(2);
+	this->LoadUIImages->SetText("Load UI Images");
+	this->LoadUIImages->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox4->AddControl(this->LoadUIImages);
 
-	this->TwitterButton = new UIX::UIXButton();
-	this->TwitterButton->SetSize({ 78, 25 });
-	this->TwitterButton->SetLocation({ 18, 127 });
-	this->TwitterButton->SetTabIndex(1);
-	this->TwitterButton->SetText("DTZxPorter");
-	this->groupBox3->AddControl(this->TwitterButton);
+	this->LoadImages = new UIX::UIXCheckBox();
+	this->LoadImages->SetSize({ 89, 18 });
+	this->LoadImages->SetLocation({ 175, 30 });
+	this->LoadImages->SetTabIndex(2);
+	this->LoadImages->SetText("Load Images");
+	this->LoadImages->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox4->AddControl(this->LoadImages);
 
-	this->label3 = new UIX::UIXLabel();
-	this->label3->SetSize({ 369, 60 });
-	this->label3->SetLocation({ 15, 31 });
-	this->label3->SetTabIndex(0);
-	this->label3->SetText("Legion is the Apex Legends asset extraction tool. Created by DTZxPorter. Tools like this take days and even months of my time. All donations are appreciated.");
-	this->label3->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left | Forms::AnchorStyles::Right);
-	this->label3->SetTextAlign(Drawing::ContentAlignment::TopLeft);
-	this->groupBox3->AddControl(this->label3);
+	this->LoadMaterials = new UIX::UIXCheckBox();
+	this->LoadMaterials->SetSize({ 97, 18 });
+	this->LoadMaterials->SetLocation({ 175, 53 });
+	this->LoadMaterials->SetTabIndex(3);
+	this->LoadMaterials->SetText("Load Materials");
+	this->LoadMaterials->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox4->AddControl(this->LoadMaterials);
 
+	this->LoadDataTables = new UIX::UIXCheckBox();
+	this->LoadDataTables->SetSize({ 108, 18 });
+	this->LoadDataTables->SetLocation({ 175, 76 });
+	this->LoadDataTables->SetTabIndex(2);
+	this->LoadDataTables->SetText("Load DataTables");
+	this->LoadDataTables->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox4->AddControl(this->LoadDataTables);
+
+	//
+	//	Animation Settings Box
+	//
+	this->groupBox5 = new UIX::UIXGroupBox();
+	this->groupBox5->SetSize({ 402, 85 });
+	this->groupBox5->SetLocation({ 338, 130 });
+	this->groupBox5->SetTabIndex(4);
+	this->groupBox5->SetText("Animation Settings");
+	this->groupBox5->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
+	this->AddControl(this->groupBox5);
+	//
+	//	animationExportFormatLabel
+	//
+	this->label4 = new UIX::UIXLabel();
+	this->label4->SetSize({ 72, 17 });
+	this->label4->SetLocation({ 14, 23 });
+	this->label4->SetTabIndex(11);
+	this->label4->SetText("Export format");
+	this->label4->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->label4->SetTextAlign(Drawing::ContentAlignment::TopLeft);
+	this->groupBox5->AddControl(this->label4);
+	//
+	//	Animation Export Formats
+	//
+	this->ExportCastAnim = new UIX::UIXRadioButton();
+	this->ExportCastAnim->SetSize({ 79, 18 });
+	this->ExportCastAnim->SetLocation({ 20, 45 });
+	this->ExportCastAnim->SetTabIndex(12);
+	this->ExportCastAnim->SetText("Cast (Beta)");
+	this->ExportCastAnim->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox5->AddControl(this->ExportCastAnim);
+
+	this->ExportSEAnim = new UIX::UIXRadioButton();
+	this->ExportSEAnim->SetSize({ 63, 18 });
+	this->ExportSEAnim->SetLocation({ 189, 45 });
+	this->ExportSEAnim->SetTabIndex(10);
+	this->ExportSEAnim->SetText("SEAnim");
+	this->ExportSEAnim->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox5->AddControl(this->ExportSEAnim);
+
+	//
+	//	Image Settings Box
+	//
 	this->groupBox2 = new UIX::UIXGroupBox();
-	this->groupBox2->SetSize({ 402, 111 });
-	this->groupBox2->SetLocation({ 338, 298 });
+	this->groupBox2->SetSize({ 402, 80 });
+	this->groupBox2->SetLocation({ 338, 220 });
 	this->groupBox2->SetTabIndex(1);
 	this->groupBox2->SetText("Image Settings");
 	this->groupBox2->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left | Forms::AnchorStyles::Right);
 	this->AddControl(this->groupBox2);
-
+	//
+	//	imageExportFormatLabel
+	//
 	this->label2 = new UIX::UIXLabel();
 	this->label2->SetSize({ 72, 17 });
-	this->label2->SetLocation({ 25, 41 });
+	this->label2->SetLocation({ 14, 23 });
 	this->label2->SetTabIndex(9);
 	this->label2->SetText("Export format");
 	this->label2->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->label2->SetTextAlign(Drawing::ContentAlignment::TopLeft);
 	this->groupBox2->AddControl(this->label2);
-
+	//
+	//	Image Export Formats
+	//
 	this->ImageExportFormat = new UIX::UIXComboBox();
 	this->ImageExportFormat->SetSize({ 205, 21 });
-	this->ImageExportFormat->SetLocation({ 26, 60 });
+	this->ImageExportFormat->SetLocation({ 20, 45 });
 	this->ImageExportFormat->SetTabIndex(0);
 	this->ImageExportFormat->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->ImageExportFormat->SetDropDownStyle(Forms::ComboBoxStyle::DropDownList);
@@ -185,34 +176,41 @@ void LegionSettings::InitializeComponent()
 	this->ImageExportFormat->Items.Add("TIFF");
 	this->groupBox2->AddControl(this->ImageExportFormat);
 
+	//
+	//	Model Settings Box
+	//
 	this->groupBox1 = new UIX::UIXGroupBox();
-	this->groupBox1->SetSize({ 320, 192 });
-	this->groupBox1->SetLocation({ 12, 100 });
+	this->groupBox1->SetSize({ 320, 170 });
+	this->groupBox1->SetLocation({ 12, 130 });
 	this->groupBox1->SetTabIndex(0);
 	this->groupBox1->SetText("Model Settings");
 	this->groupBox1->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
 	this->AddControl(this->groupBox1);
-
-	this->ExportCastModel = new UIX::UIXRadioButton();
-	this->ExportCastModel->SetSize({ 79, 18 });
-	this->ExportCastModel->SetLocation({ 28, 57 });
-	this->ExportCastModel->SetTabIndex(9);
-	this->ExportCastModel->SetText("Cast (Beta)");
-	this->ExportCastModel->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox1->AddControl(this->ExportCastModel);
-
+	//
+	//	modelExportFormatLabel
+	//
 	this->label1 = new UIX::UIXLabel();
 	this->label1->SetSize({ 72, 17 });
-	this->label1->SetLocation({ 25, 31 });
+	this->label1->SetLocation({ 14, 23 });
 	this->label1->SetTabIndex(8);
 	this->label1->SetText("Export format");
 	this->label1->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->label1->SetTextAlign(Drawing::ContentAlignment::TopLeft);
 	this->groupBox1->AddControl(this->label1);
+	//
+	//	Model Export Formats
+	//
+	this->ExportCastModel = new UIX::UIXRadioButton();
+	this->ExportCastModel->SetSize({ 79, 18 });
+	this->ExportCastModel->SetLocation({ 20, 45 });
+	this->ExportCastModel->SetTabIndex(9);
+	this->ExportCastModel->SetText("Cast (Beta)");
+	this->ExportCastModel->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox1->AddControl(this->ExportCastModel);
 
 	this->ExportFBX = new UIX::UIXRadioButton();
 	this->ExportFBX->SetSize({ 89, 18 });
-	this->ExportFBX->SetLocation({ 189, 126 });
+	this->ExportFBX->SetLocation({ 175, 114 });
 	this->ExportFBX->SetTabIndex(7);
 	this->ExportFBX->SetText("Kaydara FBX");
 	this->ExportFBX->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
@@ -220,7 +218,7 @@ void LegionSettings::InitializeComponent()
 
 	this->ExportMA = new UIX::UIXRadioButton();
 	this->ExportMA->SetSize({ 100, 18 });
-	this->ExportMA->SetLocation({ 189, 103 });
+	this->ExportMA->SetLocation({ 175, 91 });
 	this->ExportMA->SetTabIndex(6);
 	this->ExportMA->SetText("Autodesk Maya");
 	this->ExportMA->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
@@ -228,7 +226,7 @@ void LegionSettings::InitializeComponent()
 
 	this->ExportXModel = new UIX::UIXRadioButton();
 	this->ExportXModel->SetSize({ 84, 18 });
-	this->ExportXModel->SetLocation({ 189, 80 });
+	this->ExportXModel->SetLocation({ 175, 68 });
 	this->ExportXModel->SetTabIndex(5);
 	this->ExportXModel->SetText("Cod XModel");
 	this->ExportXModel->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
@@ -236,7 +234,7 @@ void LegionSettings::InitializeComponent()
 
 	this->ExportSMD = new UIX::UIXRadioButton();
 	this->ExportSMD->SetSize({ 79, 18 });
-	this->ExportSMD->SetLocation({ 189, 57 });
+	this->ExportSMD->SetLocation({ 175, 45 });
 	this->ExportSMD->SetTabIndex(4);
 	this->ExportSMD->SetText("Valve SMD");
 	this->ExportSMD->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
@@ -244,7 +242,7 @@ void LegionSettings::InitializeComponent()
 
 	this->ExportXNABinary = new UIX::UIXRadioButton();
 	this->ExportXNABinary->SetSize({ 103, 18 });
-	this->ExportXNABinary->SetLocation({ 28, 126 });
+	this->ExportXNABinary->SetLocation({ 20, 114 });
 	this->ExportXNABinary->SetTabIndex(3);
 	this->ExportXNABinary->SetText("XNALara Binary");
 	this->ExportXNABinary->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
@@ -252,7 +250,7 @@ void LegionSettings::InitializeComponent()
 
 	this->ExportXNAAscii = new UIX::UIXRadioButton();
 	this->ExportXNAAscii->SetSize({ 101, 18 });
-	this->ExportXNAAscii->SetLocation({ 28, 103 });
+	this->ExportXNAAscii->SetLocation({ 20, 91 });
 	this->ExportXNAAscii->SetTabIndex(2);
 	this->ExportXNAAscii->SetText("XNALara ASCII");
 	this->ExportXNAAscii->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
@@ -260,7 +258,7 @@ void LegionSettings::InitializeComponent()
 
 	this->ExportOBJ = new UIX::UIXRadioButton();
 	this->ExportOBJ->SetSize({ 99, 18 });
-	this->ExportOBJ->SetLocation({ 28, 149 });
+	this->ExportOBJ->SetLocation({ 20, 137 });
 	this->ExportOBJ->SetTabIndex(1);
 	this->ExportOBJ->SetText("Wavefront OBJ");
 	this->ExportOBJ->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
@@ -268,7 +266,7 @@ void LegionSettings::InitializeComponent()
 
 	this->ExportSEModel = new UIX::UIXRadioButton();
 	this->ExportSEModel->SetSize({ 68, 18 });
-	this->ExportSEModel->SetLocation({ 28, 80 });
+	this->ExportSEModel->SetLocation({ 20, 68 });
 	this->ExportSEModel->SetTabIndex(0);
 	this->ExportSEModel->SetText("SEModel");
 	this->ExportSEModel->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
@@ -283,7 +281,7 @@ void LegionSettings::InitializeComponent()
 	this->Load += &OnLoad;
 	this->FormClosing += &OnClose;
 	//this->DonateButton->Click += &OnDonateClick;
-	this->TwitterButton->Click += &OnTwitterClick;
+	//this->TwitterButton->Click += &OnTwitterClick;
 	this->ExportBrowseButton->Click += &OnBrowseClick;
 }
 

@@ -4,6 +4,7 @@
 #include "UIXTextBox.h"
 #include "UIXListView.h"
 #include "LegionSettings.h"
+#include "LegionAbout.h"
 #include "LegionTitanfallConverter.h"
 
 LegionMain::LegionMain()
@@ -110,8 +111,16 @@ void LegionMain::InitializeComponent()
 	this->SettingsButton->SetText("Settings");
 	this->SettingsButton->Click += &OnSettingsClick;
 	this->SettingsButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Right);
-
 	this->AddControl(this->SettingsButton);
+
+	this->AboutButton = new UIX::UIXButton();
+	this->AboutButton->SetSize({ 80, 27 });
+	this->AboutButton->SetLocation({ 597, 442 });
+	this->AboutButton->SetTabIndex(9);
+	this->AboutButton->SetText("About");
+	this->AboutButton->Click += &OnAboutClick;
+	this->AboutButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Right);
+	this->AddControl(this->AboutButton);
 
 	this->AssetsListView = new UIX::UIXListView();
 	this->AssetsListView->SetSize({ 751, 398 });
@@ -577,6 +586,12 @@ void LegionMain::OnSettingsClick(Forms::Control* Sender)
 {
 	auto Settings = std::make_unique<LegionSettings>();
 	Settings->ShowDialog((Forms::Form*)Sender->FindForm());
+}
+
+void LegionMain::OnAboutClick(Forms::Control* Sender)
+{
+	auto About = std::make_unique<LegionAbout>();
+	About->ShowDialog((Forms::Form*)Sender->FindForm());
 }
 
 void LegionMain::OnExpClick(Forms::Control* Sender)
