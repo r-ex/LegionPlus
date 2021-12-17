@@ -16,6 +16,53 @@
 #include "Exporter.h"
 #include "RpakLib.h"
 
+#pragma pack(push, 1)
+struct RBspHeader
+{
+	uint32_t Magic;
+	uint16_t Version;
+	uint16_t IsEntirelyStreamed;
+	uint32_t Revision;
+	uint32_t NumLumpsMinusOne;
+};
+#pragma pack(pop)
+
+enum class ApexRBspLumps
+{
+	TEXTURES = 0x2,
+	VERTICES = 0x3,
+	MODELS = 0xE,
+	SURFACE_NAMES = 0xF,
+	NORMALS = 0x1E,
+	GAME_LUMPS = 0x23,
+	VERTEX_UNLIT = 0x47,
+	VERTEX_LIT_FLAT = 0x48,
+	VERTEX_LIT_BUMP = 0x49,
+	VERTEX_UNLIT_TS = 0x4A,
+	FACES = 0x4F,
+	MESHES = 0x50,
+	MATERIALS = 0x52
+};
+
+enum class TF2RBspLumps
+{
+	TEXTURES = 0x2,
+	VERTICES = 0x3,
+	MODELS = 0xE,
+	NORMALS = 0x1E,
+	GAME_LUMPS = 0x23,
+	SURFACE_NAMES = 0x2B,
+	VERTEX_UNLIT = 0x47,
+	VERTEX_LIT_FLAT = 0x48,
+	VERTEX_LIT_BUMP = 0x49,
+	VERTEX_UNLIT_TS = 0x4A,
+	FACES = 0x4F,
+	MESHES = 0x50,
+	MATERIALS = 0x52
+};
+
+#define R2_BSP_VERSION 0x25
+
 // A class that handles converting RBSP (*.bsp) files from Apex Legends.
 class RBspLib
 {
@@ -35,4 +82,7 @@ public:
 
 private:
 	List<string> PropModelNames;
+
+	void ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std::unique_ptr<IO::FileStream>& Stream, RBspHeader Header, const string& Asset, const string& Path);
+	void ExportTitanfall2Bsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std::unique_ptr<IO::FileStream>& Stream, RBspHeader Header, const string& Asset, const string& Path);
 };
