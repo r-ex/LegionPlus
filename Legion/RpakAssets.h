@@ -479,10 +479,10 @@ struct RMdlSkeletonHeader
 	float ViewBBMin[3];
 	float ViewBBMax[3];
 
-	uint32_t Flags;
+	uint32_t Flags; // 0x9c
 
-	uint32_t BoneCount;
-	uint32_t BoneDataOffset;
+	uint32_t BoneCount; // 0xa0
+	uint32_t BoneDataOffset; // 0xa4
 
 	uint32_t BoneControllerCount;
 	uint32_t BoneControllerOffset;
@@ -521,6 +521,69 @@ struct RMdlSkeletonHeader
 	uint32_t SubmeshLodsOffset;
 
 	uint8_t Unknown3[0x44];
+	uint32_t OffsetToBoneRemapInfo;
+	uint32_t BoneRemapCount;
+};
+
+struct RMdlSkeletonHeader_S3
+{
+	uint32_t Magic;
+	uint32_t Version;
+	uint32_t Hash;
+	uint32_t NameTableOffset;
+
+	char SkeletonName[0x40];
+
+	uint32_t DataSize;
+
+	float EyePosition[3];
+	float IllumPosition[3];
+	float HullMin[3];
+	float HullMax[3];
+	float ViewBBMin[3];
+	float ViewBBMax[3];
+
+	uint32_t Flags; // 0x9c
+
+	uint32_t BoneCount; // 0xa0
+	uint32_t BoneDataOffset; // 0xa4
+
+	uint32_t BoneControllerCount;
+	uint32_t BoneControllerOffset;
+
+	uint32_t HitboxCount;
+	uint32_t HitboxOffset;
+
+	uint32_t LocalAnimCount;
+	uint32_t LocalAnimOffset;
+
+	uint32_t LocalSeqCount;
+	uint32_t LocalSeqOffset;
+
+	uint32_t ActivityListVersion;
+	uint32_t EventsIndexed;
+
+	uint32_t TextureCount;
+	uint32_t TextureOffset;
+
+	uint32_t TextureDirCount;
+	uint32_t TextureDirOffset;
+
+	uint32_t SkinReferenceCount;	// Total number of references (submeshes)
+	uint32_t SkinFamilyCount;		// Total skins per reference
+	uint32_t SkinReferenceOffset;	// Offset to data
+
+	uint32_t BodyPartCount;
+	uint32_t BodyPartOffset;
+
+	uint32_t AttachmentCount;
+	uint32_t AttachmentOffset;
+
+	uint8_t Unknown2[0x14];
+
+	uint32_t SubmeshLodsOffset;
+
+	uint8_t Unknown3[0x64];
 	uint32_t OffsetToBoneRemapInfo;
 	uint32_t BoneRemapCount;
 };

@@ -143,7 +143,20 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 	RpakStream->SetPosition(SkeletonOffset);
 
-	auto SkeletonHeader = Reader.Read<RMdlSkeletonHeader>();
+	RMdlSkeletonHeader SkeletonHeader{};
+	
+	if (Asset.SubHeaderSize != 120)
+	{
+		SkeletonHeader = Reader.Read<RMdlSkeletonHeader>();
+	}
+	else {
+		auto TempSkeletonHeader = Reader.Read<RMdlSkeletonHeader_S3>();
+
+		memcpy(&SkeletonHeader, &TempSkeletonHeader, 0x110);
+
+		SkeletonHeader.SubmeshLodsOffset = TempSkeletonHeader.SubmeshLodsOffset;
+		SkeletonHeader.BoneRemapCount = TempSkeletonHeader.BoneRemapCount;
+	}
 
 	RpakStream->SetPosition(SkeletonOffset + SkeletonHeader.TextureOffset);
 
@@ -198,18 +211,30 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 	}
 
 	auto StarpakReader = IO::BinaryReader(StarpakStream.get(), true);
-	this->ExtractModelLod(StarpakReader, RpakStream, ModelName, Offset, Model, Fixups, IncludeMaterials);
+	this->ExtractModelLod(StarpakReader, RpakStream, ModelName, Offset, Model, Fixups, Asset.SubHeaderSize, IncludeMaterials);
 
 	return std::move(Model);
 }
 
-void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO::MemoryStream>& RpakStream, string Name, uint64_t Offset, const std::unique_ptr<Assets::Model>& Model, RMdlFixupPatches& Fixup, bool IncludeMaterials)
+void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO::MemoryStream>& RpakStream, string Name, uint64_t Offset, const std::unique_ptr<Assets::Model>& Model, RMdlFixupPatches& Fixup, uint32_t SubHeaderSize, bool IncludeMaterials)
 {
 	auto BaseStream = Reader.GetBaseStream();
 
 	BaseStream->SetPosition(Offset);
 
-	auto VGHeader = Reader.Read<RMdlVGHeader>();
+	RMdlVGHeader VGHeader{};
+	if(SubHeaderSize != 120)
+		VGHeader = Reader.Read<RMdlVGHeader>();
+	else {
+		RMdlVGHeaderOld TempVGHeader = Reader.Read<RMdlVGHeaderOld>();
+
+		memcpy(&VGHeader, &TempVGHeader, 0xc);
+
+		VGHeader.LodCount = TempVGHeader.LodCount;
+		VGHeader.DataSize = TempVGHeader.DataSize;
+		VGHeader.SubmeshCount = TempVGHeader.SubmeshCount;
+		VGHeader.StreamFlags = 0x10;
+	}
 
 	switch (VGHeader.StreamFlags)
 	{
