@@ -5,6 +5,12 @@ CommandLine::CommandLine(int nArgsCount, LPWSTR* args)
     this->argc = nArgsCount;
     this->argv = args;
 }
+
+CommandLine::~CommandLine()
+{
+    free(this->argv); // Yes it needs to be cleared.
+}
+
 int CommandLine::FindParam(LPWSTR psz) const
 {
     for (int i = 1; i < this->argc; ++i)

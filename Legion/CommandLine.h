@@ -8,6 +8,7 @@ public:
     LPWSTR* argv;
 
     CommandLine(int nArgsCount, LPWSTR* args);
+    ~CommandLine();
 
     virtual int FindParam(LPWSTR psz) const;
 
