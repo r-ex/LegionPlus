@@ -6,6 +6,9 @@
 #include <WinSock2.h>
 #include <shellapi.h>
 
+#include <crtdefs.h>
+#include <process.h>
+
 #include <stdio.h>
 #include <Psapi.h>
 #include <shlobj.h>

@@ -824,6 +824,9 @@
     <ClInclude Include="AtomicListBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Adler32.h">
+      <Filter>Header Files\Hashing</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -1248,6 +1251,9 @@
     </ClCompile>
     <ClCompile Include="Job.cpp">
       <Filter>Source Files\Jobs</Filter>
+    </ClCompile>
+    <ClCompile Include="Adler32.cpp">
+      <Filter>Source Files\Hashing</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

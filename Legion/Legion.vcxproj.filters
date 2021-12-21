@@ -90,6 +90,9 @@
     <ClCompile Include="pch.cpp">
       <Filter>Legion\Core</Filter>
     </ClCompile>
+    <ClCompile Include="VpkLib.cpp">
+      <Filter>VPK</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MilesLib.h">
@@ -151,6 +154,9 @@
     </ClInclude>
     <ClInclude Include="pch.h">
       <Filter>Legion\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="VpkLib.h">
+      <Filter>VPK</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
