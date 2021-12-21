@@ -1,4 +1,4 @@
-#include "VpkLib.h"
+#include "MdlLib.h"
 #include "File.h"
 #include "Directory.h"
 #include "Path.h"
@@ -16,11 +16,11 @@
 
 #include "rtech.h"
 
-VpkLib::VpkLib()
+MdlLib::MdlLib()
 {
 }
 
-void VpkLib::InitializeModelExporter(RpakModelExportFormat Format)
+void MdlLib::InitializeModelExporter(RpakModelExportFormat Format)
 {
 	switch (Format)
 	{
@@ -54,7 +54,7 @@ void VpkLib::InitializeModelExporter(RpakModelExportFormat Format)
 	}
 }
 
-void VpkLib::InitializeAnimExporter(RpakAnimExportFormat Format)
+void MdlLib::InitializeAnimExporter(RpakAnimExportFormat Format)
 {
 	switch (Format)
 	{
@@ -67,7 +67,7 @@ void VpkLib::InitializeAnimExporter(RpakAnimExportFormat Format)
 	}
 }
 
-void VpkLib::ExportRMdl(const string& Asset, const string& Path)
+void MdlLib::ExportRMdl(const string& Asset, const string& Path)
 {
 	auto Reader = IO::BinaryReader(IO::File::OpenRead(Asset));
 	auto Stream = Reader.GetBaseStream();
@@ -439,7 +439,7 @@ void VpkLib::ExportRMdl(const string& Asset, const string& Path)
 	}
 }
 
-void VpkLib::ParseRAnimBoneTranslationTrack(const RAnimBoneHeader& BoneFlags, const RMdlTitanfallBone& Bone, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
+void MdlLib::ParseRAnimBoneTranslationTrack(const RAnimBoneHeader& BoneFlags, const RMdlTitanfallBone& Bone, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
 {
 	printf("***** ParseRAnimBoneTranslationTrack is STUBBED.\n");
 
@@ -478,7 +478,7 @@ void VpkLib::ParseRAnimBoneTranslationTrack(const RAnimBoneHeader& BoneFlags, co
 	Curves[3].Keyframes.EmplaceBack(FrameIndex, Result[2]);
 }
 
-void VpkLib::ParseRAnimBoneRotationTrack(const RAnimBoneHeader& BoneFlags, const RMdlTitanfallBone& Bone, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
+void MdlLib::ParseRAnimBoneRotationTrack(const RAnimBoneHeader& BoneFlags, const RMdlTitanfallBone& Bone, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
 {
 	printf("ParseRAnimBoneRotationTrack is STUBBED.\n");
 

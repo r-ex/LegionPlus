@@ -25,6 +25,9 @@
     <Filter Include="Legion\Core">
       <UniqueIdentifier>{2ad5041f-9602-4aa4-ac5c-3d94598651ec}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MDL">
+      <UniqueIdentifier>{c16cd7d3-8ed9-486e-a5e9-03cd17943bbd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MilesLib.cpp">
@@ -38,9 +41,6 @@
     </ClCompile>
     <ClCompile Include="RBspLib.cpp">
       <Filter>BSP</Filter>
-    </ClCompile>
-    <ClCompile Include="VpkLib.cpp">
-      <Filter>VPK</Filter>
     </ClCompile>
     <ClCompile Include="CommandLine.cpp">
       <Filter>Legion\Main</Filter>
@@ -81,8 +81,9 @@
     <ClCompile Include="RpakAssetPreview.cpp">
       <Filter>RPak</Filter>
     </ClCompile>
-    <ClCompile Include="LegionAbout.cpp">
-      <Filter>Legion\UI</Filter>
+    <ClCompile Include="LegionPreview.cpp" />
+    <ClCompile Include="MdlLib.cpp">
+      <Filter>MDL</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -103,9 +104,6 @@
     </ClInclude>
     <ClInclude Include="RBspLib.h">
       <Filter>BSP</Filter>
-    </ClInclude>
-    <ClInclude Include="VpkLib.h">
-      <Filter>VPK</Filter>
     </ClInclude>
     <ClInclude Include="CommandLine.h">
       <Filter>Legion\Main</Filter>
@@ -142,6 +140,9 @@
     </ClInclude>
     <ClInclude Include="basetypes.h">
       <Filter>Legion\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="MdlLib.h">
+      <Filter>MDL</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

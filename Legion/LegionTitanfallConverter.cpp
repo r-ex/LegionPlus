@@ -83,7 +83,7 @@ void LegionTitanfallConverter::InitializeComponent()
 	this->DragDrop += &FormDragDrop;
 	this->SetAllowDrop(true);
 
-	this->VpkFileSystem = std::make_unique<VpkLib>();
+	this->VpkFileSystem = std::make_unique<MdlLib>();
 }
 
 void LegionTitanfallConverter::HandleFileConvert(List<string>& FilesToConvert)

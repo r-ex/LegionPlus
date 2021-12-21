@@ -7,7 +7,7 @@
 #include "UIXComboBox.h"
 #include "UIXGroupBox.h"
 #include "UIXRadioButton.h"
-#include "VpkLib.h"
+#include "MdlLib.h"
 
 class LegionTitanfallConverter : public Forms::Form
 {
@@ -27,5 +27,5 @@ private:
 	void HandleFileConvert(List<string>& FilesToConvert);
 
 	// Internal vpk system
-	std::unique_ptr<VpkLib> VpkFileSystem;
+	std::unique_ptr<MdlLib> VpkFileSystem;
 };

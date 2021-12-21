@@ -17,11 +17,11 @@
 #include "RpakLib.h"
 
 // A class that handles reading assets from a respawn Vpk
-class VpkLib
+class MdlLib
 {
 public:
-	VpkLib();
-	~VpkLib() = default;
+	MdlLib();
+	~MdlLib() = default;
 
 	// The exporter formats for models and anims
 	std::unique_ptr<Assets::Exporters::Exporter> ModelExporter;

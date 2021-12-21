@@ -212,7 +212,7 @@ void ExportManager::ExportRpakAssets(const std::unique_ptr<RpakLib>& RpakFileSys
 	ProgressCallback(100, MainForm, true);
 }
 
-void ExportManager::ExportVpkAssets(const std::unique_ptr<VpkLib>& VpkFileSystem, List<string>& ExportAssets)
+void ExportManager::ExportVpkAssets(const std::unique_ptr<MdlLib>& VpkFileSystem, List<string>& ExportAssets)
 {
 	std::atomic<uint32_t> AssetIndex = 0;
 

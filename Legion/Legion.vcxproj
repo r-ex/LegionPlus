@@ -169,7 +169,7 @@
     <ClCompile Include="RpakAssetPreview.cpp" />
     <ClCompile Include="RpakLib.cpp" />
     <ClCompile Include="rtech.cpp" />
-    <ClCompile Include="VpkLib.cpp" />
+    <ClCompile Include="MdlLib.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ApexAsset.h" />
@@ -190,7 +190,7 @@
     <ClInclude Include="RpakImageTiles.h" />
     <ClInclude Include="RpakLib.h" />
     <ClInclude Include="rtech.h" />
-    <ClInclude Include="VpkLib.h" />
+    <ClInclude Include="MdlLib.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\cppnet\cppkore\cppkore.vcxproj">
