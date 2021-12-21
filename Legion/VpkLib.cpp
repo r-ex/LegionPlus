@@ -369,7 +369,7 @@ vpk_dir_h::vpk_dir_h(string svPath)
 void VPK_Decompress_Callback()
 {
 	string szPathIn = "vpk\\englishclient_mp_common.bsp.pak000_dir.vpk"; // TODO: Implement into UI.
-	std::string szPathOut = "platform\\vpk";                             // TODO: Implement into UI.
+	std::string szPathOut = "vpk_out\\";                                 // TODO: Implement into UI.
 
 	std::chrono::milliseconds msStart = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
 
