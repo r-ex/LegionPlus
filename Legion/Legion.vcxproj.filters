@@ -81,9 +81,11 @@
     <ClCompile Include="RpakAssetPreview.cpp">
       <Filter>RPak</Filter>
     </ClCompile>
-    <ClCompile Include="LegionPreview.cpp" />
     <ClCompile Include="MdlLib.cpp">
       <Filter>MDL</Filter>
+    </ClCompile>
+    <ClCompile Include="LegionPreview.cpp">
+      <Filter>Legion\UI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -144,5 +146,10 @@
     <ClInclude Include="MdlLib.h">
       <Filter>MDL</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Legion.rc">
+      <Filter>Legion</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>
