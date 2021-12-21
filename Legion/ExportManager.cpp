@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "ExportManager.h"
 #include "ParallelTask.h"
 #include "Path.h"

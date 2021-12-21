@@ -87,6 +87,9 @@
     <ClCompile Include="LegionPreview.cpp">
       <Filter>Legion\UI</Filter>
     </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>Legion\Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MilesLib.h">
@@ -145,6 +148,9 @@
     </ClInclude>
     <ClInclude Include="MdlLib.h">
       <Filter>MDL</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>Legion\Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

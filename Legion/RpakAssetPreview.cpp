@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "RpakLib.h"
 
 std::unique_ptr<Assets::Model> RpakLib::BuildPreviewModel(uint64_t Hash)

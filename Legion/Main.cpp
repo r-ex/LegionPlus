@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "Kore.h"
 #include "LegionMain.h"
 #include "LegionSplash.h"

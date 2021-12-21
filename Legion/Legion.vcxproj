@@ -125,6 +125,8 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -141,6 +143,8 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -162,6 +166,10 @@
     <ClCompile Include="LegionTitanfallConverter.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MilesLib.cpp" />
+    <ClCompile Include="pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="RBspLib.cpp" />
     <ClCompile Include="RpakAssetBuildInfo.cpp" />
     <ClCompile Include="RpakAssetExport.cpp" />
@@ -184,6 +192,7 @@
     <ClInclude Include="LegionSplash.h" />
     <ClInclude Include="LegionTitanfallConverter.h" />
     <ClInclude Include="MilesLib.h" />
+    <ClInclude Include="pch.h" />
     <ClInclude Include="RBspLib.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="RpakAssets.h" />

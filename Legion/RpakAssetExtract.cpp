@@ -1,3 +1,4 @@
+#include "pch.h"
 #include <regex>
 
 #include "RpakLib.h"

@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "LegionSettings.h"
 #include "ExportManager.h"
 #include "Process.h"

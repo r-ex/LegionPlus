@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "LegionPreview.h"
 
 LegionPreview::LegionPreview()

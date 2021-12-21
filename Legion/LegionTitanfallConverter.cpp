@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "LegionTitanfallConverter.h"
 #include "ExportManager.h"
 

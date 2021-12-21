@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "CommandLine.h"
 
 CommandLine::CommandLine(int nArgsCount, LPWSTR* args)

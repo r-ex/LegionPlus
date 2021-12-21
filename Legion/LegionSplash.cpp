@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "LegionSplash.h"
 #include "resource.h"
 
