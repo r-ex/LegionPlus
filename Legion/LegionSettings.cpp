@@ -40,7 +40,7 @@ void LegionSettings::InitializeComponent()
 	//
 	this->ExportBrowseFolder = new UIX::UIXTextBox();
 	this->ExportBrowseFolder->SetSize({ 342, 25 });
-	this->ExportBrowseFolder->SetLocation({ 20, 25 });
+	this->ExportBrowseFolder->SetLocation({ 15, 25 });
 	this->ExportBrowseFolder->SetTabIndex(5);
 	this->ExportBrowseFolder->SetReadOnly(true);
 	this->ExportBrowseFolder->SetText("Click on \"Browse\" to set a custom export directory");
@@ -49,7 +49,7 @@ void LegionSettings::InitializeComponent()
 
 	this->ExportBrowseButton = new UIX::UIXButton();
 	this->ExportBrowseButton->SetSize({ 80, 25 });
-	this->ExportBrowseButton->SetLocation({ 370, 25 });
+	this->ExportBrowseButton->SetLocation({ 365, 25 });
 	this->ExportBrowseButton->SetTabIndex(5);
 	this->ExportBrowseButton->SetText("Browse");
 	this->ExportBrowseButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Right);
@@ -82,11 +82,21 @@ void LegionSettings::InitializeComponent()
 	//	Github Link
 	//
 	this->GithubButton = new UIX::UIXButton();
-	this->GithubButton->SetSize({ 100, 25 });
-	this->GithubButton->SetLocation({ 55, 73 });
+	this->GithubButton->SetSize({ 95, 25 });
+	this->GithubButton->SetLocation({ 13, 73 });
 	this->GithubButton->SetTabIndex(1);
 	this->GithubButton->SetText("Github Repository");
 	this->groupBox2->AddControl(this->GithubButton);
+
+	//
+	//	Discord Link
+	//
+	this->DiscordButton = new UIX::UIXButton();
+	this->DiscordButton->SetSize({ 95, 25 });
+	this->DiscordButton->SetLocation({ 112, 73 });
+	this->DiscordButton->SetTabIndex(1);
+	this->DiscordButton->SetText("Discord");
+	this->groupBox2->AddControl(this->DiscordButton);
 
 	// 
 	//	Load Flags Box
@@ -168,7 +178,7 @@ void LegionSettings::InitializeComponent()
 	this->label3->SetSize({ 120, 15 });
 	this->label3->SetLocation({ 20, 20 });
 	this->label3->SetTabIndex(8);
-	this->label3->SetText("Model Export Format");
+	this->label3->SetText("Model Format");
 	this->label3->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->label3->SetTextAlign(Drawing::ContentAlignment::TopLeft);
 	this->groupBox4->AddControl(this->label3);
@@ -199,7 +209,7 @@ void LegionSettings::InitializeComponent()
 	this->label4->SetSize({ 120, 15 });
 	this->label4->SetLocation({ 20, 65 });
 	this->label4->SetTabIndex(11);
-	this->label4->SetText("Animation Export Format");
+	this->label4->SetText("Animation Format");
 	this->label4->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->label4->SetTextAlign(Drawing::ContentAlignment::TopLeft);
 	this->groupBox4->AddControl(this->label4);
@@ -223,7 +233,7 @@ void LegionSettings::InitializeComponent()
 	this->label5->SetSize({ 120, 15 });
 	this->label5->SetLocation({ 20, 105 });
 	this->label5->SetTabIndex(9);
-	this->label5->SetText("Image Export Format");
+	this->label5->SetText("Image Format");
 	this->label5->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->label5->SetTextAlign(Drawing::ContentAlignment::TopLeft);
 	this->groupBox4->AddControl(this->label5);
@@ -250,6 +260,7 @@ void LegionSettings::InitializeComponent()
 	this->Load += &OnLoad;
 	this->FormClosing += &OnClose;
 	this->GithubButton->Click += &OnGithubClick;
+	this->DiscordButton->Click += &OnDiscordClick;
 	this->ExportBrowseButton->Click += &OnBrowseClick;
 }
 
@@ -423,6 +434,11 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 void LegionSettings::OnGithubClick(Forms::Control* Sender)
 {
 	Diagnostics::Process::Start("https://github.com/r-ex/Legion");
+}
+
+void LegionSettings::OnDiscordClick(Forms::Control* Sender)
+{
+	Diagnostics::Process::Start("https://youtu.be/-pHhb4biR9k");
 }
 
 void LegionSettings::OnBrowseClick(Forms::Control* Sender)

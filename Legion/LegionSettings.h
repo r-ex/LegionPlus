@@ -24,21 +24,13 @@ private:
 
 	static void OnLoad(Forms::Control* Sender);
 	static void OnClose(const std::unique_ptr<FormClosingEventArgs>& EventArgs, Forms::Control* Sender);
-	static void OnGithubClick(Forms::Control* Sender);
 	static void OnBrowseClick(Forms::Control* Sender);
+	static void OnGithubClick(Forms::Control* Sender);
+	static void OnDiscordClick(Forms::Control* Sender);
 
 	// Internal controls reference
-	UIX::UIXRadioButton* ExportCastAnim;
-	UIX::UIXRadioButton* ExportSEAnim;
 	UIX::UIXTextBox* ExportBrowseFolder;
 	UIX::UIXButton* ExportBrowseButton;
-	UIX::UIXCheckBox* LoadMaterials;
-	UIX::UIXCheckBox* LoadImages;
-	UIX::UIXCheckBox* LoadUIImages;
-	UIX::UIXCheckBox* LoadDataTables;
-	UIX::UIXCheckBox* LoadAnimations;
-	UIX::UIXCheckBox* LoadModels;
-	UIX::UIXButton* GithubButton;
 	UIX::UIXLabel* label1;
 	UIX::UIXLabel* label2;
 	UIX::UIXLabel* label3;
@@ -48,9 +40,17 @@ private:
 	UIX::UIXGroupBox* groupBox2;
 	UIX::UIXGroupBox* groupBox3;
 	UIX::UIXGroupBox* groupBox4;
+	UIX::UIXCheckBox* LoadMaterials;
+	UIX::UIXCheckBox* LoadImages;
+	UIX::UIXCheckBox* LoadUIImages;
+	UIX::UIXCheckBox* LoadDataTables;
+	UIX::UIXCheckBox* LoadAnimations;
+	UIX::UIXCheckBox* LoadModels;
 	UIX::UIXComboBox* ImageExportFormat;
 	UIX::UIXComboBox* AnimExportFormat;
 	UIX::UIXComboBox* ModelExportFormat;
+	UIX::UIXRadioButton* ExportCastAnim;
+	UIX::UIXRadioButton* ExportSEAnim;
 	UIX::UIXRadioButton* ExportCastModel;
 	UIX::UIXRadioButton* ExportFBX;
 	UIX::UIXRadioButton* ExportMA;
@@ -60,4 +60,6 @@ private:
 	UIX::UIXRadioButton* ExportXNAAscii;
 	UIX::UIXRadioButton* ExportOBJ;
 	UIX::UIXRadioButton* ExportSEModel;
+	UIX::UIXButton* GithubButton;
+	UIX::UIXButton* DiscordButton;
 };
