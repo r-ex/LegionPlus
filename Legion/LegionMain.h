@@ -30,7 +30,6 @@ public:
 protected:
 	static void OnLoadClick(Forms::Control* Sender);
 	static void OnSettingsClick(Forms::Control* Sender);
-	static void OnAboutClick(Forms::Control* Sender);
 	static void OnExpClick(Forms::Control* Sender);
 	static void OnExpAllClick(Forms::Control* Sender);
 	static void OnSearchClick(Forms::Control* Sender);
@@ -83,7 +82,6 @@ private:
 	UIX::UIXButton* ExportSelectedButton;
 	UIX::UIXButton* LoadRPakButton;
 	UIX::UIXButton* SettingsButton;
-	UIX::UIXButton* AboutButton;
 	UIX::UIXButton* RefreshAssetsButton;
 	UIX::UIXListView* AssetsListView;
 
