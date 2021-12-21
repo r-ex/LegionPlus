@@ -13,6 +13,12 @@
 #include <emmintrin.h>
 #include <cmath>
 #include <vector>
+#include <cstdint>
+#include <array>
+#include <regex>
+#include <map>
+#include <atomic>
+#include <mutex>
 #include <thread>
 #include <string>
 #include <sstream>

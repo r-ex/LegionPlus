@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdint>
 //#include "MemoryModule.h"
 #include "StringBase.h"
 #include "DictionaryBase.h"

@@ -1,10 +1,4 @@
 #include "pch.h"
-#include <vector>
-#include <iostream>
-#include <fstream>
-#include <regex>
-#include <iomanip>
-#include <sstream>
 
 #include "RpakLib.h"
 #include "Path.h"

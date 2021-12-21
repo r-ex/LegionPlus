@@ -5,8 +5,6 @@
 #include "Directory.h"
 #include "File.h"
 #include "Environment.h"
-#include <atomic>
-#include <mutex>
 
 System::Settings ExportManager::Config = System::Settings();
 string ExportManager::ApplicationPath = "";

@@ -1,5 +1,4 @@
 #include "pch.h"
-#include <cmath>
 #include "rtech.h"
 #include "basetypes.h"
 
