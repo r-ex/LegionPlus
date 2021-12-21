@@ -923,7 +923,7 @@ bool RpakLib::MountApexRpak(const string& Path, bool Dump)
 	auto Reader = IO::BinaryReader(IO::File::OpenRead(Path));
 	auto Header = Reader.Read<RpakApexHeader>();
 
-	if (Header.CompressedSize == Header.DecompressedSize)
+	if (!Header.IsCompressed && Header.CompressedSize == Header.DecompressedSize)
 	{
 		auto Stream = std::make_unique<IO::MemoryStream>();
 
@@ -945,8 +945,6 @@ bool RpakLib::MountApexRpak(const string& Path, bool Dump)
 
 	std::vector<std::uint8_t> pakbuf(dSize, 0);
 
-	//params[1] = std::int64_t(pakbuf.data());
-	//params[3] = -1i64;
 	state.out_mask = UINT64_MAX;
 	state.out = uint64_t(pakbuf.data());
 

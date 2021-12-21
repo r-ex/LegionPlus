@@ -29,7 +29,8 @@ struct RpakApexHeader
 {
 	uint32_t Magic;
 	uint16_t Version;
-	uint16_t Flags;
+	uint8_t Flags;
+	bool IsCompressed;
 
 	uint8_t Hash[0x10];
 
