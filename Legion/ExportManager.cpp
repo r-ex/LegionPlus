@@ -41,9 +41,9 @@ void ExportManager::InitializeExporter()
 	}
 
 	if (!Config.Has<System::SettingType::Integer>("ModelFormat"))
-		Config.Set<System::SettingType::Integer>("ModelFormat", (uint32_t)RpakModelExportFormat::SEModel);
+		Config.Set<System::SettingType::Integer>("ModelFormat", (uint32_t)RpakModelExportFormat::Cast);
 	if (!Config.Has<System::SettingType::Integer>("AnimFormat"))
-		Config.Set<System::SettingType::Integer>("AnimFormat", (uint32_t)RpakAnimExportFormat::SEAnim);
+		Config.Set<System::SettingType::Integer>("AnimFormat", (uint32_t)RpakAnimExportFormat::Cast);
 	if (!Config.Has<System::SettingType::Integer>("ImageFormat"))
 		Config.Set<System::SettingType::Integer>("ImageFormat", (uint32_t)RpakImageExportFormat::Dds);
 
