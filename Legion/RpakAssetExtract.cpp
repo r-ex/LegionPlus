@@ -1266,10 +1266,9 @@ List<List<DataTableColumnData>> RpakLib::ExtractDataTable(const RpakLoadAsset& A
 
 		// todo: season 3 and earlier will not have "Unk8", but all later builds do,
 		// in order to maintain compatibility, something must be used to determine which version of dtbl this is
-		//col.Unk8 = Reader.Read<uint64_t>();
+		col.Unk8 = Reader.Read<uint64_t>();
 		col.Type = Reader.Read<uint32_t>();
 		col.RowOffset = Reader.Read<uint32_t>();
-		uint32_t test = Reader.Read<uint32_t>();
 
 		Columns.EmplaceBack(col);
 	}
