@@ -463,7 +463,7 @@ void LegionSettings::OnBrowseClick(Forms::Control* Sender)
 	auto ExportDirectory = ThisPtr->ExportBrowseFolder->Text();
 
 	auto Result = OpenFileDialog::ShowFolderDialog("Select a folder to export assets to or press \"Cancel\" to reset back to default.", ExportDirectory != "Click on \"Browse\" to set a custom export directory" ? ExportDirectory : string(""), ThisPtr);
-	printf("%s\n", Result.ToCString());
+
 	if (Result == "" || Result.Length() == 0)
 	{
 		ThisPtr->ExportBrowseFolder->SetText("Click on \"Browse\" to set a custom export directory");
