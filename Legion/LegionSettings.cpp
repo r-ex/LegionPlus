@@ -209,13 +209,13 @@ void LegionSettings::InitializeComponent()
 	this->ModelExportFormat->SetTabIndex(9);
 	this->ModelExportFormat->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->ModelExportFormat->SetDropDownStyle(Forms::ComboBoxStyle::DropDownList);
-	this->ModelExportFormat->Items.Add("Cast");
-	this->ModelExportFormat->Items.Add("FBX");
-	this->ModelExportFormat->Items.Add("Maya");
-	this->ModelExportFormat->Items.Add("OBJ");
 	this->ModelExportFormat->Items.Add("SEModel");
-	this->ModelExportFormat->Items.Add("SMD");
-	this->ModelExportFormat->Items.Add("XModel");
+	this->ModelExportFormat->Items.Add("Wavefront OBJ");
+	this->ModelExportFormat->Items.Add("Kaydara FBX");
+	this->ModelExportFormat->Items.Add("Cast (Beta)");
+	this->ModelExportFormat->Items.Add("Valve SMD");
+	this->ModelExportFormat->Items.Add("Autodesk Maya");
+	this->ModelExportFormat->Items.Add("Cod XModel");
 	this->ModelExportFormat->Items.Add("XNALara ASCII");
 	this->ModelExportFormat->Items.Add("XNALara Binary");
 	this->groupBox5->AddControl(this->ModelExportFormat);
@@ -238,8 +238,8 @@ void LegionSettings::InitializeComponent()
 	this->AnimExportFormat->SetTabIndex(0);
 	this->AnimExportFormat->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->AnimExportFormat->SetDropDownStyle(Forms::ComboBoxStyle::DropDownList);
-	this->AnimExportFormat->Items.Add("Cast");
 	this->AnimExportFormat->Items.Add("SEAnim");
+	this->AnimExportFormat->Items.Add("Cast (Beta)");
 	this->groupBox5->AddControl(this->AnimExportFormat);
 
 	//
@@ -286,22 +286,22 @@ void LegionSettings::LoadSettings()
 
 	switch (ModelFormat)
 	{
-	case RpakModelExportFormat::Cast:
+	case RpakModelExportFormat::SEModel:
 		this->ModelExportFormat->SetSelectedIndex(0);
 		break;
-	case RpakModelExportFormat::FBX:
+	case RpakModelExportFormat::OBJ:
 		this->ModelExportFormat->SetSelectedIndex(1);
 		break;
-	case RpakModelExportFormat::Maya:
+	case RpakModelExportFormat::FBX:
 		this->ModelExportFormat->SetSelectedIndex(2);
 		break;
-	case RpakModelExportFormat::OBJ:
+	case RpakModelExportFormat::Cast:
 		this->ModelExportFormat->SetSelectedIndex(3);
 		break;
-	case RpakModelExportFormat::SEModel:
+	case RpakModelExportFormat::SMD:
 		this->ModelExportFormat->SetSelectedIndex(4);
 		break;
-	case RpakModelExportFormat::SMD:
+	case RpakModelExportFormat::Maya:
 		this->ModelExportFormat->SetSelectedIndex(5);
 		break;
 	case RpakModelExportFormat::XModel:
@@ -317,10 +317,10 @@ void LegionSettings::LoadSettings()
 
 	switch (AnimFormat)
 	{
-	case RpakAnimExportFormat::Cast:
+	case RpakAnimExportFormat::SEAnim:
 		this->AnimExportFormat->SetSelectedIndex(0);
 		break;
-	case RpakAnimExportFormat::SEAnim:
+	case RpakAnimExportFormat::Cast:
 		this->AnimExportFormat->SetSelectedIndex(1);
 		break;
 	}
@@ -363,8 +363,8 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	auto ThisPtr = (LegionSettings*)Sender->FindForm();
 
 	// Fetch settings from controls
-	auto ModelExportFormat = RpakModelExportFormat::Cast;
-	auto AnimExportFormat = RpakAnimExportFormat::Cast;
+	auto ModelExportFormat = RpakModelExportFormat::SEModel;
+	auto AnimExportFormat = RpakAnimExportFormat::SEAnim;
 	auto ImageExportFormat = RpakImageExportFormat::Dds;
 
 	if (ThisPtr->ModelExportFormat->SelectedIndex() > -1)
@@ -372,19 +372,19 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		switch (ThisPtr->ModelExportFormat->SelectedIndex())
 		{
 		case 1:
-			ModelExportFormat = RpakModelExportFormat::FBX;
-			break;
-		case 2:
-			ModelExportFormat = RpakModelExportFormat::Maya;
-			break;
-		case 3:
 			ModelExportFormat = RpakModelExportFormat::OBJ;
 			break;
+		case 2:
+			ModelExportFormat = RpakModelExportFormat::FBX;
+			break;
+		case 3:
+			ModelExportFormat = RpakModelExportFormat::Cast;
+			break;
 		case 4:
-			ModelExportFormat = RpakModelExportFormat::SEModel;
+			ModelExportFormat = RpakModelExportFormat::SMD;
 			break;
 		case 5:
-			ModelExportFormat = RpakModelExportFormat::SMD;
+			ModelExportFormat = RpakModelExportFormat::Maya;
 			break;
 		case 6:
 			ModelExportFormat = RpakModelExportFormat::XModel;
@@ -398,16 +398,6 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		}
 	}
 
-	if (ThisPtr->AnimExportFormat->SelectedIndex() > -1)
-	{
-		switch (ThisPtr->AnimExportFormat->SelectedIndex())
-		{
-		case 1:
-			AnimExportFormat = RpakAnimExportFormat::SEAnim;
-			break;
-		}
-	}
-
 	if (ThisPtr->ImageExportFormat->SelectedIndex() > -1)
 	{
 		switch (ThisPtr->ImageExportFormat->SelectedIndex())
@@ -417,6 +407,16 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 			break;
 		case 2:
 			ImageExportFormat = RpakImageExportFormat::Tiff;
+			break;
+		}
+	}
+
+	if (ThisPtr->AnimExportFormat->SelectedIndex() > -1)
+	{
+		switch (ThisPtr->AnimExportFormat->SelectedIndex())
+		{
+		case 1:
+			AnimExportFormat = RpakAnimExportFormat::Cast;
 			break;
 		}
 	}
@@ -462,17 +462,15 @@ void LegionSettings::OnBrowseClick(Forms::Control* Sender)
 	auto ThisPtr = (LegionSettings*)Sender->FindForm();
 	auto ExportDirectory = ThisPtr->ExportBrowseFolder->Text();
 
-	printf("TODO(rx): LegionSettings::OnBrowseClick is stubbed.\n");
-	return;
-	//auto Result = OpenFileDialog::ShowFolderDialog("Select a folder to export assets to or press \"Cancel\" to reset back to default.", ExportDirectory != "Click on \"Browse\" to set a custom export directory" ? ExportDirectory : "", ThisPtr);
+	auto Result = OpenFileDialog::ShowFolderDialog("Select a folder to export assets to or press \"Cancel\" to reset back to default.", ExportDirectory != "Click on \"Browse\" to set a custom export directory" ? ExportDirectory : string(""), ThisPtr);
 
-	//if (Result == "" || Result.Length() == 0)
-	//{
-	//	ThisPtr->ExportBrowseFolder->SetText("Click on \"Browse\" to set a custom export directory");
-	//}
-	//else if (IO::Directory::Exists(Result))
-	//{
-	//	ThisPtr->ExportBrowseFolder->SetText(Result);
-	//}
+	if (Result == "" || Result.Length() == 0)
+	{
+		ThisPtr->ExportBrowseFolder->SetText("Click on \"Browse\" to set a custom export directory");
+	}
+	else if (IO::Directory::Exists(Result))
+	{
+		ThisPtr->ExportBrowseFolder->SetText(Result);
+	}
 }
 
