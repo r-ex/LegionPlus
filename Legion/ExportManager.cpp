@@ -59,6 +59,8 @@ void ExportManager::InitializeExporter()
 		Config.Set<System::SettingType::Boolean>("LoadUIImages", true);
 	if (!Config.Has<System::SettingType::Boolean>("LoadDataTables"))
 		Config.Set<System::SettingType::Boolean>("LoadDataTables", true);
+	if (!Config.Has<System::SettingType::Boolean>("OverwriteExistingFiles"))
+		Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", true);
 		
 	Config.Save(ConfigPath);
 }

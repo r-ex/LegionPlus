@@ -11,7 +11,10 @@ void RpakLib::ExportModel(const RpakLoadAsset& Asset, const string& Path, const 
 
 	if (Model && this->ModelExporter)
 	{
-		this->ModelExporter->ExportModel(*Model.get(), IO::Path::Combine(IO::Path::Combine(Path, Model->Name), Model->Name + "_LOD0" + (const char*)ModelExporter->ModelExtension()));
+		string DestinationPath = IO::Path::Combine(IO::Path::Combine(Path, Model->Name), Model->Name + "_LOD0" + (const char*)ModelExporter->ModelExtension());
+
+		if (Utils::ShouldWriteFile(DestinationPath))
+			this->ModelExporter->ExportModel(*Model.get(), DestinationPath);
 	}
 }
 
@@ -19,6 +22,9 @@ void RpakLib::ExportMaterial(const RpakLoadAsset& Asset, const string& Path)
 {
 	auto Material = this->ExtractMaterial(Asset, Path, false, false);
 	auto OutPath = IO::Path::Combine(Path, Material.MaterialName);
+
+	if (!Utils::ShouldWriteFile(OutPath))
+		return;
 
 	IO::Directory::CreateDirectory(OutPath);
 
@@ -37,11 +43,9 @@ void RpakLib::ExportTexture(const RpakLoadAsset& Asset, const string& Path, bool
 	if (IncludeImageNames && Name.Length() > 0)
 		DestinationPath = IO::Path::Combine(Path, string::Format("%s%s", IO::Path::GetFileNameWithoutExtension(Name).ToCString(), (const char*)ImageExtension));
 
-#ifndef _DEBUG
-	if (IO::File::Exists(DestinationPath))	// Ignore existing assets...
+	if (!Utils::ShouldWriteFile(DestinationPath))
 		return;
-#endif
-
+	
 	try
 	{
 		if (Texture != nullptr)
@@ -57,10 +61,8 @@ void RpakLib::ExportUIIA(const RpakLoadAsset& Asset, const string& Path)
 {
 	auto DestinationPath = IO::Path::Combine(Path, string::Format("0x%llx%s", Asset.NameHash, (const char*)ImageExtension));
 
-#ifndef _DEBUG
-	if (IO::File::Exists(DestinationPath))	// Ignore existing assets...
+	if (!Utils::ShouldWriteFile(DestinationPath))	// Ignore existing assets...
 		return;
-#endif
 
 	std::unique_ptr<Assets::Texture> Texture = nullptr;
 
@@ -113,6 +115,9 @@ void RpakLib::ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path)
 void RpakLib::ExportDataTable(const RpakLoadAsset& Asset, const string& Path)
 {
 	auto DestinationPath = IO::Path::Combine(Path, string::Format("0x%llx.csv", Asset.NameHash));
+
+	if (!Utils::ShouldWriteFile(DestinationPath))
+		return;
 
 	auto DataTable = this->ExtractDataTable(Asset);
 
@@ -184,6 +189,9 @@ string Vector3ToHexColor(Math::Vector3 vec)
 void RpakLib::ExportSubtitles(const RpakLoadAsset& Asset, const string& Path)
 {
 	auto DestinationPath = IO::Path::Combine(Path, GetSubtitlesNameFromHash(Asset.NameHash) + ".csv");
+
+	if (!Utils::ShouldWriteFile(DestinationPath))
+		return;
 
 	auto Subtitles = this->ExtractSubtitles(Asset);
 

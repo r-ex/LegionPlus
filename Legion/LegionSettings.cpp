@@ -29,7 +29,7 @@ void LegionSettings::InitializeComponent()
 	//
 	this->groupBox1 = new UIX::UIXGroupBox();
 	this->groupBox1->SetSize({ 458, 110 });
-	this->groupBox1->SetLocation({ 12, 12 });
+	this->groupBox1->SetLocation({ 12, 10 });
 	this->groupBox1->SetTabIndex(3);
 	this->groupBox1->SetText("General Directory Settings");
 	this->groupBox1->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
@@ -60,26 +60,25 @@ void LegionSettings::InitializeComponent()
 	//
 	this->groupBox2 = new UIX::UIXGroupBox();
 	this->groupBox2->SetSize({ 218, 110 });
-	this->groupBox2->SetLocation({ 480, 12 });
+	this->groupBox2->SetLocation({ 480, 10 });
 	this->groupBox2->SetTabIndex(3);
 	this->groupBox2->SetText("About");
 	this->groupBox2->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->AddControl(this->groupBox2);
 
 	//
-	//	About Text
+	//	About Text Label
 	//
-	this->label2 = new UIX::UIXLabel();
-	this->label2->SetSize({ 200, 60 });
-	this->label2->SetLocation({ 12, 12 });
-	this->label2->SetTabIndex(0);
-	this->label2->SetText("Legion is the Apex Legends asset extraction tool. Originally created by DTZxPorter in 2019. Currently maintained by various contributors on GitHub.");
-	this->label2->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->label2->SetTextAlign(Drawing::ContentAlignment::TopLeft);
-	this->groupBox2->AddControl(this->label2);
-
+	this->label1 = new UIX::UIXLabel();
+	this->label1->SetSize({ 200, 60 });
+	this->label1->SetLocation({ 12, 12 });
+	this->label1->SetTabIndex(0);
+	this->label1->SetText("Legion is the Apex Legends asset extraction tool. Originally created by DTZxPorter in 2019. Currently maintained by various contributors on GitHub.");
+	this->label1->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->label1->SetTextAlign(Drawing::ContentAlignment::TopLeft);
+	this->groupBox2->AddControl(this->label1);
 	//
-	//	Github Link
+	//	Github Link Button
 	//
 	this->GithubButton = new UIX::UIXButton();
 	this->GithubButton->SetSize({ 95, 25 });
@@ -87,9 +86,8 @@ void LegionSettings::InitializeComponent()
 	this->GithubButton->SetTabIndex(1);
 	this->GithubButton->SetText("Github Repository");
 	this->groupBox2->AddControl(this->GithubButton);
-
 	//
-	//	Discord Link
+	//	Discord Link Button
 	//
 	this->DiscordButton = new UIX::UIXButton();
 	this->DiscordButton->SetSize({ 95, 25 });
@@ -99,92 +97,112 @@ void LegionSettings::InitializeComponent()
 	this->groupBox2->AddControl(this->DiscordButton);
 
 	// 
-	//	Load Flags Box
+	//	Load Settings Box
 	//
 	this->groupBox3 = new UIX::UIXGroupBox();
-	this->groupBox3->SetSize({ 341, 170 });
-	this->groupBox3->SetLocation({ 12, 130 });
+	this->groupBox3->SetSize({ 341, 122 });
+	this->groupBox3->SetLocation({ 12, 125 });
 	this->groupBox3->SetTabIndex(3);
 	this->groupBox3->SetText("Load Settings");
 	this->groupBox3->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->AddControl(this->groupBox3);
 
 	// 
-	//	Load Flags
+	//	Load Settings
 	//
 	this->LoadModels = new UIX::UIXCheckBox();
-	this->LoadModels->SetSize({ 88, 18 });
+	this->LoadModels->SetSize({ 110, 18 });
 	this->LoadModels->SetLocation({ 20, 30 });
 	this->LoadModels->SetTabIndex(0);
 	this->LoadModels->SetText("Load Models");
 	this->LoadModels->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->groupBox3->AddControl(this->LoadModels);
 
-	this->LoadAnimations = new UIX::UIXCheckBox();
-	this->LoadAnimations->SetSize({ 108, 18 });
-	this->LoadAnimations->SetLocation({ 20, 53 });
-	this->LoadAnimations->SetTabIndex(1);
-	this->LoadAnimations->SetText("Load Animations");
-	this->LoadAnimations->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox3->AddControl(this->LoadAnimations);
-
-	this->LoadUIImages = new UIX::UIXCheckBox();
-	this->LoadUIImages->SetSize({ 108, 18 });
-	this->LoadUIImages->SetLocation({ 20, 76 });
-	this->LoadUIImages->SetTabIndex(2);
-	this->LoadUIImages->SetText("Load UI Images");
-	this->LoadUIImages->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox3->AddControl(this->LoadUIImages);
-
 	this->LoadImages = new UIX::UIXCheckBox();
-	this->LoadImages->SetSize({ 89, 18 });
+	this->LoadImages->SetSize({ 110, 18 });
 	this->LoadImages->SetLocation({ 175, 30 });
 	this->LoadImages->SetTabIndex(2);
 	this->LoadImages->SetText("Load Images");
 	this->LoadImages->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->groupBox3->AddControl(this->LoadImages);
 
+	this->LoadAnimations = new UIX::UIXCheckBox();
+	this->LoadAnimations->SetSize({ 110, 18 });
+	this->LoadAnimations->SetLocation({ 20, 53 });
+	this->LoadAnimations->SetTabIndex(1);
+	this->LoadAnimations->SetText("Load Animations");
+	this->LoadAnimations->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox3->AddControl(this->LoadAnimations);
+
 	this->LoadMaterials = new UIX::UIXCheckBox();
-	this->LoadMaterials->SetSize({ 97, 18 });
+	this->LoadMaterials->SetSize({ 110, 18 });
 	this->LoadMaterials->SetLocation({ 175, 53 });
 	this->LoadMaterials->SetTabIndex(3);
 	this->LoadMaterials->SetText("Load Materials");
 	this->LoadMaterials->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->groupBox3->AddControl(this->LoadMaterials);
 
+	this->LoadUIImages = new UIX::UIXCheckBox();
+	this->LoadUIImages->SetSize({ 110, 18 });
+	this->LoadUIImages->SetLocation({ 20, 76 });
+	this->LoadUIImages->SetTabIndex(2);
+	this->LoadUIImages->SetText("Load UI Images");
+	this->LoadUIImages->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox3->AddControl(this->LoadUIImages);
+
 	this->LoadDataTables = new UIX::UIXCheckBox();
-	this->LoadDataTables->SetSize({ 108, 18 });
+	this->LoadDataTables->SetSize({ 110, 18 });
 	this->LoadDataTables->SetLocation({ 175, 76 });
 	this->LoadDataTables->SetTabIndex(2);
 	this->LoadDataTables->SetText("Load DataTables");
 	this->LoadDataTables->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->groupBox3->AddControl(this->LoadDataTables);
 
+	// 
+	//	Toggle Settings Box
+	//
+	this->groupBox4 = new UIX::UIXGroupBox();
+	this->groupBox4->SetSize({ 341, 48 });
+	this->groupBox4->SetLocation({ 12, 252 });
+	this->groupBox4->SetTabIndex(3);
+	this->groupBox4->SetText("Toggle Settings");
+	this->groupBox4->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->AddControl(this->groupBox4);
+
+	// 
+	//	Toggle Settings
+	//
+	this->ToggleOverwriting = new UIX::UIXCheckBox();
+	this->ToggleOverwriting->SetSize({ 110, 18 });
+	this->ToggleOverwriting->SetLocation({ 20, 20 });
+	this->ToggleOverwriting->SetTabIndex(2);
+	this->ToggleOverwriting->SetText("Overwrite Files");
+	this->ToggleOverwriting->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox4->AddControl(this->ToggleOverwriting);
+
 	//
 	//	Assets Export Settings Box
 	//
-	this->groupBox4 = new UIX::UIXGroupBox();
-	this->groupBox4->SetSize({ 341, 170 });
-	this->groupBox4->SetLocation({ 357, 130 });
-	this->groupBox4->SetTabIndex(0);
-	this->groupBox4->SetText("Assets Export Settings");
-	this->groupBox4->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left | Forms::AnchorStyles::Right);
-	this->AddControl(this->groupBox4);
+	this->groupBox5 = new UIX::UIXGroupBox();
+	this->groupBox5->SetSize({ 341, 175 });
+	this->groupBox5->SetLocation({ 357, 125 });
+	this->groupBox5->SetTabIndex(0);
+	this->groupBox5->SetText("Assets Export Settings");
+	this->groupBox5->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left | Forms::AnchorStyles::Right);
+	this->AddControl(this->groupBox5);
 
 	//
-	//	ModelExportFormatLabel
+	//	Model Export Format
 	//
-	this->label3 = new UIX::UIXLabel();
-	this->label3->SetSize({ 120, 15 });
-	this->label3->SetLocation({ 20, 20 });
-	this->label3->SetTabIndex(8);
-	this->label3->SetText("Model Format");
-	this->label3->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->label3->SetTextAlign(Drawing::ContentAlignment::TopLeft);
-	this->groupBox4->AddControl(this->label3);
-	//
-	//	Model Export Formats
-	//
+	this->label2 = new UIX::UIXLabel();
+	this->label2->SetSize({ 120, 15 });
+	this->label2->SetLocation({ 20, 20 });
+	this->label2->SetTabIndex(8);
+	this->label2->SetText("Model Format");
+	this->label2->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->label2->SetTextAlign(Drawing::ContentAlignment::TopLeft);
+	this->groupBox5->AddControl(this->label2);
+
 	this->ModelExportFormat = new UIX::UIXComboBox();
 	this->ModelExportFormat->SetSize({ 100, 21 });
 	this->ModelExportFormat->SetLocation({ 20, 35 });
@@ -200,22 +218,20 @@ void LegionSettings::InitializeComponent()
 	this->ModelExportFormat->Items.Add("Cod XModel");
 	this->ModelExportFormat->Items.Add("XNALara ASCII");
 	this->ModelExportFormat->Items.Add("XNALara Binary");
-	this->groupBox4->AddControl(this->ModelExportFormat);
+	this->groupBox5->AddControl(this->ModelExportFormat);
 
 	//
-	//	AnimationExportFormatLabel
+	//	Animation Export Format
 	//
-	this->label4 = new UIX::UIXLabel();
-	this->label4->SetSize({ 120, 15 });
-	this->label4->SetLocation({ 20, 65 });
-	this->label4->SetTabIndex(11);
-	this->label4->SetText("Animation Format");
-	this->label4->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->label4->SetTextAlign(Drawing::ContentAlignment::TopLeft);
-	this->groupBox4->AddControl(this->label4);
-	//
-	//	Animation Export Formats
-	//
+	this->label3 = new UIX::UIXLabel();
+	this->label3->SetSize({ 120, 15 });
+	this->label3->SetLocation({ 20, 65 });
+	this->label3->SetTabIndex(11);
+	this->label3->SetText("Animation Format");
+	this->label3->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->label3->SetTextAlign(Drawing::ContentAlignment::TopLeft);
+	this->groupBox5->AddControl(this->label3);
+
 	this->AnimExportFormat = new UIX::UIXComboBox();
 	this->AnimExportFormat->SetSize({ 100, 21 });
 	this->AnimExportFormat->SetLocation({ 20, 80 });
@@ -224,32 +240,30 @@ void LegionSettings::InitializeComponent()
 	this->AnimExportFormat->SetDropDownStyle(Forms::ComboBoxStyle::DropDownList);
 	this->AnimExportFormat->Items.Add("SEAnim");
 	this->AnimExportFormat->Items.Add("Cast (Beta)");
-	this->groupBox4->AddControl(this->AnimExportFormat);
+	this->groupBox5->AddControl(this->AnimExportFormat);
 
 	//
-	//	imageExportFormatLabel
+	//	Image Export Format 
 	//
-	this->label5 = new UIX::UIXLabel();
-	this->label5->SetSize({ 120, 15 });
-	this->label5->SetLocation({ 20, 105 });
-	this->label5->SetTabIndex(9);
-	this->label5->SetText("Image Format");
-	this->label5->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->label5->SetTextAlign(Drawing::ContentAlignment::TopLeft);
-	this->groupBox4->AddControl(this->label5);
-	//
-	//	Image Export Formats
-	//
+	this->label4 = new UIX::UIXLabel();
+	this->label4->SetSize({ 120, 15 });
+	this->label4->SetLocation({ 20, 110 });
+	this->label4->SetTabIndex(9);
+	this->label4->SetText("Image Format");
+	this->label4->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->label4->SetTextAlign(Drawing::ContentAlignment::TopLeft);
+	this->groupBox5->AddControl(this->label4);
+
 	this->ImageExportFormat = new UIX::UIXComboBox();
 	this->ImageExportFormat->SetSize({ 100, 21 });
-	this->ImageExportFormat->SetLocation({ 20, 120 });
+	this->ImageExportFormat->SetLocation({ 20, 125 });
 	this->ImageExportFormat->SetTabIndex(0);
 	this->ImageExportFormat->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->ImageExportFormat->SetDropDownStyle(Forms::ComboBoxStyle::DropDownList);
 	this->ImageExportFormat->Items.Add("DDS");
 	this->ImageExportFormat->Items.Add("PNG");
 	this->ImageExportFormat->Items.Add("TIFF");
-	this->groupBox4->AddControl(this->ImageExportFormat);
+	this->groupBox5->AddControl(this->ImageExportFormat);
 
 	this->ResumeLayout(false);
 	this->PerformLayout();
@@ -330,6 +344,7 @@ void LegionSettings::LoadSettings()
 	this->LoadMaterials->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadMaterials"));
 	this->LoadUIImages->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadUIImages"));
 	this->LoadDataTables->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadDataTables"));
+	this->ToggleOverwriting->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("OverwriteExistingFiles"));
 
 
 	if (ExportManager::Config.Has<System::SettingType::String>("ExportDirectory"))
@@ -413,6 +428,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	ExportManager::Config.Set<System::SettingType::Boolean>("LoadMaterials", ThisPtr->LoadMaterials->Checked());
 	ExportManager::Config.Set<System::SettingType::Boolean>("LoadUIImages", ThisPtr->LoadUIImages->Checked());
 	ExportManager::Config.Set<System::SettingType::Boolean>("LoadDataTables", ThisPtr->LoadDataTables->Checked());
+	ExportManager::Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", ThisPtr->ToggleOverwriting->Checked());
 	ExportManager::Config.Set<System::SettingType::Integer>("ModelFormat", (uint32_t)ModelExportFormat);
 	ExportManager::Config.Set<System::SettingType::Integer>("AnimFormat", (uint32_t)AnimExportFormat);
 	ExportManager::Config.Set<System::SettingType::Integer>("ImageFormat", (uint32_t)ImageExportFormat);
@@ -459,3 +475,4 @@ void LegionSettings::OnBrowseClick(Forms::Control* Sender)
 	//	ThisPtr->ExportBrowseFolder->SetText(Result);
 	//}
 }
+

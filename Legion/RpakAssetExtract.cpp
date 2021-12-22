@@ -1199,9 +1199,14 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 
 		Anim->RemoveEmptyNodes();
 
+		string DestinationPath = IO::Path::Combine(Path, AnimName + string::Format("_%d", i) + (const char*)this->AnimExporter->AnimationExtension());
+
+		if (!Utils::ShouldWriteFile(DestinationPath))
+			continue;
+
 		try
 		{
-			this->AnimExporter->ExportAnimation(*Anim.get(), IO::Path::Combine(Path, AnimName + string::Format("_%d", i) + (const char*)this->AnimExporter->AnimationExtension()));
+			this->AnimExporter->ExportAnimation(*Anim.get(), DestinationPath);
 		}
 		catch (...)
 		{

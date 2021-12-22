@@ -179,6 +179,7 @@
     <ClCompile Include="RpakLib.cpp" />
     <ClCompile Include="rtech.cpp" />
     <ClCompile Include="MdlLib.cpp" />
+    <ClCompile Include="Utils.cpp" />
     <ClCompile Include="VpkLib.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -202,6 +203,7 @@
     <ClInclude Include="RpakLib.h" />
     <ClInclude Include="rtech.h" />
     <ClInclude Include="MdlLib.h" />
+    <ClInclude Include="Utils.h" />
     <ClInclude Include="VpkLib.h" />
   </ItemGroup>
   <ItemGroup>
