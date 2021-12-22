@@ -462,17 +462,15 @@ void LegionSettings::OnBrowseClick(Forms::Control* Sender)
 	auto ThisPtr = (LegionSettings*)Sender->FindForm();
 	auto ExportDirectory = ThisPtr->ExportBrowseFolder->Text();
 
-	printf("TODO(rx): LegionSettings::OnBrowseClick is stubbed.\n");
-	return;
-	//auto Result = OpenFileDialog::ShowFolderDialog("Select a folder to export assets to or press \"Cancel\" to reset back to default.", ExportDirectory != "Click on \"Browse\" to set a custom export directory" ? ExportDirectory : "", ThisPtr);
-
-	//if (Result == "" || Result.Length() == 0)
-	//{
-	//	ThisPtr->ExportBrowseFolder->SetText("Click on \"Browse\" to set a custom export directory");
-	//}
-	//else if (IO::Directory::Exists(Result))
-	//{
-	//	ThisPtr->ExportBrowseFolder->SetText(Result);
-	//}
+	auto Result = OpenFileDialog::ShowFolderDialog("Select a folder to export assets to or press \"Cancel\" to reset back to default.", ExportDirectory != "Click on \"Browse\" to set a custom export directory" ? ExportDirectory : string(""), ThisPtr);
+	printf("%s\n", Result.ToCString());
+	if (Result == "" || Result.Length() == 0)
+	{
+		ThisPtr->ExportBrowseFolder->SetText("Click on \"Browse\" to set a custom export directory");
+	}
+	else if (IO::Directory::Exists(Result))
+	{
+		ThisPtr->ExportBrowseFolder->SetText(Result);
+	}
 }
 

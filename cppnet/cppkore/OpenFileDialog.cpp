@@ -2,6 +2,7 @@
 #include "OpenFileDialog.h"
 #include "Path.h"
 #include <commdlg.h>
+#include <ShlObj.h>
 
 namespace Forms
 {
@@ -22,6 +23,28 @@ namespace Forms
 		BufferMask[InitialFilter.Length() + 1] = (char)0;
 
 		return string((char*)Buffer.get(), (size_t)InitialFilter.Length() + 1);
+	}
+
+	string OpenFileDialog::ShowFolderDialog(const string& Title, const string& BasePath, Control* Owner)
+	{
+		HWND OwnerHandle = (Owner != nullptr) ? Owner->GetHandle() : NULL;
+
+		char path[MAX_PATH];
+		BROWSEINFOA bi;
+
+		bi.hwndOwner = OwnerHandle;
+		bi.pidlRoot = NULL;
+		bi.pszDisplayName = (LPSTR)path;
+		bi.lpszTitle = Title;
+		bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE;
+		bi.lpfn = NULL;
+		bi.lParam = 0;
+		LPITEMIDLIST pidl = SHBrowseForFolderA(&bi);
+		if (pidl != NULL && SHGetPathFromIDListA(pidl, path))
+			return string(path);
+
+		// We need nothing as a default because we don't get a return value
+		return "";
 	}
 
 	string OpenFileDialog::ShowFileDialog(const string& Title, const string& BasePath, const string& Filter, Control* Owner)
