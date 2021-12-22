@@ -60,7 +60,7 @@ void ExportManager::InitializeExporter()
 	if (!Config.Has<System::SettingType::Boolean>("LoadDataTables"))
 		Config.Set<System::SettingType::Boolean>("LoadDataTables", true);
 	if (!Config.Has<System::SettingType::Boolean>("OverwriteExistingFiles"))
-		Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", true);
+		Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", false);
 		
 	Config.Save(ConfigPath);
 }
