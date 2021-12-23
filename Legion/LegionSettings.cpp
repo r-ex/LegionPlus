@@ -449,12 +449,12 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 
 void LegionSettings::OnGithubClick(Forms::Control* Sender)
 {
-	Diagnostics::Process::Start("https://github.com/r-ex/Legion");
+	Diagnostics::Process::Start("https://github.com/r-ex/LegionPlus");
 }
 
 void LegionSettings::OnDiscordClick(Forms::Control* Sender)
 {
-	Diagnostics::Process::Start("https://youtu.be/-pHhb4biR9k");
+	Diagnostics::Process::Start("https://discord.gg/WQq9sdWbyc");
 }
 
 void LegionSettings::OnBrowseClick(Forms::Control* Sender)
