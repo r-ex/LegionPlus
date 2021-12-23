@@ -16,18 +16,35 @@ public:
 
 	void SetDataTable(List<List<DataTableColumnData>> _DataTable)
 	{
-		DataTable = _DataTable;
+		this->DataTable = _DataTable;
 		this->AssetsListView->SetVirtualListSize(DataTable.Count() - 1);
-		auto First = _DataTable[0];
+		auto& First = DataTable[0];
 
-		for (DataTableColumnData col : First)
+
+		/*this->DataTableColumnWeight.Clear();
+		this->DataTableColumnWeight.AddRange(0, DataTable.Count() - 1);*/
+
+		/*for (int i = 1; i < this->DataTable.Count(); i++)
 		{
-			this->AssetsListView->Columns.Add({ col.stringValue, 751 / (int)First.Count() });
+			for (int j = 0; j < this->DataTable[i].Count(); j++)
+			{
+				DataTableColumnWeight[j] += DataTable[i][j].stringValue.Length() + std::to_string(DataTable[i][j].fValue).Length()
+			}
+		}*/
+
+
+		for (DataTableColumnData& col : First)
+		{
+			this->AssetsListView->Columns.Add({ col.stringValue, this->Size().Width / (int)First.Count()});
 		}
 	}
+	void ResizeTableToWindow();
+
 
 private:
 	List<List<DataTableColumnData>> DataTable;
+	List<float> DataTableColumnWeight;
+
 	UIX::UIXListView* AssetsListView;
 	UIX::UIXButton* ToggleVectorColorsButton;
 
@@ -36,6 +53,7 @@ private:
 	void InitializeComponent();
 	static void GetVirtualItem(const std::unique_ptr<Forms::RetrieveVirtualItemEventArgs>& EventArgs, Forms::Control* Sender);
 	static void ToggleShowVectorColors(Forms::Control* Sender);
+	static void OnResized(Forms::Control* Sender);
 
 };
 

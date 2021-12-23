@@ -40,6 +40,8 @@ void LegionTablePreview::InitializeComponent()
 	this->AssetsListView->SetFullRowSelect(true);
 	this->AddControl(AssetsListView);
 
+	this->Resize += OnResized;
+
 
 	//this->AssetsListView->VirtualItemsSelectionRangeChanged += &OnSelectedIndicesChanged;
 	/*this->AssetsListView->DoubleClick += &OnListDoubleClick;
@@ -126,4 +128,20 @@ void LegionTablePreview::ToggleShowVectorColors(Forms::Control* Sender)
 	auto ThisPtr = (LegionTablePreview*)Sender->FindForm();
 	ThisPtr->bShowVectorColors = !(ThisPtr->bShowVectorColors);
 	ThisPtr->Refresh();
+}
+
+void LegionTablePreview::ResizeTableToWindow()
+{
+	auto First = DataTable[0];
+	for (auto col : this->AssetsListView->Columns)
+	{
+		col.SetWidth(this->Size().Width / (int)First.Count());
+	}
+}
+
+
+void LegionTablePreview::OnResized(Forms::Control* Sender)
+{
+	auto ThisPtr = (LegionTablePreview*)Sender->FindForm();
+	ThisPtr->ResizeTableToWindow();
 }
