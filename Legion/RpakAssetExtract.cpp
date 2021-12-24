@@ -894,26 +894,54 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 			// Unswizzle Bc1 blocks.
 			//
 
-			auto Num5 = Height / 4;
-			auto Num6 = Width / 4;
+			auto blocksH = Height / 4;
+			auto blocksW = Width / 4;
 			constexpr uint32_t Bc1Bpp2x = 4 * 2;
 
 			uint64_t Bc1Offset = 0;
 
-			for (uint32_t i = 0; i < Num5; i++)
+			for (uint32_t blockI = 0; blockI < blocksH; blockI++)
 			{
-				for (uint32_t j = 0; j < Num6; j++)
+				int v77 = blocksW / 2;
+				int v147 = blocksW / 2;
+				int v78 = blockI * (blocksW / 2);
+				int v79 = blocksW / 4;
+				int v80 = blocksW / 8;
+				for (uint32_t blockJ = 0; blockJ < blocksW; blockJ++)
 				{
-					uint32_t mx = j;
-					uint32_t my = i;
+					uint32_t mx = blockJ;
+					uint32_t my = blockI;
 
-					g_pRtech->UnswizzleBlock(j, i, Num6, 2, mx, my);
+
+					/*g_pRtech->UnswizzleBlock(j, i, Num6, 2, mx, my);
 					g_pRtech->UnswizzleBlock(mx, my, Num6, 4, mx, my);
 					g_pRtech->UnswizzleBlock(mx, my, Num6, 8, mx, my);
+					*/
 
-					uint64_t destination = Bc1Bpp2x * (my * Num6 + mx);
 
-					std::memcpy(Bc1Texture->GetPixels() + destination, Bc1Destination.get() + Bc1Offset, Bc1Bpp2x);
+					int v81 = (blockJ / 2 + v78) % (2 * (blocksW / 2)) / 2
+						+ v77 * ((blockJ / 2 + v78) % (2 * (blocksW / 2)) % 2)
+						+ 2 * (blocksW / 2) * ((blockJ / 2 + v78) / (2 * (blocksW / 2)));
+					int v82 = blockJ % 2 + 2 * (v81 % v77);
+					int v83 = v81 / v77;
+					int v84 = v82 / 4;
+					v82 %= 4;
+					int v85 = (v84 + v83 / 2 * v79) % (2 * (blocksW / 4)) / 2
+						+ v79 * ((v84 + v83 / 2 * v79) % (2 * (blocksW / 4)) % 2)
+						+ 2 * (blocksW / 4) * ((v84 + v83 / 2 * v79) / (2 * (blocksW / 4)));
+					int v86 = v83 % 2 + 2 * (v85 / v79);
+					int v87 = ((v82 + 4 * (v85 % v79)) / 8 + v86 / 4 * v80) % (2 * v80) / 2
+						+ v80 * (((v82 + 4 * (v85 % v79)) / 8 + v86 / 4 * v80) % (2 * v80) % 2)
+						+ 2 * v80 * (((v82 + 4 * (v85 % v79)) / 8 + v86 / 4 * v80) / (2 * v80));
+					int v88 = 8
+						* ((v82 + 4 * (v85 % v79)) % 8
+							+ 8 * (unsigned int)(v87 % v80)
+							+ blocksW * (v86 % 4 + 4 * ((int)v87 / v80)));
+
+					//uint64_t destination = Bc1Bpp2x * (my * blocksW + mx);
+
+
+					std::memcpy(Bc1Texture->GetPixels() + v88, Bc1Destination.get() + Bc1Offset, Bc1Bpp2x);
 					Bc1Offset += Bc1Bpp2x;
 				}
 			}
@@ -964,27 +992,51 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 			// Unswizzle Bc1 blocks.
 			//
 
-			auto Num5 = Height / 4;
-			auto Num6 = Width / 4;
+			auto blocksH = Height / 4;
+			auto blocksW = Width / 4;
 			constexpr uint32_t Bc7Bpp2x = 8 * 2;
 
 			uint64_t Bc7Offset = 0;
 
-			for (uint32_t i = 0; i < Num5; i++)
+			for (uint32_t blockI = 0; blockI < blocksH; blockI++)
 			{
-				for (uint32_t j = 0; j < Num6; j++)
+				int v77 = blocksW / 2;
+				int v147 = blocksW / 2;
+				int v78 = blockI * (blocksW / 2);
+				int v79 = blocksW / 4;
+				int v80 = blocksW / 8;
+				for (uint32_t blockJ = 0; blockJ < blocksW; blockJ++)
 				{
-					uint32_t mx = j;
-					uint32_t my = i;
+					uint32_t mx = blockJ;
+					uint32_t my = blockI;
 
-					g_pRtech->UnswizzleBlock(j, i, Num6, 2, mx, my);
-					g_pRtech->UnswizzleBlock(mx, my, Num6, 4, mx, my);
-					g_pRtech->UnswizzleBlock(mx, my, Num6, 8, mx, my);
+					/*g_pRtech->UnswizzleBlock(blockJ, blockI, blocksW, 2, mx, my);
+					g_pRtech->UnswizzleBlock(mx, my, blocksW, 4, mx, my);
+					g_pRtech->UnswizzleBlock(mx, my, blocksW, 8, mx, my);*/
 
-					uint64_t destination = Bc7Bpp2x * (my * Num6 + mx);
+					int v81 = (blockJ / 2 + v78) % (2 * (blocksW / 2)) / 2
+						+ v77 * ((blockJ / 2 + v78) % (2 * (blocksW / 2)) % 2)
+						+ 2 * (blocksW / 2) * ((blockJ / 2 + v78) / (2 * (blocksW / 2)));
+					int v82 = blockJ % 2 + 2 * (v81 % v77);
+					int v83 = v81 / v77;
+					int v84 = v82 / 4;
+					v82 %= 4;
+					int v85 = (v84 + v83 / 2 * v79) % (2 * (blocksW / 4)) / 2
+						+ v79 * ((v84 + v83 / 2 * v79) % (2 * (blocksW / 4)) % 2)
+						+ 2 * (blocksW / 4) * ((v84 + v83 / 2 * v79) / (2 * (blocksW / 4)));
+					int v86 = v83 % 2 + 2 * (v85 / v79);
+					int v87 = ((v82 + 4 * (v85 % v79)) / 8 + v86 / 4 * v80) % (2 * v80) / 2
+						+ v80 * (((v82 + 4 * (v85 % v79)) / 8 + v86 / 4 * v80) % (2 * v80) % 2)
+						+ 2 * v80 * (((v82 + 4 * (v85 % v79)) / 8 + v86 / 4 * v80) / (2 * v80));
+					int v88 = 8
+						* ((v82 + 4 * (v85 % v79)) % 8
+							+ 8 * (unsigned int)(v87 % v80)
+							+ blocksW * (v86 % 4 + 4 * ((int)v87 / v80)));
+
+					//uint64_t destination = Bc7Bpp2x * (my * blocksW + mx);
 
 
-					std::memcpy(Bc7Texture->GetPixels() + destination, Bc7Destination.get() + Bc7Offset, Bc7Bpp2x);
+					std::memcpy(Bc7Texture->GetPixels() + v88, Bc7Destination.get() + Bc7Offset, Bc7Bpp2x);
 					Bc7Offset += Bc7Bpp2x;
 				}
 			}
@@ -1002,6 +1054,11 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 
 						if (Point.Opcode == 0x41)
 						{
+							//for(int row = y * 32; row < (y + 1) * 32; row++)
+							//{
+							//	std::memcpy(Texture->GetPixels() + row * Texture->Width() + 32 * x, Bc7Texture->GetPixels() + row * Texture->Width() + 32 * x, 32);
+							//}
+							//continue;
 							// TODO(rx): reimplement?
 							//Texture->CopyTextureSlice(*Bc7Texture, { (x * 32),(y * 32),32,32 }, (x * 32), (y * 32));
 						}

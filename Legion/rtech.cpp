@@ -1176,9 +1176,12 @@ float __fastcall RTech::FrameToEulerTranslation(uint8_t* translation_buffer, int
 //-----------------------------------------------------------------------------
 // Purpose: unswizzle 'UIIA' datablock
 //-----------------------------------------------------------------------------
-void RTech::UnswizzleBlock(uint32_t x, uint32_t y, uint32_t a3, uint32_t a4, uint32_t& x1, uint32_t& y2)
+void RTech::UnswizzleBlock(uint32_t x, uint32_t y, uint32_t a3, uint32_t power, uint32_t& x1, uint32_t& y2)
 {
-	/*TODO 'UIIA'*/
+	x1 = ((x / power + a3 / power) % (2 * (a3 / power)) / power
+		+ (a3 / power) * ((x / power + y * (a3 / power)) % (2 * (a3 / power)) % 2)
+	+ 2 * (a3 / power) * ((x / power + y * (a3 / power)) / (2 * (a3 / power)))) / 256;
+	y2 = x % 2 + 2 * (x1 / power);
 };
 ///////////////////////////////////////////////////////////////////////////////
 RTech* g_pRtech;
