@@ -172,7 +172,7 @@ public:
 	void __fastcall DecompressConvertRotation(const __m128i* rotation_buffer, float* result_buffer);
 	uint64_t __fastcall StringToGuid(const char* asset_name);
 	float __fastcall FrameToEulerTranslation(uint8_t* translation_buffer, int frame_count, float translation_scale);
-	void UnswizzleBlock(uint32_t x, uint32_t y, uint32_t a3, uint32_t a4, uint32_t x1, uint32_t y2);
+	void UnswizzleBlock(uint32_t x, uint32_t y, uint32_t a3, uint32_t a4, uint32_t& x1, uint32_t& y2);
 };
 
 ///////////////////////////////////////////////////////////////////////////////

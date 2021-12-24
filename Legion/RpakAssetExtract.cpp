@@ -904,8 +904,8 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 			{
 				for (uint32_t j = 0; j < Num6; j++)
 				{
-					int mx = j;
-					int my = i;
+					uint32_t mx = j;
+					uint32_t my = i;
 
 					g_pRtech->UnswizzleBlock(j, i, Num6, 2, mx, my);
 					g_pRtech->UnswizzleBlock(mx, my, Num6, 4, mx, my);
@@ -974,8 +974,8 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 			{
 				for (uint32_t j = 0; j < Num6; j++)
 				{
-					int mx = j;
-					int my = i;
+					uint32_t mx = j;
+					uint32_t my = i;
 
 					g_pRtech->UnswizzleBlock(j, i, Num6, 2, mx, my);
 					g_pRtech->UnswizzleBlock(mx, my, Num6, 4, mx, my);

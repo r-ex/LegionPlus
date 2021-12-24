@@ -1176,7 +1176,7 @@ float __fastcall RTech::FrameToEulerTranslation(uint8_t* translation_buffer, int
 //-----------------------------------------------------------------------------
 // Purpose: unswizzle 'UIIA' datablock
 //-----------------------------------------------------------------------------
-void RTech::UnswizzleBlock(uint32_t x, uint32_t y, uint32_t a3, uint32_t a4, uint32_t x1, uint32_t y2)
+void RTech::UnswizzleBlock(uint32_t x, uint32_t y, uint32_t a3, uint32_t a4, uint32_t& x1, uint32_t& y2)
 {
 	/*TODO 'UIIA'*/
 };
