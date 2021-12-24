@@ -9,7 +9,6 @@ CommandLine::CommandLine(int nArgsCount, LPWSTR* args)
 
 CommandLine::~CommandLine()
 {
-    free(this->argv); // Yes it needs to be cleared.
 }
 
 int CommandLine::FindParam(LPWSTR psz) const

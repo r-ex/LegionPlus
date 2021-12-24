@@ -26,7 +26,8 @@ public:
 	void RefreshView();
 	// Resets display indices
 	void ResetDisplayIndices();
-
+	// Internal routine to load a file
+	void LoadApexFile(const List<string>& File);
 protected:
 	static void OnLoadClick(Forms::Control* Sender);
 	static void OnSettingsClick(Forms::Control* Sender);
@@ -50,9 +51,6 @@ protected:
 private:
 	// Internal routine to setup the component
 	void InitializeComponent();
-
-	// Internal routine to load a file
-	void LoadApexFile(const List<string>& File);
 	// Internal routine to export selected assets
 	void ExportSelectedAssets();
 	// Internal routine to export all assets
