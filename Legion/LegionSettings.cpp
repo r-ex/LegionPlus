@@ -269,7 +269,7 @@ void LegionSettings::InitializeComponent()
 	this->PerformLayout();
 	// END DESIGNER CODE
 
-	this->SetBackColor({ 30, 32, 55 });
+	this->SetBackColor({ 33, 33, 33 });
 
 	this->Load += &OnLoad;
 	this->FormClosing += &OnClose;
