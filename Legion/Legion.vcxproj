@@ -83,7 +83,7 @@
     <LibraryPath>$(SolutionDir)bin\x64\Debug;$(SolutionDir)cppnet\cppkore_libs;$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
-    <TargetName>Legion+</TargetName>
+    <TargetName>LegionPlus</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -91,7 +91,7 @@
     <LibraryPath>$(SolutionDir)bin\x64\Release;$(SolutionDir)cppnet\cppkore_libs;$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
-    <TargetName>Legion+</TargetName>
+    <TargetName>LegionPlus</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
