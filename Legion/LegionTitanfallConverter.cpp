@@ -67,7 +67,7 @@ void LegionTitanfallConverter::InitializeComponent()
 	this->SuspendLayout();
 	this->SetAutoScaleDimensions({ 6, 13 });
 	this->SetAutoScaleMode(Forms::AutoScaleMode::Font);
-	this->SetText("Legion | Titanfall 2 Model & Animation Converter");
+	this->SetText("Legion+ | Titanfall 2 Model & Animation Converter");
 	this->SetClientSize({ 658, 410 });
 	this->SetStartPosition(Forms::FormStartPosition::CenterParent);
 	this->SetMinimizeBox(false);

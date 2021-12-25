@@ -41,7 +41,7 @@ void LegionSplash::InitializeComponent()
 	this->SuspendLayout();
 	this->SetAutoScaleDimensions({ 6, 13 });
 	this->SetAutoScaleMode(Forms::AutoScaleMode::Font);
-	this->SetText("Legion (by DTZxPorter) Loading...");
+	this->SetText("Legion+ Loading...");
 	this->SetClientSize({ 660, 410 });
 	this->SetMinimumSize({ 660, 410 });
 	this->SetFormBorderStyle(Forms::FormBorderStyle::None);

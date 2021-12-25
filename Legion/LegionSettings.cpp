@@ -17,7 +17,7 @@ void LegionSettings::InitializeComponent()
 	this->SuspendLayout();
 	this->SetAutoScaleDimensions({ 6, 13 });
 	this->SetAutoScaleMode(Forms::AutoScaleMode::Font);
-	this->SetText("Legion | Application Settings");
+	this->SetText("Legion+ | Application Settings");
 	this->SetClientSize({ WindowX, WindowY });
 	this->SetFormBorderStyle(Forms::FormBorderStyle::FixedSingle);
 	this->SetStartPosition(Forms::FormStartPosition::CenterParent);
