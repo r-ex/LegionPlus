@@ -948,7 +948,7 @@ bool RpakLib::MountApexRpak(const string& Path, bool Dump)
 	state.out_mask = UINT64_MAX;
 	state.out = uint64_t(pakbuf.data());
 
-	std::uint8_t decomp_result = g_pRtech->DecompressPakFile((int64_t*)&state, dSize, pakbuf.size());
+	std::uint8_t decomp_result = g_pRtech->DecompressPakFile(&state, dSize, pakbuf.size());
 
 	std::memcpy(pakbuf.data(), &Header, sizeof(RpakApexHeader));
 
@@ -1000,7 +1000,7 @@ bool RpakLib::MountTitanfallRpak(const string& Path, bool Dump)
 	state.out_mask = UINT64_MAX;
 	state.out = uint64_t(pakbuf.data());
 
-	std::uint8_t decomp_result = g_pRtech->DecompressPakFile((int64_t*)&state, dSize, pakbuf.size());
+	std::uint8_t decomp_result = g_pRtech->DecompressPakFile(&state, dSize, pakbuf.size());
 
 	std::memcpy(pakbuf.data(), &Header, sizeof(RpakTitanfallHeader));
 
