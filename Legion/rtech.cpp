@@ -21,30 +21,30 @@ History:
 //-----------------------------------------------------------------------------
 uint64_t __fastcall RTech::DecompressPakfileInit(rpak_decomp_state* state, uint8_t* file_buffer, int64_t file_size, int64_t off_no_header, int64_t header_size)
 {
-	__int64 input_byte_pos_init; // r9
-	unsigned __int64 byte_init; // r11
-	int decompressed_size_bits; // ecx
-	__int64 byte_1_low; // rdi
-	unsigned __int64 input_byte_pos_1; // r10
-	unsigned int bit_pos_final; // ebp
-	unsigned __int64 byte_1; // rdi
-	unsigned int brih_bits; // er11
-	unsigned __int64 inv_mask_in; // r8
-	unsigned __int64 byte_final_full; // rbx
-	unsigned __int64 bit_pos_final_1; // rax
-	int byte_bit_offset_final; // ebp
-	unsigned __int64 input_byte_pos_final; // r10
-	unsigned __int64 byte_final; // rbx
-	unsigned int brih_bytes; // er11
-	__int64 byte_tmp; // rdx
-	__int64 stream_len_needed; // r14
-	__int64 result; // rax
-	unsigned __int64 inv_mask_out; // r8
-	__int64 qw70; // rcx
-	__int64 stream_compressed_size_new; // rdx
+	int64_t input_byte_pos_init; // r9
+	uint64_t byte_init; // r11
+	int32_t decompressed_size_bits; // ecx
+	int64_t byte_1_low; // rdi
+	uint64_t input_byte_pos_1; // r10
+	uint32_t bit_pos_final; // ebp
+	uint64_t byte_1; // rdi
+	uint32_t brih_bits; // er11
+	uint64_t inv_mask_in; // r8
+	uint64_t byte_final_full; // rbx
+	uint64_t bit_pos_final_1; // rax
+	int32_t byte_bit_offset_final; // ebp
+	uint64_t input_byte_pos_final; // r10
+	uint64_t byte_final; // rbx
+	uint32_t brih_bytes; // er11
+	int64_t byte_tmp; // rdx
+	int64_t stream_len_needed; // r14
+	int64_t result; // rax
+	uint64_t inv_mask_out; // r8
+	int64_t qw70; // rcx
+	int64_t stream_compressed_size_new; // rdx
 
 	const uintptr_t mask = UINT64_MAX;
-	const auto file_buf = uintptr_t(file_buffer);
+	const uintptr_t file_buf = uintptr_t(file_buffer);
 
 	state->input_buf = file_buf;
 	state->out = 0i64;
@@ -60,18 +60,18 @@ uint64_t __fastcall RTech::DecompressPakfileInit(rpak_decomp_state* state, uint8
 	state->input_byte_pos = input_byte_pos_init;
 	state->decompressed_size = byte_init & ((1i64 << decompressed_size_bits) - 1) | (1i64 << decompressed_size_bits);
 	byte_1_low = *(uint64_t*)((mask & input_byte_pos_init) + file_buf) << (64
-		- ((unsigned __int8)decompressed_size_bits
+		- ((uint8_t)decompressed_size_bits
 			+ 6));
-	input_byte_pos_1 = input_byte_pos_init + ((unsigned __int64)(unsigned int)(decompressed_size_bits + 6) >> 3);
+	input_byte_pos_1 = input_byte_pos_init + ((uint64_t)(uint32_t)(decompressed_size_bits + 6) >> 3);
 	state->input_byte_pos = input_byte_pos_1;
 	bit_pos_final = ((decompressed_size_bits + 6) & 7) + 13;
 	byte_1 = (0xFFFFFFFFFFFFFFFFui64 >> ((decompressed_size_bits + 6) & 7)) & ((byte_init >> decompressed_size_bits) | byte_1_low);
 	brih_bits = (((uint8_t)byte_1 - 1) & 0x3F) + 1;
-	inv_mask_in = 0xFFFFFFFFFFFFFFFFui64 >> (64 - (unsigned __int8)brih_bits);
+	inv_mask_in = 0xFFFFFFFFFFFFFFFFui64 >> (64 - (uint8_t)brih_bits);
 	state->inv_mask_in = inv_mask_in;
 	state->inv_mask_out = 0xFFFFFFFFFFFFFFFFui64 >> (63 - (((byte_1 >> 6) - 1) & 0x3F));
 	byte_final_full = (byte_1 >> 13) | (*(uint64_t*)((mask & input_byte_pos_1) + file_buf) << (64
-		- (unsigned __int8)bit_pos_final));
+		- (uint8_t)bit_pos_final));
 	bit_pos_final_1 = bit_pos_final;
 	byte_bit_offset_final = bit_pos_final & 7;
 	input_byte_pos_final = (bit_pos_final_1 >> 3) + input_byte_pos_1;
@@ -88,7 +88,7 @@ uint64_t __fastcall RTech::DecompressPakfileInit(rpak_decomp_state* state, uint8
 		state->header_skip_bytes_bs = brih_bytes + 1;
 		byte_tmp = *(uint64_t*)((mask & input_byte_pos_final) + file_buf);
 		state->input_byte_pos = input_byte_pos_final + brih_bytes + 1;
-		stream_len_needed = byte_tmp & ((1i64 << (8 * ((unsigned __int8)brih_bytes + 1))) - 1);
+		stream_len_needed = byte_tmp & ((1i64 << (8 * ((uint8_t)brih_bytes + 1))) - 1);
 	}
 	result = state->decompressed_size;
 	inv_mask_out = state->inv_mask_out;

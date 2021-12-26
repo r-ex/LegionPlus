@@ -72,13 +72,22 @@ namespace
 	};
 
 	/*off_5384508116*/
-	const unsigned char LUT_Dynamic_Track_0[4] = { 0x00, 0x02, 0x04, 0x00 };
+	std::array<std::uint8_t, 4> LUT_Dynamic_Track_0
+	{
+		0, 2, 4, 0
+	};
 
 	/*dword_140F13EE0*/
-	const float LUT_Dynamic_Track_1[4] = { 0.0, 3.0, 15.0, 0.0 };
+	std::array<float, 4> LUT_Dynamic_Track_1
+	{
+		0.0, 3.0, 15.0, 0.0
+	};
 
 	/*byte_1410B0CE0*/
-	unsigned char LUT_Snowflake_0[16] = { 0x00, 0x03, 0x07, 0x0F, 0x23, 0x3F, 0x52, 0x47, 0x42, 0x45, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+	std::array<std::uint8_t, 16> LUT_Snowflake_0
+	{
+		0, 3, 7, 15, 35, 63, 82, 71, 66, 69, 0, 0, 0, 0, 0, 0
+	};
 };
 
 class RTech
