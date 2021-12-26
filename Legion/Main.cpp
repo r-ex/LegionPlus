@@ -14,7 +14,7 @@
 using namespace System;
 
 #if _DEBUG
-int main(int argc, char** argv)
+int main()
 #else
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 #endif
@@ -25,32 +25,44 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	ExportManager::InitializeExporter();
 
 	bool ShowGUI = true;
-
-#ifndef _DEBUG
+	wstring sRpakFileToLoad;
 
 	int argc;
 	LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
 
-	if (argv) // This can fail yes, would be good to also check that.
-	{
-		CommandLine cmdline(argc, argv);
+	CommandLine cmdline(argc, argv);
 
+	if (argv) // This can fail yes, would be good to also check that.	
+	{
 		if (!cmdline.HasParam(L"--export") && !cmdline.HasParam(L"--list"))
 		{
-			Forms::Application::Run(new LegionSplash());
+
+			if (cmdline.ArgC() >= 1) {
+				sRpakFileToLoad = wstring(cmdline.GetParamAtIdx(0));
+			}
+			else {
+#ifndef _DEBUG
+				Forms::Application::Run(new LegionSplash());
+#endif
+			}
 		}
 		else
 		{
 			string rpakPath;
-			if (cmdline.HasParam(L"--export"))
+
+			bool bExportRpak = cmdline.HasParam(L"--export");
+			bool bListRpak = cmdline.HasParam(L"--list");
+
+			if (bExportRpak)
 			{
 				rpakPath = wstring(cmdline.GetParamValue(L"--export")).ToString();
 			}
-			else
+			else if (bListRpak)
 			{
 				rpakPath = wstring(cmdline.GetParamValue(L"--list")).ToString();
 			}
 
+			// handle cli stuff
 			if (!string::IsNullOrEmpty(rpakPath))
 			{
 				auto Rpak = std::make_unique<RpakLib>();
@@ -86,7 +98,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 					AssetList = Rpak->BuildAssetList(bLoadModels, bLoadAnims, bLoadImages, bLoadMaterials, bLoadUIImages, bLoadDataTables);
 				}
 
-				if (cmdline.HasParam(L"--export"))
+				if (bExportRpak)
 				{
 					for (auto& Asset : *AssetList.get())
 					{
@@ -97,7 +109,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 					}
 					ExportManager::ExportRpakAssets(Rpak, ExportAssets, [](uint32_t i, Forms::Form*, bool) {}, [](int32_t i, Forms::Form*) -> bool { return false; }, nullptr);
 				}
-				else
+				else if (bListRpak)
 				{
 					string filename = IO::Path::GetFileNameWithoutExtension(rpakPath);
 					ExportManager::ExportRpakAssetList(AssetList, filename);
@@ -107,12 +119,18 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			}
 		}
 	}
-
-#endif
-	
 	if (ShowGUI)
 	{
-		Forms::Application::Run(new LegionMain());
+		LegionMain* main = new LegionMain();
+		if (!wstring::IsNullOrEmpty(sRpakFileToLoad))
+		{
+			List<string> paks;
+			paks.EmplaceBack(sRpakFileToLoad.ToString());
+			main->LoadApexFile(paks);
+			main->RefreshView();
+		}
+		Forms::Application::Run(main);
+
 	}
 
 	UIX::UIXTheme::ShutdownRenderer();

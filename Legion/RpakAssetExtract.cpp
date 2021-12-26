@@ -53,7 +53,7 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 		*  *(_DWORD *)(a1 + 12) = decompressed_size;
 		*  v15 = (*v14)(v14, decompressed_size, 16i64);
 		*/
-		std::uint8_t decomp_result = g_pRtech->DecompressPakFile((int64_t*)&state, dSize, pakbuf.size());
+		std::uint8_t decomp_result = g_pRtech->DecompressPakFile(&state, dSize, pakbuf.size());
 
 		return std::make_unique<IO::MemoryStream>((uint8_t*)Data, 0, DataSize);
 	}

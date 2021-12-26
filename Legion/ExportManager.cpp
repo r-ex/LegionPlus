@@ -14,7 +14,7 @@ void ExportManager::InitializeExporter()
 {
 	ApplicationPath = System::Environment::GetApplicationPath();
 
-	auto ConfigPath = IO::Path::Combine(ApplicationPath, "Legion.cfg");
+	auto ConfigPath = IO::Path::Combine(ApplicationPath, "LegionPlus.cfg");
 
 	if (IO::File::Exists(ConfigPath))
 	{
@@ -79,7 +79,7 @@ void ExportManager::SaveConfigToDisk()
 		Config.Remove<System::SettingType::String>("ExportDirectory");
 	}
 
-	Config.Save(IO::Path::Combine(ApplicationPath, "Legion.cfg"));
+	Config.Save(IO::Path::Combine(ApplicationPath, "LegionPlus.cfg"));
 }
 
 string ExportManager::GetMapExportPath()

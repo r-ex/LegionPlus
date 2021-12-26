@@ -18,7 +18,7 @@ void LegionMain::InitializeComponent()
 	this->SuspendLayout();
 	this->SetAutoScaleDimensions({ 6, 13 });
 	this->SetAutoScaleMode(Forms::AutoScaleMode::Font);
-	this->SetText("Legion");
+	this->SetText("Legion+");
 	this->SetClientSize({ 775, 481 });
 	this->SetMinimumSize({ 791, 520 });
 	this->SetStartPosition(Forms::FormStartPosition::CenterScreen);
@@ -168,7 +168,7 @@ void LegionMain::LoadApexFile(const List<string>& File)
 			{
 				ThisPtr->Invoke([]()
 				{
-					Forms::MessageBox::Show("An error occured while loading the RPak.", "Legion", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
+					Forms::MessageBox::Show("An error occured while loading the RPak.", "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
 				});
 				ThisPtr->StatusLabel->SetText("Idle");
 			}
@@ -188,14 +188,14 @@ void LegionMain::LoadApexFile(const List<string>& File)
 
 				ThisPtr->Invoke([]()
 				{
-					Forms::MessageBox::Show("Successfully exported the bsp map file.", "Legion", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Information);
+					Forms::MessageBox::Show("Successfully exported the bsp map file.", "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Information);
 				});
 			}
 			catch (...)
 			{
 				ThisPtr->Invoke([]()
 				{
-					Forms::MessageBox::Show("An error occured while exporting the bsp file.", "Legion", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
+					Forms::MessageBox::Show("An error occured while exporting the bsp file.", "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
 				});
 			}
 
@@ -219,7 +219,7 @@ void LegionMain::LoadApexFile(const List<string>& File)
 			{
 				ThisPtr->Invoke([]()
 				{
-					Forms::MessageBox::Show("An error occured while loading the MBNK.", "Legion", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
+					Forms::MessageBox::Show("An error occured while loading the MBNK.", "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
 				});
 				ThisPtr->StatusLabel->SetText("Idle");
 			}
@@ -240,7 +240,7 @@ void LegionMain::ExportSelectedAssets()
 
 	if (SelectedIndices.Count() == 0)
 	{
-		Forms::MessageBox::Show("Please select at least one asset to export.", "Legion", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Information);
+		Forms::MessageBox::Show("Please select at least one asset to export.", "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Information);
 		return;
 	}
 
@@ -279,7 +279,7 @@ void LegionMain::ExportAllAssets()
 
 	if (this->DisplayIndices.Count() == 0)
 	{
-		Forms::MessageBox::Show("Please find some assets to export.", "Legion", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Information);
+		Forms::MessageBox::Show("Please find some assets to export.", "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Information);
 		return;
 	}
 
@@ -548,11 +548,11 @@ void LegionMain::OnLoadClick(Forms::Control* Sender)
 	List<string> OpenFileD;
 	if (ThisPtr->RpakFileSystem != nullptr)
 	{
-		OpenFileD =  OpenFileDialog::ShowMultiFileDialog("Legion: Select file(s) to load", "", "Apex Legends Files (MBnk, RPak, Bsp)|*.mbnk;*.rpak;*.bsp", Sender->FindForm());
+		OpenFileD =  OpenFileDialog::ShowMultiFileDialog("Legion+: Select file(s) to load", "", "Apex Legends Files (MBnk, RPak, Bsp)|*.mbnk;*.rpak;*.bsp", Sender->FindForm());
 	}
 	else
 	{
-		OpenFileD = OpenFileDialog::ShowMultiFileDialog("Legion: Select file(s) to load", "", "Apex Legends Files (MBnk, RPak)|*.mbnk;*.rpak;", Sender->FindForm());
+		OpenFileD = OpenFileDialog::ShowMultiFileDialog("Legion+: Select file(s) to load", "", "Apex Legends Files (MBnk, RPak)|*.mbnk;*.rpak;", Sender->FindForm());
 	}
 
 	printf("OpenFileD.Count() == %i\n", OpenFileD.Count());
@@ -566,7 +566,7 @@ void LegionMain::OnLoadClick(Forms::Control* Sender)
 		return;
 	else if (OpenFileD.Count() > MAX_LOADED_RPAKS)
 	{
-		MessageBox::Show("Please select 4 or less files, Legion will run out of memory processing all of the files at once.", "Legion", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
+		MessageBox::Show("Please select 4 or less files, Legion+ will run out of memory processing all of the files at once.", "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
 		return;
 	}
 
