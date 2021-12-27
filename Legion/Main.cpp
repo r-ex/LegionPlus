@@ -32,6 +32,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	CommandLine cmdline(argc, argv);
 
+#if _DEBUG
+	SetConsoleTitleA("Legion+ | Console");
+#endif
+
 	if (argv) // This can fail yes, would be good to also check that.	
 	{
 		if (!cmdline.HasParam(L"--export") && !cmdline.HasParam(L"--list"))
