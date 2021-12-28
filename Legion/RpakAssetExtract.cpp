@@ -636,7 +636,7 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		return;
 	}
 
-	if (TexHeader.NameOffset)
+	if (TexHeader.NameIndex || TexHeader.NameOffset)
 	{
 		uint64_t NameOffset = this->GetFileOffset(Asset, TexHeader.NameIndex, TexHeader.NameOffset);
 

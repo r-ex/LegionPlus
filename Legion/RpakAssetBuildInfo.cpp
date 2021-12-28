@@ -107,7 +107,7 @@ void RpakLib::BuildTextureInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	string Name = "";
 
-	if (TexHeader.NameOffset)
+	if (TexHeader.NameIndex || TexHeader.NameOffset)
 	{
 		RpakStream->SetPosition(this->GetFileOffset(Asset, TexHeader.NameIndex, TexHeader.NameOffset));
 
