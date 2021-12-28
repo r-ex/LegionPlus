@@ -2,6 +2,7 @@
 #include "LegionSettings.h"
 #include "ExportManager.h"
 #include "Process.h"
+#include "LegionMain.h"
 
 LegionSettings::LegionSettings()
 	: Forms::Form()
@@ -445,6 +446,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	}
 
 	ExportManager::SaveConfigToDisk();
+	g_pLegionMain->RefreshView();
 }
 
 void LegionSettings::OnGithubClick(Forms::Control* Sender)

@@ -10,6 +10,7 @@
 LegionMain::LegionMain()
 	: Forms::Form(), IsInExportMode(false)
 {
+	g_pLegionMain = this;
 	this->InitializeComponent();
 }
 
@@ -729,3 +730,5 @@ bool LegionMain::CheckStatusCallback(int32_t AssetIndex, Forms::Form* MainForm)
 {
 	return ((LegionMain*)MainForm)->CheckStatus(AssetIndex);
 }
+
+LegionMain* g_pLegionMain;

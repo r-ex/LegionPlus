@@ -102,3 +102,5 @@ private:
 	// Internal load path
 	List<string> LoadPath;
 };
+
+extern LegionMain* g_pLegionMain;
