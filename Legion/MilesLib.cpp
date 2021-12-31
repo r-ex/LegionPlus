@@ -383,6 +383,9 @@ void MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 	using decoder_f_t = size_t(__fastcall*)(void* data, void* decoded, size_t size, size_t size2, void* reader, void* user_data);
 	using deocder_tf2_f_t = size_t(__fastcall*)(void* user_data, void* data, void* decoded, size_t size, void* reader);
 
+	using unk20_f_t = size_t(__fastcall*)(void* data, uint32_t a2, uint32_t* a3, uint32_t* a4);
+	using unk18_f_t = size_t(__fastcall*)(void* data);
+
 	const auto metadata = *(metadata_f_t*)(binka + 8);
 	uint16_t channels;
 	uint32_t sample_rate, samples_count;
@@ -406,6 +409,14 @@ void MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 		// TODO: error check - should return 2
 		open_stream(allocd.data(), nullptr, MilesReadFileStream, &UserData);
 	}
+
+	{
+		const auto unk20 = *(unk20_f_t*)(binka + 40);
+		uint32_t tmp;
+		unk20(allocd.data(), 0, &tmp, nullptr);
+	}
+	const auto unk18 = *(unk18_f_t*)(binka + 32);
+	unk18(allocd.data());
 
 	UserData.DataStreamSize = *(uint32_t*)(allocd.data() + 16ull) - Asset.PreloadSize;
 
