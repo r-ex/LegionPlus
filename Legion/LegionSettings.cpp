@@ -196,7 +196,7 @@ void LegionSettings::InitializeComponent()
 	//	Model Export Format
 	//
 	this->label2 = new UIX::UIXLabel();
-	this->label2->SetSize({ 120, 15 });
+	this->label2->SetSize({ 100, 15 });
 	this->label2->SetLocation({ 20, 20 });
 	this->label2->SetTabIndex(8);
 	this->label2->SetText("Model Format");
@@ -225,7 +225,7 @@ void LegionSettings::InitializeComponent()
 	//	Animation Export Format
 	//
 	this->label3 = new UIX::UIXLabel();
-	this->label3->SetSize({ 120, 15 });
+	this->label3->SetSize({ 100, 15 });
 	this->label3->SetLocation({ 20, 65 });
 	this->label3->SetTabIndex(11);
 	this->label3->SetText("Animation Format");
@@ -247,7 +247,7 @@ void LegionSettings::InitializeComponent()
 	//	Image Export Format 
 	//
 	this->label4 = new UIX::UIXLabel();
-	this->label4->SetSize({ 120, 15 });
+	this->label4->SetSize({ 100, 15 });
 	this->label4->SetLocation({ 20, 110 });
 	this->label4->SetTabIndex(9);
 	this->label4->SetText("Image Format");
@@ -265,6 +265,28 @@ void LegionSettings::InitializeComponent()
 	this->ImageExportFormat->Items.Add("PNG");
 	this->ImageExportFormat->Items.Add("TIFF");
 	this->groupBox5->AddControl(this->ImageExportFormat);
+
+	//
+	//	Subtitles Export Format 
+	//
+	this->label5 = new UIX::UIXLabel();
+	this->label5->SetSize({ 100, 15 });
+	this->label5->SetLocation({ 130, 20 });
+	this->label5->SetTabIndex(9);
+	this->label5->SetText("Subtitles Format");
+	this->label5->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->label5->SetTextAlign(Drawing::ContentAlignment::TopLeft);
+	this->groupBox5->AddControl(this->label5);
+
+	this->SubtitlesExportFormat = new UIX::UIXComboBox();
+	this->SubtitlesExportFormat->SetSize({ 130, 20 });
+	this->SubtitlesExportFormat->SetLocation({ 130, 35 });
+	this->SubtitlesExportFormat->SetTabIndex(0);
+	this->SubtitlesExportFormat->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->SubtitlesExportFormat->SetDropDownStyle(Forms::ComboBoxStyle::DropDownList);
+	this->SubtitlesExportFormat->Items.Add("CSV");
+	this->SubtitlesExportFormat->Items.Add("TXT");
+	this->groupBox5->AddControl(this->SubtitlesExportFormat);
 
 	this->ResumeLayout(false);
 	this->PerformLayout();
@@ -284,6 +306,7 @@ void LegionSettings::LoadSettings()
 	auto ModelFormat = (RpakModelExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat");
 	auto AnimFormat = (RpakAnimExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat");
 	auto ImageFormat = (RpakImageExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat");
+	auto SubtitlesFormat = (RpakSubtitlesExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("SubtitlesFormat");
 
 	switch (ModelFormat)
 	{
@@ -339,6 +362,16 @@ void LegionSettings::LoadSettings()
 		break;
 	}
 
+	switch (SubtitlesFormat)
+	{
+	case RpakSubtitlesExportFormat::CSV:
+		this->SubtitlesExportFormat->SetSelectedIndex(0);
+		break;
+	case RpakSubtitlesExportFormat::TXT:
+		this->SubtitlesExportFormat->SetSelectedIndex(1);
+		break;
+	}
+
 	this->LoadModels->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadModels"));
 	this->LoadAnimations->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadAnimations"));
 	this->LoadImages->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadImages"));
@@ -367,6 +400,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	auto ModelExportFormat = RpakModelExportFormat::Cast;
 	auto AnimExportFormat = RpakAnimExportFormat::Cast;
 	auto ImageExportFormat = RpakImageExportFormat::Dds;
+	auto SubtitlesExportFormat = RpakSubtitlesExportFormat::CSV;
 
 	if (ThisPtr->ModelExportFormat->SelectedIndex() > -1)
 	{
@@ -422,6 +456,16 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		}
 	}
 
+	if (ThisPtr->SubtitlesExportFormat->SelectedIndex() > -1)
+	{
+		switch (ThisPtr->SubtitlesExportFormat->SelectedIndex())
+		{
+		case 1:
+			SubtitlesExportFormat = RpakSubtitlesExportFormat::TXT;
+			break;
+		}
+	}
+
 
 	ExportManager::Config.Set<System::SettingType::Boolean>("LoadModels", ThisPtr->LoadModels->Checked());
 	ExportManager::Config.Set<System::SettingType::Boolean>("LoadAnimations", ThisPtr->LoadAnimations->Checked());
@@ -433,6 +477,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	ExportManager::Config.Set<System::SettingType::Integer>("ModelFormat", (uint32_t)ModelExportFormat);
 	ExportManager::Config.Set<System::SettingType::Integer>("AnimFormat", (uint32_t)AnimExportFormat);
 	ExportManager::Config.Set<System::SettingType::Integer>("ImageFormat", (uint32_t)ImageExportFormat);
+	ExportManager::Config.Set<System::SettingType::Integer>("SubtitlesFormat", (uint32_t)SubtitlesExportFormat);
 
 	auto ExportDirectory = ThisPtr->ExportBrowseFolder->Text();
 

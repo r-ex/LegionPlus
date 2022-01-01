@@ -10,3 +10,13 @@ bool Utils::ShouldWriteFile(string Path)
 
 	return true;
 }
+
+string Utils::GetISOTimestamp() {
+    time_t now;
+    time(&now);
+    char buf[32];
+    tm t;
+    gmtime_s(&t, &now);
+    strftime(buf, sizeof buf, "%H:%M:%S", &t);
+    return string(buf);
+}

@@ -33,3 +33,4 @@
 
 #include "ExportManager.h"
 #include "Utils.h"
+#include "Logger.h"

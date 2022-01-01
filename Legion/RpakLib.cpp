@@ -964,7 +964,7 @@ bool RpakLib::MountApexRpak(const string& Path, bool Dump)
 #endif
 	bool r = ParseApexRpak(Path, ResultStream);
 
-	printf("Parse: %i\n", r);
+	g_Logger.Info("Parse: %i\n", r);
 
 	return r;
 }

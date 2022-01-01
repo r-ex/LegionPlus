@@ -468,18 +468,18 @@ void LegionMain::DoPreviewSwap()
 	break;
 	case ApexAssetType::Image:
 	{
-		auto Txt = this->RpakFileSystem->BuildPreviewTexture(Asset.Hash);
-		if (Txt == nullptr)
+		auto Texture = this->RpakFileSystem->BuildPreviewTexture(Asset.Hash);
+		if (Texture == nullptr)
 			return;
-		this->PreviewWindow->AssignPreviewImage(*Txt.get(), Asset.Name);
+		this->PreviewWindow->AssignPreviewImage(*Texture.get(), Asset.Name);
 	}
 	break;
 	case ApexAssetType::Material:
 	{
-		auto Txt = this->RpakFileSystem->BuildPreviewMaterial(Asset.Hash);
-		if (Txt == nullptr)
+		auto Material = this->RpakFileSystem->BuildPreviewMaterial(Asset.Hash);
+		if (Material == nullptr)
 			return;
-		this->PreviewWindow->AssignPreviewImage(*Txt.get(), Asset.Name);
+		this->PreviewWindow->AssignPreviewImage(*Material.get(), Asset.Name);
 	}
 	break;
 	}
@@ -556,11 +556,11 @@ void LegionMain::OnLoadClick(Forms::Control* Sender)
 		OpenFileD = OpenFileDialog::ShowMultiFileDialog("Legion+: Select file(s) to load", "", "Apex Legends Files (MBnk, RPak)|*.mbnk;*.rpak;", Sender->FindForm());
 	}
 
-	printf("OpenFileD.Count() == %i\n", OpenFileD.Count());
+	g_Logger.Info("OpenFileD.Count() == %i\n", OpenFileD.Count());
 
 	for (int i = 0; i < OpenFileD.Count(); i++)
 	{
-		printf("Load rpak: %s\n", OpenFileD[i].ToCString());
+		g_Logger.Info("Load rpak: %s\n", OpenFileD[i].ToCString());
 	}
 
 	if (OpenFileD.Count() == 0)

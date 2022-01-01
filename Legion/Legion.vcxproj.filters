@@ -96,6 +96,9 @@
     <ClCompile Include="Utils.cpp">
       <Filter>Legion\Core</Filter>
     </ClCompile>
+    <ClCompile Include="Logger.cpp">
+      <Filter>Legion\Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MilesLib.h">
@@ -162,6 +165,9 @@
       <Filter>VPK</Filter>
     </ClInclude>
     <ClInclude Include="Utils.h">
+      <Filter>Legion\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Logger.h">
       <Filter>Legion\Core</Filter>
     </ClInclude>
   </ItemGroup>

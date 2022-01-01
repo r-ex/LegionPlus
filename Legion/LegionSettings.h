@@ -31,25 +31,33 @@ private:
 	// Internal controls reference
 	UIX::UIXTextBox* ExportBrowseFolder;
 	UIX::UIXButton* ExportBrowseButton;
+	// Labels
 	UIX::UIXLabel* label1;
 	UIX::UIXLabel* label2;
 	UIX::UIXLabel* label3;
 	UIX::UIXLabel* label4;
+	UIX::UIXLabel* label5;
+	// Boxes
 	UIX::UIXGroupBox* groupBox1;
 	UIX::UIXGroupBox* groupBox2;
 	UIX::UIXGroupBox* groupBox3;
 	UIX::UIXGroupBox* groupBox4;
 	UIX::UIXGroupBox* groupBox5;
+	// Load Types
 	UIX::UIXCheckBox* LoadMaterials;
 	UIX::UIXCheckBox* LoadImages;
 	UIX::UIXCheckBox* LoadUIImages;
 	UIX::UIXCheckBox* LoadDataTables;
 	UIX::UIXCheckBox* LoadAnimations;
 	UIX::UIXCheckBox* LoadModels;
+	// Toggles
 	UIX::UIXCheckBox* ToggleOverwriting;
-	UIX::UIXComboBox* ImageExportFormat;
-	UIX::UIXComboBox* AnimExportFormat;
+	// Export Types
 	UIX::UIXComboBox* ModelExportFormat;
+	UIX::UIXComboBox* AnimExportFormat;
+	UIX::UIXComboBox* ImageExportFormat;
+	UIX::UIXComboBox* SubtitlesExportFormat;
+	// Export Formats
 	UIX::UIXRadioButton* ExportCastAnim;
 	UIX::UIXRadioButton* ExportSEAnim;
 	UIX::UIXRadioButton* ExportCastModel;
@@ -61,6 +69,7 @@ private:
 	UIX::UIXRadioButton* ExportXNAAscii;
 	UIX::UIXRadioButton* ExportOBJ;
 	UIX::UIXRadioButton* ExportSEModel;
+	// Other Buttons
 	UIX::UIXButton* GithubButton;
 	UIX::UIXButton* DiscordButton;
 };

@@ -301,6 +301,12 @@ enum class RpakImageExportFormat
 	Tiff
 };
 
+enum class RpakSubtitlesExportFormat
+{
+	CSV,
+	TXT
+};
+
 // this is bad
 enum class SubtitleLanguageHash : uint64_t
 {

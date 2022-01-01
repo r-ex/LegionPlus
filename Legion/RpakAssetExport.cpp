@@ -188,7 +188,21 @@ string Vector3ToHexColor(Math::Vector3 vec)
 
 void RpakLib::ExportSubtitles(const RpakLoadAsset& Asset, const string& Path)
 {
-	auto DestinationPath = IO::Path::Combine(Path, GetSubtitlesNameFromHash(Asset.NameHash) + ".csv");
+	auto Format = (RpakSubtitlesExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("SubtitlesFormat");
+
+	string sExtension = "";
+
+	switch (Format)
+	{
+	case RpakSubtitlesExportFormat::CSV:
+		sExtension = ".csv";
+		break;
+	case RpakSubtitlesExportFormat::TXT:
+		sExtension = ".txt";
+		break;
+	}
+
+	auto DestinationPath = IO::Path::Combine(Path, GetSubtitlesNameFromHash(Asset.NameHash) + sExtension);
 
 	if (!Utils::ShouldWriteFile(DestinationPath))
 		return;
@@ -197,10 +211,30 @@ void RpakLib::ExportSubtitles(const RpakLoadAsset& Asset, const string& Path)
 
 	std::ofstream subt_out(DestinationPath.ToCString(), std::ios::out);
 
-	subt_out << "color,text\n";
-	for (auto& Entry : Subtitles)
+	switch (Format)
 	{
-		subt_out << "\"#" << Vector3ToHexColor(Entry.Color) << "\",\"" << Entry.SubtitleText << "\"\n";
+	case RpakSubtitlesExportFormat::CSV:
+	{
+		subt_out << "color,text\n";
+		for (auto& Entry : Subtitles)
+		{
+			subt_out << "\"#" << Vector3ToHexColor(Entry.Color) << "\",\"" << Entry.SubtitleText << "\"\n";
+		}
+		break;
 	}
+	case RpakSubtitlesExportFormat::TXT:
+	{
+		for (auto& Entry : Subtitles)
+		{
+			subt_out << Entry.SubtitleText << "\n";
+		}
+		break;
+	}
+	default:
+		g_Logger.Warning("Attempted to export Subtitles asset with an invalid format (%i)\n", Format);
+		break;
+	}
+
+
 	subt_out.close();
 }

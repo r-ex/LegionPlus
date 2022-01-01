@@ -1,7 +1,7 @@
 #pragma once
-class Utils
+namespace Utils
 {
-public:
-	static bool ShouldWriteFile(string Path);
+	bool ShouldWriteFile(string Path);
+	string GetISOTimestamp();
 };
 
