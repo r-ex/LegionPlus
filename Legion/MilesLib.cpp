@@ -426,6 +426,13 @@ void MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 	size_t ret = 0;
 	// TODO: potentially break on hitting the required sample count?
 	auto Writer = IO::File::OpenWrite(FilePath);
+
+	WAVEHEADER hdr;
+
+	uint64_t DataSize = 0;
+
+	Writer->Write((uint8_t*)&hdr, 0, sizeof(WAVEHEADER));
+
 	do {
 		if (version_tf2) {
 			const auto decode = *(deocder_tf2_f_t*)(binka + 24);
@@ -447,9 +454,24 @@ void MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 
 		// TODO: proper container...
 		if (ret > 0) {
+			DataSize += decoded_desh.size() * 4;
 			Writer->Write((uint8_t*)decoded_desh.data(), 0, decoded_desh.size() * 4);
 		}
 	} while (ret == 64);
+
+	hdr.size = DataSize + 36;
+
+	hdr.fmt.channels = channels;
+	hdr.fmt.sampleRate = sample_rate;
+	hdr.fmt.avgBytesPerSecond = DataSize / (samples_count / sample_rate);
+	hdr.fmt.blockAlign = DataSize/samples_count;
+	hdr.fmt.bitsPerSample = ((DataSize * 8) / samples_count)/channels;
+
+	hdr.data.chunkSize = DataSize;
+
+	Writer->Seek(0, IO::SeekOrigin::Begin);
+
+	Writer->Write((uint8_t*)&hdr, 0, sizeof(WAVEHEADER));
 }
 
 std::unique_ptr<List<ApexAsset>> MilesLib::BuildAssetList()
