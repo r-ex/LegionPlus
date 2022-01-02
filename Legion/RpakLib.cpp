@@ -304,16 +304,21 @@ std::unique_ptr<IO::FileStream> RpakLib::GetStarpakStream(const RpakLoadAsset& A
 	{
 		uint64_t OptStarpakIndex = Asset.OptimalStarpakOffset & 0xFF;
 #if _DEBUG
-		printf("Load starpak: %s\n", this->LoadedFiles[Asset.RpakFileIndex].OptimalStarpakReferences[OptStarpakIndex].ToCString());
+		g_Logger.Info("Load starpak: %s\n", this->LoadedFiles[Asset.RpakFileIndex].OptimalStarpakReferences[OptStarpakIndex].ToCString());
 #endif
+		if (!IO::File::Exists(this->LoadedFiles[Asset.RpakFileIndex].OptimalStarpakReferences[OptStarpakIndex]))
+			return nullptr;
+
 		return std::move(IO::File::OpenRead(this->LoadedFiles[Asset.RpakFileIndex].OptimalStarpakReferences[OptStarpakIndex]));
 	}
 	else
 	{
 		uint64_t StarpakPatchIndex = Asset.StarpakOffset & 0xFF;
 #if _DEBUG
-		printf("Load starpak: %s\n", this->LoadedFiles[Asset.RpakFileIndex].StarpakReferences[StarpakPatchIndex].ToCString());
+		g_Logger.Info("Load starpak: %s\n", this->LoadedFiles[Asset.RpakFileIndex].StarpakReferences[StarpakPatchIndex].ToCString());
 #endif
+		if (!IO::File::Exists(this->LoadedFiles[Asset.RpakFileIndex].StarpakReferences[StarpakPatchIndex]))
+			return nullptr;
 		return std::move(IO::File::OpenRead(this->LoadedFiles[Asset.RpakFileIndex].StarpakReferences[StarpakPatchIndex]));
 	}
 }
@@ -894,6 +899,13 @@ bool RpakLib::ParseTitanfallRpak(const string& RpakPath, std::unique_ptr<IO::Mem
 void RpakLib::MountStarpak(const string& Path, uint32_t FileIndex, uint32_t StarpakIndex, bool Optimal)
 {
 	auto& File = this->LoadedFiles[FileIndex];
+
+	if (!IO::File::Exists(Path))
+	{
+		g_Logger.Warning("Missing streaming file %s\n", Path.ToCString());
+		return;
+	}
+
 	auto Reader = IO::BinaryReader(IO::File::OpenRead(Path));
 	auto StarpakStream = Reader.GetBaseStream();
 

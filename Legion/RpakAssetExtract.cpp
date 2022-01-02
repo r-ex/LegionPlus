@@ -220,6 +220,12 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 {
 	auto BaseStream = Reader.GetBaseStream();
 
+	if (!BaseStream)
+	{
+		g_Logger.Warning("!!! - Failed to extract Model LOD for %s. BaseStream was NULL (you probably don't have the required starpak)\n", Name.ToCString());
+		return;
+	}
+
 	BaseStream->SetPosition(Offset);
 
 	RMdlVGHeader VGHeader{};
@@ -657,6 +663,7 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 
 	uint64_t Offset = 0;
 	std::unique_ptr<IO::FileStream> StarpakStream = nullptr;
+	bool bStreamed = false;
 
 	if (Asset.OptimalStarpakOffset != -1)
 	{
@@ -666,10 +673,24 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		if (this->LoadedFiles[Asset.FileIndex].OptimalStarpakMap.ContainsKey(Asset.OptimalStarpakOffset))
 		{
 			Offset += (this->LoadedFiles[Asset.FileIndex].OptimalStarpakMap[Asset.OptimalStarpakOffset] - BlockSize);
+			bStreamed = true;
 		}
 		else
 		{
-			return;
+			///
+			// Support for finding the next highest quality mip that has a valid data source (i.e. no missing starpak)
+			// This should be relatively easy
+			///
+			g_Logger.Warning("OptStarpak for asset 0x%llx is not loaded. Output may be incorrect/weird\n", Asset.NameHash);
+
+			///
+			// Use non-streamed data instead to make up for the missing starpak this data WILL NOT fit the intended higher quality image size
+			// so the resulting image will be totally messed up
+			//
+			// ???: why didnt this originally just check if it also had non-opt starpak offsets and use that for the image?
+			//      then at least the image would be higher quality than the highest permanent mip
+			///
+			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.DataSize - BlockSize);
 		}
 	}
 	else if (Asset.StarpakOffset != -1)
@@ -680,10 +701,12 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		if (this->LoadedFiles[Asset.FileIndex].StarpakMap.ContainsKey(Asset.StarpakOffset))
 		{
 			Offset += (this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset] - BlockSize);
+			bStreamed = true;
 		}
 		else
 		{
-			return;
+			g_Logger.Warning("Starpak for asset 0x%llx is not loaded. Output may be incorrect/weird\n", Asset.NameHash);
+			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.DataSize - BlockSize);
 		}
 	}
 	else if (Asset.RawDataIndex != -1 && Asset.RawDataIndex >= this->LoadedFiles[Asset.FileIndex].StartSegmentIndex)
@@ -692,11 +715,7 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		// All texture data is inline in rpak, we can calculate without anything else
 		//
 
-		uint64_t Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.DataSize - BlockSize);
-
-		RpakStream->SetPosition(Offset);
-		RpakStream->Read(Texture->GetPixels(), 0, BlockSize);
-		return;
+		Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.DataSize - BlockSize);
 	}
 	else
 	{
@@ -704,8 +723,16 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		return;
 	}
 
-	StarpakStream->SetPosition(Offset);
-	StarpakStream->Read(Texture->GetPixels(), 0, BlockSize);
+	if (bStreamed)
+	{
+		StarpakStream->SetPosition(Offset);
+		StarpakStream->Read(Texture->GetPixels(), 0, BlockSize);
+	}
+	else {
+		RpakStream->SetPosition(Offset);
+		RpakStream->Read(Texture->GetPixels(), 0, BlockSize);
+	}
+
 }
 
 void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Texture>& Texture)

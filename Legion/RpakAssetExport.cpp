@@ -235,6 +235,5 @@ void RpakLib::ExportSubtitles(const RpakLoadAsset& Asset, const string& Path)
 		break;
 	}
 
-
 	subt_out.close();
 }
