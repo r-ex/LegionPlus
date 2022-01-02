@@ -350,8 +350,12 @@ void MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 		binkawin = (uintptr_t)LoadLibraryA("binkawin64.dll");
 	}
 	if (!binkawin)
+	{
 		//throw new std::exception("Failed to load binkawin64.dll!");
+		g_Logger.Warning("!!! - Unable to export audio asset: Failed to load binkawin64.dll (make sure binkawin64.dll and mileswin64.dll are in the same folder as LegionPlus.exe)");
 		return;
+	}
+
 
 	// Dynamically get a table
 	static uintptr_t binka = 0;
@@ -466,7 +470,7 @@ void MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 
 	hdr.fmt.channels = channels;
 	hdr.fmt.sampleRate = sample_rate;
-	hdr.fmt.avgBytesPerSecond = DataSize / (samples_count / sample_rate);
+	hdr.fmt.avgBytesPerSecond = DataSize / ((float)samples_count / sample_rate);
 	hdr.fmt.blockAlign = DataSize/samples_count;
 	hdr.fmt.bitsPerSample = ((DataSize * 8) / samples_count)/channels;
 
