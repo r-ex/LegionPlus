@@ -265,12 +265,15 @@ void MilesLib::MountBank(const string& Path)
 	if (BankHeader.Version == 0xD)
 	{
 		// TF|2
-		List<MilesTitanfallSourceEntry> Sources(BankHeader.EventCount, true);
-		ReaderStream->Read((uint8_t*)&Sources[0], 0, sizeof(MilesTitanfallSourceEntry) * BankHeader.EventCount);
+		ReaderStream->SetPosition(*(uint64_t*)(uintptr_t(&BankHeader) + 0x48));
+		const auto SourcesCount = *(uint32_t*)(uintptr_t(&BankHeader) + 0xA0);
+		const auto NameTableOffset = *(uint64_t*)(uintptr_t(&BankHeader) + 0x70);
+		List<MilesTitanfallSourceEntry> Sources(SourcesCount, true);
+		ReaderStream->Read((uint8_t*)&Sources[0], 0, sizeof(MilesTitanfallSourceEntry) * SourcesCount);
 
 		for (auto& Entry : Sources)
 		{
-			ReaderStream->SetPosition(BankHeader.NameTableOffset + Entry.NameOffset);
+			ReaderStream->SetPosition(NameTableOffset + Entry.NameOffset);
 
 			auto Name = Reader.ReadCString();
 			
