@@ -182,8 +182,11 @@ void LegionMain::LoadApexFile(const List<string>& File)
 
 			try
 			{
-				ThisPtr->RpakFileSystem->InitializeImageExporter((RpakImageExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat"));
-				ThisPtr->RpakFileSystem->InitializeModelExporter((RpakModelExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"));
+				if (ThisPtr->RpakFileSystem != nullptr)
+				{
+					ThisPtr->RpakFileSystem->InitializeImageExporter((RpakImageExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat"));
+					ThisPtr->RpakFileSystem->InitializeModelExporter((RpakModelExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"));
+				}
 				BspLibrary->InitializeModelExporter((RpakModelExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"));
 				BspLibrary->ExportBsp(ThisPtr->RpakFileSystem, ThisPtr->LoadPath[0], ExportManager::GetMapExportPath());
 
@@ -191,12 +194,13 @@ void LegionMain::LoadApexFile(const List<string>& File)
 				{
 					Forms::MessageBox::Show("Successfully exported the bsp map file.", "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Information);
 				});
+				ThisPtr->StatusLabel->SetText("Idle");
 			}
 			catch (...)
 			{
 				ThisPtr->Invoke([]()
 				{
-					Forms::MessageBox::Show("An error occured while exporting the bsp file.", "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
+					Forms::MessageBox::Show("An error occurred while exporting the bsp file.", "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
 				});
 			}
 
@@ -546,15 +550,7 @@ void LegionMain::OnLoadClick(Forms::Control* Sender)
 {
 	auto ThisPtr = (LegionMain*)Sender->FindForm();
 
-	List<string> OpenFileD;
-	if (ThisPtr->RpakFileSystem != nullptr)
-	{
-		OpenFileD =  OpenFileDialog::ShowMultiFileDialog("Legion+: Select file(s) to load", "", "Apex Legends Files (MBnk, RPak, Bsp)|*.mbnk;*.rpak;*.bsp", Sender->FindForm());
-	}
-	else
-	{
-		OpenFileD = OpenFileDialog::ShowMultiFileDialog("Legion+: Select file(s) to load", "", "Apex Legends Files (MBnk, RPak)|*.mbnk;*.rpak;", Sender->FindForm());
-	}
+	List<string> OpenFileD = OpenFileDialog::ShowMultiFileDialog("Legion+: Select file(s) to load", "", "Apex Legends Files (MBnk, RPak, Bsp)|*.mbnk;*.rpak;*.bsp", Sender->FindForm());
 
 	g_Logger.Info("OpenFileD.Count() == %i\n", OpenFileD.Count());
 
@@ -565,9 +561,10 @@ void LegionMain::OnLoadClick(Forms::Control* Sender)
 
 	if (OpenFileD.Count() == 0)
 		return;
-	else if (OpenFileD.Count() > MAX_LOADED_RPAKS)
+	else if (OpenFileD.Count() > MAX_LOADED_FILES)
 	{
-		MessageBox::Show("Please select 4 or less files, Legion+ will run out of memory processing all of the files at once.", "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
+		string msg = string::Format("Please select %i or fewer files.", MAX_LOADED_FILES);
+		MessageBox::Show(msg, "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
 		return;
 	}
 

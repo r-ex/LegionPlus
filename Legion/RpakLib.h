@@ -15,7 +15,7 @@
 #include "Texture.h"
 #include "Exporter.h"
 
-#define MAX_LOADED_RPAKS 4096
+#define MAX_LOADED_FILES 4096
 
 #pragma pack(push, 1)
 struct RpakBaseHeader
@@ -386,7 +386,7 @@ public:
 	RMdlMaterial ExtractMaterial(const RpakLoadAsset& Asset, const string& Path, bool IncludeImages, bool IncludeImageNames);
 
 private:
-	std::array<RpakFile, MAX_LOADED_RPAKS> LoadedFiles;
+	std::array<RpakFile, MAX_LOADED_FILES> LoadedFiles;
 	uint32_t LoadedFileIndex;
 
 	List<string> LoadFileQueue;

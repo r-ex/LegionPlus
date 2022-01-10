@@ -263,12 +263,14 @@ void RBspLib::ExportBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, const st
 	if (Header.Magic != 0x50534272)
 		return;
 
-	if (Header.Version == 0x25)
+	switch (Header.Version)
 	{
+	case 0x25:
 		ExportTitanfall2Bsp(RpakFileSystem, Stream, Header, Asset, Path);
-	}
-	else {
+		break;
+	default:
 		ExportApexBsp(RpakFileSystem, Stream, Header, Asset, Path);
+		break;
 	}
 }
 
@@ -334,12 +336,18 @@ void RBspLib::ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std:
 	auto VertexUnlitTS = List<RBspVertexUnlitTS>(Lumps[VERTEX_UNLIT_TS].DataSize / sizeof(RBspVertexUnlitTS), true);
 	READ_LUMP(VertexUnlitTS, VERTEX_UNLIT_TS);
 
-	auto RpakMaterials = RpakFileSystem->BuildAssetList(false, false, false, true, false, false);
+	std::unique_ptr<List<ApexAsset>> RpakMaterials;
 	Dictionary<string, RpakLoadAsset> RpakMaterialLookup;
 
-	for (auto& Mat : *RpakMaterials)
+	// make sure that RpakFileSystem actually exists (i.e. an rpak is loaded)
+	if (RpakFileSystem)
 	{
-		RpakMaterialLookup.Add(Mat.Name, RpakFileSystem->Assets[Mat.Hash]);
+		RpakMaterials = RpakFileSystem->BuildAssetList(false, false, false, true, false, false);
+
+		for (auto& Mat : *RpakMaterials)
+		{
+			RpakMaterialLookup.Add(Mat.Name, RpakFileSystem->Assets[Mat.Hash]);
+		}
 	}
 
 	for (auto& BspModel : Models)
@@ -481,6 +489,9 @@ void RBspLib::ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std:
 	auto ExportedModelsPath = IO::Path::Combine(ModelPath, "_models");
 	auto ExportedModelAnimsPath = IO::Path::Combine(ExportedModelsPath, "_animations");
 
+	if (!RpakFileSystem)
+		return;
+
 	auto RpakModels = RpakFileSystem->BuildAssetList(true, false, false, false, false, false);
 	Dictionary<string, RpakLoadAsset> RpakModelLookup;
 
@@ -575,12 +586,18 @@ void RBspLib::ExportTitanfall2Bsp(const std::unique_ptr<RpakLib>& RpakFileSystem
 	auto VertexUnlitTS = List<TFRBspVertexUnlitTS>(Lumps[VERTEX_UNLIT_TS].DataSize / sizeof(TFRBspVertexUnlitTS), true);
 	READ_LUMP(VertexUnlitTS, VERTEX_UNLIT_TS);
 
-	auto RpakMaterials = RpakFileSystem->BuildAssetList(false, false, false, true, false, false);
+	std::unique_ptr<List<ApexAsset>> RpakMaterials;
 	Dictionary<string, RpakLoadAsset> RpakMaterialLookup;
 
-	for (auto& Mat : *RpakMaterials)
+	// make sure that RpakFileSystem actually exists (i.e. an rpak is loaded)
+	if (RpakFileSystem)
 	{
-		RpakMaterialLookup.Add(Mat.Name, RpakFileSystem->Assets[Mat.Hash]);
+		RpakMaterials = RpakFileSystem->BuildAssetList(false, false, false, true, false, false);
+
+		for (auto& Mat : *RpakMaterials)
+		{
+			RpakMaterialLookup.Add(Mat.Name, RpakFileSystem->Assets[Mat.Hash]);
+		}
 	}
 
 	for (auto& BspModel : Models)
@@ -718,6 +735,9 @@ void RBspLib::ExportTitanfall2Bsp(const std::unique_ptr<RpakLib>& RpakFileSystem
 	this->ExportPropContainer(Stream2, Model->Name + "_LOD0", ModelPath);
 
 	// Export all of the bsp's prop models
+
+	if (!RpakFileSystem)
+		return;
 
 	auto ExportedModelsPath = IO::Path::Combine(ModelPath, "_models");
 	auto ExportedModelAnimsPath = IO::Path::Combine(ExportedModelsPath, "_animations");
