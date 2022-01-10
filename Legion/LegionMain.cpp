@@ -128,6 +128,7 @@ void LegionMain::InitializeComponent()
 	this->AssetsListView->SetFullRowSelect(true);
 	this->AssetsListView->VirtualItemsSelectionRangeChanged += &OnSelectedIndicesChanged;
 	this->AssetsListView->DoubleClick += &OnListDoubleClick;
+	this->AssetsListView->MouseClick += &OnListRightClick;
 	this->AssetsListView->KeyUp += &OnListKeyUp;
 	this->AssetsListView->KeyPress += &OnListKeyPressed;
 	this->AddControl(this->AssetsListView);
@@ -487,8 +488,6 @@ void LegionMain::DoPreviewSwap()
 	}
 	break;
 	}
-
-
 }
 
 std::unique_ptr<Assets::Texture> LegionMain::MaterialStreamCallback(string Source, uint64_t Hash)
@@ -608,6 +607,56 @@ void LegionMain::OnRefreshClick(Forms::Control* Sender)
 	auto ThisPtr = (LegionMain*)Sender->FindForm();
 
 	ThisPtr->RefreshView();
+}
+
+void CopyStringToClipboard(std::string s, HWND hWnd)
+{
+	HANDLE hData = GlobalAlloc(GMEM_FIXED, s.length()+1);
+	memcpy_s(hData, s.length() + 1, s.c_str(), s.length() + 1);
+	GlobalLock(hData);
+
+	OpenClipboard(hWnd);
+	EmptyClipboard();
+	SetClipboardData(CF_TEXT, hData);
+	CloseClipboard();
+
+	GlobalUnlock(hData);
+	GlobalFree(hData);
+}
+
+void LegionMain::OnListRightClick(const std::unique_ptr<MouseEventArgs>& EventArgs, Forms::Control* Sender)
+{
+	if (EventArgs->Button != Forms::MouseButtons::Right)
+		return;
+
+	// CopyStringToClipboard causes a heap corruption
+
+	auto ThisPtr = ((LegionMain*)Sender->FindForm());
+	auto AssetsListView = ThisPtr->AssetsListView;
+
+	auto SelectedIndices = AssetsListView->SelectedIndices();
+	std::string yes = "";
+
+	g_Logger.Info("selected asset names:\n");
+	for (uint32_t i = 0; i < SelectedIndices.Count(); i++)
+	{
+		auto& DisplayIndex = ThisPtr->DisplayIndices[SelectedIndices[i]];
+		auto& Asset = (*ThisPtr->LoadedAssets.get())[DisplayIndex];
+
+		printf(Asset.Name + "\n");
+
+		//if (i != SelectedIndices.Count() - 1)
+		//	yes += Asset.Name + "\n";
+		//else
+		//	yes += Asset.Name;
+	}
+
+
+	return;
+
+	CopyStringToClipboard(yes, Sender->GetHandle());
+
+	g_Logger.Info("copying %i asset name%s to clipboard\n", SelectedIndices.Count(), SelectedIndices.Count() == 1 ? "" : "s");
 }
 
 void LegionMain::OnListDoubleClick(Forms::Control* Sender)
