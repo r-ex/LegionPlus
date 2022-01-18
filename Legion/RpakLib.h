@@ -137,20 +137,20 @@ struct RpakApexAssetEntry
 	uint32_t RawDataBlockIndex;
 	uint32_t RawDataBlockOffset;
 
-	uint64_t StarpakOffset;				
-	uint64_t OptimalStarpakOffset;		
+	uint64_t StarpakOffset;
+	uint64_t OptimalStarpakOffset;
 
 	uint16_t Un1;
 	uint16_t Un2;
 
-	uint32_t DataSpliceIndex;		
+	uint32_t RelationsStartIndex;
 
-	uint32_t Un4;
-	uint32_t Un5;
-	uint32_t Un6;
+	uint32_t UsesStartIndex;
+	uint32_t RelationsCount;
+	uint32_t UsesCount;
 
 	uint32_t SubHeaderSize;
-	uint32_t Flags;
+	uint32_t Version;
 	uint32_t Magic;
 };
 
