@@ -18,7 +18,7 @@ void RpakLib::BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	{
 		auto ModHeaderTmp = Reader.Read<ModelHeaderS80>();
 		std::memcpy(&ModHeader, &ModHeaderTmp, offsetof(ModelHeaderS80, DataFlags));
-		std::memcpy(&ModHeader.AnimSequenceIndex, &ModHeader.AnimSequenceIndex, sizeof(uint32_t) * 3);
+		std::memcpy(&ModHeader.AnimSequenceCount, &ModHeaderTmp.AnimSequenceCount, sizeof(uint32_t) * 3);
 	}
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.NameIndex, ModHeader.NameOffset));
