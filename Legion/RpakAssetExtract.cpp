@@ -242,6 +242,7 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 		VGHeader.StreamFlags = 0x10;
 	}
 
+	uint32_t MainStreamFlags = VGHeader.StreamFlags;
 	switch (VGHeader.StreamFlags)
 	{
 	case 0x10:	// submeshes follow direct
@@ -249,6 +250,7 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 	case 0x60:	// vg header
 	case 0x80:	// vg header
 	case 0x90:	// vg header
+	case 0xa0:
 	case 0xb0:	// vg header
 	case 0xc0:	// vg header
 	{
@@ -264,6 +266,11 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 		}
 		BaseStream->SetPosition(Offset + 0x10 * skip + sizeof(RMdlVGHeader));
 		VGHeader = Reader.Read<RMdlVGHeader>();
+
+		if (MainStreamFlags == 0xa0) // idk
+		{
+			BaseStream->SetPosition(BaseStream->GetPosition() + 0x10);
+		}
 	}
 	break;
 	case 0x40:	// skip 0x10 * lodcount
