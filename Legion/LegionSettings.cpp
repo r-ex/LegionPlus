@@ -112,7 +112,7 @@ void LegionSettings::InitializeComponent()
 	//	Load Settings
 	//
 	this->LoadModels = new UIX::UIXCheckBox();
-	this->LoadModels->SetSize({ 100, 18 });
+	this->LoadModels->SetSize({ 105, 18 });
 	this->LoadModels->SetLocation({ 15, 32 });
 	this->LoadModels->SetTabIndex(0);
 	this->LoadModels->SetText("Load Models");
@@ -120,7 +120,7 @@ void LegionSettings::InitializeComponent()
 	this->groupBox3->AddControl(this->LoadModels);
 
 	this->LoadImages = new UIX::UIXCheckBox();
-	this->LoadImages->SetSize({ 100, 18 });
+	this->LoadImages->SetSize({ 105, 18 });
 	this->LoadImages->SetLocation({ 130, 32 });
 	this->LoadImages->SetTabIndex(2);
 	this->LoadImages->SetText("Load Images");
@@ -128,7 +128,7 @@ void LegionSettings::InitializeComponent()
 	this->groupBox3->AddControl(this->LoadImages);
 
 	this->LoadAnimations = new UIX::UIXCheckBox();
-	this->LoadAnimations->SetSize({ 100, 18 });
+	this->LoadAnimations->SetSize({ 105, 18 });
 	this->LoadAnimations->SetLocation({ 15, 55 });
 	this->LoadAnimations->SetTabIndex(1);
 	this->LoadAnimations->SetText("Load Animations");
@@ -136,7 +136,7 @@ void LegionSettings::InitializeComponent()
 	this->groupBox3->AddControl(this->LoadAnimations);
 
 	this->LoadMaterials = new UIX::UIXCheckBox();
-	this->LoadMaterials->SetSize({ 100, 18 });
+	this->LoadMaterials->SetSize({ 105, 18 });
 	this->LoadMaterials->SetLocation({ 130, 55 });
 	this->LoadMaterials->SetTabIndex(3);
 	this->LoadMaterials->SetText("Load Materials");
@@ -144,7 +144,7 @@ void LegionSettings::InitializeComponent()
 	this->groupBox3->AddControl(this->LoadMaterials);
 
 	this->LoadUIImages = new UIX::UIXCheckBox();
-	this->LoadUIImages->SetSize({ 100, 18 });
+	this->LoadUIImages->SetSize({ 105, 18 });
 	this->LoadUIImages->SetLocation({ 15, 78 });
 	this->LoadUIImages->SetTabIndex(2);
 	this->LoadUIImages->SetText("Load UI Images");
@@ -152,7 +152,7 @@ void LegionSettings::InitializeComponent()
 	this->groupBox3->AddControl(this->LoadUIImages);
 
 	this->LoadDataTables = new UIX::UIXCheckBox();
-	this->LoadDataTables->SetSize({ 100, 18 });
+	this->LoadDataTables->SetSize({ 105, 18 });
 	this->LoadDataTables->SetLocation({ 130, 78 });
 	this->LoadDataTables->SetTabIndex(2);
 	this->LoadDataTables->SetText("Load DataTables");
