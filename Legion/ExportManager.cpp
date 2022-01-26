@@ -5,6 +5,7 @@
 #include "Directory.h"
 #include "File.h"
 #include "Environment.h"
+#include "LegionMain.h"
 
 System::Settings ExportManager::Config = System::Settings();
 string ExportManager::ApplicationPath = "";
@@ -113,7 +114,13 @@ void ExportManager::ExportMilesAssets(const std::unique_ptr<MilesLib>& MilesFile
 			auto& Asset = ExportAssets[AssetToConvert];
 			auto& AudioAsset = MilesFileSystem->Assets[Asset.AssetHash];
 
-			MilesFileSystem->ExtractAsset(AudioAsset, IO::Path::Combine(IO::Path::Combine(ExportDirectory, "sounds"), AudioAsset.Name + ".wav"));
+			bool bSuccess = MilesFileSystem->ExtractAsset(AudioAsset, IO::Path::Combine(IO::Path::Combine(ExportDirectory, "sounds"), AudioAsset.Name + ".wav"));
+
+			if (!bSuccess)
+			{
+				((LegionMain*)MainForm)->SetAssetError(Asset.AssetIndex);
+				continue;
+			}
 
 			IsCancel = StatusCallback(Asset.AssetIndex, MainForm);
 

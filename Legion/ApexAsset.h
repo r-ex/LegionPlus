@@ -18,6 +18,7 @@ enum class ApexAssetStatus
 	Loaded,
 	Exporting,
 	Exported,
+	Error,
 };
 
 struct ApexAsset

@@ -335,11 +335,11 @@ void MilesLib::MountBank(const string& Path)
 	}
 }
 
-void MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath)
+bool MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath)
 {
 	uint32_t KeyIndex = ((uint32_t)Asset.LocalizeIndex << 16) + Asset.PatchIndex;
 	if (!StreamBanks.ContainsKey(KeyIndex))
-		return;
+		return false;
 	
 	const auto& Bank = StreamBanks[KeyIndex];
 	auto Reader = IO::BinaryReader(IO::File::OpenRead(Bank.Path));
@@ -353,7 +353,7 @@ void MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 	{
 		//throw new std::exception("Failed to load binkawin64.dll!");
 		g_Logger.Warning("!!! - Unable to export audio asset: Failed to load binkawin64.dll (make sure binkawin64.dll and mileswin64.dll are in the same folder as LegionPlus.exe)\n");
-		return;
+		return false;
 	}
 
 
@@ -363,7 +363,7 @@ void MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 		const auto proc = uintptr_t(GetProcAddress(HMODULE(binkawin), "MilesDriverRegisterBinkAudio")) + 3;
 
 		if (proc == 3)
-			return;
+			return false;
 
 		const auto offset = *(uint32_t*)proc;
 		binka = proc + 4 + offset;
@@ -378,7 +378,7 @@ void MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 			FreeLibrary(HMODULE(binkawin));
 			g_Logger.Warning("Unsupported binkawin64.dll version.\n");
 			//throw new std::exception("Unsupported version with bigger table!");
-			return;
+			return false;
 		}
 		const auto dosHeader = PIMAGE_DOS_HEADER(binkawin);
 		const auto imageNTHeaders = PIMAGE_NT_HEADERS(binkawin + dosHeader->e_lfanew);
@@ -484,6 +484,7 @@ void MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 	Writer->Seek(0, IO::SeekOrigin::Begin);
 
 	Writer->Write((uint8_t*)&hdr, 0, sizeof(WAVEHEADER));
+	return true;
 }
 
 std::unique_ptr<List<ApexAsset>> MilesLib::BuildAssetList()

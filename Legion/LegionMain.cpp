@@ -449,6 +449,11 @@ bool LegionMain::CheckStatus(int32_t AssetIndex)
 	return (this->ProgressWindow != nullptr) ? this->ProgressWindow->IsCanceled() : false;
 }
 
+void LegionMain::SetAssetError(int32_t AssetIndex)
+{
+	(*this->LoadedAssets)[this->DisplayIndices[AssetIndex]].Status = ApexAssetStatus::Error;
+}
+
 void LegionMain::DoPreviewSwap()
 {
 	if (!this->RpakFileSystem || !this->PreviewWindow || this->PreviewWindow->GetHandle() == nullptr)
@@ -734,12 +739,13 @@ void LegionMain::GetVirtualItem(const std::unique_ptr<Forms::RetrieveVirtualItem
 		Drawing::Color(239, 130, 13),// Subtitles
 	};
 
-	static const char* AssetStatus[] = { "Loaded", "Exporting", "Exported" };
+	static const char* AssetStatus[] = { "Loaded", "Exporting", "Exported", "Error" };
 	static const Drawing::Color AssetStatusColors[] = 
 	{
-		Drawing::Color(35, 206, 107),
+		Drawing::Color(35,  206, 107),
 		Drawing::Color(144, 122, 214),
-		Drawing::Color(33, 184, 235)
+		Drawing::Color(33,  184, 235),
+		Drawing::Color(255, 102, 102),
 	};
 
 	auto AssetList = ThisPtr->LoadedAssets.get();

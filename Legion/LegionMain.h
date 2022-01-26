@@ -28,6 +28,8 @@ public:
 	void ResetDisplayIndices();
 	// Internal routine to load a file
 	void LoadApexFile(const List<string>& File);
+
+	void SetAssetError(int32_t AssetIndex);
 protected:
 	static void OnLoadClick(Forms::Control* Sender);
 	static void OnSettingsClick(Forms::Control* Sender);

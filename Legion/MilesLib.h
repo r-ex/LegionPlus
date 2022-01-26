@@ -70,7 +70,7 @@ public:
 	// Mounts a Miles Mbnk file
 	void MountBank(const string& Path);
 	// Extracts a Miles audio file
-	void ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath);
+	bool ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath);
 
 	// Builds the viewer list of assets
 	std::unique_ptr<List<ApexAsset>> BuildAssetList();
