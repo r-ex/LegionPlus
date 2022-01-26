@@ -81,6 +81,11 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				bool bLoadMaterials = cmdline.HasParam(L"--loadmaterials");
 				bool bLoadUIImages = cmdline.HasParam(L"--loaduiimages");
 				bool bLoadDataTables = cmdline.HasParam(L"--loaddatatables");
+				
+				if (cmdline.HasParam(L"--overwrite"))
+					ExportManager::Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", true);
+				else
+					ExportManager::Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", false);
 
 				std::unique_ptr<List<ApexAsset>> AssetList;
 

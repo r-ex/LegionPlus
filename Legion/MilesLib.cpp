@@ -352,7 +352,7 @@ void MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 	if (!binkawin)
 	{
 		//throw new std::exception("Failed to load binkawin64.dll!");
-		g_Logger.Warning("!!! - Unable to export audio asset: Failed to load binkawin64.dll (make sure binkawin64.dll and mileswin64.dll are in the same folder as LegionPlus.exe)");
+		g_Logger.Warning("!!! - Unable to export audio asset: Failed to load binkawin64.dll (make sure binkawin64.dll and mileswin64.dll are in the same folder as LegionPlus.exe)\n");
 		return;
 	}
 
@@ -361,6 +361,10 @@ void MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 	static uintptr_t binka = 0;
 	if (!binka) {
 		const auto proc = uintptr_t(GetProcAddress(HMODULE(binkawin), "MilesDriverRegisterBinkAudio")) + 3;
+
+		if (proc == 3)
+			return;
+
 		const auto offset = *(uint32_t*)proc;
 		binka = proc + 4 + offset;
 	}
@@ -372,6 +376,7 @@ void MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 		if ((*(uintptr_t*)(binka + 7 * 8) != 0) && (*(uintptr_t*)(binka + 7 * 8) != 0x0A09080605040302)) {
 			binka = 0;
 			FreeLibrary(HMODULE(binkawin));
+			g_Logger.Warning("Unsupported binkawin64.dll version.\n");
 			//throw new std::exception("Unsupported version with bigger table!");
 			return;
 		}

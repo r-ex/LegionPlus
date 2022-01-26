@@ -21,7 +21,7 @@ void ExportManager::InitializeExporter()
 		Config.Load(ConfigPath);
 	}
 
-	if (!Config.Has<System::SettingType::String>("ExportDirectory"))
+	if (!Config.Has("ExportDirectory"))
 	{
 		ExportPath = IO::Path::Combine(ApplicationPath, "exported_files");
 	}
@@ -40,26 +40,26 @@ void ExportManager::InitializeExporter()
 		}
 	}
 
-	if (!Config.Has<System::SettingType::Integer>("ModelFormat"))
+	if (!Config.Has("ModelFormat"))
 		Config.Set<System::SettingType::Integer>("ModelFormat", (uint32_t)RpakModelExportFormat::Cast);
-	if (!Config.Has<System::SettingType::Integer>("AnimFormat"))
+	if (!Config.Has("AnimFormat"))
 		Config.Set<System::SettingType::Integer>("AnimFormat", (uint32_t)RpakAnimExportFormat::Cast);
-	if (!Config.Has<System::SettingType::Integer>("ImageFormat"))
+	if (!Config.Has("ImageFormat"))
 		Config.Set<System::SettingType::Integer>("ImageFormat", (uint32_t)RpakImageExportFormat::Dds);
 
-	if (!Config.Has<System::SettingType::Boolean>("LoadModels"))
+	if (!Config.Has("LoadModels"))
 		Config.Set<System::SettingType::Boolean>("LoadModels", true);
-	if (!Config.Has<System::SettingType::Boolean>("LoadAnimations"))
+	if (!Config.Has("LoadAnimations"))
 		Config.Set<System::SettingType::Boolean>("LoadAnimations", true);
-	if (!Config.Has<System::SettingType::Boolean>("LoadImages"))
+	if (!Config.Has("LoadImages"))
 		Config.Set<System::SettingType::Boolean>("LoadImages", true);
-	if (!Config.Has<System::SettingType::Boolean>("LoadMaterials"))
+	if (!Config.Has("LoadMaterials"))
 		Config.Set<System::SettingType::Boolean>("LoadMaterials", true);
-	if (!Config.Has<System::SettingType::Boolean>("LoadUIImages"))
+	if (!Config.Has("LoadUIImages"))
 		Config.Set<System::SettingType::Boolean>("LoadUIImages", true);
-	if (!Config.Has<System::SettingType::Boolean>("LoadDataTables"))
+	if (!Config.Has("LoadDataTables"))
 		Config.Set<System::SettingType::Boolean>("LoadDataTables", true);
-	if (!Config.Has<System::SettingType::Boolean>("OverwriteExistingFiles"))
+	if (!Config.Has("OverwriteExistingFiles"))
 		Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", false);
 		
 	Config.Save(ConfigPath);
