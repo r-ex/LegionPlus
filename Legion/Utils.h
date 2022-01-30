@@ -2,6 +2,7 @@
 namespace Utils
 {
 	bool ShouldWriteFile(string Path);
-	string GetISOTimestamp();
+	string GetTimestamp();
+	string GetDate();
 };
 

@@ -1348,7 +1348,7 @@ List<List<DataTableColumnData>> RpakLib::ExtractDataTable(const RpakLoadAsset& A
 
 	for (int i = 0; i < DtblHeader.ColumnCount; ++i)
 	{
-		DataTableColumn col;
+		DataTableColumn col{};
 
 		uint32_t id = Reader.Read<uint32_t>();
 		uint32_t offset = Reader.Read<uint32_t>();

@@ -220,6 +220,9 @@ public:
 	// Formats a string based on the provided input
 	static constexpr StringBase<Tchar> Format(const Tchar* Format, ...);
 
+	static constexpr StringBase<Tchar> Format(const Tchar* Format, va_list vArgs);
+
+
 private:
 	Tchar* _Buffer;
 	uint32_t _BufferSize;
@@ -1575,6 +1578,22 @@ inline constexpr StringBase<Tchar> StringBase<Tchar>::Format(const Tchar* Format
 		_vsnwprintf(Result._Buffer, BufferSize + 1, (const wchar_t*)Format, vArgs);
 
 	va_end(vArgs);
+
+	return std::move(Result);
+}
+
+// this is for a specific use case. make sure that va_start and va_end are called externally when using this
+template<class Tchar>
+inline constexpr StringBase<Tchar> StringBase<Tchar>::Format(const Tchar* Format, va_list vArgs)
+{
+#pragma warning(suppress: 4996)
+	auto BufferSize = (sizeof(Tchar) == sizeof(char)) ? vsnprintf(nullptr, 0, Format, vArgs) : _vsnwprintf(nullptr, 0, (const wchar_t*)Format, vArgs);
+	auto Result = StringBase<Tchar>((uint32_t)BufferSize);
+
+	if constexpr (sizeof(Tchar) == sizeof(char))
+		vsnprintf(Result._Buffer, BufferSize + 1, Format, vArgs);
+	else if constexpr (sizeof(Tchar) == sizeof(wchar_t))
+		_vsnwprintf(Result._Buffer, BufferSize + 1, (const wchar_t*)Format, vArgs);
 
 	return std::move(Result);
 }
