@@ -86,6 +86,7 @@ void LegionProgress::InitializeComponent()
 	// END DESIGNER CODE
 
 	this->SetBackColor({ 30, 32, 55 });
+	//this->SetBackColor({ 32, 32, 22 });
 }
 
 void LegionProgress::OnFinishClick(Forms::Control* Sender)
