@@ -26,7 +26,7 @@ void LegionMain::InitializeComponent()
 
 	this->TitanfallConverterButton = new UIX::UIXButton();
 	this->TitanfallConverterButton->SetSize({ 78, 27 });
-	this->TitanfallConverterButton->SetLocation({ 290, 442 });
+	this->TitanfallConverterButton->SetLocation({ 290, 446);
 	this->TitanfallConverterButton->SetTabIndex(9);
 	this->TitanfallConverterButton->SetText("Titanfall 2");
 	this->TitanfallConverterButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
@@ -35,7 +35,7 @@ void LegionMain::InitializeComponent()
 
 	this->RefreshAssetsButton = new UIX::UIXButton();
 	this->RefreshAssetsButton->SetSize({ 78, 27 });
-	this->RefreshAssetsButton->SetLocation({ 374, 442 });
+	this->RefreshAssetsButton->SetLocation({ 374, 446 });
 	this->RefreshAssetsButton->SetTabIndex(9);
 	this->RefreshAssetsButton->SetText("Refresh");
 	this->RefreshAssetsButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
@@ -80,7 +80,7 @@ void LegionMain::InitializeComponent()
 
 	this->ExportAllButton = new UIX::UIXButton();
 	this->ExportAllButton->SetSize({ 78, 27 });
-	this->ExportAllButton->SetLocation({ 206, 442 });
+	this->ExportAllButton->SetLocation({ 206, 446});
 	this->ExportAllButton->SetTabIndex(4);
 	this->ExportAllButton->SetText("Export All");
 	this->ExportAllButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
@@ -89,7 +89,7 @@ void LegionMain::InitializeComponent()
 
 	this->ExportSelectedButton = new UIX::UIXButton();
 	this->ExportSelectedButton->SetSize({ 97, 27 });
-	this->ExportSelectedButton->SetLocation({ 103, 442 });
+	this->ExportSelectedButton->SetLocation({ 103, 446});
 	this->ExportSelectedButton->SetTabIndex(3);
 	this->ExportSelectedButton->SetText("Export Selected");
 	this->ExportSelectedButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
@@ -98,7 +98,7 @@ void LegionMain::InitializeComponent()
 
 	this->LoadRPakButton = new UIX::UIXButton();
 	this->LoadRPakButton->SetSize({ 85, 27 });
-	this->LoadRPakButton->SetLocation({ 12, 442 });
+	this->LoadRPakButton->SetLocation({ 12, 446});
 	this->LoadRPakButton->SetTabIndex(2);
 	this->LoadRPakButton->SetText("Load File");
 	this->LoadRPakButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
@@ -107,7 +107,7 @@ void LegionMain::InitializeComponent()
 
 	this->SettingsButton = new UIX::UIXButton();
 	this->SettingsButton->SetSize({ 80, 27 });
-	this->SettingsButton->SetLocation({ 683, 442 });
+	this->SettingsButton->SetLocation({ 683, 446});
 	this->SettingsButton->SetTabIndex(1);
 	this->SettingsButton->SetText("Settings");
 	this->SettingsButton->Click += &OnSettingsClick;
@@ -139,6 +139,7 @@ void LegionMain::InitializeComponent()
 
 	this->AssetsListView->RetrieveVirtualItem += &GetVirtualItem;
 	this->SetBackColor({ 30, 32, 55 });
+	//this->SetBackColor({ 33, 33, 33 });
 }
 
 void LegionMain::LoadApexFile(const List<string>& File)
