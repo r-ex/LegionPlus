@@ -7,33 +7,52 @@
 namespace Themes
 {
 	// Constants for brushes
-	// This is temp, might change again later
-	const static auto BorderBrush = Drawing::Color(234, 191, 234);
-	const static auto DisabledBorderBrush = Drawing::Color(160, 160, 160);
+	const static auto BorderBrush = Drawing::Color(219, 56, 80);
+	const static auto DisabledBorderBrush = Drawing::Color(30, 32, 55);
 
 
-	const static auto BackgroundBrush = Drawing::Color(33, 33, 33);
-	const static auto BackgroundLightBrush = Drawing::Color(39, 39, 39);
+	const static auto BackgroundBrush = Drawing::Color(30, 32, 55);
+	const static auto BackgroundLightBrush = Drawing::Color(31, 37, 62);
 
 
-	const static auto BackgroundGrad1 = Drawing::Color(45, 45, 45);
-	const static auto BackgroundGrad2 = Drawing::Color(36, 36, 36);
+	const static auto BackgroundGrad1 = Drawing::Color(30, 32, 55);
+	const static auto BackgroundGrad2 = Drawing::Color(30, 32, 55);
 
 
-	const static auto BackgroundOverGrad1 = Drawing::Color(49, 49, 49);
-	const static auto BackgroundOverGrad2 = Drawing::Color(40, 40, 40);
+	const static auto BackgroundOverGrad1 = Drawing::Color(30, 32, 55);
+	const static auto BackgroundOverGrad2 = Drawing::Color(30, 32, 55);
 
 
 	const static auto TextEnabledBrush = Drawing::Color(Drawing::Color::White);
 	const static auto TextDisabledBrush = Drawing::Color(Drawing::Color::Gray);
 
 
-	const static auto ProgressGrad1 = Drawing::Color(243, 140, 255);
-	const static auto ProgressGrad2 = Drawing::Color(243, 140, 255);
+	const static auto ProgressGrad1 = Drawing::Color(219, 56, 80);
+	const static auto ProgressGrad2 = Drawing::Color(219, 56, 80);
 
+	const static auto HeaderBrush = Drawing::Color(46, 53, 84);
 
-	const static auto HeaderBrush = Drawing::Color(54, 54, 54);
+	// New Theme, saving for anyone else who wants to help.
+	/*const static auto BorderBrush = Drawing::Color(241, 225, 73);
+	const static auto DisabledBorderBrush = Drawing::Color(160, 160, 160);
 
+	const static auto BackgroundBrush = Drawing::Color(33, 33, 33);
+	const static auto BackgroundLightBrush = Drawing::Color(39, 39, 39);
+
+	const static auto BackgroundGrad1 = Drawing::Color(45, 45, 45);
+	const static auto BackgroundGrad2 = Drawing::Color(36, 36, 36);
+
+	const static auto BackgroundOverGrad1 = Drawing::Color(49, 49, 49);
+	const static auto BackgroundOverGrad2 = Drawing::Color(40, 40, 40);
+
+	const static auto TextEnabledBrush = Drawing::Color(Drawing::Color::White);
+	const static auto TextDisabledBrush = Drawing::Color(Drawing::Color::Gray);
+
+	const static auto ProgressGrad1 = Drawing::Color(255, 137, 246);
+	const static auto ProgressGrad2 = Drawing::Color(214, 112, 205);
+
+	const static auto HeaderBrush = Drawing::Color(54, 54, 54);*/
+	
 	// Constants for images
 	static Drawing::Image* CheckBoxImage = nullptr;
 
