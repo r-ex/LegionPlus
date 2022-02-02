@@ -26,7 +26,7 @@ void LegionMain::InitializeComponent()
 
 	this->TitanfallConverterButton = new UIX::UIXButton();
 	this->TitanfallConverterButton->SetSize({ 78, 27 });
-	this->TitanfallConverterButton->SetLocation({ 290, 446);
+	this->TitanfallConverterButton->SetLocation({ 290, 446 });
 	this->TitanfallConverterButton->SetTabIndex(9);
 	this->TitanfallConverterButton->SetText("Titanfall 2");
 	this->TitanfallConverterButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
