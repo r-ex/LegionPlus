@@ -234,8 +234,8 @@ struct ModelHeaderS80
 	uint32_t MeshOffset;
 	uint64_t Padding3;
 
-	uint32_t BlockIndex1;
-	uint32_t BlockOffset1;
+	uint32_t VGIndex1;
+	uint32_t VGOffset1;
 	uint64_t Padding4;
 
 	uint32_t Padding5;

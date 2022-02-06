@@ -505,6 +505,8 @@ std::unique_ptr<Assets::Texture> LegionMain::MaterialStreamCallback(string Sourc
 
 void LegionMain::RefreshView()
 {
+	auto SearchText = this->SearchBox->Text();
+
 	if (this->RpakFileSystem != nullptr)
 	{
 		this->AssetsListView->SetVirtualListSize(0);
@@ -530,6 +532,16 @@ void LegionMain::RefreshView()
 
 		this->ResetDisplayIndices();
 	}
+	
+	// restore the search box's text after refreshing
+	// yes this makes the window flash when refreshing as it performs the search
+	if (SearchText.Length() > 0)
+	{
+		this->SearchBox->SetText(SearchText);
+
+		this->SearchForAssets();
+	}
+
 }
 
 void LegionMain::ResetDisplayIndices()
