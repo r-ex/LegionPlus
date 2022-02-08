@@ -90,7 +90,8 @@ void RpakLib::ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path)
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, RigHeader.NameIndex, RigHeader.NameOffset));
 
-	auto AnimSetName = IO::Path::GetFileNameWithoutExtension(Reader.ReadCString());
+	auto FullAnimSetName = Reader.ReadCString();
+	auto AnimSetName = IO::Path::GetFileNameWithoutExtension(FullAnimSetName);
 	auto AnimSetPath = IO::Path::Combine(Path, AnimSetName);
 
 	IO::Directory::CreateDirectory(AnimSetPath);
@@ -104,8 +105,18 @@ void RpakLib::ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path)
 
 		auto AnimHash = Reader.Read<uint64_t>();
 
+		// excluded by DFS
+		if (AnimHash == 0xdf5)
+		{
+			g_Logger.Warning("unable to export anim idx %i for '%s' because it is self-excluded\n", i, FullAnimSetName.ToCString());
+			continue;
+		}
+
 		if (!Assets.ContainsKey(AnimHash))
-			continue;	// Should never happen
+		{
+			g_Logger.Warning("missing anim 0x%llx for '%s'\n", AnimHash, FullAnimSetName.ToCString());
+			continue;
+		}
 
 		// We need to make sure the skeleton is kept alive (copied) here...
 		this->ExtractAnimation(Assets[AnimHash], Skeleton, AnimSetPath);
