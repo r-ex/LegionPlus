@@ -138,8 +138,8 @@ void LegionMain::InitializeComponent()
 
 
 	this->AssetsListView->RetrieveVirtualItem += &GetVirtualItem;
-	this->SetBackColor({ 30, 32, 55 });
-	//this->SetBackColor({ 33, 33, 33 });
+	//this->SetBackColor({ 30, 32, 55 });
+	this->SetBackColor({ 33, 33, 33 });
 }
 
 void LegionMain::LoadApexFile(const List<string>& File)
