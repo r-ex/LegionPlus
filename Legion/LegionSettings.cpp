@@ -531,7 +531,7 @@ void LegionSettings::OnGithubClick(Forms::Control* Sender)
 
 void LegionSettings::OnDiscordClick(Forms::Control* Sender)
 {
-	Diagnostics::Process::Start("https://discord.gg/WQq9sdWbyc");
+	Diagnostics::Process::Start("https://discord.gg/ADek6fxVGe");
 }
 
 void LegionSettings::OnBrowseClick(Forms::Control* Sender)
