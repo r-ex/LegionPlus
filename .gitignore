@@ -348,3 +348,6 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+# Windows Folder pathing is cool and creates .ini files and does not remove em
+*.ini
