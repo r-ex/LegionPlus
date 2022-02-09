@@ -78,7 +78,7 @@ void LegionTitanfallConverter::InitializeComponent()
 	this->PerformLayout();
 	// END DESIGNER CODE
 
-	this->SetBackColor({ 30, 32, 55 });
+	this->SetBackColor({ 33, 33, 33 });
 
 	this->DragEnter += &FormDragEnter;
 	this->DragDrop += &FormDragDrop;
