@@ -2204,7 +2204,7 @@ bool RTech::DecompressSnowflake(int64_t param_buffer, uint64_t data_size, uint64
 					{
 						do
 						{
-							*(uint32_t*)(v183 + v182) = *(uint32_t*)(v184 + v182);
+							*(uint32_t*)(v183 + v182) = *(uint32_t*)(v184 + v182); // crash here.
 							v186 = v182 + 4;
 							v182 = (unsigned int)(v182 + 4);
 						} while (v186 < (unsigned int)v73);
