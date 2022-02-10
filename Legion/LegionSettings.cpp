@@ -384,7 +384,7 @@ void LegionSettings::LoadSettings()
 
 	if (ExportManager::Config.Has<System::SettingType::String>("ExportDirectory"))
 	{
-		this->ExportBrowseFolder->SetText(ExportManager::Config.Get<System::SettingType::String>("ExportDirectory"));
+		this->ExportBrowseFolder->SetText(ExportManager::Config.Get<System::SettingType::String>("ExportDirectory").ToCString());
 	}
 }
 
@@ -492,6 +492,9 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	if (!bAC && (uint32_t)ImageExportFormat != ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat"))
 		bAC = true;
 	if (!bAC && (uint32_t)SubtitlesExportFormat != ExportManager::Config.Get<System::SettingType::Integer>("SubtitlesFormat"))
+		bAC = true;
+
+	if (!bAC && ThisPtr->ExportBrowseFolder->Text() != ExportManager::Config.Get<System::SettingType::String>("ExportDirectory"))
 		bAC = true;
 
 	if (bAC)
