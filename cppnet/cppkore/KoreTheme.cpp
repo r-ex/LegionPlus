@@ -34,6 +34,7 @@ namespace Themes
 
 	// New Theme, saving for anyone else who wants to help.
 	const static auto BorderBrush = Drawing::Color(215, 106, 127);
+	const static auto DarkBorderBrush = Drawing::Color(125, 125, 125);
 	const static auto DisabledBorderBrush = Drawing::Color(160, 160, 160);
 
 	const static auto BackgroundBrush = Drawing::Color(33, 33, 33);
@@ -327,6 +328,7 @@ namespace Themes
 		Drawing::Rectangle Rect(Ctrl->ClientRectangle());
 
 		Drawing::SolidBrush BackBrush(BackgroundBrush);
+		Drawing::SolidBrush OutlineBrush(DarkBorderBrush);
 		Drawing::SolidBrush TextBrush((State == UIX::UIXRenderState::Disabled) ? TextDisabledBrush : TextEnabledBrush);
 
 		EventArgs->Graphics->FillRectangle(&BackBrush, Rect);
@@ -359,7 +361,7 @@ namespace Themes
 			{Rect.Width - 1.f, TextSize.Height / 2.f}
 		};
 
-		auto pen = Drawing::Pen(&TextBrush);
+		auto pen = Drawing::Pen(&OutlineBrush);
 		EventArgs->Graphics->DrawLines(&pen, &Lines[0], _countof(Lines));
 	}
 
