@@ -347,15 +347,43 @@ bool MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 
 	static uintptr_t binkawin = 0;
 	if (!binkawin) {
-		binkawin = (uintptr_t)LoadLibraryA("binkawin64.dll");
+		if ((binkawin = (uintptr_t)LoadLibraryA("binkawin64.dll")) == 0)
+		{
+			HKEY hKey = HKEY_LOCAL_MACHINE;
+			HKEY resKey;
+			std::string installDir;
+			char buf[1024]{};
+			DWORD BufferSize = 1025;
+
+			// check origin for the apex installation directory
+			if (RegGetValueA(hKey, "SOFTWARE\\Respawn\\Apex", "Install Dir", RRF_RT_ANY, NULL, (PVOID)&buf, &BufferSize) != ERROR_SUCCESS)
+			{
+				// origin apex was not found; check steam
+				// this is bad. users can have apex installed on steam on a different drive to the steam installation and this won't find it
+				if (RegGetValueA(hKey, "SOFTWARE\\Valve\\Steam", "SteamPath", RRF_RT_ANY, NULL, (PVOID)&buf, &BufferSize) != ERROR_SUCCESS)
+				{
+					g_Logger.Warning("no apex installation found. please bug this if you have apex and provide your installation path\n");
+					return false;
+				}
+				else {
+					installDir = std::string(buf) + "steamapps\\common\\Apex Legends";
+				}
+			}
+			else {
+				installDir = buf;
+			}
+
+			SetDllDirectoryA(installDir.c_str());
+			binkawin = (uintptr_t)LoadLibraryA("binkawin64.dll");
+
+		}
 	}
 	if (!binkawin)
 	{
 		//throw new std::exception("Failed to load binkawin64.dll!");
-		g_Logger.Warning("!!! - Unable to export audio asset: Failed to load binkawin64.dll (make sure binkawin64.dll and mileswin64.dll are in the same folder as LegionPlus.exe)\n");
+		g_Logger.Warning("!!! - Unable to export audio asset: Failed to load binkawin64.dll (make sure that you have apex installed or the required dlls in the same directory as LegionPlus.exe)\n");
 		return false;
 	}
-
 
 	// Dynamically get a table
 	static uintptr_t binka = 0;
