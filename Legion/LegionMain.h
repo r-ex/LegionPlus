@@ -99,6 +99,8 @@ private:
 
 	// Preview window
 	std::unique_ptr<LegionPreview> PreviewWindow;
+	// Table Preview window
+	std::unique_ptr<class LegionTablePreview> TablePreviewWindow;
 	// Progress window
 	std::unique_ptr<LegionProgress> ProgressWindow;
 
