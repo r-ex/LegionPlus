@@ -6,6 +6,7 @@
 #include "UIXListView.h"
 #include "LegionSettings.h"
 #include "LegionTitanfallConverter.h"
+#include "LegionTablePreview.h"
 
 LegionMain::LegionMain()
 	: Forms::Form(), IsInExportMode(false)
@@ -690,23 +691,58 @@ void LegionMain::OnListKeyUp(const std::unique_ptr<KeyEventArgs>& EventArgs, For
 	}
 	else if (EventArgs->KeyCode() == Keys::P)
 	{
-		auto Form = (LegionMain*)Sender->FindForm();
+		LegionMain* Form = (LegionMain*)Sender->FindForm();
 
 		if (!Form->LoadRPakButton->Enabled())
 			return;
 
-		if (Form->PreviewWindow == nullptr || Form->PreviewWindow->GetState(Forms::ControlStates::StateDisposed))
-		{
-			Form->PreviewWindow = std::make_unique<LegionPreview>();
-			Form->PreviewWindow->SetMaterialStreamer([Form](string source, uint64_t hash)
+
+		if (!Form->RpakFileSystem)
+			return;
+
+
+		auto Selected = Form->AssetsListView->SelectedIndices();
+
+		if (Selected.Count() <= 0)
+			return;
+
+		auto& Asset = (*Form->LoadedAssets.get())[Form->DisplayIndices[Selected[0]]];
+
+
+
+		switch (Asset.Type) {
+		case ApexAssetType::DataTable: {
+			if (Form->TablePreviewWindow == nullptr || Form->TablePreviewWindow->GetState(Forms::ControlStates::StateDisposed))
 			{
-				return Form->MaterialStreamCallback(source, hash);
-			});
-			Form->PreviewWindow->Show();
+				Form->TablePreviewWindow = std::make_unique<LegionTablePreview>();
+				Form->TablePreviewWindow->Show();
+				auto& RpakAsset = Form->RpakFileSystem->Assets[Asset.Hash];
+				Form->TablePreviewWindow->SetDataTable(Form->RpakFileSystem->ExtractDataTable(RpakAsset));
+			}
+
+
+			Form->TablePreviewWindow->BringToFront();
+			break;
+		}
+		default: {
+			if (Form->PreviewWindow == nullptr || Form->PreviewWindow->GetState(Forms::ControlStates::StateDisposed))
+			{
+				Form->PreviewWindow = std::make_unique<LegionPreview>();
+				Form->PreviewWindow->SetMaterialStreamer([Form](string source, uint64_t hash)
+					{
+						return Form->MaterialStreamCallback(source, hash);
+					});
+				Form->PreviewWindow->Show();
+			}
+
+			Form->PreviewWindow->BringToFront();
+			Form->DoPreviewSwap();
+			break;
+		}
 		}
 
-		Form->PreviewWindow->BringToFront();
-		Form->DoPreviewSwap();
+
+		
 	}
 }
 
