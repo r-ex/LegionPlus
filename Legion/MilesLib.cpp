@@ -492,7 +492,7 @@ bool MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 			// Now we can finally decode...
 			const auto decode = *(decoder_new_f_t*)(binka + 6*8);
 			uint32_t consumed_decode, samples;
-			decode(allocd.data(), stream_data.data(), stream_data.size(), decoded_short.data(), decoded_short.size(), &consumed_decode, &samples);
+			decode(allocd.data(), stream_data.data(), stream_data.size(), decoded_short.data(), decoded_short.size() * 2, &consumed_decode, &samples);
 			ret = samples * channels; // ???
 
 			// Debug assert?
@@ -517,6 +517,30 @@ bool MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 					for (size_t chan = 0; chan < channels; chan++) {
 						decoded_desh[desh_pos++] = decoded[(j * 16) + i + (chan * 64)];
 					}
+				}
+			}
+		}
+		else {
+			// Welcome to my another ritual of stereo packed encoding
+			//if (channels > 2) { // remove for stereo
+			if (channels > 1) { // remove for mono
+				// WAV expects all channels at once meanwhile MSS gives us 2 channels per big sample thingie?
+				// Or it just decodes everything in a big chunk?
+				size_t pos = 0;
+				auto decoded_short_copy = decoded_short;
+				auto samples = ret / channels; // E - Effiecency 
+				for (size_t i = 0; i < samples; i++) {
+					//for (size_t chan = 0; chan < (channels / 2); chan++) { // remove for stereo
+					for (size_t chan = 0; chan < channels; chan++) { // remove for mono
+						decoded_short[pos++] = decoded_short_copy[(chan * samples) + i];
+						//decoded_short[pos++] = decoded_short_copy[(chan * samples) + i + 1]; // remove for stereo
+					}
+					// This is stereo related
+					/*
+					if (channels % 2) {
+						assert(false); // ???
+					}
+					*/
 				}
 			}
 		}
