@@ -25,6 +25,9 @@
     <Filter Include="Legion\Core">
       <UniqueIdentifier>{2ad5041f-9602-4aa4-ac5c-3d94598651ec}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MDL">
+      <UniqueIdentifier>{c16cd7d3-8ed9-486e-a5e9-03cd17943bbd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MilesLib.cpp">
@@ -39,17 +42,11 @@
     <ClCompile Include="RBspLib.cpp">
       <Filter>BSP</Filter>
     </ClCompile>
-    <ClCompile Include="VpkLib.cpp">
-      <Filter>VPK</Filter>
-    </ClCompile>
     <ClCompile Include="CommandLine.cpp">
       <Filter>Legion\Main</Filter>
     </ClCompile>
     <ClCompile Include="LegionMain.cpp">
       <Filter>Legion\Main</Filter>
-    </ClCompile>
-    <ClCompile Include="LegionPreview.cpp">
-      <Filter>Legion\UI</Filter>
     </ClCompile>
     <ClCompile Include="LegionSettings.cpp">
       <Filter>Legion\UI</Filter>
@@ -75,6 +72,36 @@
     <ClCompile Include="LegionTablePreview.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="RpakAssetExport.cpp">
+      <Filter>RPak</Filter>
+    </ClCompile>
+    <ClCompile Include="RpakAssetExtract.cpp">
+      <Filter>RPak</Filter>
+    </ClCompile>
+    <ClCompile Include="RpakAssetBuildInfo.cpp">
+      <Filter>RPak</Filter>
+    </ClCompile>
+    <ClCompile Include="RpakAssetPreview.cpp">
+      <Filter>RPak</Filter>
+    </ClCompile>
+    <ClCompile Include="MdlLib.cpp">
+      <Filter>MDL</Filter>
+    </ClCompile>
+    <ClCompile Include="LegionPreview.cpp">
+      <Filter>Legion\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>Legion\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="VpkLib.cpp">
+      <Filter>VPK</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils.cpp">
+      <Filter>Legion\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Logger.cpp">
+      <Filter>Legion\Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MilesLib.h">
@@ -94,9 +121,6 @@
     </ClInclude>
     <ClInclude Include="RBspLib.h">
       <Filter>BSP</Filter>
-    </ClInclude>
-    <ClInclude Include="VpkLib.h">
-      <Filter>VPK</Filter>
     </ClInclude>
     <ClInclude Include="CommandLine.h">
       <Filter>Legion\Main</Filter>
@@ -137,5 +161,25 @@
     <ClInclude Include="LegionTablePreview.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MdlLib.h">
+      <Filter>MDL</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>Legion\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="VpkLib.h">
+      <Filter>VPK</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils.h">
+      <Filter>Legion\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Logger.h">
+      <Filter>Legion\Core</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Legion.rc">
+      <Filter>Legion</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

@@ -24,6 +24,7 @@
     <ProjectGuid>{9b96fb51-505f-4c9a-ae48-1be328c9d930}</ProjectGuid>
     <RootNamespace>Legion</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>Legion</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -82,6 +83,7 @@
     <LibraryPath>$(SolutionDir)bin\x64\Debug;$(SolutionDir)cppnet\cppkore_libs;$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>LegionPlus</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -89,6 +91,7 @@
     <LibraryPath>$(SolutionDir)bin\x64\Release;$(SolutionDir)cppnet\cppkore_libs;$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+    <TargetName>LegionPlus</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -125,11 +128,13 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>cppkore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>cppkore.lib;..\\cppkore_libs\\LZHAM_ALPHA\\lzhamcomp_x64D.lib;..\\cppkore_libs\\LZHAM_ALPHA\\lzhamdecomp_x64D.lib;..\\cppkore_libs\\LZHAM_ALPHA\\lzhamlib_x64D.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -141,13 +146,16 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>cppkore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>cppkore.lib;..\\cppkore_libs\\LZHAM_ALPHA\\lzhamcomp_x64.lib;..\\cppkore_libs\\LZHAM_ALPHA\\lzhamdecomp_x64.lib;..\\cppkore_libs\\LZHAM_ALPHA\\lzhamlib_x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -161,11 +169,22 @@
     <ClCompile Include="LegionSplash.cpp" />
     <ClCompile Include="LegionTablePreview.cpp" />
     <ClCompile Include="LegionTitanfallConverter.cpp" />
+    <ClCompile Include="Logger.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MilesLib.cpp" />
+    <ClCompile Include="pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="RBspLib.cpp" />
+    <ClCompile Include="RpakAssetBuildInfo.cpp" />
+    <ClCompile Include="RpakAssetExport.cpp" />
+    <ClCompile Include="RpakAssetExtract.cpp" />
+    <ClCompile Include="RpakAssetPreview.cpp" />
     <ClCompile Include="RpakLib.cpp" />
     <ClCompile Include="rtech.cpp" />
+    <ClCompile Include="MdlLib.cpp" />
+    <ClCompile Include="Utils.cpp" />
     <ClCompile Include="VpkLib.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -181,19 +200,26 @@
     <ClInclude Include="LegionSplash.h" />
     <ClInclude Include="LegionTablePreview.h" />
     <ClInclude Include="LegionTitanfallConverter.h" />
+    <ClInclude Include="Logger.h" />
     <ClInclude Include="MilesLib.h" />
+    <ClInclude Include="pch.h" />
     <ClInclude Include="RBspLib.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="RpakAssets.h" />
     <ClInclude Include="RpakImageTiles.h" />
     <ClInclude Include="RpakLib.h" />
     <ClInclude Include="rtech.h" />
+    <ClInclude Include="MdlLib.h" />
+    <ClInclude Include="Utils.h" />
     <ClInclude Include="VpkLib.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\cppnet\cppkore\cppkore.vcxproj">
       <Project>{88bc2d60-a093-4e61-b194-59ab8be4e33e}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Legion.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

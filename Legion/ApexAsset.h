@@ -10,6 +10,7 @@ enum class ApexAssetType
 	Material,
 	DataTable,
 	Sound,
+	Subtitles,
 };
 
 enum class ApexAssetStatus
@@ -17,6 +18,7 @@ enum class ApexAssetStatus
 	Loaded,
 	Exporting,
 	Exported,
+	Error,
 };
 
 struct ApexAsset

@@ -1,6 +1,8 @@
+#include "pch.h"
 #include "LegionSettings.h"
 #include "ExportManager.h"
 #include "Process.h"
+#include "LegionMain.h"
 
 LegionSettings::LegionSettings()
 	: Forms::Form()
@@ -10,280 +12,293 @@ LegionSettings::LegionSettings()
 
 void LegionSettings::InitializeComponent()
 {
+	const INT WindowX = 710;
+	const INT WindowY = 315;
+
 	this->SuspendLayout();
 	this->SetAutoScaleDimensions({ 6, 13 });
 	this->SetAutoScaleMode(Forms::AutoScaleMode::Font);
-	this->SetText("Legion | Application Settings");
-	this->SetClientSize({ 752, 421 });
+	this->SetText("Legion+ | Application Settings");
+	this->SetClientSize({ WindowX, WindowY });
 	this->SetFormBorderStyle(Forms::FormBorderStyle::FixedSingle);
 	this->SetStartPosition(Forms::FormStartPosition::CenterParent);
 	this->SetMinimizeBox(false);
 	this->SetMaximizeBox(false);
 
-	this->groupBox5 = new UIX::UIXGroupBox();
-	this->groupBox5->SetSize({ 320, 111 });
-	this->groupBox5->SetLocation({ 12, 298 });
-	this->groupBox5->SetTabIndex(4);
-	this->groupBox5->SetText("Animation Settings");
-	this->groupBox5->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
-	this->AddControl(this->groupBox5);
+	//
+	//	Custom Export Directory Box
+	//
+	this->groupBox1 = new UIX::UIXGroupBox();
+	this->groupBox1->SetSize({ 458, 110 });
+	this->groupBox1->SetLocation({ 12, 10 });
+	this->groupBox1->SetTabIndex(3);
+	this->groupBox1->SetText("General Directory Settings");
+	this->groupBox1->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->AddControl(this->groupBox1);
 
-	this->ExportCastAnim = new UIX::UIXRadioButton();
-	this->ExportCastAnim->SetSize({ 79, 18 });
-	this->ExportCastAnim->SetLocation({ 28, 61 });
-	this->ExportCastAnim->SetTabIndex(12);
-	this->ExportCastAnim->SetText("Cast (Beta)");
-	this->ExportCastAnim->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox5->AddControl(this->ExportCastAnim);
-
-	this->label4 = new UIX::UIXLabel();
-	this->label4->SetSize({ 72, 17 });
-	this->label4->SetLocation({ 25, 35 });
-	this->label4->SetTabIndex(11);
-	this->label4->SetText("Export format");
-	this->label4->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->label4->SetTextAlign(Drawing::ContentAlignment::TopLeft);
-	this->groupBox5->AddControl(this->label4);
-
-	this->ExportSEAnim = new UIX::UIXRadioButton();
-	this->ExportSEAnim->SetSize({ 63, 18 });
-	this->ExportSEAnim->SetLocation({ 189, 61 });
-	this->ExportSEAnim->SetTabIndex(10);
-	this->ExportSEAnim->SetText("SEAnim");
-	this->ExportSEAnim->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox5->AddControl(this->ExportSEAnim);
-
-	this->groupBox4 = new UIX::UIXGroupBox();
-	this->groupBox4->SetSize({ 728, 82 });
-	this->groupBox4->SetLocation({ 12, 12 });
-	this->groupBox4->SetTabIndex(3);
-	this->groupBox4->SetText("General Settings");
-	this->groupBox4->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->AddControl(this->groupBox4);
-
-	this->ExportBrowseButton = new UIX::UIXButton();
-	this->ExportBrowseButton->SetSize({ 80, 25 });
-	this->ExportBrowseButton->SetLocation({ 642, 51 });
-	this->ExportBrowseButton->SetTabIndex(5);
-	this->ExportBrowseButton->SetText("Browse");
-	this->ExportBrowseButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Right);
-	this->groupBox4->AddControl(this->ExportBrowseButton);
-
+	//
+	//	Custom Export Directory
+	//
 	this->ExportBrowseFolder = new UIX::UIXTextBox();
 	this->ExportBrowseFolder->SetSize({ 342, 25 });
-	this->ExportBrowseFolder->SetLocation({ 296, 51 });
+	this->ExportBrowseFolder->SetLocation({ 15, 25 });
 	this->ExportBrowseFolder->SetTabIndex(5);
 	this->ExportBrowseFolder->SetReadOnly(true);
 	this->ExportBrowseFolder->SetText("Click on \"Browse\" to set a custom export directory");
 	this->ExportBrowseFolder->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Right);
-	this->groupBox4->AddControl(this->ExportBrowseFolder);
+	this->groupBox1->AddControl(this->ExportBrowseFolder);
 
-	this->LoadMaterials = new UIX::UIXCheckBox();
-	this->LoadMaterials->SetSize({ 97, 18 });
-	this->LoadMaterials->SetLocation({ 174, 53 });
-	this->LoadMaterials->SetTabIndex(3);
-	this->LoadMaterials->SetText("Load Materials");
-	this->LoadMaterials->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox4->AddControl(this->LoadMaterials);
+	this->ExportBrowseButton = new UIX::UIXButton();
+	this->ExportBrowseButton->SetSize({ 80, 25 });
+	this->ExportBrowseButton->SetLocation({ 365, 25 });
+	this->ExportBrowseButton->SetTabIndex(5);
+	this->ExportBrowseButton->SetText("Browse");
+	this->ExportBrowseButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Right);
+	this->groupBox1->AddControl(this->ExportBrowseButton);
 
-	this->LoadImages = new UIX::UIXCheckBox();
-	this->LoadImages->SetSize({ 89, 18 });
-	this->LoadImages->SetLocation({ 174, 30 });
-	this->LoadImages->SetTabIndex(2);
-	this->LoadImages->SetText("Load Images");
-	this->LoadImages->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox4->AddControl(this->LoadImages);
+	//
+	//	About Box
+	//
+	this->groupBox2 = new UIX::UIXGroupBox();
+	this->groupBox2->SetSize({ 218, 110 });
+	this->groupBox2->SetLocation({ 480, 10 });
+	this->groupBox2->SetTabIndex(3);
+	this->groupBox2->SetText("About");
+	this->groupBox2->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->AddControl(this->groupBox2);
 
-	this->LoadUIImages = new UIX::UIXCheckBox();
-	this->LoadUIImages->SetSize({ 108, 18 });
-	this->LoadUIImages->SetLocation({ 296, 30 });
-	this->LoadUIImages->SetTabIndex(2);
-	this->LoadUIImages->SetText("Load UI Images");
-	this->LoadUIImages->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox4->AddControl(this->LoadUIImages);
+	//
+	//	About Text Label
+	//
+	this->label1 = new UIX::UIXLabel();
+	this->label1->SetSize({ 200, 60 });
+	this->label1->SetLocation({ 12, 12 });
+	this->label1->SetTabIndex(0);
+	this->label1->SetText("Legion is the Apex Legends asset extraction tool. Originally created by DTZxPorter in 2019. Currently maintained by various contributors on GitHub.");
+	this->label1->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->label1->SetTextAlign(Drawing::ContentAlignment::TopLeft);
+	this->groupBox2->AddControl(this->label1);
+	//
+	//	Github Link Button
+	//
+	this->GithubButton = new UIX::UIXButton();
+	this->GithubButton->SetSize({ 95, 25 });
+	this->GithubButton->SetLocation({ 13, 73 });
+	this->GithubButton->SetTabIndex(1);
+	this->GithubButton->SetText("Github Repository");
+	this->groupBox2->AddControl(this->GithubButton);
+	//
+	//	Discord Link Button
+	//
+	this->DiscordButton = new UIX::UIXButton();
+	this->DiscordButton->SetSize({ 95, 25 });
+	this->DiscordButton->SetLocation({ 112, 73 });
+	this->DiscordButton->SetTabIndex(1);
+	this->DiscordButton->SetText("Discord");
+	this->groupBox2->AddControl(this->DiscordButton);
 
-	this->LoadDataTables = new UIX::UIXCheckBox();
-	this->LoadDataTables->SetSize({ 108, 18 });
-	this->LoadDataTables->SetLocation({ 430, 30 });
-	this->LoadDataTables->SetTabIndex(2);
-	this->LoadDataTables->SetText("Load DataTables");
-	this->LoadDataTables->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox4->AddControl(this->LoadDataTables);
+	// 
+	//	Load Settings Box
+	//
+	this->groupBox3 = new UIX::UIXGroupBox();
+	this->groupBox3->SetSize({ 340, 122 });
+	this->groupBox3->SetLocation({ 12, 125 });
+	this->groupBox3->SetTabIndex(3);
+	this->groupBox3->SetText("Load Settings");
+	this->groupBox3->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->AddControl(this->groupBox3);
 
-	this->LoadAnimations = new UIX::UIXCheckBox();
-	this->LoadAnimations->SetSize({ 108, 18 });
-	this->LoadAnimations->SetLocation({ 52, 53 });
-	this->LoadAnimations->SetTabIndex(1);
-	this->LoadAnimations->SetText("Load Animations");
-	this->LoadAnimations->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox4->AddControl(this->LoadAnimations);
-
+	// 
+	//	Load Settings
+	//
 	this->LoadModels = new UIX::UIXCheckBox();
-	this->LoadModels->SetSize({ 88, 18 });
-	this->LoadModels->SetLocation({ 52, 30 });
+	this->LoadModels->SetSize({ 105, 18 });
+	this->LoadModels->SetLocation({ 15, 32 });
 	this->LoadModels->SetTabIndex(0);
 	this->LoadModels->SetText("Load Models");
 	this->LoadModels->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox4->AddControl(this->LoadModels);
+	this->groupBox3->AddControl(this->LoadModels);
 
-	this->groupBox3 = new UIX::UIXGroupBox();
-	this->groupBox3->SetSize({ 402, 192 });
-	this->groupBox3->SetLocation({ 338, 100 });
-	this->groupBox3->SetTabIndex(2);
-	this->groupBox3->SetText("About");
-	this->groupBox3->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left | Forms::AnchorStyles::Right);
-	this->AddControl(this->groupBox3);
+	this->LoadImages = new UIX::UIXCheckBox();
+	this->LoadImages->SetSize({ 105, 18 });
+	this->LoadImages->SetLocation({ 130, 32 });
+	this->LoadImages->SetTabIndex(2);
+	this->LoadImages->SetText("Load Images");
+	this->LoadImages->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox3->AddControl(this->LoadImages);
 
-	//this->DonateButton = new UIX::UIXButton();
-	//this->DonateButton->SetSize({ 78, 25 });
-	//this->DonateButton->SetLocation({ 108, 127 });
-	//this->DonateButton->SetTabIndex(1);
-	//this->DonateButton->SetText("Donate");
-	//this->groupBox3->AddControl(this->DonateButton);
+	this->LoadAnimations = new UIX::UIXCheckBox();
+	this->LoadAnimations->SetSize({ 105, 18 });
+	this->LoadAnimations->SetLocation({ 15, 55 });
+	this->LoadAnimations->SetTabIndex(1);
+	this->LoadAnimations->SetText("Load Animations");
+	this->LoadAnimations->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox3->AddControl(this->LoadAnimations);
 
-	this->TwitterButton = new UIX::UIXButton();
-	this->TwitterButton->SetSize({ 78, 25 });
-	this->TwitterButton->SetLocation({ 18, 127 });
-	this->TwitterButton->SetTabIndex(1);
-	this->TwitterButton->SetText("DTZxPorter");
-	this->groupBox3->AddControl(this->TwitterButton);
+	this->LoadMaterials = new UIX::UIXCheckBox();
+	this->LoadMaterials->SetSize({ 105, 18 });
+	this->LoadMaterials->SetLocation({ 130, 55 });
+	this->LoadMaterials->SetTabIndex(3);
+	this->LoadMaterials->SetText("Load Materials");
+	this->LoadMaterials->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox3->AddControl(this->LoadMaterials);
 
-	this->label3 = new UIX::UIXLabel();
-	this->label3->SetSize({ 369, 60 });
-	this->label3->SetLocation({ 15, 31 });
-	this->label3->SetTabIndex(0);
-	this->label3->SetText("Legion is the Apex Legends asset extraction tool. Created by DTZxPorter. Tools like this take days and even months of my time. All donations are appreciated.");
-	this->label3->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left | Forms::AnchorStyles::Right);
-	this->label3->SetTextAlign(Drawing::ContentAlignment::TopLeft);
-	this->groupBox3->AddControl(this->label3);
+	this->LoadUIImages = new UIX::UIXCheckBox();
+	this->LoadUIImages->SetSize({ 105, 18 });
+	this->LoadUIImages->SetLocation({ 15, 78 });
+	this->LoadUIImages->SetTabIndex(2);
+	this->LoadUIImages->SetText("Load UI Images");
+	this->LoadUIImages->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox3->AddControl(this->LoadUIImages);
 
-	this->groupBox2 = new UIX::UIXGroupBox();
-	this->groupBox2->SetSize({ 402, 111 });
-	this->groupBox2->SetLocation({ 338, 298 });
-	this->groupBox2->SetTabIndex(1);
-	this->groupBox2->SetText("Image Settings");
-	this->groupBox2->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left | Forms::AnchorStyles::Right);
-	this->AddControl(this->groupBox2);
+	this->LoadDataTables = new UIX::UIXCheckBox();
+	this->LoadDataTables->SetSize({ 105, 18 });
+	this->LoadDataTables->SetLocation({ 130, 78 });
+	this->LoadDataTables->SetTabIndex(2);
+	this->LoadDataTables->SetText("Load DataTables");
+	this->LoadDataTables->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox3->AddControl(this->LoadDataTables);
 
+	// 
+	//	Toggle Settings Box
+	//
+	this->groupBox4 = new UIX::UIXGroupBox();
+	this->groupBox4->SetSize({ 340, 48 });
+	this->groupBox4->SetLocation({ 12, 252 });
+	this->groupBox4->SetTabIndex(3);
+	this->groupBox4->SetText("Toggle Settings");
+	this->groupBox4->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->AddControl(this->groupBox4);
+
+	// 
+	//	Toggle Settings
+	//
+	this->ToggleOverwriting = new UIX::UIXCheckBox();
+	this->ToggleOverwriting->SetSize({ 110, 18 });
+	this->ToggleOverwriting->SetLocation({ 15, 20 });
+	this->ToggleOverwriting->SetTabIndex(2);
+	this->ToggleOverwriting->SetText("Overwrite Files");
+	this->ToggleOverwriting->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox4->AddControl(this->ToggleOverwriting);
+
+	//
+	//	Assets Export Settings Box
+	//
+	this->groupBox5 = new UIX::UIXGroupBox();
+	this->groupBox5->SetSize({ 340, 175 });
+	this->groupBox5->SetLocation({ 359, 125 });
+	this->groupBox5->SetTabIndex(0);
+	this->groupBox5->SetText("Assets Export Settings");
+	this->groupBox5->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left | Forms::AnchorStyles::Right);
+	this->AddControl(this->groupBox5);
+
+	//
+	//	Model Export Format
+	//
 	this->label2 = new UIX::UIXLabel();
-	this->label2->SetSize({ 72, 17 });
-	this->label2->SetLocation({ 25, 41 });
-	this->label2->SetTabIndex(9);
-	this->label2->SetText("Export format");
+	this->label2->SetSize({ 90, 15 });
+	this->label2->SetLocation({ 20, 20 });
+	this->label2->SetTabIndex(8);
+	this->label2->SetText("Model Format");
 	this->label2->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->label2->SetTextAlign(Drawing::ContentAlignment::TopLeft);
-	this->groupBox2->AddControl(this->label2);
+	this->groupBox5->AddControl(this->label2);
+
+	this->ModelExportFormat = new UIX::UIXComboBox();
+	this->ModelExportFormat->SetSize({ 90, 21 });
+	this->ModelExportFormat->SetLocation({ 20, 35 });
+	this->ModelExportFormat->SetTabIndex(9);
+	this->ModelExportFormat->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->ModelExportFormat->SetDropDownStyle(Forms::ComboBoxStyle::DropDownList);
+	this->ModelExportFormat->Items.Add("Cast");
+	this->ModelExportFormat->Items.Add("FBX");
+	this->ModelExportFormat->Items.Add("Maya");
+	this->ModelExportFormat->Items.Add("OBJ");
+	this->ModelExportFormat->Items.Add("SEModel");
+	this->ModelExportFormat->Items.Add("SMD");
+	this->ModelExportFormat->Items.Add("XModel");
+	this->ModelExportFormat->Items.Add("XNALara ASCII");
+	this->ModelExportFormat->Items.Add("XNALara Binary");
+	this->groupBox5->AddControl(this->ModelExportFormat);
+
+	//
+	//	Animation Export Format
+	//
+	this->label3 = new UIX::UIXLabel();
+	this->label3->SetSize({ 90, 15 });
+	this->label3->SetLocation({ 20, 65 });
+	this->label3->SetTabIndex(11);
+	this->label3->SetText("Animation Format");
+	this->label3->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->label3->SetTextAlign(Drawing::ContentAlignment::TopLeft);
+	this->groupBox5->AddControl(this->label3);
+
+	this->AnimExportFormat = new UIX::UIXComboBox();
+	this->AnimExportFormat->SetSize({ 90, 21 });
+	this->AnimExportFormat->SetLocation({ 20, 80 });
+	this->AnimExportFormat->SetTabIndex(0);
+	this->AnimExportFormat->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->AnimExportFormat->SetDropDownStyle(Forms::ComboBoxStyle::DropDownList);
+	this->AnimExportFormat->Items.Add("Cast");
+	this->AnimExportFormat->Items.Add("SEAnim");
+	this->groupBox5->AddControl(this->AnimExportFormat);
+
+	//
+	//	Image Export Format 
+	//
+	this->label4 = new UIX::UIXLabel();
+	this->label4->SetSize({ 90, 15 });
+	this->label4->SetLocation({ 20, 110 });
+	this->label4->SetTabIndex(9);
+	this->label4->SetText("Image Format");
+	this->label4->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->label4->SetTextAlign(Drawing::ContentAlignment::TopLeft);
+	this->groupBox5->AddControl(this->label4);
 
 	this->ImageExportFormat = new UIX::UIXComboBox();
-	this->ImageExportFormat->SetSize({ 205, 21 });
-	this->ImageExportFormat->SetLocation({ 26, 60 });
+	this->ImageExportFormat->SetSize({ 90, 21 });
+	this->ImageExportFormat->SetLocation({ 20, 125 });
 	this->ImageExportFormat->SetTabIndex(0);
 	this->ImageExportFormat->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->ImageExportFormat->SetDropDownStyle(Forms::ComboBoxStyle::DropDownList);
 	this->ImageExportFormat->Items.Add("DDS");
 	this->ImageExportFormat->Items.Add("PNG");
 	this->ImageExportFormat->Items.Add("TIFF");
-	this->groupBox2->AddControl(this->ImageExportFormat);
+	this->groupBox5->AddControl(this->ImageExportFormat);
 
-	this->groupBox1 = new UIX::UIXGroupBox();
-	this->groupBox1->SetSize({ 320, 192 });
-	this->groupBox1->SetLocation({ 12, 100 });
-	this->groupBox1->SetTabIndex(0);
-	this->groupBox1->SetText("Model Settings");
-	this->groupBox1->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
-	this->AddControl(this->groupBox1);
+	//
+	//	Subtitles Export Format 
+	//
+	this->label5 = new UIX::UIXLabel();
+	this->label5->SetSize({ 90, 15 });
+	this->label5->SetLocation({ 120, 20 });
+	this->label5->SetTabIndex(9);
+	this->label5->SetText("Subtitles Format");
+	this->label5->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->label5->SetTextAlign(Drawing::ContentAlignment::TopLeft);
+	this->groupBox5->AddControl(this->label5);
 
-	this->ExportCastModel = new UIX::UIXRadioButton();
-	this->ExportCastModel->SetSize({ 79, 18 });
-	this->ExportCastModel->SetLocation({ 28, 57 });
-	this->ExportCastModel->SetTabIndex(9);
-	this->ExportCastModel->SetText("Cast (Beta)");
-	this->ExportCastModel->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox1->AddControl(this->ExportCastModel);
-
-	this->label1 = new UIX::UIXLabel();
-	this->label1->SetSize({ 72, 17 });
-	this->label1->SetLocation({ 25, 31 });
-	this->label1->SetTabIndex(8);
-	this->label1->SetText("Export format");
-	this->label1->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->label1->SetTextAlign(Drawing::ContentAlignment::TopLeft);
-	this->groupBox1->AddControl(this->label1);
-
-	this->ExportFBX = new UIX::UIXRadioButton();
-	this->ExportFBX->SetSize({ 89, 18 });
-	this->ExportFBX->SetLocation({ 189, 126 });
-	this->ExportFBX->SetTabIndex(7);
-	this->ExportFBX->SetText("Kaydara FBX");
-	this->ExportFBX->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox1->AddControl(this->ExportFBX);
-
-	this->ExportMA = new UIX::UIXRadioButton();
-	this->ExportMA->SetSize({ 100, 18 });
-	this->ExportMA->SetLocation({ 189, 103 });
-	this->ExportMA->SetTabIndex(6);
-	this->ExportMA->SetText("Autodesk Maya");
-	this->ExportMA->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox1->AddControl(this->ExportMA);
-
-	this->ExportXModel = new UIX::UIXRadioButton();
-	this->ExportXModel->SetSize({ 84, 18 });
-	this->ExportXModel->SetLocation({ 189, 80 });
-	this->ExportXModel->SetTabIndex(5);
-	this->ExportXModel->SetText("Cod XModel");
-	this->ExportXModel->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox1->AddControl(this->ExportXModel);
-
-	this->ExportSMD = new UIX::UIXRadioButton();
-	this->ExportSMD->SetSize({ 79, 18 });
-	this->ExportSMD->SetLocation({ 189, 57 });
-	this->ExportSMD->SetTabIndex(4);
-	this->ExportSMD->SetText("Valve SMD");
-	this->ExportSMD->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox1->AddControl(this->ExportSMD);
-
-	this->ExportXNABinary = new UIX::UIXRadioButton();
-	this->ExportXNABinary->SetSize({ 103, 18 });
-	this->ExportXNABinary->SetLocation({ 28, 126 });
-	this->ExportXNABinary->SetTabIndex(3);
-	this->ExportXNABinary->SetText("XNALara Binary");
-	this->ExportXNABinary->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox1->AddControl(this->ExportXNABinary);
-
-	this->ExportXNAAscii = new UIX::UIXRadioButton();
-	this->ExportXNAAscii->SetSize({ 101, 18 });
-	this->ExportXNAAscii->SetLocation({ 28, 103 });
-	this->ExportXNAAscii->SetTabIndex(2);
-	this->ExportXNAAscii->SetText("XNALara ASCII");
-	this->ExportXNAAscii->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox1->AddControl(this->ExportXNAAscii);
-
-	this->ExportOBJ = new UIX::UIXRadioButton();
-	this->ExportOBJ->SetSize({ 99, 18 });
-	this->ExportOBJ->SetLocation({ 28, 149 });
-	this->ExportOBJ->SetTabIndex(1);
-	this->ExportOBJ->SetText("Wavefront OBJ");
-	this->ExportOBJ->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox1->AddControl(this->ExportOBJ);
-
-	this->ExportSEModel = new UIX::UIXRadioButton();
-	this->ExportSEModel->SetSize({ 68, 18 });
-	this->ExportSEModel->SetLocation({ 28, 80 });
-	this->ExportSEModel->SetTabIndex(0);
-	this->ExportSEModel->SetText("SEModel");
-	this->ExportSEModel->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox1->AddControl(this->ExportSEModel);
+	this->SubtitlesExportFormat = new UIX::UIXComboBox();
+	this->SubtitlesExportFormat->SetSize({ 90, 20 });
+	this->SubtitlesExportFormat->SetLocation({ 125, 35 });
+	this->SubtitlesExportFormat->SetTabIndex(0);
+	this->SubtitlesExportFormat->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->SubtitlesExportFormat->SetDropDownStyle(Forms::ComboBoxStyle::DropDownList);
+	this->SubtitlesExportFormat->Items.Add("CSV");
+	this->SubtitlesExportFormat->Items.Add("TXT");
+	this->groupBox5->AddControl(this->SubtitlesExportFormat);
 
 	this->ResumeLayout(false);
 	this->PerformLayout();
 	// END DESIGNER CODE
 
-	this->SetBackColor({ 30, 32, 55 });
+	//this->SetBackColor({ 30, 32, 55 });
+	this->SetBackColor({ 33, 33, 33 });
 
 	this->Load += &OnLoad;
 	this->FormClosing += &OnClose;
-	//this->DonateButton->Click += &OnDonateClick;
-	this->TwitterButton->Click += &OnTwitterClick;
+	this->GithubButton->Click += &OnGithubClick;
+	this->DiscordButton->Click += &OnDiscordClick;
 	this->ExportBrowseButton->Click += &OnBrowseClick;
 }
 
@@ -292,45 +307,46 @@ void LegionSettings::LoadSettings()
 	auto ModelFormat = (RpakModelExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat");
 	auto AnimFormat = (RpakAnimExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat");
 	auto ImageFormat = (RpakImageExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat");
+	auto SubtitlesFormat = (RpakSubtitlesExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("SubtitlesFormat");
 
 	switch (ModelFormat)
 	{
-	case RpakModelExportFormat::SEModel:
-		this->ExportSEModel->SetChecked(true);
+	case RpakModelExportFormat::Cast:
+		this->ModelExportFormat->SetSelectedIndex(0);
 		break;
 	case RpakModelExportFormat::FBX:
-		this->ExportFBX->SetChecked(true);
+		this->ModelExportFormat->SetSelectedIndex(1);
 		break;
 	case RpakModelExportFormat::Maya:
-		this->ExportMA->SetChecked(true);
+		this->ModelExportFormat->SetSelectedIndex(2);
 		break;
 	case RpakModelExportFormat::OBJ:
-		this->ExportOBJ->SetChecked(true);
+		this->ModelExportFormat->SetSelectedIndex(3);
+		break;
+	case RpakModelExportFormat::SEModel:
+		this->ModelExportFormat->SetSelectedIndex(4);
 		break;
 	case RpakModelExportFormat::SMD:
-		this->ExportSMD->SetChecked(true);
+		this->ModelExportFormat->SetSelectedIndex(5);
 		break;
 	case RpakModelExportFormat::XModel:
-		this->ExportXModel->SetChecked(true);
-		break;
-	case RpakModelExportFormat::XNALaraBinary:
-		this->ExportXNABinary->SetChecked(true);
+		this->ModelExportFormat->SetSelectedIndex(6);
 		break;
 	case RpakModelExportFormat::XNALaraText:
-		this->ExportXNAAscii->SetChecked(true);
+		this->ModelExportFormat->SetSelectedIndex(7);
 		break;
-	case RpakModelExportFormat::Cast:
-		this->ExportCastModel->SetChecked(true);
+	case RpakModelExportFormat::XNALaraBinary:
+		this->ModelExportFormat->SetSelectedIndex(8);
 		break;
 	}
 
 	switch (AnimFormat)
 	{
 	case RpakAnimExportFormat::Cast:
-		this->ExportCastAnim->SetChecked(true);
+		this->AnimExportFormat->SetSelectedIndex(0);
 		break;
 	case RpakAnimExportFormat::SEAnim:
-		this->ExportSEAnim->SetChecked(true);
+		this->AnimExportFormat->SetSelectedIndex(1);
 		break;
 	}
 
@@ -347,12 +363,23 @@ void LegionSettings::LoadSettings()
 		break;
 	}
 
+	switch (SubtitlesFormat)
+	{
+	case RpakSubtitlesExportFormat::CSV:
+		this->SubtitlesExportFormat->SetSelectedIndex(0);
+		break;
+	case RpakSubtitlesExportFormat::TXT:
+		this->SubtitlesExportFormat->SetSelectedIndex(1);
+		break;
+	}
+
 	this->LoadModels->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadModels"));
 	this->LoadAnimations->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadAnimations"));
 	this->LoadImages->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadImages"));
 	this->LoadMaterials->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadMaterials"));
 	this->LoadUIImages->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadUIImages"));
 	this->LoadDataTables->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadDataTables"));
+	this->ToggleOverwriting->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("OverwriteExistingFiles"));
 
 
 	if (ExportManager::Config.Has<System::SettingType::String>("ExportDirectory"))
@@ -371,9 +398,51 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	auto ThisPtr = (LegionSettings*)Sender->FindForm();
 
 	// Fetch settings from controls
-	auto ModelExportFormat = RpakModelExportFormat::SEModel;
-	auto AnimExportFormat = RpakAnimExportFormat::SEAnim;
+	auto ModelExportFormat = RpakModelExportFormat::Cast;
+	auto AnimExportFormat = RpakAnimExportFormat::Cast;
 	auto ImageExportFormat = RpakImageExportFormat::Dds;
+	auto SubtitlesExportFormat = RpakSubtitlesExportFormat::CSV;
+
+	if (ThisPtr->ModelExportFormat->SelectedIndex() > -1)
+	{
+		switch (ThisPtr->ModelExportFormat->SelectedIndex())
+		{
+		case 1:
+			ModelExportFormat = RpakModelExportFormat::FBX;
+			break;
+		case 2:
+			ModelExportFormat = RpakModelExportFormat::Maya;
+			break;
+		case 3:
+			ModelExportFormat = RpakModelExportFormat::OBJ;
+			break;
+		case 4:
+			ModelExportFormat = RpakModelExportFormat::SEModel;
+			break;
+		case 5:
+			ModelExportFormat = RpakModelExportFormat::SMD;
+			break;
+		case 6:
+			ModelExportFormat = RpakModelExportFormat::XModel;
+			break;
+		case 7:
+			ModelExportFormat = RpakModelExportFormat::XNALaraText;
+			break;
+		case 8:
+			ModelExportFormat = RpakModelExportFormat::XNALaraBinary;
+			break;
+		}
+	}
+
+	if (ThisPtr->AnimExportFormat->SelectedIndex() > -1)
+	{
+		switch (ThisPtr->AnimExportFormat->SelectedIndex())
+		{
+		case 1:
+			AnimExportFormat = RpakAnimExportFormat::SEAnim;
+			break;
+		}
+	}
 
 	if (ThisPtr->ImageExportFormat->SelectedIndex() > -1)
 	{
@@ -388,62 +457,81 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		}
 	}
 
-	if (ThisPtr->ExportFBX->Checked())
-		ModelExportFormat = RpakModelExportFormat::FBX;
-	else if (ThisPtr->ExportMA->Checked())
-		ModelExportFormat = RpakModelExportFormat::Maya;
-	else if (ThisPtr->ExportOBJ->Checked())
-		ModelExportFormat = RpakModelExportFormat::OBJ;
-	else if (ThisPtr->ExportSMD->Checked())
-		ModelExportFormat = RpakModelExportFormat::SMD;
-	else if (ThisPtr->ExportXModel->Checked())
-		ModelExportFormat = RpakModelExportFormat::XModel;
-	else if (ThisPtr->ExportXNAAscii->Checked())
-		ModelExportFormat = RpakModelExportFormat::XNALaraText;
-	else if (ThisPtr->ExportXNABinary->Checked())
-		ModelExportFormat = RpakModelExportFormat::XNALaraBinary;
-	else if (ThisPtr->ExportSEModel->Checked())
-		ModelExportFormat = RpakModelExportFormat::SEModel;
-	else if (ThisPtr->ExportCastModel->Checked())
-		ModelExportFormat = RpakModelExportFormat::Cast;
-
-	if (ThisPtr->ExportCastAnim->Checked())
-		AnimExportFormat = RpakAnimExportFormat::Cast;
-	else if (ThisPtr->ExportSEAnim->Checked())
-		AnimExportFormat = RpakAnimExportFormat::SEAnim;
-
-	ExportManager::Config.Set<System::SettingType::Boolean>("LoadModels", ThisPtr->LoadModels->Checked());
-	ExportManager::Config.Set<System::SettingType::Boolean>("LoadAnimations", ThisPtr->LoadAnimations->Checked());
-	ExportManager::Config.Set<System::SettingType::Boolean>("LoadImages", ThisPtr->LoadImages->Checked());
-	ExportManager::Config.Set<System::SettingType::Boolean>("LoadMaterials", ThisPtr->LoadMaterials->Checked());
-	ExportManager::Config.Set<System::SettingType::Boolean>("LoadUIImages", ThisPtr->LoadUIImages->Checked());
-	ExportManager::Config.Set<System::SettingType::Boolean>("LoadDataTables", ThisPtr->LoadDataTables->Checked());
-	ExportManager::Config.Set<System::SettingType::Integer>("ModelFormat", (uint32_t)ModelExportFormat);
-	ExportManager::Config.Set<System::SettingType::Integer>("AnimFormat", (uint32_t)AnimExportFormat);
-	ExportManager::Config.Set<System::SettingType::Integer>("ImageFormat", (uint32_t)ImageExportFormat);
-
-	auto ExportDirectory = ThisPtr->ExportBrowseFolder->Text();
-
-	if (ExportDirectory == "Click on \"Browse\" to set a custom export directory")
+	if (ThisPtr->SubtitlesExportFormat->SelectedIndex() > -1)
 	{
-		ExportManager::Config.Remove<System::SettingType::String>("ExportDirectory");
-	}
-	else if (IO::Directory::Exists(ExportDirectory))
-	{
-		ExportManager::Config.Set<System::SettingType::String>("ExportDirectory", ExportDirectory.ToCString());
+		switch (ThisPtr->SubtitlesExportFormat->SelectedIndex())
+		{
+		case 1:
+			SubtitlesExportFormat = RpakSubtitlesExportFormat::TXT;
+			break;
+		}
 	}
 
-	ExportManager::SaveConfigToDisk();
+	// have the settings actually changed?
+	bool bAC = false;
+
+	if (!bAC && ThisPtr->LoadModels->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("LoadModels"))
+		bAC = true;
+	if (!bAC && ThisPtr->LoadAnimations->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("LoadAnimations"))
+		bAC = true;
+	if (!bAC && ThisPtr->LoadImages->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("LoadImages"))
+		bAC = true;
+	if (!bAC && ThisPtr->LoadMaterials->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("LoadMaterials"))
+		bAC = true;
+	if (!bAC && ThisPtr->LoadUIImages->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("LoadUIImages"))
+		bAC = true;
+	if (!bAC && ThisPtr->LoadDataTables->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("LoadDataTables"))
+		bAC = true;
+	if (!bAC && ThisPtr->ToggleOverwriting->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("OverwriteExistingFiles"))
+		bAC = true;
+
+	if (!bAC && (uint32_t)ModelExportFormat != ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"))
+		bAC = true;
+	if (!bAC && (uint32_t)AnimExportFormat != ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat"))
+		bAC = true;
+	if (!bAC && (uint32_t)ImageExportFormat != ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat"))
+		bAC = true;
+	if (!bAC && (uint32_t)SubtitlesExportFormat != ExportManager::Config.Get<System::SettingType::Integer>("SubtitlesFormat"))
+		bAC = true;
+
+	if (bAC)
+	{
+		ExportManager::Config.Set<System::SettingType::Boolean>("LoadModels", ThisPtr->LoadModels->Checked());
+		ExportManager::Config.Set<System::SettingType::Boolean>("LoadAnimations", ThisPtr->LoadAnimations->Checked());
+		ExportManager::Config.Set<System::SettingType::Boolean>("LoadImages", ThisPtr->LoadImages->Checked());
+		ExportManager::Config.Set<System::SettingType::Boolean>("LoadMaterials", ThisPtr->LoadMaterials->Checked());
+		ExportManager::Config.Set<System::SettingType::Boolean>("LoadUIImages", ThisPtr->LoadUIImages->Checked());
+		ExportManager::Config.Set<System::SettingType::Boolean>("LoadDataTables", ThisPtr->LoadDataTables->Checked());
+		ExportManager::Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", ThisPtr->ToggleOverwriting->Checked());
+		ExportManager::Config.Set<System::SettingType::Integer>("ModelFormat", (uint32_t)ModelExportFormat);
+		ExportManager::Config.Set<System::SettingType::Integer>("AnimFormat", (uint32_t)AnimExportFormat);
+		ExportManager::Config.Set<System::SettingType::Integer>("ImageFormat", (uint32_t)ImageExportFormat);
+		ExportManager::Config.Set<System::SettingType::Integer>("SubtitlesFormat", (uint32_t)SubtitlesExportFormat);
+
+		auto ExportDirectory = ThisPtr->ExportBrowseFolder->Text();
+
+		if (ExportDirectory == "Click on \"Browse\" to set a custom export directory")
+		{
+			ExportManager::Config.Remove<System::SettingType::String>("ExportDirectory");
+		}
+		else if (IO::Directory::Exists(ExportDirectory))
+		{
+			ExportManager::Config.Set<System::SettingType::String>("ExportDirectory", ExportDirectory.ToCString());
+		}
+
+		ExportManager::SaveConfigToDisk();
+		g_pLegionMain->RefreshView();
+	}
 }
 
-void LegionSettings::OnDonateClick(Forms::Control* Sender)
+void LegionSettings::OnGithubClick(Forms::Control* Sender)
 {
-	Diagnostics::Process::Start("https://forum.modme.co/donate/");
+	Diagnostics::Process::Start("https://github.com/r-ex/LegionPlus");
 }
 
-void LegionSettings::OnTwitterClick(Forms::Control* Sender)
+void LegionSettings::OnDiscordClick(Forms::Control* Sender)
 {
-	Diagnostics::Process::Start("https://twitter.com/dtzxporter");
+	Diagnostics::Process::Start("https://discord.gg/ADek6fxVGe");
 }
 
 void LegionSettings::OnBrowseClick(Forms::Control* Sender)
@@ -451,16 +539,15 @@ void LegionSettings::OnBrowseClick(Forms::Control* Sender)
 	auto ThisPtr = (LegionSettings*)Sender->FindForm();
 	auto ExportDirectory = ThisPtr->ExportBrowseFolder->Text();
 
-	printf("TODO(rx): LegionSettings::OnBrowseClick is stubbed.\n");
-	return;
-	//auto Result = OpenFileDialog::ShowFolderDialog("Select a folder to export assets to or press \"Cancel\" to reset back to default.", ExportDirectory != "Click on \"Browse\" to set a custom export directory" ? ExportDirectory : "", ThisPtr);
+	auto Result = OpenFileDialog::ShowFolderDialog("Select a folder to export assets to or press \"Cancel\" to reset back to default.", ExportDirectory != "Click on \"Browse\" to set a custom export directory" ? ExportDirectory : string(""), ThisPtr);
 
-	//if (Result == "" || Result.Length() == 0)
-	//{
-	//	ThisPtr->ExportBrowseFolder->SetText("Click on \"Browse\" to set a custom export directory");
-	//}
-	//else if (IO::Directory::Exists(Result))
-	//{
-	//	ThisPtr->ExportBrowseFolder->SetText(Result);
-	//}
+	if (Result == "" || Result.Length() == 0)
+	{
+		ThisPtr->ExportBrowseFolder->SetText("Click on \"Browse\" to set a custom export directory");
+	}
+	else if (IO::Directory::Exists(Result))
+	{
+		ThisPtr->ExportBrowseFolder->SetText(Result);
+	}
 }
+

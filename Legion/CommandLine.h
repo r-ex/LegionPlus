@@ -1,5 +1,4 @@
 #pragma once
-#include <wtypes.h>
 
 class CommandLine
 {
@@ -8,6 +7,7 @@ public:
     LPWSTR* argv;
 
     CommandLine(int nArgsCount, LPWSTR* args);
+    ~CommandLine();
 
     virtual int FindParam(LPWSTR psz) const;
 

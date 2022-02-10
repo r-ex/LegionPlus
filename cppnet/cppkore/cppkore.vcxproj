@@ -118,6 +118,7 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -177,6 +178,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Action.h" />
+    <ClInclude Include="Adler32.h" />
     <ClInclude Include="AnchorStyles.h" />
     <ClInclude Include="Animation.h" />
     <ClInclude Include="AnimationTypes.h" />
@@ -407,6 +409,7 @@
     <ClInclude Include="__ConsoleInit.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Adler32.cpp" />
     <ClCompile Include="Animation.cpp" />
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="AutodeskMaya.cpp" />

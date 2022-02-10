@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "MilesLib.h"
 #include "Kore.h"
 #include "XXHash.h"
@@ -97,6 +98,39 @@ struct MilesApexSourceEntry
 	uint32_t StreamDataSize2;
 };
 
+struct MilesApexS3SourceEntry
+{
+	char pad_0000[12]; //0x0000
+
+	uint16_t EntryLocal; //0x000C
+	uint16_t PatchIndex; //0x000E
+	
+	uint32_t NameOffset; //0x0010
+	
+	uint16_t SampleRate; //0x0014
+	uint16_t BitRate; //0x0016
+	
+	char pad_0018[2]; //0x0018
+	
+	uint8_t ChannelCount; //0x001A
+	
+	char pad_001B[21]; //0x001B
+	
+	uint32_t StreamHeaderSize; //0x0030
+	uint32_t StreamDataSize; //0x0034
+	uint64_t StreamHeaderOffset; //0x0038
+	uint64_t StreamDataOffset; //0x0040
+	
+	char pad_0048[4]; //0x0048
+	
+	uint32_t TemplateId; //0x004C
+	
+	char pad_0050[4]; //0x0050
+	
+	uint32_t StreamDataSize2; //0x0054
+};
+static_assert(sizeof(MilesApexS3SourceEntry) == 0x58);
+
 struct MilesTitanfallSourceEntry
 {
 	uint64_t UnknownZero;
@@ -138,6 +172,7 @@ struct MilesTitanfallSourceEntry
 
 	uint32_t StreamDataSize2;
 };
+static_assert(sizeof(MilesTitanfallSourceEntry) == 0x58);
 
 struct MilesStreamBankHeader
 {
@@ -199,6 +234,11 @@ static uint32_t MilesReadFileStream(char* Buffer, uint64_t Length, void* UserDat
 	return (uint32_t)TotalRead;
 }
 
+static uint32_t MilesReadFileStream_TF2(void* UserData, char* Buffer, uint64_t Length)
+{
+	return MilesReadFileStream(Buffer, Length, UserData);
+}
+
 void MilesLib::Initialize()
 {
 }
@@ -224,12 +264,16 @@ void MilesLib::MountBank(const string& Path)
 
 	if (BankHeader.Version == 0xD)
 	{
-		List<MilesTitanfallSourceEntry> Sources(BankHeader.EventCount, true);
-		ReaderStream->Read((uint8_t*)&Sources[0], 0, sizeof(MilesTitanfallSourceEntry) * BankHeader.EventCount);
+		// TF|2
+		ReaderStream->SetPosition(*(uint64_t*)(uintptr_t(&BankHeader) + 0x48));
+		const auto SourcesCount = *(uint32_t*)(uintptr_t(&BankHeader) + 0xA0);
+		const auto NameTableOffset = *(uint64_t*)(uintptr_t(&BankHeader) + 0x70);
+		List<MilesTitanfallSourceEntry> Sources(SourcesCount, true);
+		ReaderStream->Read((uint8_t*)&Sources[0], 0, sizeof(MilesTitanfallSourceEntry) * SourcesCount);
 
 		for (auto& Entry : Sources)
 		{
-			ReaderStream->SetPosition(BankHeader.NameTableOffset + Entry.NameOffset);
+			ReaderStream->SetPosition(NameTableOffset + Entry.NameOffset);
 
 			auto Name = Reader.ReadCString();
 			
@@ -239,18 +283,41 @@ void MilesLib::MountBank(const string& Path)
 	}
 	else
 	{
+		if (BankHeader.Version == 40) {
+			// S11.1
+			List<MilesApexSourceEntry> Sources(BankHeader.SourcesCount, true);
+			ReaderStream->Read((uint8_t*)&Sources[0], 0, sizeof(MilesApexSourceEntry) * BankHeader.SourcesCount);
 
-		List<MilesApexSourceEntry> Sources(BankHeader.SourcesCount, true);
-		ReaderStream->Read((uint8_t*)&Sources[0], 0, sizeof(MilesApexSourceEntry) * BankHeader.SourcesCount);
+			for (auto& Entry : Sources)
+			{
+				ReaderStream->SetPosition(BankHeader.NameTableOffset + Entry.NameOffset);
 
-		for (auto& Entry : Sources)
-		{
-			ReaderStream->SetPosition(BankHeader.NameTableOffset + Entry.NameOffset);
+				auto Name = Reader.ReadCString();
 
-			auto Name = Reader.ReadCString();
+				MilesAudioAsset Asset{ Name, Entry.SampleRate, Entry.ChannelCount, Entry.StreamHeaderOffset, Entry.StreamHeaderSize, Entry.StreamDataOffset, Entry.StreamDataSize, Entry.PatchIndex, (uint32_t)Entry.EntryLocal };
+				Assets.Add(Hashing::XXHash::HashString(Name), Asset);
+			}
+		}
+		else if (BankHeader.Version == 32) {
+			// S3
+			ReaderStream->SetPosition(*(uint64_t*)(uintptr_t(&BankHeader) + 0x48));
+			const auto SourcesCount = *(uint32_t*)(uintptr_t(&BankHeader) + 0x98);
+			const auto NameTableOffset = *(uint64_t*)(uintptr_t(&BankHeader) + 0x70);
+			List<MilesApexS3SourceEntry> Sources(SourcesCount, true);
+			ReaderStream->Read((uint8_t*)&Sources[0], 0, sizeof(MilesApexS3SourceEntry) * SourcesCount);
 
-			MilesAudioAsset Asset{ Name, Entry.SampleRate, Entry.ChannelCount, Entry.StreamHeaderOffset, Entry.StreamHeaderSize, Entry.StreamDataOffset, Entry.StreamDataSize, Entry.PatchIndex, (uint32_t)Entry.EntryLocal };
-			Assets.Add(Hashing::XXHash::HashString(Name), Asset);
+			for (auto& Entry : Sources)
+			{
+				ReaderStream->SetPosition(NameTableOffset + Entry.NameOffset);
+
+				auto Name = Reader.ReadCString();
+
+				MilesAudioAsset Asset{ Name, Entry.SampleRate, Entry.ChannelCount, Entry.StreamHeaderOffset, Entry.StreamHeaderSize, Entry.StreamDataOffset, Entry.StreamDataSize, Entry.PatchIndex, (uint32_t)Entry.EntryLocal };
+				Assets.Add(Hashing::XXHash::HashString(Name), Asset);
+			}
+		}
+		else {
+			throw new std::exception("Unknown MBNK version!");
 		}
 	}
 
@@ -268,8 +335,225 @@ void MilesLib::MountBank(const string& Path)
 	}
 }
 
-void MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath)
+bool MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath)
 {
+	uint32_t KeyIndex = ((uint32_t)Asset.LocalizeIndex << 16) + Asset.PatchIndex;
+	if (!StreamBanks.ContainsKey(KeyIndex))
+		return false;
+	
+	const auto& Bank = StreamBanks[KeyIndex];
+	auto Reader = IO::BinaryReader(IO::File::OpenRead(Bank.Path));
+	auto ReaderStream = Reader.GetBaseStream();
+
+	static uintptr_t binkawin = 0;
+	if (!binkawin) {
+		binkawin = (uintptr_t)LoadLibraryA("binkawin64.dll");
+	}
+	if (!binkawin)
+	{
+		//throw new std::exception("Failed to load binkawin64.dll!");
+		g_Logger.Warning("!!! - Unable to export audio asset: Failed to load binkawin64.dll (make sure binkawin64.dll and mileswin64.dll are in the same folder as LegionPlus.exe)\n");
+		return false;
+	}
+
+
+	// Dynamically get a table
+	static uintptr_t binka = 0;
+	if (!binka) {
+		const auto proc = uintptr_t(GetProcAddress(HMODULE(binkawin), "MilesDriverRegisterBinkAudio")) + 3;
+
+		if (proc == 3)
+			return false;
+
+		const auto offset = *(uint32_t*)proc;
+		binka = proc + 4 + offset;
+	}
+
+	// Determine if version is supported or not...
+	static bool check = false;
+	static bool version_tf2 = false;
+	static bool version_retail = false;
+	if (!check) {
+		if ((*(uintptr_t*)(binka + 7 * 8) != 0) && (*(uintptr_t*)(binka + 7 * 8) != 0x0A09080605040302)) {
+			version_retail = true;
+			check = true;
+		}
+		else {
+			const auto dosHeader = PIMAGE_DOS_HEADER(binkawin);
+			const auto imageNTHeaders = PIMAGE_NT_HEADERS(binkawin + dosHeader->e_lfanew);
+			version_tf2 = (imageNTHeaders->FileHeader.TimeDateStamp <= 0x57E48A0C);
+			check = true;
+		}
+	}
+
+	// function types in the table
+	using metadata_f_t = uintptr_t(__fastcall*)(void* data, size_t size, uint16_t* channels, uint32_t* sample_rate, uint32_t* samples_count, uint32_t* adw4);
+	
+	using open_stream_f_t = uintptr_t(__fastcall*)(void* data, void*, void* reader, void* user_data);
+	using open_stream_tf2_f_t = uintptr_t(__fastcall*)(void* user_data, void* data, void*, void* reader);
+	
+	using decoder_f_t = size_t(__fastcall*)(void* data, void* decoded, size_t size, size_t size2, void* reader, void* user_data);
+	using deocder_tf2_f_t = size_t(__fastcall*)(void* user_data, void* data, void* decoded, size_t size, void* reader);
+
+	using unk20_f_t = size_t(__fastcall*)(void* data, uint32_t a2, uint32_t* a3, uint32_t* a4);
+	using unk18_f_t = size_t(__fastcall*)(void* data);
+
+	// !!!NEW!!!
+	using gbs_f_t = size_t(__fastcall*)(void* data, void* stream_data, size_t stream_data_size, uint32_t* consumed, uint32_t* block_size, uint32_t* required_size);
+	using decoder_new_f_t = size_t(__fastcall*)(void* data, void* stream_data, size_t stream_data_len, void* out_data, size_t out_data_size, uint32_t* consumed, uint32_t* samples);
+
+	const auto metadata = *(metadata_f_t*)(binka + 8);
+	uint16_t channels;
+	uint32_t sample_rate, samples_count;
+	uint32_t adw4[4];
+	uint8_t header[24];
+	ReaderStream->SetPosition(Asset.PreloadOffset);
+	ReaderStream->Read(header, 0, sizeof(header));
+	metadata(header, sizeof(header), &channels, &sample_rate, &samples_count, adw4);
+
+	ReaderStream->SetPosition(Asset.PreloadOffset);
+	auto allocd = std::vector<uint8_t>(adw4[0], 0);
+	BinkASIReader UserData{ &Reader, 0, Asset.PreloadSize, Asset.StreamOffset + Bank.StreamDataOffset, 0 };
+	if (version_tf2) {
+		// Let's hope someone won't use some old ass lib which doesn't expect the right header
+		const auto open_stream = *(open_stream_tf2_f_t*)(binka + 16);
+		open_stream(&UserData, allocd.data(), nullptr, MilesReadFileStream_TF2);
+	}
+	else {
+		// we assume it's S3, this is the same that OG Legion uses...
+		const auto open_stream = *(open_stream_f_t*)(binka + 16);
+		// TODO: error check - should return 2
+		open_stream(allocd.data(), nullptr, MilesReadFileStream, &UserData);
+	}
+
+	/*{
+		const auto unk20 = *(unk20_f_t*)(binka + 40);
+		uint32_t tmp;
+		unk20(allocd.data(), 0, &tmp, nullptr);
+	}*/
+	// Reset blending frames
+	if (version_retail) {
+		const auto blend = *(unk18_f_t*)(binka + 24);
+		blend(allocd.data());
+	}
+	else {
+		const auto unk18 = *(unk18_f_t*)(binka + 32);
+		unk18(allocd.data());
+	}
+
+	UserData.DataStreamSize = *(uint32_t*)(allocd.data() + 16ull) - Asset.PreloadSize;
+
+	size_t decoded_size = channels * 64ull;
+	if (version_retail) {
+		// We can't make any mistake in the size...
+		// I think that's the pure max?
+		decoded_size = channels * adw4[2];
+	}
+	auto decoded = std::vector<float>(version_retail ? 0 : decoded_size);
+	auto decoded_desh = std::vector<float>(version_retail ? 0 : decoded_size);
+	auto decoded_short = std::vector<uint16_t>(version_retail ? decoded_size : 0);
+
+	size_t ret = 0;
+	// TODO: potentially break on hitting the required sample count?
+	auto Writer = IO::File::OpenWrite(FilePath);
+
+	WAVEHEADER hdr;
+
+	uint64_t DataSize = 0;
+
+	Writer->Write((uint8_t*)&hdr, 0, sizeof(WAVEHEADER));
+
+	std::vector<char> stream_data(8);
+
+	do {
+		if (version_retail) {
+			// Welcome to my cult where we perform this ritual...
+
+			// Read first 8 bytes...
+			MilesReadFileStream(stream_data.data(), 8, &UserData);
+
+			// Get required block size
+			const auto get_block_size = *(gbs_f_t*)(binka + 7*8);
+			uint32_t consumed, block_size, req;
+			get_block_size(allocd.data(), stream_data.data(), 8, &consumed, &block_size, &req);
+
+			if (block_size == 65535) {
+				break;
+			}
+
+			if (block_size > (UserData.HeaderSize + UserData.DataStreamSize - UserData.DataRead)) {
+				break;
+			}
+
+			// Resize and read everything else, allocation will happen ONLY if new_size>capacity
+			stream_data.resize(block_size);
+			MilesReadFileStream(stream_data.data() + 8, block_size - 8, &UserData);
+
+			// Now we can finally decode...
+			const auto decode = *(decoder_new_f_t*)(binka + 6*8);
+			uint32_t consumed_decode, samples;
+			decode(allocd.data(), stream_data.data(), stream_data.size(), decoded_short.data(), decoded_short.size(), &consumed_decode, &samples);
+			ret = samples * channels; // ???
+
+			// Debug assert?
+			assert(consumed_decode == block_size);
+
+			// Resize just to be safe...
+			stream_data.resize(8);
+		}
+		else if (version_tf2) {
+			const auto decode = *(deocder_tf2_f_t*)(binka + 24);
+			ret = decode(&UserData, allocd.data(), decoded.data(), 64, MilesReadFileStream_TF2);
+		}
+		else {
+			const auto decode = *(decoder_f_t*)(binka + 24);
+			ret = decode(allocd.data(), decoded.data(), 64, 64, MilesReadFileStream, &UserData);
+		}
+
+		if (!version_retail) {
+			size_t desh_pos = 0;
+			for (size_t j = 0; j < 4; j++) {
+				for (size_t i = 0; i < 16; i++) {
+					for (size_t chan = 0; chan < channels; chan++) {
+						decoded_desh[desh_pos++] = decoded[(j * 16) + i + (chan * 64)];
+					}
+				}
+			}
+		}
+
+		if (ret > 0) {
+			if (version_retail) {
+				DataSize += ret * 2;
+				Writer->Write((uint8_t*)decoded_short.data(), 0, ret * 2);
+			}
+			else {
+				DataSize += decoded_desh.size() * 4;
+				Writer->Write((uint8_t*)decoded_desh.data(), 0, decoded_desh.size() * 4);
+			}
+		}
+	} while ((ret == 64) || (version_retail && ret));
+
+	hdr.size = DataSize + 36;
+
+	hdr.fmt.channels = channels;
+	hdr.fmt.sampleRate = sample_rate;
+	hdr.fmt.avgBytesPerSecond = DataSize / ((float)samples_count / sample_rate);
+	hdr.fmt.blockAlign = DataSize / samples_count;
+	hdr.fmt.bitsPerSample = ((DataSize * 8) / samples_count)/channels;
+
+	hdr.data.chunkSize = DataSize;
+
+	if (version_retail) {
+		// Yes, this is required, don't ask me why
+		hdr.fmt.formatTag = 1; // WAVE_FORMAT_PCM
+		hdr.fmt.blockAlign = 2 * channels;
+		hdr.fmt.bitsPerSample = 16;
+	}
+
+	Writer->Seek(0, IO::SeekOrigin::Begin);
+
+	Writer->Write((uint8_t*)&hdr, 0, sizeof(WAVEHEADER));
+	return true;
 }
 
 std::unique_ptr<List<ApexAsset>> MilesLib::BuildAssetList()

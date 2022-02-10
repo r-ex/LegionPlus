@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "LegionMain.h"
 
 #include "UIXButton.h"
@@ -10,6 +11,7 @@
 LegionMain::LegionMain()
 	: Forms::Form(), IsInExportMode(false)
 {
+	g_pLegionMain = this;
 	this->InitializeComponent();
 }
 
@@ -18,14 +20,14 @@ void LegionMain::InitializeComponent()
 	this->SuspendLayout();
 	this->SetAutoScaleDimensions({ 6, 13 });
 	this->SetAutoScaleMode(Forms::AutoScaleMode::Font);
-	this->SetText("Legion");
+	this->SetText("Legion+");
 	this->SetClientSize({ 775, 481 });
 	this->SetMinimumSize({ 791, 520 });
 	this->SetStartPosition(Forms::FormStartPosition::CenterScreen);
 
 	this->TitanfallConverterButton = new UIX::UIXButton();
 	this->TitanfallConverterButton->SetSize({ 78, 27 });
-	this->TitanfallConverterButton->SetLocation({ 290, 442 });
+	this->TitanfallConverterButton->SetLocation({ 290, 446 });
 	this->TitanfallConverterButton->SetTabIndex(9);
 	this->TitanfallConverterButton->SetText("Titanfall 2");
 	this->TitanfallConverterButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
@@ -34,7 +36,7 @@ void LegionMain::InitializeComponent()
 
 	this->RefreshAssetsButton = new UIX::UIXButton();
 	this->RefreshAssetsButton->SetSize({ 78, 27 });
-	this->RefreshAssetsButton->SetLocation({ 374, 442 });
+	this->RefreshAssetsButton->SetLocation({ 374, 446 });
 	this->RefreshAssetsButton->SetTabIndex(9);
 	this->RefreshAssetsButton->SetText("Refresh");
 	this->RefreshAssetsButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
@@ -79,7 +81,7 @@ void LegionMain::InitializeComponent()
 
 	this->ExportAllButton = new UIX::UIXButton();
 	this->ExportAllButton->SetSize({ 78, 27 });
-	this->ExportAllButton->SetLocation({ 206, 442 });
+	this->ExportAllButton->SetLocation({ 206, 446});
 	this->ExportAllButton->SetTabIndex(4);
 	this->ExportAllButton->SetText("Export All");
 	this->ExportAllButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
@@ -88,7 +90,7 @@ void LegionMain::InitializeComponent()
 
 	this->ExportSelectedButton = new UIX::UIXButton();
 	this->ExportSelectedButton->SetSize({ 97, 27 });
-	this->ExportSelectedButton->SetLocation({ 103, 442 });
+	this->ExportSelectedButton->SetLocation({ 103, 446});
 	this->ExportSelectedButton->SetTabIndex(3);
 	this->ExportSelectedButton->SetText("Export Selected");
 	this->ExportSelectedButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
@@ -97,7 +99,7 @@ void LegionMain::InitializeComponent()
 
 	this->LoadRPakButton = new UIX::UIXButton();
 	this->LoadRPakButton->SetSize({ 85, 27 });
-	this->LoadRPakButton->SetLocation({ 12, 442 });
+	this->LoadRPakButton->SetLocation({ 12, 446});
 	this->LoadRPakButton->SetTabIndex(2);
 	this->LoadRPakButton->SetText("Load File");
 	this->LoadRPakButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
@@ -106,12 +108,11 @@ void LegionMain::InitializeComponent()
 
 	this->SettingsButton = new UIX::UIXButton();
 	this->SettingsButton->SetSize({ 80, 27 });
-	this->SettingsButton->SetLocation({ 683, 442 });
+	this->SettingsButton->SetLocation({ 683, 446});
 	this->SettingsButton->SetTabIndex(1);
 	this->SettingsButton->SetText("Settings");
 	this->SettingsButton->Click += &OnSettingsClick;
 	this->SettingsButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Right);
-
 	this->AddControl(this->SettingsButton);
 
 	this->AssetsListView = new UIX::UIXListView();
@@ -128,6 +129,7 @@ void LegionMain::InitializeComponent()
 	this->AssetsListView->SetFullRowSelect(true);
 	this->AssetsListView->VirtualItemsSelectionRangeChanged += &OnSelectedIndicesChanged;
 	this->AssetsListView->DoubleClick += &OnListDoubleClick;
+	this->AssetsListView->MouseClick += &OnListRightClick;
 	this->AssetsListView->KeyUp += &OnListKeyUp;
 	this->AssetsListView->KeyPress += &OnListKeyPressed;
 	this->AddControl(this->AssetsListView);
@@ -137,7 +139,8 @@ void LegionMain::InitializeComponent()
 
 
 	this->AssetsListView->RetrieveVirtualItem += &GetVirtualItem;
-	this->SetBackColor({ 30, 32, 55 });
+	//this->SetBackColor({ 30, 32, 55 });
+	this->SetBackColor({ 33, 33, 33 });
 }
 
 void LegionMain::LoadApexFile(const List<string>& File)
@@ -169,7 +172,7 @@ void LegionMain::LoadApexFile(const List<string>& File)
 			{
 				ThisPtr->Invoke([]()
 				{
-					Forms::MessageBox::Show("An error occured while loading the RPak.", "Legion", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
+					Forms::MessageBox::Show("An error occured while loading the RPak.", "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
 				});
 				ThisPtr->StatusLabel->SetText("Idle");
 			}
@@ -182,20 +185,25 @@ void LegionMain::LoadApexFile(const List<string>& File)
 
 			try
 			{
-				ThisPtr->RpakFileSystem->InitializeImageExporter((RpakImageExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat"));
+				if (ThisPtr->RpakFileSystem != nullptr)
+				{
+					ThisPtr->RpakFileSystem->InitializeImageExporter((RpakImageExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat"));
+					ThisPtr->RpakFileSystem->InitializeModelExporter((RpakModelExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"));
+				}
 				BspLibrary->InitializeModelExporter((RpakModelExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"));
 				BspLibrary->ExportBsp(ThisPtr->RpakFileSystem, ThisPtr->LoadPath[0], ExportManager::GetMapExportPath());
 
 				ThisPtr->Invoke([]()
 				{
-					Forms::MessageBox::Show("Successfully exported the bsp map file.", "Legion", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Information);
+					Forms::MessageBox::Show("Successfully exported the bsp map file.", "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Information);
 				});
+				ThisPtr->StatusLabel->SetText("Idle");
 			}
 			catch (...)
 			{
 				ThisPtr->Invoke([]()
 				{
-					Forms::MessageBox::Show("An error occured while exporting the bsp file.", "Legion", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
+					Forms::MessageBox::Show("An error occurred while exporting the bsp file.", "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
 				});
 			}
 
@@ -219,7 +227,7 @@ void LegionMain::LoadApexFile(const List<string>& File)
 			{
 				ThisPtr->Invoke([]()
 				{
-					Forms::MessageBox::Show("An error occured while loading the MBNK.", "Legion", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
+					Forms::MessageBox::Show("An error occured while loading the MBNK.", "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
 				});
 				ThisPtr->StatusLabel->SetText("Idle");
 			}
@@ -240,7 +248,7 @@ void LegionMain::ExportSelectedAssets()
 
 	if (SelectedIndices.Count() == 0)
 	{
-		Forms::MessageBox::Show("Please select at least one asset to export.", "Legion", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Information);
+		Forms::MessageBox::Show("Please select at least one asset to export.", "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Information);
 		return;
 	}
 
@@ -279,7 +287,7 @@ void LegionMain::ExportAllAssets()
 
 	if (this->DisplayIndices.Count() == 0)
 	{
-		Forms::MessageBox::Show("Please find some assets to export.", "Legion", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Information);
+		Forms::MessageBox::Show("Please find some assets to export.", "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Information);
 		return;
 	}
 
@@ -443,6 +451,11 @@ bool LegionMain::CheckStatus(int32_t AssetIndex)
 	return (this->ProgressWindow != nullptr) ? this->ProgressWindow->IsCanceled() : false;
 }
 
+void LegionMain::SetAssetError(int32_t AssetIndex)
+{
+	(*this->LoadedAssets)[this->DisplayIndices[AssetIndex]].Status = ApexAssetStatus::Error;
+}
+
 void LegionMain::DoPreviewSwap()
 {
 	if (!this->RpakFileSystem || !this->PreviewWindow || this->PreviewWindow->GetHandle() == nullptr)
@@ -467,23 +480,21 @@ void LegionMain::DoPreviewSwap()
 	break;
 	case ApexAssetType::Image:
 	{
-		auto Txt = this->RpakFileSystem->BuildPreviewTexture(Asset.Hash);
-		if (Txt == nullptr)
+		auto Texture = this->RpakFileSystem->BuildPreviewTexture(Asset.Hash);
+		if (Texture == nullptr)
 			return;
-		this->PreviewWindow->AssignPreviewImage(*Txt.get(), Asset.Name);
+		this->PreviewWindow->AssignPreviewImage(*Texture.get(), Asset.Name);
 	}
 	break;
 	case ApexAssetType::Material:
 	{
-		auto Txt = this->RpakFileSystem->BuildPreviewMaterial(Asset.Hash);
-		if (Txt == nullptr)
+		auto Material = this->RpakFileSystem->BuildPreviewMaterial(Asset.Hash);
+		if (Material == nullptr)
 			return;
-		this->PreviewWindow->AssignPreviewImage(*Txt.get(), Asset.Name);
+		this->PreviewWindow->AssignPreviewImage(*Material.get(), Asset.Name);
 	}
 	break;
 	}
-
-
 }
 
 std::unique_ptr<Assets::Texture> LegionMain::MaterialStreamCallback(string Source, uint64_t Hash)
@@ -495,6 +506,8 @@ std::unique_ptr<Assets::Texture> LegionMain::MaterialStreamCallback(string Sourc
 
 void LegionMain::RefreshView()
 {
+	auto SearchText = this->SearchBox->Text();
+
 	if (this->RpakFileSystem != nullptr)
 	{
 		this->AssetsListView->SetVirtualListSize(0);
@@ -520,6 +533,16 @@ void LegionMain::RefreshView()
 
 		this->ResetDisplayIndices();
 	}
+	
+	// restore the search box's text after refreshing
+	// yes this makes the window flash when refreshing as it performs the search
+	if (SearchText.Length() > 0)
+	{
+		this->SearchBox->SetText(SearchText);
+
+		this->SearchForAssets();
+	}
+
 }
 
 void LegionMain::ResetDisplayIndices()
@@ -545,28 +568,21 @@ void LegionMain::OnLoadClick(Forms::Control* Sender)
 {
 	auto ThisPtr = (LegionMain*)Sender->FindForm();
 
-	List<string> OpenFileD;
-	if (ThisPtr->RpakFileSystem != nullptr)
-	{
-		OpenFileD =  OpenFileDialog::ShowMultiFileDialog("Legion: Select file(s) to load", "", "Apex Legends Files (MBnk, RPak, Bsp)|*.mbnk;*.rpak;*.bsp", Sender->FindForm());
-	}
-	else
-	{
-		OpenFileD = OpenFileDialog::ShowMultiFileDialog("Legion: Select file(s) to load", "", "Apex Legends Files (MBnk, RPak)|*.mbnk;*.rpak;", Sender->FindForm());
-	}
+	List<string> OpenFileD = OpenFileDialog::ShowMultiFileDialog("Legion+: Select file(s) to load", "", "Apex Legends Files (MBnk, RPak, Bsp)|*.mbnk;*.rpak;*.bsp", Sender->FindForm());
 
-	printf("OpenFileD.Count() == %i\n", OpenFileD.Count());
+	g_Logger.Info("OpenFileD.Count() == %i\n", OpenFileD.Count());
 
 	for (int i = 0; i < OpenFileD.Count(); i++)
 	{
-		printf("Load rpak: %s\n", OpenFileD[i].ToCString());
+		g_Logger.Info("Load rpak: %s\n", OpenFileD[i].ToCString());
 	}
 
 	if (OpenFileD.Count() == 0)
 		return;
-	else if (OpenFileD.Count() > MAX_LOADED_RPAKS)
+	else if (OpenFileD.Count() > MAX_LOADED_FILES)
 	{
-		MessageBox::Show("Please select 4 or less files, Legion will run out of memory processing all of the files at once.", "Legion", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
+		string msg = string::Format("Please select %i or fewer files.", MAX_LOADED_FILES);
+		MessageBox::Show(msg, "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
 		return;
 	}
 
@@ -610,6 +626,56 @@ void LegionMain::OnRefreshClick(Forms::Control* Sender)
 	auto ThisPtr = (LegionMain*)Sender->FindForm();
 
 	ThisPtr->RefreshView();
+}
+
+void CopyStringToClipboard(std::string s, HWND hWnd)
+{
+	HANDLE hData = GlobalAlloc(GMEM_FIXED, s.length()+1);
+	memcpy_s(hData, s.length() + 1, s.c_str(), s.length() + 1);
+	GlobalLock(hData);
+
+	OpenClipboard(hWnd);
+	EmptyClipboard();
+	SetClipboardData(CF_TEXT, hData);
+	CloseClipboard();
+
+	GlobalUnlock(hData);
+	GlobalFree(hData);
+}
+
+void LegionMain::OnListRightClick(const std::unique_ptr<MouseEventArgs>& EventArgs, Forms::Control* Sender)
+{
+	if (EventArgs->Button != Forms::MouseButtons::Right)
+		return;
+
+	// CopyStringToClipboard causes a heap corruption
+
+	auto ThisPtr = ((LegionMain*)Sender->FindForm());
+	auto AssetsListView = ThisPtr->AssetsListView;
+
+	auto SelectedIndices = AssetsListView->SelectedIndices();
+	std::string yes = "";
+
+	g_Logger.Info("selected asset names:\n");
+	for (uint32_t i = 0; i < SelectedIndices.Count(); i++)
+	{
+		auto& DisplayIndex = ThisPtr->DisplayIndices[SelectedIndices[i]];
+		auto& Asset = (*ThisPtr->LoadedAssets.get())[DisplayIndex];
+
+		printf(Asset.Name + "\n");
+
+		//if (i != SelectedIndices.Count() - 1)
+		//	yes += Asset.Name + "\n";
+		//else
+		//	yes += Asset.Name;
+	}
+
+
+	return;
+
+	CopyStringToClipboard(yes, Sender->GetHandle());
+
+	g_Logger.Info("copying %i asset name%s to clipboard\n", SelectedIndices.Count(), SelectedIndices.Count() == 1 ? "" : "s");
 }
 
 void LegionMain::OnListDoubleClick(Forms::Control* Sender)
@@ -710,23 +776,25 @@ void LegionMain::GetVirtualItem(const std::unique_ptr<Forms::RetrieveVirtualItem
 
 	auto RemappedDisplayIndex = ThisPtr->DisplayIndices[EventArgs->ItemIndex];
 
-	static const char* AssetTypes[] = { "Model", "AnimationSet", "Image", "Material", "DataTable", "Sound" };
+	static const char* AssetTypes[] = { "Model", "AnimationSet", "Image", "Material", "DataTable", "Sound", "Subtitles"};
 	static const Drawing::Color AssetTypesColors[] = 
 	{
 		Drawing::Color(0, 157, 220), // Model
 		Drawing::Color(219, 80, 74), // AnimationSet
 		Drawing::Color(202, 97, 195),// Image
 		Drawing::Color(27, 153, 139),// Material
-		Drawing::Color(216, 30, 91), // DataTable
-		Drawing::Color(216, 30, 91)  // Sound
+		Drawing::Color(211, 7, 247), // DataTable
+		Drawing::Color(216, 30, 91), // Sound,
+		Drawing::Color(239, 130, 13),// Subtitles
 	};
 
-	static const char* AssetStatus[] = { "Loaded", "Exporting", "Exported" };
+	static const char* AssetStatus[] = { "Loaded", "Exporting", "Exported", "Error" };
 	static const Drawing::Color AssetStatusColors[] = 
 	{
-		Drawing::Color(35, 206, 107),
+		Drawing::Color(35,  206, 107),
 		Drawing::Color(144, 122, 214),
-		Drawing::Color(33, 184, 235)
+		Drawing::Color(33,  184, 235),
+		Drawing::Color(255, 102, 102),
 	};
 
 	auto AssetList = ThisPtr->LoadedAssets.get();
@@ -763,3 +831,5 @@ bool LegionMain::CheckStatusCallback(int32_t AssetIndex, Forms::Form* MainForm)
 {
 	return ((LegionMain*)MainForm)->CheckStatus(AssetIndex);
 }
+
+LegionMain* g_pLegionMain;

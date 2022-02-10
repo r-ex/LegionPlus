@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "LegionProgress.h"
 
 LegionProgress::LegionProgress()
@@ -15,7 +16,7 @@ void LegionProgress::UpdateProgress(uint32_t Progress, bool Finished)
 		this->FinishButton->SetEnabled(true);
 		this->CancelButton->SetEnabled(false);
 		this->CanClose = true;
-		this->SetText("Legion | Export Complete");
+		this->SetText("Legion+ | Export Complete");
 
 		if (this->Canceled || this->AutoClose)
 			this->Close();
@@ -37,7 +38,7 @@ void LegionProgress::InitializeComponent()
 	this->SuspendLayout();
 	this->SetAutoScaleDimensions({ 6, 13 });
 	this->SetAutoScaleMode(Forms::AutoScaleMode::Font);
-	this->SetText("Legion | Exporting Assets...");
+	this->SetText("Legion+ | Exporting Assets...");
 	this->SetClientSize({ 409, 119 });
 	this->SetFormBorderStyle(Forms::FormBorderStyle::FixedSingle);
 	this->SetStartPosition(Forms::FormStartPosition::CenterParent);
@@ -84,7 +85,8 @@ void LegionProgress::InitializeComponent()
 	this->PerformLayout();
 	// END DESIGNER CODE
 
-	this->SetBackColor({ 30, 32, 55 });
+	//this->SetBackColor({ 30, 32, 55 });
+	this->SetBackColor({ 32, 32, 22 });
 }
 
 void LegionProgress::OnFinishClick(Forms::Control* Sender)

@@ -1,11 +1,11 @@
+#include "pch.h"
 #include "ExportManager.h"
 #include "ParallelTask.h"
 #include "Path.h"
 #include "Directory.h"
 #include "File.h"
 #include "Environment.h"
-#include <atomic>
-#include <mutex>
+#include "LegionMain.h"
 
 System::Settings ExportManager::Config = System::Settings();
 string ExportManager::ApplicationPath = "";
@@ -15,14 +15,14 @@ void ExportManager::InitializeExporter()
 {
 	ApplicationPath = System::Environment::GetApplicationPath();
 
-	auto ConfigPath = IO::Path::Combine(ApplicationPath, "Legion.cfg");
+	auto ConfigPath = IO::Path::Combine(ApplicationPath, "LegionPlus.cfg");
 
 	if (IO::File::Exists(ConfigPath))
 	{
 		Config.Load(ConfigPath);
 	}
 
-	if (!Config.Has<System::SettingType::String>("ExportDirectory"))
+	if (!Config.Has("ExportDirectory"))
 	{
 		ExportPath = IO::Path::Combine(ApplicationPath, "exported_files");
 	}
@@ -41,25 +41,27 @@ void ExportManager::InitializeExporter()
 		}
 	}
 
-	if (!Config.Has<System::SettingType::Integer>("ModelFormat"))
-		Config.Set<System::SettingType::Integer>("ModelFormat", (uint32_t)RpakModelExportFormat::SEModel);
-	if (!Config.Has<System::SettingType::Integer>("AnimFormat"))
-		Config.Set<System::SettingType::Integer>("AnimFormat", (uint32_t)RpakAnimExportFormat::SEAnim);
-	if (!Config.Has<System::SettingType::Integer>("ImageFormat"))
+	if (!Config.Has("ModelFormat"))
+		Config.Set<System::SettingType::Integer>("ModelFormat", (uint32_t)RpakModelExportFormat::Cast);
+	if (!Config.Has("AnimFormat"))
+		Config.Set<System::SettingType::Integer>("AnimFormat", (uint32_t)RpakAnimExportFormat::Cast);
+	if (!Config.Has("ImageFormat"))
 		Config.Set<System::SettingType::Integer>("ImageFormat", (uint32_t)RpakImageExportFormat::Dds);
 
-	if (!Config.Has<System::SettingType::Boolean>("LoadModels"))
+	if (!Config.Has("LoadModels"))
 		Config.Set<System::SettingType::Boolean>("LoadModels", true);
-	if (!Config.Has<System::SettingType::Boolean>("LoadAnimations"))
+	if (!Config.Has("LoadAnimations"))
 		Config.Set<System::SettingType::Boolean>("LoadAnimations", true);
-	if (!Config.Has<System::SettingType::Boolean>("LoadImages"))
+	if (!Config.Has("LoadImages"))
 		Config.Set<System::SettingType::Boolean>("LoadImages", true);
-	if (!Config.Has<System::SettingType::Boolean>("LoadMaterials"))
+	if (!Config.Has("LoadMaterials"))
 		Config.Set<System::SettingType::Boolean>("LoadMaterials", true);
-	if (!Config.Has<System::SettingType::Boolean>("LoadUIImages"))
+	if (!Config.Has("LoadUIImages"))
 		Config.Set<System::SettingType::Boolean>("LoadUIImages", true);
-	if (!Config.Has<System::SettingType::Boolean>("LoadDataTables"))
+	if (!Config.Has("LoadDataTables"))
 		Config.Set<System::SettingType::Boolean>("LoadDataTables", true);
+	if (!Config.Has("OverwriteExistingFiles"))
+		Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", false);
 		
 	Config.Save(ConfigPath);
 }
@@ -78,7 +80,7 @@ void ExportManager::SaveConfigToDisk()
 		Config.Remove<System::SettingType::String>("ExportDirectory");
 	}
 
-	Config.Save(IO::Path::Combine(ApplicationPath, "Legion.cfg"));
+	Config.Save(IO::Path::Combine(ApplicationPath, "LegionPlus.cfg"));
 }
 
 string ExportManager::GetMapExportPath()
@@ -112,7 +114,13 @@ void ExportManager::ExportMilesAssets(const std::unique_ptr<MilesLib>& MilesFile
 			auto& Asset = ExportAssets[AssetToConvert];
 			auto& AudioAsset = MilesFileSystem->Assets[Asset.AssetHash];
 
-			MilesFileSystem->ExtractAsset(AudioAsset, IO::Path::Combine(IO::Path::Combine(ExportDirectory, "sounds"), AudioAsset.Name + ".wav"));
+			bool bSuccess = MilesFileSystem->ExtractAsset(AudioAsset, IO::Path::Combine(IO::Path::Combine(ExportDirectory, "sounds"), AudioAsset.Name + ".wav"));
+
+			if (!bSuccess)
+			{
+				((LegionMain*)MainForm)->SetAssetError(Asset.AssetIndex);
+				continue;
+			}
 
 			IsCancel = StatusCallback(Asset.AssetIndex, MainForm);
 
@@ -144,6 +152,7 @@ void ExportManager::ExportRpakAssets(const std::unique_ptr<RpakLib>& RpakFileSys
 	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "materials"));
 	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "models"));
 	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "animations"));
+	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "subtitles"));
 	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "datatables"));
 
 	RpakFileSystem->InitializeModelExporter((RpakModelExportFormat)Config.Get<System::SettingType::Integer>("ModelFormat"));
@@ -169,7 +178,7 @@ void ExportManager::ExportRpakAssets(const std::unique_ptr<RpakLib>& RpakFileSys
 			switch (AssetToExport.AssetType)
 			{
 			case (uint32_t)RpakAssetType::Texture:
-				RpakFileSystem->ExportTexture(AssetToExport, IO::Path::Combine(ExportDirectory, "images"));
+				RpakFileSystem->ExportTexture(AssetToExport, IO::Path::Combine(ExportDirectory, "images"), true);
 				break;
 			case (uint32_t)RpakAssetType::UIIA:
 				RpakFileSystem->ExportUIIA(AssetToExport, IO::Path::Combine(ExportDirectory, "images"));
@@ -185,6 +194,9 @@ void ExportManager::ExportRpakAssets(const std::unique_ptr<RpakLib>& RpakFileSys
 				break;
 			case (uint32_t)RpakAssetType::DataTable:
 				RpakFileSystem->ExportDataTable(AssetToExport, IO::Path::Combine(ExportDirectory, "datatables"));
+				break;
+			case (uint32_t)RpakAssetType::Subtitles:
+				RpakFileSystem->ExportSubtitles(AssetToExport, IO::Path::Combine(ExportDirectory, "subtitles"));
 				break;
 			}
 
@@ -208,7 +220,7 @@ void ExportManager::ExportRpakAssets(const std::unique_ptr<RpakLib>& RpakFileSys
 	ProgressCallback(100, MainForm, true);
 }
 
-void ExportManager::ExportVpkAssets(const std::unique_ptr<VpkLib>& VpkFileSystem, List<string>& ExportAssets)
+void ExportManager::ExportVpkAssets(const std::unique_ptr<MdlLib>& VpkFileSystem, List<string>& ExportAssets)
 {
 	std::atomic<uint32_t> AssetIndex = 0;
 
@@ -241,4 +253,16 @@ void ExportManager::ExportVpkAssets(const std::unique_ptr<VpkLib>& VpkFileSystem
 
 		CoUninitialize();
 	});
+}
+
+void ExportManager::ExportRpakAssetList(std::unique_ptr<List<ApexAsset>>& AssetList, string RpakName)
+{
+	String ExportDirectory = IO::Path::Combine(ExportPath, "lists");
+	IO::Directory::CreateDirectory(ExportDirectory);
+	List<String> NameList;
+	for (auto& Asset : *AssetList)
+		NameList.EmplaceBack(Asset.Name);
+
+	NameList.Sort([](const String& lhs, const String& rhs) { return lhs.Compare(rhs) < 0; });
+	IO::File::WriteAllLines(IO::Path::Combine(ExportDirectory, RpakName + ".txt"), NameList);
 }

@@ -16,8 +16,6 @@
 #include "LegionPreview.h"
 #include "LegionProgress.h"
 
-#define MAX_LOADED_RPAKS 4
-
 class LegionMain : public Forms::Form
 {
 public:
@@ -28,7 +26,10 @@ public:
 	void RefreshView();
 	// Resets display indices
 	void ResetDisplayIndices();
+	// Internal routine to load a file
+	void LoadApexFile(const List<string>& File);
 
+	void SetAssetError(int32_t AssetIndex);
 protected:
 	static void OnLoadClick(Forms::Control* Sender);
 	static void OnSettingsClick(Forms::Control* Sender);
@@ -38,6 +39,7 @@ protected:
 	static void OnClearClick(Forms::Control* Sender);
 	static void OnTitanfallClick(Forms::Control* Sender);
 	static void OnRefreshClick(Forms::Control* Sender);
+	static void OnListRightClick(const std::unique_ptr<MouseEventArgs>& EventArgs, Forms::Control* Sender);
 	static void OnListDoubleClick(Forms::Control* Sender);
 	static void OnListKeyUp(const std::unique_ptr<KeyEventArgs>& EventArgs, Forms::Control* Sender);
 	static void OnListKeyPressed(const std::unique_ptr<KeyPressEventArgs>& EventArgs, Forms::Control* Sender);
@@ -52,9 +54,6 @@ protected:
 private:
 	// Internal routine to setup the component
 	void InitializeComponent();
-
-	// Internal routine to load a file
-	void LoadApexFile(const List<string>& File);
 	// Internal routine to export selected assets
 	void ExportSelectedAssets();
 	// Internal routine to export all assets
@@ -108,3 +107,5 @@ private:
 	// Internal load path
 	List<string> LoadPath;
 };
+
+extern LegionMain* g_pLegionMain;

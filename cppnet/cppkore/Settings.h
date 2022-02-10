@@ -124,10 +124,27 @@ namespace System
 			return (Value != nullptr);
 		}
 
+		// for some reason the template one doesn't even check the type so what is the point in having it as a template?
+		bool Has(const imstring& Key)
+		{
+			SettingsObject* Value = nullptr;
+
+			for (auto& Setting : _Settings)
+			{
+				if (Setting.Key == (const char*)Key)
+				{
+					Value = &Setting;
+					break;
+				}
+			}
+
+			return (Value != nullptr);
+		}
+
 		template<const SettingType T>
 		_declspec(noinline) void Remove(const imstring& Key)
 		{
-
+			// implementation when
 		};
 
 		template<const SettingType T>

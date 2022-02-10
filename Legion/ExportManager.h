@@ -1,13 +1,12 @@
 #pragma once
 
-#include <cstdint>
 #include "Form.h"
 #include "ListBase.h"
 #include "ExportAsset.h"
 #include "Settings.h"
 #include "MilesLib.h"
 #include "RpakLib.h"
-#include "VpkLib.h"
+#include "MdlLib.h"
 
 typedef void (ExportProgressCallback)(uint32_t Progress, Forms::Form* MainForm, bool Finished);
 typedef bool (CheckStatusCallback)(int32_t AssetIndex, Forms::Form* MainForm);
@@ -37,5 +36,7 @@ public:
 	// Handles exporting rpak assets in parallel
 	static void ExportRpakAssets(const std::unique_ptr<RpakLib>& RpakFileSystem, List<ExportAsset> ExportAssets, ExportProgressCallback ProgressCallback, CheckStatusCallback StatusCallback, Forms::Form* MainForm);
 	// Handles exporting vpk assets in parallel
-	static void ExportVpkAssets(const std::unique_ptr<VpkLib>& VpkFileSystem, List<string>& ExportAssets);
+	static void ExportVpkAssets(const std::unique_ptr<MdlLib>& VpkFileSystem, List<string>& ExportAssets);
+	// Write a list of loaded rpak assets to disk
+	static void ExportRpakAssetList(std::unique_ptr<List<ApexAsset>>& AssetList, string RpakName);
 };

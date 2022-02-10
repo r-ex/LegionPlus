@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "Kore.h"
 #include "LegionMain.h"
 #include "LegionSplash.h"
@@ -13,7 +14,7 @@
 using namespace System;
 
 #if _DEBUG
-int main(int argc, char** argv)
+int main()
 #else
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 #endif
@@ -24,76 +25,128 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	ExportManager::InitializeExporter();
 
 	bool ShowGUI = true;
+	wstring sRpakFileToLoad;
 
-#ifndef _DEBUG
-	LPWSTR* argv;
 	int argc;
-
-	argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+	LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
 
 	CommandLine cmdline(argc, argv);
 
-	if (!cmdline.HasParam(L"--export"))
+#if _DEBUG
+	SetConsoleTitleA("Legion+ | Console");
+#endif
+
+	if (argv) // This can fail yes, would be good to also check that.	
 	{
-		Forms::Application::Run(new LegionSplash());
-	}
-	else {
-		string rpakPath = wstring(cmdline.GetParamValue(L"--export")).ToString();
+		if (!cmdline.HasParam(L"-nologfile"))
+			g_Logger.InitializeLogFile();
 
-		if (rpakPath != "")
+
+		if (!cmdline.HasParam(L"--export") && !cmdline.HasParam(L"--list"))
 		{
-			auto Rpak = std::make_unique<RpakLib>();
-			auto ExportAssets = List<ExportAsset>();
 
-			Rpak->LoadRpak(rpakPath);
-			Rpak->PatchAssets();
-
-			bool bLoadModels = cmdline.HasParam(L"--loadmodels");
-			bool bLoadAnims = cmdline.HasParam(L"--loadanimations");
-			bool bLoadImages = cmdline.HasParam(L"--loadimages");
-			bool bLoadMaterials = cmdline.HasParam(L"--loadmaterials");
-			bool bLoadUIImages = cmdline.HasParam(L"--loaduiimages");
-			bool bLoadDataTables = cmdline.HasParam(L"--loaddatatables");
-
-			std::unique_ptr<List<ApexAsset>> AssetList;
-
-			bool bNoFlagsSpecified = !bLoadModels && !bLoadAnims && !bLoadImages && !bLoadMaterials && !bLoadUIImages && !bLoadDataTables;
-
-			if (bNoFlagsSpecified)
-			{
-				const bool ShowModels = ExportManager::Config.Get<System::SettingType::Boolean>("LoadModels");
-				const bool ShowAnimations = ExportManager::Config.Get<System::SettingType::Boolean>("LoadAnimations");
-				const bool ShowImages = ExportManager::Config.Get<System::SettingType::Boolean>("LoadImages");
-				const bool ShowMaterials = ExportManager::Config.Get<System::SettingType::Boolean>("LoadMaterials");
-				const bool ShowUIImages = ExportManager::Config.Get<System::SettingType::Boolean>("LoadUIImages");
-				const bool ShowDataTables = ExportManager::Config.Get<System::SettingType::Boolean>("LoadDataTables");
-
-				AssetList = Rpak->BuildAssetList(ShowModels, ShowAnimations, ShowImages, ShowMaterials, ShowUIImages, ShowDataTables);
+			if (cmdline.ArgC() >= 1) {
+				sRpakFileToLoad = wstring(cmdline.GetParamAtIdx(0));
 			}
 			else {
-				AssetList = Rpak->BuildAssetList(bLoadModels, bLoadAnims, bLoadImages, bLoadMaterials, bLoadUIImages, bLoadDataTables);
+#ifndef _DEBUG
+				Forms::Application::Run(new LegionSplash());
+#endif
 			}
+		}
+		else
+		{
+			string rpakPath;
 
+			bool bExportRpak = cmdline.HasParam(L"--export");
+			bool bListRpak = cmdline.HasParam(L"--list");
 
-
-			for (auto& Asset : *AssetList.get())
+			if (bExportRpak)
 			{
-				ExportAsset EAsset;
-				EAsset.AssetHash = Asset.Hash;
-				EAsset.AssetIndex = 0;
-				ExportAssets.EmplaceBack(EAsset);
+				rpakPath = wstring(cmdline.GetParamValue(L"--export")).ToString();
+			}
+			else if (bListRpak)
+			{
+				rpakPath = wstring(cmdline.GetParamValue(L"--list")).ToString();
 			}
 
-			ExportManager::ExportRpakAssets(Rpak, ExportAssets, [](uint32_t i, Forms::Form*, bool) {}, [](int32_t i, Forms::Form*) -> bool { return false; }, nullptr);
+			// handle cli stuff
+			if (!string::IsNullOrEmpty(rpakPath))
+			{
+				auto Rpak = std::make_unique<RpakLib>();
+				auto ExportAssets = List<ExportAsset>();
 
-			ShowGUI = false;
+				Rpak->LoadRpak(rpakPath);
+				Rpak->PatchAssets();
+
+				bool bLoadModels = cmdline.HasParam(L"--loadmodels");
+				bool bLoadAnims = cmdline.HasParam(L"--loadanimations");
+				bool bLoadImages = cmdline.HasParam(L"--loadimages");
+				bool bLoadMaterials = cmdline.HasParam(L"--loadmaterials");
+				bool bLoadUIImages = cmdline.HasParam(L"--loaduiimages");
+				bool bLoadDataTables = cmdline.HasParam(L"--loaddatatables");
+				
+				if (cmdline.HasParam(L"--overwrite"))
+					ExportManager::Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", true);
+				else
+					ExportManager::Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", false);
+
+				std::unique_ptr<List<ApexAsset>> AssetList;
+
+				bool bNoFlagsSpecified = !bLoadModels && !bLoadAnims && !bLoadImages && !bLoadMaterials && !bLoadUIImages && !bLoadDataTables;
+
+				if (bNoFlagsSpecified)
+				{
+					const bool ShowModels = ExportManager::Config.Get<System::SettingType::Boolean>("LoadModels");
+					const bool ShowAnimations = ExportManager::Config.Get<System::SettingType::Boolean>("LoadAnimations");
+					const bool ShowImages = ExportManager::Config.Get<System::SettingType::Boolean>("LoadImages");
+					const bool ShowMaterials = ExportManager::Config.Get<System::SettingType::Boolean>("LoadMaterials");
+					const bool ShowUIImages = ExportManager::Config.Get<System::SettingType::Boolean>("LoadUIImages");
+					const bool ShowDataTables = ExportManager::Config.Get<System::SettingType::Boolean>("LoadDataTables");
+
+					AssetList = Rpak->BuildAssetList(ShowModels, ShowAnimations, ShowImages, ShowMaterials, ShowUIImages, ShowDataTables);
+				}
+				else
+				{
+					AssetList = Rpak->BuildAssetList(bLoadModels, bLoadAnims, bLoadImages, bLoadMaterials, bLoadUIImages, bLoadDataTables);
+				}
+
+				if (bExportRpak)
+				{
+					for (auto& Asset : *AssetList.get())
+					{
+						ExportAsset EAsset;
+						EAsset.AssetHash = Asset.Hash;
+						EAsset.AssetIndex = 0;
+						ExportAssets.EmplaceBack(EAsset);
+					}
+					ExportManager::ExportRpakAssets(Rpak, ExportAssets, [](uint32_t i, Forms::Form*, bool) {}, [](int32_t i, Forms::Form*) -> bool { return false; }, nullptr);
+				}
+				else if (bListRpak)
+				{
+					string filename = IO::Path::GetFileNameWithoutExtension(rpakPath);
+					ExportManager::ExportRpakAssetList(AssetList, filename);
+				}
+
+				ShowGUI = false;
+			}
 		}
 	}
-#endif
-	
+	else {
+		g_Logger.InitializeLogFile();
+	}
 	if (ShowGUI)
 	{
-		Forms::Application::Run(new LegionMain());
+		LegionMain* main = new LegionMain();
+		if (!wstring::IsNullOrEmpty(sRpakFileToLoad))
+		{
+			List<string> paks;
+			paks.EmplaceBack(sRpakFileToLoad.ToString());
+			main->LoadApexFile(paks);
+			main->RefreshView();
+		}
+		Forms::Application::Run(main);
+
 	}
 
 	UIX::UIXTheme::ShutdownRenderer();

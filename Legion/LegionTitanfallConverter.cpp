@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "LegionTitanfallConverter.h"
 #include "ExportManager.h"
 
@@ -66,7 +67,7 @@ void LegionTitanfallConverter::InitializeComponent()
 	this->SuspendLayout();
 	this->SetAutoScaleDimensions({ 6, 13 });
 	this->SetAutoScaleMode(Forms::AutoScaleMode::Font);
-	this->SetText("Legion | Titanfall 2 Model & Animation Converter");
+	this->SetText("Legion+ | Titanfall 2 Model & Animation Converter");
 	this->SetClientSize({ 658, 410 });
 	this->SetStartPosition(Forms::FormStartPosition::CenterParent);
 	this->SetMinimizeBox(false);
@@ -77,13 +78,13 @@ void LegionTitanfallConverter::InitializeComponent()
 	this->PerformLayout();
 	// END DESIGNER CODE
 
-	this->SetBackColor({ 30, 32, 55 });
+	this->SetBackColor({ 33, 33, 33 });
 
 	this->DragEnter += &FormDragEnter;
 	this->DragDrop += &FormDragDrop;
 	this->SetAllowDrop(true);
 
-	this->VpkFileSystem = std::make_unique<VpkLib>();
+	this->VpkFileSystem = std::make_unique<MdlLib>();
 }
 
 void LegionTitanfallConverter::HandleFileConvert(List<string>& FilesToConvert)

@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "CommandLine.h"
 
 CommandLine::CommandLine(int nArgsCount, LPWSTR* args)
@@ -5,6 +6,11 @@ CommandLine::CommandLine(int nArgsCount, LPWSTR* args)
     this->argc = nArgsCount;
     this->argv = args;
 }
+
+CommandLine::~CommandLine()
+{
+}
+
 int CommandLine::FindParam(LPWSTR psz) const
 {
     for (int i = 1; i < this->argc; ++i)
