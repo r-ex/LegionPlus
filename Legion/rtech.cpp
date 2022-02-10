@@ -1390,16 +1390,16 @@ int64_t RTech::DecompressSnowflakeInit(int64_t param_buffer, int64_t data_buffer
 	v3 = -1;
 	v4 = (sub_7FF7FC23B960(param_buffer, v2) | (1i64 << v2)) - 1;
 	*(uint64_t*)(param_buffer + 149144) = v4;
-	if (_BitScanReverse64((unsigned long*)&v6, (v4 >> 6) + 100 + v4)) // Had to cast v6 to unsigned long here, it might cause issues.
+	if (_BitScanReverse64((unsigned long*)(unsigned __int64*)&v6, (v4 >> 6) + 100 + v4)) // Had to cast v6 to unsigned long here, it might cause issues.
 		v3 = v6;
 	*(uint64_t*)(param_buffer + 149160) = sub_7FF7FC23B960(param_buffer, (unsigned int)(v3 + 1));
-	v7 = sub_7FF7FC23B960(param_buffer, 4i64);
-	v8 = sub_7FF7FC23B960(param_buffer, 4i64);
-	*(uint32_t*)(param_buffer + 149136) = 1i64 << ((unsigned __int8)v7 + 9);
-	*(uint32_t*)(param_buffer + 149140) = 1i64 << (v8 + 9);
+	v7 = sub_7FF7FC23B960(param_buffer, 4);
+	v8 = sub_7FF7FC23B960(param_buffer, 4);
+	*(uint32_t*)(param_buffer + 149136) = 1 << ((unsigned __int8)v7 + 9);
+	*(uint32_t*)(param_buffer + 149140) = 1 << (v8 + 9);
 	*(uint32_t*)(param_buffer + 149132) = v7 + 8;
-	v9 = sub_7FF7FC23B960(param_buffer, 2i64);
-	v10 = sub_7FF7FC23B960(param_buffer, 3i64) | 8;
+	v9 = sub_7FF7FC23B960(param_buffer, 2);
+	v10 = sub_7FF7FC23B960(param_buffer, 3) | 8;
 	if (v10 <= 8)
 		return sub_7FF7FC23C880(param_buffer + 48, v9, 0i64);
 
