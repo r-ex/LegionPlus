@@ -372,18 +372,18 @@ bool MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 	// Determine if version is supported or not...
 	static bool check = false;
 	static bool version_tf2 = false;
+	static bool version_retail = false;
 	if (!check) {
 		if ((*(uintptr_t*)(binka + 7 * 8) != 0) && (*(uintptr_t*)(binka + 7 * 8) != 0x0A09080605040302)) {
-			binka = 0;
-			FreeLibrary(HMODULE(binkawin));
-			g_Logger.Warning("Unsupported binkawin64.dll version.\n");
-			//throw new std::exception("Unsupported version with bigger table!");
-			return false;
+			version_retail = true;
+			check = true;
 		}
-		const auto dosHeader = PIMAGE_DOS_HEADER(binkawin);
-		const auto imageNTHeaders = PIMAGE_NT_HEADERS(binkawin + dosHeader->e_lfanew);
-		version_tf2 = (imageNTHeaders->FileHeader.TimeDateStamp <= 0x57E48A0C);
-		check = true;
+		else {
+			const auto dosHeader = PIMAGE_DOS_HEADER(binkawin);
+			const auto imageNTHeaders = PIMAGE_NT_HEADERS(binkawin + dosHeader->e_lfanew);
+			version_tf2 = (imageNTHeaders->FileHeader.TimeDateStamp <= 0x57E48A0C);
+			check = true;
+		}
 	}
 
 	// function types in the table
@@ -397,6 +397,10 @@ bool MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 
 	using unk20_f_t = size_t(__fastcall*)(void* data, uint32_t a2, uint32_t* a3, uint32_t* a4);
 	using unk18_f_t = size_t(__fastcall*)(void* data);
+
+	// !!!NEW!!!
+	using gbs_f_t = size_t(__fastcall*)(void* data, void* stream_data, size_t stream_data_size, uint32_t* consumed, uint32_t* block_size, uint32_t* required_size);
+	using decoder_new_f_t = size_t(__fastcall*)(void* data, void* stream_data, size_t stream_data_len, void* out_data, size_t out_data_size, uint32_t* consumed, uint32_t* samples);
 
 	const auto metadata = *(metadata_f_t*)(binka + 8);
 	uint16_t channels;
@@ -422,18 +426,32 @@ bool MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 		open_stream(allocd.data(), nullptr, MilesReadFileStream, &UserData);
 	}
 
-	{
+	/*{
 		const auto unk20 = *(unk20_f_t*)(binka + 40);
 		uint32_t tmp;
 		unk20(allocd.data(), 0, &tmp, nullptr);
+	}*/
+	// Reset blending frames
+	if (version_retail) {
+		const auto blend = *(unk18_f_t*)(binka + 24);
+		blend(allocd.data());
 	}
-	const auto unk18 = *(unk18_f_t*)(binka + 32);
-	unk18(allocd.data());
+	else {
+		const auto unk18 = *(unk18_f_t*)(binka + 32);
+		unk18(allocd.data());
+	}
 
 	UserData.DataStreamSize = *(uint32_t*)(allocd.data() + 16ull) - Asset.PreloadSize;
 
-	auto decoded = std::vector<float>(channels * 64ull);
-	auto decoded_desh = std::vector<float>(channels * 64ull);
+	size_t decoded_size = channels * 64ull;
+	if (version_retail) {
+		// We can't make any mistake in the size...
+		// I think that's the pure max?
+		decoded_size = channels * adw4[2];
+	}
+	auto decoded = std::vector<float>(version_retail ? 0 : decoded_size);
+	auto decoded_desh = std::vector<float>(version_retail ? 0 : decoded_size);
+	auto decoded_short = std::vector<uint16_t>(version_retail ? decoded_size : 0);
 
 	size_t ret = 0;
 	// TODO: potentially break on hitting the required sample count?
@@ -445,8 +463,45 @@ bool MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 
 	Writer->Write((uint8_t*)&hdr, 0, sizeof(WAVEHEADER));
 
+	std::vector<char> stream_data(8);
+
 	do {
-		if (version_tf2) {
+		if (version_retail) {
+			// Welcome to my cult where we perform this ritual...
+
+			// Read first 8 bytes...
+			MilesReadFileStream(stream_data.data(), 8, &UserData);
+
+			// Get required block size
+			const auto get_block_size = *(gbs_f_t*)(binka + 7*8);
+			uint32_t consumed, block_size, req;
+			get_block_size(allocd.data(), stream_data.data(), 8, &consumed, &block_size, &req);
+
+			if (block_size == 65535) {
+				break;
+			}
+
+			if (block_size > (UserData.HeaderSize + UserData.DataStreamSize - UserData.DataRead)) {
+				break;
+			}
+
+			// Resize and read everything else, allocation will happen ONLY if new_size>capacity
+			stream_data.resize(block_size);
+			MilesReadFileStream(stream_data.data() + 8, block_size - 8, &UserData);
+
+			// Now we can finally decode...
+			const auto decode = *(decoder_new_f_t*)(binka + 6*8);
+			uint32_t consumed_decode, samples;
+			decode(allocd.data(), stream_data.data(), stream_data.size(), decoded_short.data(), decoded_short.size(), &consumed_decode, &samples);
+			ret = samples * channels; // ???
+
+			// Debug assert?
+			assert(consumed_decode == block_size);
+
+			// Resize just to be safe...
+			stream_data.resize(8);
+		}
+		else if (version_tf2) {
 			const auto decode = *(deocder_tf2_f_t*)(binka + 24);
 			ret = decode(&UserData, allocd.data(), decoded.data(), 64, MilesReadFileStream_TF2);
 		}
@@ -455,31 +510,45 @@ bool MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 			ret = decode(allocd.data(), decoded.data(), 64, 64, MilesReadFileStream, &UserData);
 		}
 
-		size_t desh_pos = 0;
-		for (size_t j = 0; j < 4; j++) {
-			for (size_t i = 0; i < 16; i++) {
-				for (size_t chan = 0; chan < channels; chan++) {
-					decoded_desh[desh_pos++] = decoded[(j * 16) + i + (chan * 64)];
+		if (!version_retail) {
+			size_t desh_pos = 0;
+			for (size_t j = 0; j < 4; j++) {
+				for (size_t i = 0; i < 16; i++) {
+					for (size_t chan = 0; chan < channels; chan++) {
+						decoded_desh[desh_pos++] = decoded[(j * 16) + i + (chan * 64)];
+					}
 				}
 			}
 		}
 
-		// TODO: proper container...
 		if (ret > 0) {
-			DataSize += decoded_desh.size() * 4;
-			Writer->Write((uint8_t*)decoded_desh.data(), 0, decoded_desh.size() * 4);
+			if (version_retail) {
+				DataSize += ret * 2;
+				Writer->Write((uint8_t*)decoded_short.data(), 0, ret * 2);
+			}
+			else {
+				DataSize += decoded_desh.size() * 4;
+				Writer->Write((uint8_t*)decoded_desh.data(), 0, decoded_desh.size() * 4);
+			}
 		}
-	} while (ret == 64);
+	} while ((ret == 64) || (version_retail && ret));
 
 	hdr.size = DataSize + 36;
 
 	hdr.fmt.channels = channels;
 	hdr.fmt.sampleRate = sample_rate;
 	hdr.fmt.avgBytesPerSecond = DataSize / ((float)samples_count / sample_rate);
-	hdr.fmt.blockAlign = DataSize/samples_count;
+	hdr.fmt.blockAlign = DataSize / samples_count;
 	hdr.fmt.bitsPerSample = ((DataSize * 8) / samples_count)/channels;
 
 	hdr.data.chunkSize = DataSize;
+
+	if (version_retail) {
+		// Yes, this is required, don't ask me why
+		hdr.fmt.formatTag = 1; // WAVE_FORMAT_PCM
+		hdr.fmt.blockAlign = 2 * channels;
+		hdr.fmt.bitsPerSample = 16;
+	}
 
 	Writer->Seek(0, IO::SeekOrigin::Begin);
 
