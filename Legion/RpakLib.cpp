@@ -700,20 +700,24 @@ bool RpakLib::ParseApexRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 
 	// We need to load the rest of the data before applying a patch stream
 	List<RpakVirtualSegment> VirtualSegments(Header.VirtualSegmentCount, true);
-	List<RpakVirtualSegmentBlock> VirtualSegmentBlocks(Header.VirtualSegmentBlockCount, true);
-	List<RpakUnknownBlockThree> UnknownBlockThrees(Header.UnknownThirdBlockCount, true);
+	List<RpakVirtualSegmentBlock> VirtualSegmentBlocks(Header.VirtualSegmentBlockCount, true); // mem pages
+
+	// each of these points to a descriptor/pointer within rpak mem pages
+	// they are used to convert the raw data into an actual pointer when the pak is loaded
+	List<RpakDescriptor> Descriptors(Header.DescriptorCount, true);
+
 	List<RpakApexAssetEntry> AssetEntries(Header.AssetEntryCount, true);
 
 	// Faster loading here by reading to the buffers directly
 	ParseStream->Read((uint8_t*)&VirtualSegments[0], 0, sizeof(RpakVirtualSegment) * Header.VirtualSegmentCount);
 	ParseStream->Read((uint8_t*)&VirtualSegmentBlocks[0], 0, sizeof(RpakVirtualSegmentBlock) * Header.VirtualSegmentBlockCount);
-	ParseStream->Read((uint8_t*)&UnknownBlockThrees[0], 0, sizeof(RpakUnknownBlockThree) * Header.UnknownThirdBlockCount);
+	ParseStream->Read((uint8_t*)&Descriptors[0], 0, sizeof(RpakUnknownBlockThree) * Header.DescriptorCount);
 	ParseStream->Read((uint8_t*)&AssetEntries[0], 0, sizeof(RpakApexAssetEntry) * Header.AssetEntryCount);
 
 	// The fifth and sixth blocks appear to only
 	// be used for streaming images / starpak stuff, not always there
-	ParseStream->Seek(sizeof(RpakUnknownBlockFive) * Header.UnknownFifthBlockCount, IO::SeekOrigin::Current);
-	ParseStream->Seek(sizeof(RpakUnknownBlockSix) * Header.UnknownSixedBlockCount, IO::SeekOrigin::Current);
+	ParseStream->Seek(sizeof(RpakDescriptor) * Header.GuidDescriptorCount, IO::SeekOrigin::Current);
+	ParseStream->Seek(sizeof(RpakFileRelation) * Header.RelationsCount, IO::SeekOrigin::Current);
 
 	// At this point, we need to check if we have to switch to a patch edit stream
 	if (Header.PatchIndex)
@@ -831,8 +835,8 @@ bool RpakLib::ParseTitanfallRpak(const string& RpakPath, std::unique_ptr<IO::Mem
 
 	// The fifth and sixth blocks appear to only
 	// be used for streaming images / starpak stuff, not always there
-	ParseStream->Seek(sizeof(RpakUnknownBlockFive) * Header.UnknownFifthBlockCount, IO::SeekOrigin::Current);
-	ParseStream->Seek(sizeof(RpakUnknownBlockSix) * Header.UnknownSixedBlockCount, IO::SeekOrigin::Current);
+	ParseStream->Seek(sizeof(RpakDescriptor) * Header.UnknownFifthBlockCount, IO::SeekOrigin::Current);
+	ParseStream->Seek(sizeof(RpakFileRelation) * Header.UnknownSixedBlockCount, IO::SeekOrigin::Current);
 
 	// 7th and 8th blocks are weird and useless
 	ParseStream->Seek(sizeof(uint32_t) * Header.UnknownSeventhBlockCount, IO::SeekOrigin::Current);

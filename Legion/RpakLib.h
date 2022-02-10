@@ -48,10 +48,10 @@ struct RpakApexHeader
 
 	uint32_t PatchIndex;
 
-	uint32_t UnknownThirdBlockCount;
+	uint32_t DescriptorCount;
 	uint32_t AssetEntryCount;
-	uint32_t UnknownFifthBlockCount;
-	uint32_t UnknownSixedBlockCount;
+	uint32_t GuidDescriptorCount;
+	uint32_t RelationsCount;
 
 	uint8_t Unk[0x1c];
 };
@@ -84,6 +84,12 @@ struct RpakTitanfallHeader
 	uint32_t UnknownEighthBlockCount;
 };
 
+struct RpakDescriptor
+{
+	uint32_t PageIdx;
+	uint32_t PageOffset;
+};
+
 struct RpakVirtualSegment
 {
 	uint32_t DataFlag;	// Flags (Streamed, Internal...?)
@@ -101,7 +107,7 @@ struct RpakVirtualSegmentBlock
 struct RpakUnknownBlockThree
 {
 	uint32_t DataEntryIndex;	// Corrosponds to a data entry
-	uint32_t Offset;			// Offset in the data entry, never > DataEntry.DataSize, possibly a 48bit integer packed....
+	uint32_t Offset;			// Offset in the data entry
 };
 
 struct RpakUnknownBlockFive
@@ -110,9 +116,9 @@ struct RpakUnknownBlockFive
 	uint32_t Flags;
 };
 
-struct RpakUnknownBlockSix
+struct RpakFileRelation
 {
-	uint32_t Flags;
+	uint32_t AssetIndex;
 };
 
 struct RpakPatchHeader
@@ -132,15 +138,15 @@ struct RpakApexAssetEntry
 	uint64_t NameHash;
 	uint64_t Padding;
 
-	uint32_t SubHeaderDataBlockIndex;
+	uint32_t SubHeaderDataBlockIndex; // "head"
 	uint32_t SubHeaderDataBlockOffset;
-	uint32_t RawDataBlockIndex;
+	uint32_t RawDataBlockIndex; // "cpu"
 	uint32_t RawDataBlockOffset;
 
 	uint64_t StarpakOffset;
 	uint64_t OptimalStarpakOffset;
 
-	uint16_t Un1;
+	uint16_t HighestPageNum; // number of the highest page that is used by this asset
 	uint16_t Un2;
 
 	uint32_t RelationsStartIndex;
@@ -250,7 +256,7 @@ struct RpakLoadAsset
 // Shared
 static_assert(sizeof(RpakPatchHeader) == 0x8, "Invalid header size");
 static_assert(sizeof(RpakUnknownBlockFive) == 0x8, "Invalid header size");
-static_assert(sizeof(RpakUnknownBlockSix) == 0x4, "Invalid header size");
+static_assert(sizeof(RpakFileRelation) == 0x4, "Invalid header size");
 static_assert(sizeof(RpakVirtualSegment) == 0x10, "Invalid header size");
 
 // Apex
