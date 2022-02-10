@@ -384,7 +384,7 @@ void LegionSettings::LoadSettings()
 
 	if (ExportManager::Config.Has<System::SettingType::String>("ExportDirectory"))
 	{
-		this->ExportBrowseFolder->SetText(ExportManager::Config.Get<System::SettingType::String>("ExportDirectory").ToCString());
+		this->ExportBrowseFolder->SetText(ExportManager::Config.Get<System::SettingType::String>("ExportDirectory"));
 	}
 }
 
@@ -519,7 +519,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		}
 		else if (IO::Directory::Exists(ExportDirectory))
 		{
-			ExportManager::Config.Set<System::SettingType::String>("ExportDirectory", ExportDirectory.ToCString());
+			ExportManager::Config.Set<System::SettingType::String>("ExportDirectory", ExportDirectory);
 		}
 
 		ExportManager::SaveConfigToDisk();

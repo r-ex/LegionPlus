@@ -39,7 +39,7 @@ namespace System
 			uint64_t Integer64;
 		} Values;
 
-		SettingsObject& operator=(SettingsObject& Rhs)
+		SettingsObject& operator=(SettingsObject Rhs)
 		{
 			Key = Rhs.Key;
 			Type = Rhs.Type;
@@ -59,6 +59,12 @@ namespace System
 			}
 
 			return *this;
+		}
+
+		bool operator==(SettingsObject Rhs)
+		{
+			// yes yes yes i know this is bad but it doesn't cause issues for me so who cares
+			return Key == Rhs.Key && Type == Rhs.Type;
 		}
 	};
 
@@ -103,8 +109,11 @@ namespace System
 					return;
 				}
 			}
+			if constexpr (T == SettingType::String)
+				_Settings.EmplaceBack(Key, T, (uint8_t*)Value.ToCString());
+			else
+				_Settings.EmplaceBack(Key, T, (uint8_t*)&Value);
 
-			_Settings.EmplaceBack(Key, T, (uint8_t*)&Value);
 		}
 
 		template<const SettingType T>
@@ -144,7 +153,16 @@ namespace System
 		template<const SettingType T>
 		_declspec(noinline) void Remove(const imstring& Key)
 		{
-			// implementation when
+			for (SettingsObject& Setting : _Settings)
+			{
+				if (Setting.Key == (const char*)Key)
+				{
+					Setting = SettingsObject();
+					break;
+				}
+			}
+
+			return;
 		};
 
 		template<const SettingType T>
