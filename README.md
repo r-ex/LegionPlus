@@ -59,7 +59,6 @@ We also have a [discord server](https://discord.gg/ADek6fxVGe) where you will be
 
 ## Known Issues
 - UI Images do not export properly (some will be missing data in places, some will just be completely blank)
-- Audio does not export properly (currently does not support the latest version of the game's audio dlls)
 
 Full TODO/task list is available [here.](https://github.com/r-ex/LegionPlus/projects/1)
 
