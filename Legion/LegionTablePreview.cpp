@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "LegionTablePreview.h"
 #include "Kore.h"
 #include "UIXListView.h"
