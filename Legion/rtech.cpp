@@ -644,7 +644,7 @@ int64_t sub_7FF7FC23BA70(int64_t param_buffer, int64_t a2)
 __int64 RTech::sub_7FF7FC23C680(__int64 a1, unsigned __int64* a2, unsigned __int8 a3, unsigned int a4, void* a5)
 {
 	unsigned __int64 v5; // rbx
-	uint8_t* v7; // r14
+	void* v7; // r14
 	int v9; // er15
 	unsigned __int64 v10; // rbx
 	unsigned int v11; // esi
@@ -667,7 +667,7 @@ __int64 RTech::sub_7FF7FC23C680(__int64 a1, unsigned __int64* a2, unsigned __int
 	__int64 v29[66]; // [rsp+20h] [rbp-258h]
 
 	v5 = *a2;
-	v7 = (uint8_t*)a5; // watch this cast fuck everything.
+	v7 = a5; // watch this cast fuck everything.
 	v9 = a3;
 	v29[0] = -65536i64;
 	v10 = v5 >> a3;
@@ -719,7 +719,7 @@ __int64 RTech::sub_7FF7FC23C680(__int64 a1, unsigned __int64* a2, unsigned __int
 			v24 = v23 & 0x7F;
 			v25 = *((unsigned __int16*)&v29[2] + 2 * v24 + 1);
 			v22 += v25;
-			*v7 = *((uint8_t*)&v29[2] + 4 * v24);
+			*(uint8_t*)v7 = *((uint8_t*)&v29[2] + 4 * v24);
 			v23 >>= v25;
 			if ((v11 & 7) == 7)
 			{
@@ -729,7 +729,7 @@ __int64 RTech::sub_7FF7FC23C680(__int64 a1, unsigned __int64* a2, unsigned __int
 				v23 = *v21 >> v22;
 			}
 			++v11;
-			++v7;
+			v7 = (char*)v7 + 1;
 		} while (v11 < 0x100);
 	}
 	else
@@ -1096,12 +1096,6 @@ __int64 RTech::sub_7FF7FC23CD20(unsigned __int8 *param_buffer, unsigned int a2)
 	__m128i m6 = _mm_set_epi32(0x1b9017a, 0x13b00fc, 0xbd007e, 0x3f0000);
 	__m128i m7 = _mm_set_epi32(0xf000e, 0xd000c, 0xb000a, 0x90008);
 	__m128i m8 = _mm_set_epi32(0x70006, 0x50004, 0x30002, 0x10000);
-	__m128i m9 = _mm_set_epi32(0xc056c35, 0x6f0f4466, 0xc0665, 0x3d6f0f66);
-	__m128i m10 = _mm_set_epi32(0x37902fa, 0x27b01fc, 0x17d00fe, 0x7f0000);
-	__m128i m11 = _mm_set_epi32(0x77106f2, 0x67305f4, 0x57504f6, 0x47703f8);
-	__m128i m12 = _mm_set_epi32(0x3b10372, 0x33302f4, 0x2b50276, 0x23701f8);
-	__m128i m13 = _mm_set_epi32(0x7c4f7c4f, 0x7c4f7c4f, 0x7c4f7c4f, 0x7c4f7c4f);
-	__m128i m14 = _mm_set_epi32(0x1b9017a, 0x13b00fc, 0xbd007e, 0x3f0000);
 
 	v2 = *((uint64_t*)param_buffer + 18651);
 	LODWORD(v3) = param_buffer[1138];
