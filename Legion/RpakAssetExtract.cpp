@@ -66,13 +66,14 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 		auto DecompressedSize = EditState[0x48D3];
 
 		auto v15 = *((unsigned int*)EditState + 0x91A4);
+		auto v16 = DecompressedSize;
 		*((uint32_t*)EditState + 0x91A2) = 0;
 		if (v15 < DecompressedSize)
-			DecompressedSize = v15;
+			v16 = v15;
 
 		auto Result = new uint8_t[DecompressedSize]{};
 
-		EditState[0x48D4] = (__int64)DecompressedSize;
+		EditState[0x48D4] = (__int64)v16;
 		EditState[0x48DA] = (__int64)Result;
 		EditState[0x48DB] = 0;
 

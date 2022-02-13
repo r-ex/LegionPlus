@@ -803,7 +803,7 @@ int64_t RTech::sub_7FF7FC23C880(int64_t param_buffer, uint8_t a2, int64_t a3)
 
 	int64_t v4; // rax
 	int64_t v5; // rdx
-	uint16_t* v6; // rcx
+	int64_t v6; // rcx
 	uint32_t* v7; // rax
 	int64_t v8; // rax
 	int64_t v9; // rcx
@@ -813,10 +813,10 @@ int64_t RTech::sub_7FF7FC23C880(int64_t param_buffer, uint8_t a2, int64_t a3)
 
 	v4 = a2;
 	v5 = 4i64;
-	v6 = (uint16_t*)(param_buffer + 216);
+	v6 = param_buffer + 216;
 	*(uint8_t*)(param_buffer + 1108) = LUT_Snowflake_0[v4];
 	*(uint16_t*)(param_buffer + 1088) = 2048;
-	v7 = (uint32_t*)v6 + 65;
+	v7 = (std::uint32_t*)(v6 + 130);
 	*(uint32_t*)param_buffer = 126353408;
 	*(uint32_t*)(param_buffer + 4) = 378998543;
 	*(uint32_t*)(param_buffer + 8) = 631643678;
@@ -875,8 +875,8 @@ int64_t RTech::sub_7FF7FC23C880(int64_t param_buffer, uint8_t a2, int64_t a3)
 	do
 	{
 		*(v7 - 32) = 67109376;
-		*v6 = 0;
-		v6 += 109;
+		*(uint16_t*)v6 = 0;
+		v6 += 218;
 		*(v7 - 31) = 134219264;
 		*(v7 - 30) = 201329152;
 		*(v7 - 29) = 268439040;
@@ -1409,6 +1409,7 @@ int64_t RTech::DecompressSnowflakeInit(int64_t param_buffer, int64_t data_buffer
 	v15 = sub_7FF7FC23C680(v10, (unsigned __int64*)(*(uint64_t*)(param_buffer + 149168) + v14 + ((unsigned __int64)v13 >> 3)), -(char)v12 & 7, v10, v18);
 
 	result = sub_7FF7FC23C880(param_buffer + 48, v9, (__int64)v18);
+	int test = *(uint32_t*)(param_buffer + 0x484);
 	v16 = v14 + 4 * ((unsigned __int64)(v15 + v13 + 31) >> 5);
 	*(uint64_t*)(param_buffer + 149184) = v16;
 	v17 = (v15 + v13) & 0x1F;
