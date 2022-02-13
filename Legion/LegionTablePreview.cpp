@@ -20,10 +20,10 @@ void LegionTablePreview::InitializeComponent()
 	this->SetMinimumSize({ 791, 520 });
 	this->SetStartPosition(Forms::FormStartPosition::CenterParent);
 
-	this->SetBackColor({ 30, 32, 55 });
+	this->SetBackColor({ 33, 33, 33 });
 
 	this->ToggleVectorColorsButton = new UIX::UIXButton;
-	this->ToggleVectorColorsButton->SetSize({ 100, 27 });
+	this->ToggleVectorColorsButton->SetSize({ 120, 27 });
 	this->ToggleVectorColorsButton->SetLocation({ 12, 442 });
 	this->ToggleVectorColorsButton->SetTabIndex(2);
 	this->ToggleVectorColorsButton->SetText("Toggle Vector Colors");
