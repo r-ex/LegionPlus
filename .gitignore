@@ -351,3 +351,6 @@ MigrationBackup/
 
 # Windows Folder pathing is cool and creates .ini files and does not remove em
 *.ini
+
+# Batch files because that shouldn't be pushed
+*.bat
