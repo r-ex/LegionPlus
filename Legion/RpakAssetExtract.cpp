@@ -545,7 +545,6 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, MatHeader.TypeIndex, MatHeader.TypeOffset));
 
 	const uint64_t TextureTable = (Asset.Version == RpakGameVersion::Apex) ? this->GetFileOffset(Asset, MatHeader.TexturesIndex, MatHeader.TexturesOffset) : this->GetFileOffset(Asset, MatHeader.TexturesTFIndex, MatHeader.TexturesTFOffset);
-	const uint32_t TexturesCount = (Asset.Version == RpakGameVersion::Apex) ? 0x10 : 0x11;
 	uint32_t TexturesCount = (Asset.Version == RpakGameVersion::Apex) ? 0x10 : 0x11;
 
 	// we're actually gonna ignore the hardcoded value for apex materials
