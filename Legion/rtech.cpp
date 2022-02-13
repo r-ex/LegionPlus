@@ -1248,12 +1248,12 @@ __int64 RTech::sub_7FF7FC23CD20(unsigned __int8 *param_buffer, unsigned int a2)
 		*((uint64_t*)param_buffer + 3) = v56 + 4;
 		v55 = v57 | (v55 << 32);
 	}
-	v58 = _mm_load_si128(&m9);
-	v59 = _mm_load_si128(&m10);
-	v60 = _mm_load_si128(&m11);
-	v61 = _mm_load_si128(&m12);
-	v62 = _mm_load_si128(&m13);
-	v63 = _mm_load_si128(&m14);
+	v58 = _mm_load_si128(&m2);
+	v59 = _mm_load_si128(&m3);
+	v60 = _mm_load_si128(&m1);
+	v61 = _mm_load_si128(&m4);
+	v62 = _mm_load_si128(&m5);
+	v63 = _mm_load_si128(&m6);
 	*(uint64_t*)param_buffer = *((uint64_t*)param_buffer + 1);
 	*((uint64_t*)param_buffer + 1) = v55;
 	*v45 = _mm_add_epi16(_mm_srai_epi16(_mm_sub_epi16(_mm_add_epi16(_mm_and_si128(v50, v58), v59), v46), 7u), v46);
