@@ -91,6 +91,9 @@ namespace Assets
 		// Gets the format of the image data
 		const DXGI_FORMAT Format() const;
 
+		// Get the number of bits per pixel
+		const uint8_t GetBpp() const;
+
 		// Sets the format of the image data (Converted on call)
 		void ConvertToFormat(DXGI_FORMAT Format);
 		// Transcodes the image using a transcoder
@@ -116,6 +119,8 @@ namespace Assets
 		
 		// Loads a texture from the specified raw block data
 		static Texture FromRawBlock(uint8_t* Buffer, uint64_t BufferLength, uint32_t Width, uint32_t Height, DXGI_FORMAT Format);
+
+		static int Morton(uint32_t i, uint32_t sx, uint32_t sy);
 
 		// Returns the file extension for the given type
 		constexpr static imstring GetExtensionForType(const SaveFileType Type)

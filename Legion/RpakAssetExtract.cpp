@@ -751,6 +751,46 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		RpakStream->Read(Texture->GetPixels(), 0, BlockSize);
 	}
 
+	// this is a kinda dumb check but i'm assuming we'll never see rpak v6 on anything other than ps4
+	if (Asset.Version == RpakGameVersion::R2TT)
+	{
+		auto UTexture = std::make_unique<Assets::Texture>(TexHeader.Width, TexHeader.Height, Fmt.Format);
+
+		uint8_t bpp = Texture->GetBpp();
+		int pixbl = 4;
+
+		int blocksY = TexHeader.Height / pixbl;
+		int blocksX = TexHeader.Width / pixbl;
+
+		uint8_t tempArray[16]{};
+
+		int tmp = 0;
+
+		for (int i = 0; i < (blocksY + 7) / 8; i++)
+		{
+			for (int j = 0; j < (blocksX + 7) / 8; j++)
+			{
+				for (int k = 0; k < 64; k++)
+				{
+					int mr = Assets::Texture::Morton(k, 8, 8);
+					int v0 = mr / 8;
+					int v1 = mr % 8;
+
+					std::memcpy(tempArray, Texture->GetPixels() + tmp, bpp * 2);
+					tmp += bpp * 2;
+
+					if (j * 8 + v1 < blocksX && i * 8 + v0 < blocksY)
+					{
+						int dstIdx = (bpp*2) * ((i * 8 + v0) * blocksX + j * 8 + v1);
+						std::memcpy(UTexture->GetPixels() + dstIdx, tempArray, bpp * 2);
+					}
+				}
+			}
+		}
+
+		Texture = std::move(UTexture);
+	}
+
 }
 
 void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Texture>& Texture)
