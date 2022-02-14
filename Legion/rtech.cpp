@@ -514,7 +514,7 @@ int64_t sub_7FF7FC23BA70(int64_t param_buffer, int64_t a2)
 	v4 = 0;
 	v52 = 0;
 	v45 = 0i64;
-	do
+	do // This below can heavily be cleaned up and made looks nicer, will do when its actually working.
 	{
 		v41 = 0;
 		v47 = 16 * v4;
@@ -1432,9 +1432,6 @@ int64_t RTech::DecompressSnowflakeInit(int64_t param_buffer, int64_t data_buffer
 		*(uint64_t*)(param_buffer + 40) = 0i64;
 	}
 
-	std::ofstream os("D:\Projects\\Legion\\test.bin", std::ios::binary | std::ios::out);
-	os.write((const char*)param_buffer, 0x25000);
-	os.close();
 	return result;
 }
 
