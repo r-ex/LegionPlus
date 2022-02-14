@@ -94,6 +94,10 @@ namespace Assets
 		// Get the number of bits per pixel
 		const uint8_t GetBpp() const;
 
+		// idrk
+		const uint8_t Pixbl() const;
+
+
 		// Sets the format of the image data (Converted on call)
 		void ConvertToFormat(DXGI_FORMAT Format);
 		// Transcodes the image using a transcoder

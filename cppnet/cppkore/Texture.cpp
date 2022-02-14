@@ -247,6 +247,16 @@ namespace Assets
 		}
 	}
 
+	const uint8_t Texture::Pixbl() const
+	{
+		uint32_t format = this->Format();
+
+		if ((format >= 70 && format <= 84) || format >= 94 && format <= 99)
+			return 4;
+		return 1;
+	}
+
+
 	void Texture::ConvertToFormat(DXGI_FORMAT Format)
 	{
 		if (InternalScratchImage->GetMetadata().format == Format)
