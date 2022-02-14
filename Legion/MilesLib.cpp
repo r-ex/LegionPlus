@@ -298,8 +298,8 @@ void MilesLib::MountBank(const string& Path)
 				Assets.Add(Hashing::XXHash::HashString(Name), Asset);
 			}
 		}
-		else if (BankHeader.Version == 32) {
-			// S3
+		else if (BankHeader.Version >= 28 && BankHeader.Version <= 32) {
+			// S2 -> S3
 			ReaderStream->SetPosition(*(uint64_t*)(uintptr_t(&BankHeader) + 0x48));
 			const auto SourcesCount = *(uint32_t*)(uintptr_t(&BankHeader) + 0x98);
 			const auto NameTableOffset = *(uint64_t*)(uintptr_t(&BankHeader) + 0x70);
@@ -317,6 +317,7 @@ void MilesLib::MountBank(const string& Path)
 			}
 		}
 		else {
+			g_Logger.Warning("Unknown MBNK Version: %i\n", BankHeader.Version);
 			throw new std::exception("Unknown MBNK version!");
 		}
 	}

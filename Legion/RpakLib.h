@@ -31,8 +31,8 @@ struct RpakApexHeader
 	uint16_t Version;
 	uint8_t Flags;
 	bool IsCompressed;
-
-	uint8_t Hash[0x10];
+	uint64_t CreatedFileTime;
+	uint64_t Hash;
 
 	uint64_t CompressedSize;
 	uint64_t EmbeddedStarpakOffset;
@@ -61,8 +61,8 @@ struct RpakTitanfallHeader
 	uint32_t Magic;
 	uint16_t Version;
 	uint16_t Flags;
-
-	uint8_t Hash[0x10];
+	uint64_t CreatedFileTime;
+	uint64_t Hash;
 
 	uint64_t CompressedSize;
 	uint64_t Padding1;
@@ -83,6 +83,34 @@ struct RpakTitanfallHeader
 	uint32_t UnknownSeventhBlockCount;
 	uint32_t UnknownEighthBlockCount;
 };
+
+struct RpakHeaderV6
+{
+	uint32_t Magic;
+	uint16_t Version;
+	uint16_t Flags;
+
+	uint64_t CreatedFileTime;
+	uint64_t Hash;
+
+	uint64_t FileSize;
+	uint64_t Padding;
+	uint64_t Padding2;
+
+	uint32_t StarpakReferenceSize;
+	uint32_t VirtualSegmentCount;			// * 0x10
+	uint32_t PageCount;		// * 0xC
+
+	uint32_t DescriptorCount;
+	uint32_t AssetEntryCount;
+	uint32_t GuidDescriptorCount;
+	uint32_t UnknownSixthBlockCount;
+
+	uint32_t UnknownSeventhBlockCount;
+	uint32_t UnknownEighthBlockCount;
+	uint32_t what;
+};
+
 
 struct RpakDescriptor
 {
@@ -198,8 +226,9 @@ struct RpakSegmentBlock
 
 enum class RpakGameVersion : uint32_t
 {
-	Titanfall = 0x7,
-	Apex = 0x8,
+	R2TT      = 0x6, // Titanfall 2 Tech Test
+	Titanfall = 0x7, // Titanfall 2
+	Apex      = 0x8, // Apex Legends
 };
 
 class RpakFile
@@ -447,4 +476,6 @@ private:
 	bool ParseApexRpak(const string& RpakPath, std::unique_ptr<IO::MemoryStream>& ParseStream);
 	bool MountTitanfallRpak(const string& Path, bool Dump);
 	bool ParseTitanfallRpak(const string& RpakPath, std::unique_ptr<IO::MemoryStream>& ParseStream);
+	bool MountR2TTRpak(const string& Path, bool Dump);
+	bool ParseR2TTRpak(const string& RpakPath, std::unique_ptr<IO::MemoryStream>& ParseStream);
 };
