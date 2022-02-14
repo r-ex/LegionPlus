@@ -479,7 +479,7 @@ int64_t sub_7FF7FC23BA70(int64_t param_buffer, int64_t a2)
 	unsigned int v23; // eax
 	__int64 result; // rax
 	int v25; // [rsp+0h] [rbp-A8h]
-	__int16 v26[2]; // [rsp+8h] [rbp-A0h]
+	__int16 v26[17]; // [rsp+8h] [rbp-A0h]
 	__int16 v27; // [rsp+Ch] [rbp-9Ch]
 	__int16 v28; // [rsp+Eh] [rbp-9Ah]
 	__int16 v29; // [rsp+10h] [rbp-98h]
@@ -524,24 +524,38 @@ int64_t sub_7FF7FC23BA70(int64_t param_buffer, int64_t a2)
 		v42 = (unsigned __int16)(1 << (15 - *(uint8_t*)((unsigned int)(v47 + 1) + v2)));
 		v26[1] = v42;
 		v27 = 1 << (15 - *(uint8_t*)((unsigned int)(v47 + 2) + v2));
+		v26[2] = v27;
 		v28 = 1 << (15 - *(uint8_t*)((unsigned int)(v47 + 3) + v2));
+		v26[3] = v28;
 		v29 = 1 << (15 - *(uint8_t*)((unsigned int)(v47 + 4) + v2));
+		v26[4] = v29;
 		v30 = 1 << (15 - *(uint8_t*)((unsigned int)(v47 + 5) + v2));
+		v26[5] = v30;
 		v31 = 1 << (15 - *(uint8_t*)((unsigned int)(v47 + 6) + v2));
+		v26[6] = v31;
 		v32 = 1 << (15 - *(uint8_t*)((unsigned int)(v47 + 7) + v2));
+		v26[7] = v32;
 		v33 = 1 << (15 - *(uint8_t*)((unsigned int)(v47 + 8) + v2));
+		v26[8] = v33;
 		v34 = 1 << (15 - *(uint8_t*)((unsigned int)(v47 + 9) + v2));
+		v26[9] = v34;
 		v5 = 15 - *(uint8_t*)((unsigned int)(v47 + 10) + v2);
 		v48 = 0i64;
 		v46 = 17i64;
 		v6 = *(uint8_t*)((unsigned int)(v47 + 11) + v2);
 		v35 = 1 << v5;
+		v26[10] = v35;
 		v7 = 15 - *(uint8_t*)((unsigned int)(v47 + 12) + v2);
 		v36 = 1 << (15 - v6);
+		v26[11] = v36;
 		v37 = 1 << v7;
+		v26[12] = v37;
 		v38 = 1 << (15 - *(uint8_t*)((unsigned int)(v47 + 13) + v2));
+		v26[13] = v38;
 		v39 = 1 << (15 - *(uint8_t*)((unsigned int)(v47 + 14) + v50));
+		v26[14] = v39;
 		v40 = 1 << (15 - *(uint8_t*)((unsigned int)(v47 + 15) + v50));
+		v26[15] = v40;
 		v8 = 0i64;
 		v9 = v44;
 		v10 = v32 + v33 + v34 + v35 + v36 + (1 << v7) + v38 + v39 + v40 + v43 + v42 + v27 + v28 + v29 + v30 + v31;
@@ -1417,6 +1431,10 @@ int64_t RTech::DecompressSnowflakeInit(int64_t param_buffer, int64_t data_buffer
 	{
 		*(uint64_t*)(param_buffer + 40) = 0i64;
 	}
+
+	std::ofstream os("D:\Projects\\Legion\\test.bin", std::ios::binary | std::ios::out);
+	os.write((const char*)param_buffer, 0x25000);
+	os.close();
 	return result;
 }
 
