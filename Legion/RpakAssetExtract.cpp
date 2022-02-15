@@ -19,7 +19,7 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 		state.out_mask = UINT64_MAX;
 		state.out = (uint64_t)Result;
 
-		std::uint8_t decomp_result = g_pRtech->DecompressPakFile(&state, DataSize, 0x400000);
+		std::uint8_t decomp_result = g_pRtech->DecompressPakFile(&state, DataSize, dSize); // porter uses 0x400000, but using decompsize should be enough.
 
 		DataSize = state.decompressed_size;
 
