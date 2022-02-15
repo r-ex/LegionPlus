@@ -758,7 +758,11 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		auto UTexture = std::make_unique<Assets::Texture>(TexHeader.Width, TexHeader.Height, Fmt.Format);
 
 		uint8_t bpp = Texture->GetBpp();
+		int vp = (bpp * 2);
+
 		int pixbl = Texture->Pixbl();
+		if (pixbl == 1)
+			vp = bpp / 8;
 
 		int blocksY = TexHeader.Height / pixbl;
 		int blocksX = TexHeader.Width / pixbl;
@@ -776,13 +780,13 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 					int v0 = mr / 8;
 					int v1 = mr % 8;
 
-					std::memcpy(tempArray, Texture->GetPixels() + tmp, bpp * 2);
-					tmp += bpp * 2;
+					std::memcpy(tempArray, Texture->GetPixels() + tmp, vp);
+					tmp += vp;
 
 					if (j * 8 + v1 < blocksX && i * 8 + v0 < blocksY)
 					{
-						int dstIdx = (bpp*2) * ((i * 8 + v0) * blocksX + j * 8 + v1);
-						std::memcpy(UTexture->GetPixels() + dstIdx, tempArray, bpp * 2);
+						int dstIdx = (vp) * ((i * 8 + v0) * blocksX + j * 8 + v1);
+						std::memcpy(UTexture->GetPixels() + dstIdx, tempArray, vp);
 					}
 				}
 			}
