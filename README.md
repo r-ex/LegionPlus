@@ -50,6 +50,7 @@ When multiple load flags are used together, all specified types will be loaded
 #### Other Flags
 ```
 --overwrite - Enables file overwriting for replacing existing versions of exported assets
+-nologfile - Disables log files being created
 ```
 
 ## Support
