@@ -262,7 +262,7 @@ void MilesLib::MountBank(const string& Path)
 
 	ReaderStream->SetPosition(BankHeader.SourceEntryOffset);
 
-	if (BankHeader.Version == 11 || BankHeader.Version == 0xD)
+	if (BankHeader.Version >= 0xB && BankHeader.Version <= 0xD)
 	{
 		// TF|2
 		ReaderStream->SetPosition(*(uint64_t*)(uintptr_t(&BankHeader) + 0x48));
