@@ -1094,6 +1094,7 @@ bool RpakLib::MountTitanfallRpak(const string& Path, bool Dump)
 
 		Reader.GetBaseStream()->SetPosition(0);
 		Reader.GetBaseStream()->CopyTo(Stream.get());
+		Stream->SetPosition(0);
 
 		return ParseTitanfallRpak(Path, Stream);
 	}
