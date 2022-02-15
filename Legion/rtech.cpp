@@ -1373,7 +1373,7 @@ int64_t RTech::DecompressSnowflakeInit(int64_t param_buffer, int64_t data_buffer
 	uint32_t v2; // eax
 	int v3; // edi
 	uint64_t v4; // rax
-	int64_t v6; // rcx
+	int32_t v6; // rcx
 	int v7; // ebx
 	char v8; // al
 	uint8_t v9; // r14
@@ -1398,7 +1398,7 @@ int64_t RTech::DecompressSnowflakeInit(int64_t param_buffer, int64_t data_buffer
 	v3 = -1;
 	v4 = (sub_7FF7FC23B960(param_buffer, v2) | (1i64 << v2)) - 1;
 	*(uint64_t*)(param_buffer + 149144) = v4;
-	if (_BitScanReverse64((unsigned long*)(unsigned __int64*)&v6, (v4 >> 6) + 100 + v4)) // Had to cast v6 to unsigned long here, it might cause issues. THIS MAY RUIN SMTH KEEP IN MIND.
+	if (_BitScanReverse64((DWORD*)&v6, (v4 >> 6) + 100 + v4)) // Had to cast v6 to unsigned long here, it might cause issues. THIS MAY RUIN SMTH KEEP IN MIND.
 		v3 = v6;
 	*(uint64_t*)(param_buffer + 149160) = sub_7FF7FC23B960(param_buffer, (unsigned int)(v3 + 1));
 	v7 = sub_7FF7FC23B960(param_buffer, 4);
