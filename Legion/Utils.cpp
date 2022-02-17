@@ -16,7 +16,7 @@ string Utils::GetTimestamp() {
     time(&now);
     char buf[32];
     tm t;
-    gmtime_s(&t, &now);
+    localtime_s(&t, &now);
     strftime(buf, sizeof buf, "%H:%M:%S", &t);
     return string(buf);
 }
@@ -27,7 +27,7 @@ string Utils::GetDate()
     time(&now);
     char buf[32];
     tm t;
-    gmtime_s(&t, &now);
+    localtime_s(&t, &now);
     strftime(buf, sizeof buf, "%Y-%m-%d", &t);
     return string(buf);
 }
