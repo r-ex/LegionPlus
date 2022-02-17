@@ -590,44 +590,7 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 
 	Assets::DDSFormat Fmt;
 
-	switch (TexHeader.Format)
-	{
-	case 0x0:	// DXT1 No-Alpha
-	case 0x1:	// DXT1 Alpha
-		Fmt.Format = DXGI_FORMAT::DXGI_FORMAT_BC1_UNORM;
-		break;
-	case 0x6:	// BC4
-		Fmt.Format = DXGI_FORMAT::DXGI_FORMAT_BC4_UNORM;
-		break;
-	case 0x8:	// BC5
-		Fmt.Format = DXGI_FORMAT::DXGI_FORMAT_BC5_UNORM;
-		break;
-	case 0xA:
-	case 0xB:
-		Fmt.Format = DXGI_FORMAT::DXGI_FORMAT_BC6H_UF16;
-		break;
-	case 0xC:
-	case 0xD:
-		Fmt.Format = DXGI_FORMAT::DXGI_FORMAT_BC7_UNORM;
-		break;
-	case 0x1f:
-	case 0x20:
-		Fmt.Format = DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM;
-		break;
-	case 0x2C:
-		Fmt.Format = DXGI_FORMAT::DXGI_FORMAT_R8G8_UNORM;
-		break;
-	case 0x35:
-		Fmt.Format = DXGI_FORMAT::DXGI_FORMAT_R8_UNORM;
-		break;
-	default:
-#if _DEBUG
-		printf("0x%llx 0x%llx 0x%x size 0x%x\n", Asset.OptimalStarpakOffset, Asset.StarpakOffset, Asset.RawDataOffset, TexHeader.DataSize);
-		printf("0x%llx %d %d Unknown format: 0x%x\n", Asset.NameHash, TexHeader.Width, TexHeader.Height, TexHeader.Format);
-		__debugbreak();
-#endif
-		return;
-	}
+	Fmt.Format = TxtrFormatToDXGI[TexHeader.Format];
 
 	if (TexHeader.NameIndex || TexHeader.NameOffset)
 	{
