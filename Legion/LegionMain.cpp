@@ -667,7 +667,7 @@ void LegionMain::OnListRightClick(const std::unique_ptr<MouseEventArgs>& EventAr
 		auto& DisplayIndex = ThisPtr->DisplayIndices[SelectedIndices[i]];
 		auto& Asset = (*ThisPtr->LoadedAssets.get())[DisplayIndex];
 
-		printf(Asset.Name + "\n");
+		g_Logger.Info(Asset.Name + "\n");
 
 		//if (i != SelectedIndices.Count() - 1)
 		//	yes += Asset.Name + "\n";
