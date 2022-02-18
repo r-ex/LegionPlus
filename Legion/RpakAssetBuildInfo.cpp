@@ -165,3 +165,11 @@ void RpakLib::BuildSubtitleInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	Info.Status = ApexAssetStatus::Loaded;
 	Info.Info = "N/A";
 }
+
+void RpakLib::BuildShaderSetInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
+{
+	Info.Name = string::Format("shaderset_0x%llx", Asset.NameHash);
+	Info.Type = ApexAssetType::ShaderSet;
+	Info.Status = ApexAssetStatus::Loaded;
+	Info.Info = "N/A";
+}

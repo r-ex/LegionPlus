@@ -265,6 +265,7 @@ struct RpakLoadAsset
 	uint64_t NameHash;
 	uint32_t FileIndex;
 	uint32_t RpakFileIndex;
+	uint32_t AssetVersion;
 	RpakGameVersion Version;
 	uint32_t AssetType;
 
@@ -274,12 +275,11 @@ struct RpakLoadAsset
 	uint32_t RawDataIndex;
 	uint32_t RawDataOffset;
 
-
 	uint64_t StarpakOffset;			
 	uint64_t OptimalStarpakOffset;	
 
 	RpakLoadAsset() = default;
-	RpakLoadAsset(uint64_t NameHash, uint32_t FileIndex, uint32_t AssetType, uint32_t SubHeaderIndex, uint32_t SubHeaderOffset, uint32_t SubHeaderSize, uint32_t RawDataIndex, uint32_t RawDataOffset, uint64_t StarpakOffset, uint64_t OptimalStarpakOffset, RpakGameVersion Version);
+	RpakLoadAsset(uint64_t NameHash, uint32_t FileIndex, uint32_t AssetType, uint32_t SubHeaderIndex, uint32_t SubHeaderOffset, uint32_t SubHeaderSize, uint32_t RawDataIndex, uint32_t RawDataOffset, uint64_t StarpakOffset, uint64_t OptimalStarpakOffset, RpakGameVersion Version, uint32_t AssetVersion);
 };
 
 // Shared
@@ -307,7 +307,9 @@ enum class RpakAssetType : uint32_t
 	Material = 0x6C74616D,
 	AnimationRig = 0x67697261,
 	Animation = 0x71657361,
-	Subtitles = 0x74627573
+	Subtitles = 0x74627573,
+	ShaderSet = 0x73646873,
+	Shader = 0x72646873,
 };
 
 enum class RpakModelExportFormat
@@ -483,8 +485,7 @@ public:
 	void ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path);
 	void ExportDataTable(const RpakLoadAsset& Asset, const string& Path);
 	void ExportSubtitles(const RpakLoadAsset& Asset, const string& Path);
-
-
+	void ExportShaderSet(const RpakLoadAsset& Asset, const string& Path);
 	List<List<DataTableColumnData>> ExtractDataTable(const RpakLoadAsset& Asset);
 
 	// Used by the BSP system.
@@ -517,6 +518,7 @@ private:
 	void BuildUIIAInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildDataTableInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildSubtitleInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
+	void BuildShaderSetInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 
 	// RpakAssetExtract.cpp
 	std::unique_ptr<Assets::Model> ExtractModel(const RpakLoadAsset& Asset, const string& Path, const string& AnimPath, bool IncludeMaterials, bool IncludeAnimations);
@@ -527,6 +529,7 @@ private:
 	List<Assets::Bone> ExtractSkeleton(IO::BinaryReader& Reader, uint64_t SkeletonOffset);
 	//List<List<DataTableColumnData>> ExtractDataTable(const RpakLoadAsset& Asset);
 	List<SubtitleEntry> ExtractSubtitles(const RpakLoadAsset& Asset);
+	void ExtractShader(const RpakLoadAsset& Asset, const string& Path);
 
 	string GetSubtitlesNameFromHash(uint64_t Hash);
 	void ParseRAnimBoneTranslationTrack(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex);

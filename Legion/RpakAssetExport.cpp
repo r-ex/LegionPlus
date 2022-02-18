@@ -248,3 +248,38 @@ void RpakLib::ExportSubtitles(const RpakLoadAsset& Asset, const string& Path)
 
 	subt_out.close();
 }
+
+void RpakLib::ExportShaderSet(const RpakLoadAsset& Asset, const string& Path)
+{
+	auto ShaderSetPath = IO::Path::Combine(Path, string::Format("0x%llx", Asset.NameHash));
+
+	auto RpakStream = this->GetFileStream(Asset);
+	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
+
+	auto Header = Reader.Read<ShaderSetHeader>();
+
+	uint64_t PixelShaderGuid = Header.PixelShaderHash;
+	uint64_t VertexShaderGuid = Header.VertexShaderHash;
+
+	if (Asset.AssetVersion <= 11)
+	{
+		PixelShaderGuid = Header.OldPixelShaderHash;
+		VertexShaderGuid = Header.OldVertexShaderHash;
+	}
+	if (!IO::Directory::Exists(ShaderSetPath))
+		IO::Directory::CreateDirectory(ShaderSetPath);
+
+	if (Assets.ContainsKey(PixelShaderGuid))
+	{
+		auto PixelShaderPath = IO::Path::Combine(ShaderSetPath, string::Format("0x%llx_ps.bin", PixelShaderGuid));
+		this->ExtractShader(Assets[PixelShaderGuid], PixelShaderPath);
+	}
+
+	if (Assets.ContainsKey(VertexShaderGuid))
+	{
+		auto VertexShaderPath = IO::Path::Combine(ShaderSetPath, string::Format("0x%llx_vs.bin", VertexShaderGuid));
+		this->ExtractShader(Assets[VertexShaderGuid], VertexShaderPath);
+	}
+}

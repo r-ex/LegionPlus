@@ -297,10 +297,21 @@ struct ShaderSetHeader {
 	uint8_t Byte1;
 	uint8_t Byte2;
 
-	uint8_t Unknown2[0x20];
+	uint8_t Unknown2[0x10];
 
+	uint64_t OldVertexShaderHash;
+	uint64_t OldPixelShaderHash;
+
+	// only used for version 12+
 	uint64_t VertexShaderHash;
 	uint64_t PixelShaderHash;
+};
+
+struct ShaderDataHeader
+{
+	uint32_t ByteCodeIndex;
+	uint32_t ByteCodeOffset;
+	uint32_t DataSize;
 };
 
 struct AnimRigHeader

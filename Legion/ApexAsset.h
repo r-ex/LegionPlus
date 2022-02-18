@@ -11,6 +11,7 @@ enum class ApexAssetType
 	DataTable,
 	Sound,
 	Subtitles,
+	ShaderSet
 };
 
 enum class ApexAssetStatus

@@ -89,7 +89,8 @@ void RpakLib::PatchAssets()
 					Kvp.second.RawDataBlockOffset,
 					Kvp.second.StarpakOffset,
 					Kvp.second.OptimalStarpakOffset,
-					LoadedFile.Version
+					LoadedFile.Version,
+					Kvp.second.Version
 				);
 
 				// All assets must follow this patch sequence
@@ -198,6 +199,9 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims
 		case (uint32_t)RpakAssetType::Subtitles:
 			// todo: subtitle loading setting
 			BuildSubtitleInfo(Asset, NewAsset);
+			break;
+		case (uint32_t)RpakAssetType::ShaderSet:
+			BuildShaderSetInfo(Asset, NewAsset);
 			break;
 		default:
 			continue;
@@ -596,6 +600,14 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 			return (SubHeader.ColumnCount != 0 && SubHeader.RowCount != 0);
 		}
 		case (uint32_t)RpakAssetType::Subtitles:
+		{
+			return true;
+		}
+		case (uint32_t)RpakAssetType::ShaderSet:
+		{
+			return true;
+		}
+		case (uint32_t)RpakAssetType::Shader:
 		{
 			return true;
 		}
@@ -1149,8 +1161,8 @@ bool RpakLib::MountR2TTRpak(const string& Path, bool Dump)
 	return ParseR2TTRpak(Path, Stream);
 }
 
-RpakLoadAsset::RpakLoadAsset(uint64_t NameHash, uint32_t FileIndex, uint32_t AssetType, uint32_t SubHeaderIndex, uint32_t SubHeaderOffset, uint32_t SubHeaderSize, uint32_t RawDataIndex, uint32_t RawDataOffset, uint64_t StarpakOffset, uint64_t OptimalStarpakOffset, RpakGameVersion Version)
-	: NameHash(NameHash), FileIndex(FileIndex), RpakFileIndex(FileIndex), AssetType(AssetType), SubHeaderIndex(SubHeaderIndex), SubHeaderOffset(SubHeaderOffset), SubHeaderSize(SubHeaderSize), RawDataIndex(RawDataIndex), RawDataOffset(RawDataOffset), StarpakOffset(StarpakOffset), OptimalStarpakOffset(OptimalStarpakOffset), Version(Version)
+RpakLoadAsset::RpakLoadAsset(uint64_t NameHash, uint32_t FileIndex, uint32_t AssetType, uint32_t SubHeaderIndex, uint32_t SubHeaderOffset, uint32_t SubHeaderSize, uint32_t RawDataIndex, uint32_t RawDataOffset, uint64_t StarpakOffset, uint64_t OptimalStarpakOffset, RpakGameVersion Version, uint32_t AssetVersion)
+	: NameHash(NameHash), FileIndex(FileIndex), RpakFileIndex(FileIndex), AssetType(AssetType), SubHeaderIndex(SubHeaderIndex), SubHeaderOffset(SubHeaderOffset), SubHeaderSize(SubHeaderSize), RawDataIndex(RawDataIndex), RawDataOffset(RawDataOffset), StarpakOffset(StarpakOffset), OptimalStarpakOffset(OptimalStarpakOffset), Version(Version), AssetVersion(AssetVersion)
 {
 }
 

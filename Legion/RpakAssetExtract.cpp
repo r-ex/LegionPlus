@@ -1480,3 +1480,26 @@ List<SubtitleEntry> RpakLib::ExtractSubtitles(const RpakLoadAsset& Asset)
 	}
 	return Subtitles;
 }
+
+void RpakLib::ExtractShader(const RpakLoadAsset& Asset, const string& Path)
+{
+	if (!Utils::ShouldWriteFile(Path))
+		return;
+
+	auto RpakStream = this->GetFileStream(Asset);
+	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset));
+
+	auto DataHeader = Reader.Read<ShaderDataHeader>();
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, DataHeader.ByteCodeIndex, DataHeader.ByteCodeOffset));
+
+	char* bcBuf = new char[DataHeader.DataSize];
+
+	Reader.Read(bcBuf, 0, DataHeader.DataSize);
+
+	std::ofstream shaderOut(Path.ToCString(), std::ios::binary | std::ios::out);
+	shaderOut.write(bcBuf, DataHeader.DataSize);
+	shaderOut.close();
+}
