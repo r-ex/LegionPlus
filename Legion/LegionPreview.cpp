@@ -32,7 +32,7 @@ void LegionPreview::InitializeComponent()
 	this->SetText("Asset Preview");
 	this->SetClientSize({ 775, 481 });
 	this->SetMinimumSize({ 791, 520 });
-	this->SetStartPosition(Forms::FormStartPosition::CenterParent);
+	this->SetStartPosition(Forms::FormStartPosition::CenterScreen);
 
 	this->ModelPreview = new Assets::AssetRenderer();
 	this->ModelPreview->SetSize({ 775, 481 });
