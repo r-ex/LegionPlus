@@ -361,7 +361,7 @@ bool MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 			{
 				// origin apex was not found; check steam
 				// this is bad. users can have apex installed on steam on a different drive to the steam installation and this won't find it
-				if (RegGetValueA(hKey, "SOFTWARE\\Valve\\Steam", "SteamPath", RRF_RT_ANY, NULL, (PVOID)&buf, &BufferSize) != ERROR_SUCCESS)
+				if (RegGetValueA(HKEY_CURRENT_USER, "SOFTWARE\\Valve\\Steam", "SteamPath", RRF_RT_ANY, NULL, (PVOID)&buf, &BufferSize) != ERROR_SUCCESS)
 				{
 					g_Logger.Warning("no apex installation found. please bug this if you have apex and provide your installation path\n");
 					return false;
