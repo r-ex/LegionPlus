@@ -19,14 +19,17 @@ struct TextureHeader
 
 	uint8_t Un1;
 	uint8_t Un2;
-	uint8_t Format;		// Maps to a DXGI format
+	uint8_t Format;				  // used as an index into an array of DXGI formats
 	uint8_t Un3;
 
-	uint32_t DataSize;	// This is the total amount of image data across all banks
-	uint32_t Unknown2;
-	uint8_t Unknown3;
-	uint8_t MipLevels;	// Usually 0x8/0x9
-	uint8_t MipLevelsStreamed;
+	uint32_t DataSize;	          // total data size across all mips
+	uint8_t Unknown2;
+	uint8_t MipLevelsStreamedOpt; // mips stored in .opt.starpak
+	uint8_t ArraySize;
+	uint8_t LayerCount;
+	uint8_t Unknown4;
+	uint8_t MipLevelsPermanent;   // mips stored in .rpak
+	uint8_t MipLevelsStreamed;    // mips stored in .starpak
 
 	uint8_t UnknownPad[0x15];
 };
