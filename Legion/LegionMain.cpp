@@ -561,8 +561,10 @@ void LegionMain::ResetDisplayIndices()
 	this->AssetsListView->SetVirtualListSize(this->DisplayIndices.Count());
 	this->AssetsListView->Refresh();
 
+	auto PathParts = LoadPath[0].Split("\\");
+
 	if (this->LoadPath.Count() == 1)
-		this->StatusLabel->SetText(string::Format("%s Loaded %d assets", strrchr(LoadPath[0].ToCString(), '\\') + 1, this->DisplayIndices.Count()));
+		this->StatusLabel->SetText(string::Format("%s Loaded %d assets", (PathParts[PathParts.Count()-1] + ": ").ToCString(), this->DisplayIndices.Count()));
 	else
 		this->StatusLabel->SetText(string::Format("Loaded %d assets", this->DisplayIndices.Count()));
 }

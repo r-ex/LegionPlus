@@ -468,63 +468,47 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	}
 
 	// have the settings actually changed?
-	bool bAC = false;
+	bool bRefreshView = false;
 
-	if (!bAC && ThisPtr->LoadModels->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("LoadModels"))
-		bAC = true;
-	if (!bAC && ThisPtr->LoadAnimations->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("LoadAnimations"))
-		bAC = true;
-	if (!bAC && ThisPtr->LoadImages->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("LoadImages"))
-		bAC = true;
-	if (!bAC && ThisPtr->LoadMaterials->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("LoadMaterials"))
-		bAC = true;
-	if (!bAC && ThisPtr->LoadUIImages->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("LoadUIImages"))
-		bAC = true;
-	if (!bAC && ThisPtr->LoadDataTables->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("LoadDataTables"))
-		bAC = true;
-	if (!bAC && ThisPtr->ToggleOverwriting->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("OverwriteExistingFiles"))
-		bAC = true;
+	if (ThisPtr->LoadModels->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("LoadModels"))
+		bRefreshView = true;
+	if (ThisPtr->LoadAnimations->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("LoadAnimations"))
+		bRefreshView = true;
+	if (ThisPtr->LoadImages->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("LoadImages"))
+		bRefreshView = true;
+	if (ThisPtr->LoadMaterials->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("LoadMaterials"))
+		bRefreshView = true;
+	if (ThisPtr->LoadUIImages->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("LoadUIImages"))
+		bRefreshView = true;
+	if (ThisPtr->LoadDataTables->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("LoadDataTables"))
+		bRefreshView = true;
 
-	if (!bAC && (uint32_t)ModelExportFormat != ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"))
-		bAC = true;
-	if (!bAC && (uint32_t)AnimExportFormat != ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat"))
-		bAC = true;
-	if (!bAC && (uint32_t)ImageExportFormat != ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat"))
-		bAC = true;
-	if (!bAC && (uint32_t)SubtitlesExportFormat != ExportManager::Config.Get<System::SettingType::Integer>("SubtitlesFormat"))
-		bAC = true;
+	ExportManager::Config.Set<System::SettingType::Boolean>("LoadModels", ThisPtr->LoadModels->Checked());
+	ExportManager::Config.Set<System::SettingType::Boolean>("LoadAnimations", ThisPtr->LoadAnimations->Checked());
+	ExportManager::Config.Set<System::SettingType::Boolean>("LoadImages", ThisPtr->LoadImages->Checked());
+	ExportManager::Config.Set<System::SettingType::Boolean>("LoadMaterials", ThisPtr->LoadMaterials->Checked());
+	ExportManager::Config.Set<System::SettingType::Boolean>("LoadUIImages", ThisPtr->LoadUIImages->Checked());
+	ExportManager::Config.Set<System::SettingType::Boolean>("LoadDataTables", ThisPtr->LoadDataTables->Checked());
+	ExportManager::Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", ThisPtr->ToggleOverwriting->Checked());
+	ExportManager::Config.Set<System::SettingType::Integer>("ModelFormat", (uint32_t)ModelExportFormat);
+	ExportManager::Config.Set<System::SettingType::Integer>("AnimFormat", (uint32_t)AnimExportFormat);
+	ExportManager::Config.Set<System::SettingType::Integer>("ImageFormat", (uint32_t)ImageExportFormat);
+	ExportManager::Config.Set<System::SettingType::Integer>("SubtitlesFormat", (uint32_t)SubtitlesExportFormat);
 
-	if (!bAC && ThisPtr->ExportBrowseFolder->Text() != ExportManager::Config.Get<System::SettingType::String>("ExportDirectory"))
-		bAC = true;
+	auto ExportDirectory = ThisPtr->ExportBrowseFolder->Text();
 
-	if (bAC)
+	if (ExportDirectory == "Click on \"Browse\" to set a custom export directory")
 	{
-		ExportManager::Config.Set<System::SettingType::Boolean>("LoadModels", ThisPtr->LoadModels->Checked());
-		ExportManager::Config.Set<System::SettingType::Boolean>("LoadAnimations", ThisPtr->LoadAnimations->Checked());
-		ExportManager::Config.Set<System::SettingType::Boolean>("LoadImages", ThisPtr->LoadImages->Checked());
-		ExportManager::Config.Set<System::SettingType::Boolean>("LoadMaterials", ThisPtr->LoadMaterials->Checked());
-		ExportManager::Config.Set<System::SettingType::Boolean>("LoadUIImages", ThisPtr->LoadUIImages->Checked());
-		ExportManager::Config.Set<System::SettingType::Boolean>("LoadDataTables", ThisPtr->LoadDataTables->Checked());
-		ExportManager::Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", ThisPtr->ToggleOverwriting->Checked());
-		ExportManager::Config.Set<System::SettingType::Integer>("ModelFormat", (uint32_t)ModelExportFormat);
-		ExportManager::Config.Set<System::SettingType::Integer>("AnimFormat", (uint32_t)AnimExportFormat);
-		ExportManager::Config.Set<System::SettingType::Integer>("ImageFormat", (uint32_t)ImageExportFormat);
-		ExportManager::Config.Set<System::SettingType::Integer>("SubtitlesFormat", (uint32_t)SubtitlesExportFormat);
-
-		auto ExportDirectory = ThisPtr->ExportBrowseFolder->Text();
-
-		if (ExportDirectory == "Click on \"Browse\" to set a custom export directory")
-		{
-			ExportManager::Config.Remove<System::SettingType::String>("ExportDirectory");
-		}
-		else if (IO::Directory::Exists(ExportDirectory))
-		{
-			ExportManager::Config.Set<System::SettingType::String>("ExportDirectory", ExportDirectory);
-		}
-
-		ExportManager::SaveConfigToDisk();
-		g_pLegionMain->RefreshView();
+		ExportManager::Config.Remove<System::SettingType::String>("ExportDirectory");
 	}
+	else if (IO::Directory::Exists(ExportDirectory))
+	{
+		ExportManager::Config.Set<System::SettingType::String>("ExportDirectory", ExportDirectory);
+	}
+
+	ExportManager::SaveConfigToDisk();
+	if(bRefreshView)
+		g_pLegionMain->RefreshView();
 }
 
 void LegionSettings::OnGithubClick(Forms::Control* Sender)
