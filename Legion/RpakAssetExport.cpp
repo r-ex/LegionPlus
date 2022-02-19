@@ -96,8 +96,31 @@ void RpakLib::ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path)
 
 	IO::Directory::CreateDirectory(AnimSetPath);
 
-	const uint64_t ReferenceOffset = this->GetFileOffset(Asset, RigHeader.AnimationReferenceIndex, RigHeader.AnimationReferenceOffset);
+	auto AnimFormat = (RpakAnimExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat");
+
+	if (AnimFormat == RpakAnimExportFormat::RAnim)
+	{
+		auto SkeletonOffset = this->GetFileOffset(Asset, RigHeader.SkeletonIndex, RigHeader.SkeletonOffset);
+		RpakStream->SetPosition(SkeletonOffset);
+
+		auto SkeletonHeader = Reader.Read<RMdlSkeletonHeader>();
+
+		RpakStream->SetPosition(SkeletonOffset);
+
+		char* skelBuf = new char[SkeletonHeader.DataSize];
+		Reader.Read(skelBuf, 0, SkeletonHeader.DataSize);
+
+		std::ofstream skelOut(IO::Path::Combine(AnimSetPath, AnimSetName + ".rrig"), std::ios::out | std::ios::binary);
+		skelOut.write(skelBuf, SkeletonHeader.DataSize);
+		skelOut.close();
+
+		// todo: rseq
+		return;
+	}
+
 	const auto Skeleton = this->ExtractSkeleton(Reader, this->GetFileOffset(Asset, RigHeader.SkeletonIndex, RigHeader.SkeletonOffset));
+
+	const uint64_t ReferenceOffset = this->GetFileOffset(Asset, RigHeader.AnimationReferenceIndex, RigHeader.AnimationReferenceOffset);
 
 	for (uint32_t i = 0; i < RigHeader.AnimationReferenceCount; i++)
 	{

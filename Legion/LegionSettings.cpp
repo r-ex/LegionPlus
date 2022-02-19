@@ -242,6 +242,7 @@ void LegionSettings::InitializeComponent()
 	this->AnimExportFormat->SetDropDownStyle(Forms::ComboBoxStyle::DropDownList);
 	this->AnimExportFormat->Items.Add("Cast");
 	this->AnimExportFormat->Items.Add("SEAnim");
+	this->AnimExportFormat->Items.Add("RAnim");
 	this->groupBox5->AddControl(this->AnimExportFormat);
 
 	//
@@ -352,6 +353,9 @@ void LegionSettings::LoadSettings()
 	case RpakAnimExportFormat::SEAnim:
 		this->AnimExportFormat->SetSelectedIndex(1);
 		break;
+	case RpakAnimExportFormat::RAnim:
+		this->AnimExportFormat->SetSelectedIndex(2);
+		break;
 	}
 
 	switch (ImageFormat)
@@ -447,6 +451,9 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		{
 		case 1:
 			AnimExportFormat = RpakAnimExportFormat::SEAnim;
+			break;
+		case 2:
+			AnimExportFormat = RpakAnimExportFormat::RAnim;
 			break;
 		}
 	}

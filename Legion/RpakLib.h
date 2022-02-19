@@ -324,7 +324,8 @@ enum class RpakModelExportFormat
 enum class RpakAnimExportFormat
 {
 	SEAnim,
-	Cast
+	Cast,
+	RAnim
 };
 
 enum class RpakImageExportFormat
