@@ -160,6 +160,6 @@ namespace Assets
 		void RenderHUD();
 
 		// Internal routine to load a texture to an index
-		void LoadDXTextureOGL(const Texture& Texture, const uint32_t TextureSlot);
+		void LoadDXTextureOGL(Texture& Texture, const uint32_t TextureSlot);
 	};
 }

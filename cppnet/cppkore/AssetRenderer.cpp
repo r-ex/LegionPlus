@@ -191,7 +191,7 @@ namespace Assets
 		glGenTextures(1, &this->_DrawTexture);
 
 		// Load into the draw texture slot
-		this->LoadDXTextureOGL(Texture, this->_DrawTexture);
+		this->LoadDXTextureOGL((Assets::Texture&)Texture, this->_DrawTexture);
 
 		this->_DrawInformation.Width = Texture.Width();
 		this->_DrawInformation.Height = Texture.Height();
@@ -657,7 +657,7 @@ namespace Assets
 		}
 	}
 
-	void AssetRenderer::LoadDXTextureOGL(const Texture& Texture, const uint32_t TextureSlot)
+	void AssetRenderer::LoadDXTextureOGL(Texture& Texture, const uint32_t TextureSlot)
 	{
 		glBindTexture(GL_TEXTURE_2D, TextureSlot);
 
@@ -668,6 +668,8 @@ namespace Assets
 
 		switch (Texture.Format())
 		{
+		case DXGI_FORMAT::DXGI_FORMAT_BC6H_UF16:
+			Texture.ConvertToFormat(DXGI_FORMAT_BC1_UNORM);
 		case DXGI_FORMAT::DXGI_FORMAT_BC1_UNORM:
 		case DXGI_FORMAT::DXGI_FORMAT_BC1_UNORM_SRGB:
 			glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, Texture.Width(), Texture.Height(), 0, Texture.BlockSize(), Texture.GetPixels());
