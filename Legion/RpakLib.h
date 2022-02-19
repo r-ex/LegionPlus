@@ -75,9 +75,9 @@ struct RpakTitanfallHeader
 
 	uint16_t PatchIndex;
 
-	uint32_t UnknownThirdBlockCount;
+	uint32_t DescriptorCount;
 	uint32_t AssetEntryCount;
-	uint32_t UnknownFifthBlockCount;
+	uint32_t GuidDescriptorCount;
 	uint32_t UnknownSixedBlockCount;
 
 	uint32_t UnknownSeventhBlockCount;
@@ -130,12 +130,6 @@ struct RpakVirtualSegmentBlock
 	uint32_t VirtualSegmentIndex;	// Corrosponds to a data block entry
 	uint32_t Flags;					// Unknown right now
 	uint32_t DataSize;				// Total size of the block
-};
-
-struct RpakUnknownBlockThree
-{
-	uint32_t DataEntryIndex;	// Corrosponds to a data entry
-	uint32_t Offset;			// Offset in the data entry
 };
 
 struct RpakUnknownBlockFive
@@ -252,6 +246,7 @@ public:
 	uint64_t EmbeddedStarpakSize;
 
 	Dictionary<uint64_t, RpakApexAssetEntry> AssetHashmap;
+	List<uint64_t> DescriptorList;
 
 	std::unique_ptr<uint8_t[]> SegmentData;
 	uint64_t SegmentDataSize;
@@ -322,7 +317,8 @@ enum class RpakModelExportFormat
 	XModel,
 	Maya,
 	FBX,
-	Cast
+	Cast,
+	RMDL
 };
 
 enum class RpakAnimExportFormat
@@ -506,6 +502,7 @@ private:
 	Assets::SaveFileType ImageSaveType;
 
 	std::unique_ptr<IO::MemoryStream> GetFileStream(const RpakLoadAsset& Asset);
+	bool IsValidDescriptor(const RpakLoadAsset& Asset, uint32_t SegmentIndex, uint32_t SegmentOffset);
 	uint64_t GetFileOffset(const RpakLoadAsset& Asset, uint32_t SegmentIndex, uint32_t SegmentOffset);
 	uint64_t GetEmbeddedStarpakOffset(const RpakLoadAsset& asset);
 	std::unique_ptr<IO::FileStream> GetStarpakStream(const RpakLoadAsset& Asset, bool Optimal);

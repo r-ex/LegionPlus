@@ -193,8 +193,10 @@ struct SettingsKeyValuePair
 	SettingsKeyValue Value;
 };
 
+// see struct below
 struct ModelHeaderS68
 {
+	// .rmdl
 	uint32_t SkeletonIndex;
 	uint32_t SkeletonOffset;
 	uint64_t Padding;
@@ -203,10 +205,12 @@ struct ModelHeaderS68
 	uint32_t NameOffset;
 	uint64_t Padding2;
 
-	uint32_t MeshIndex;
-	uint32_t MeshOffset;
+	// .phy
+	uint32_t PhyIndex;
+	uint32_t PhyOffset;
 	uint64_t Padding3;
 	
+	// .vvd
 	uint32_t BlockIndex1;
 	uint32_t BlockOffset1;
 	uint64_t Padding4;
@@ -225,6 +229,7 @@ struct ModelHeaderS68
 
 struct ModelHeaderS80
 {
+	// .rmdl
 	uint32_t SkeletonIndex;
 	uint32_t SkeletonOffset;
 	uint64_t Padding;
@@ -233,10 +238,14 @@ struct ModelHeaderS80
 	uint32_t NameOffset;
 	uint64_t Padding2;
 
-	uint32_t MeshIndex;
-	uint32_t MeshOffset;
+	// .phy
+	uint32_t PhyIndex;
+	uint32_t PhyOffset;
 	uint64_t Padding3;
 
+	// .vvd
+	// this pointer is not always registered
+	// similar data will often be streamed from a mandatory starpak
 	uint32_t VGIndex1;
 	uint32_t VGOffset1;
 	uint64_t Padding4;
@@ -863,6 +872,15 @@ struct RMdlVGLod
 	uint16_t SubmeshIndex;
 	uint16_t SubmeshCount;
 	float Distance;
+};
+
+struct RMdlPhyHeader
+{
+	uint32_t HeaderSize;
+	uint32_t Id;
+	uint32_t SolidCount;
+	uint32_t Checksum;
+	uint32_t TextOffset; // offset to the text section
 };
 
 #define LAST_IND(x,part_type)    (sizeof(x)/sizeof(part_type) - 1)

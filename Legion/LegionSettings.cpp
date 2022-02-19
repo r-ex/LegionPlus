@@ -219,6 +219,7 @@ void LegionSettings::InitializeComponent()
 	this->ModelExportFormat->Items.Add("XModel");
 	this->ModelExportFormat->Items.Add("XNALara ASCII");
 	this->ModelExportFormat->Items.Add("XNALara Binary");
+	this->ModelExportFormat->Items.Add("RMDL");
 	this->groupBox5->AddControl(this->ModelExportFormat);
 
 	//
@@ -338,6 +339,9 @@ void LegionSettings::LoadSettings()
 	case RpakModelExportFormat::XNALaraBinary:
 		this->ModelExportFormat->SetSelectedIndex(8);
 		break;
+	case RpakModelExportFormat::RMDL:
+		this->ModelExportFormat->SetSelectedIndex(9);
+		break;
 	}
 
 	switch (AnimFormat)
@@ -430,6 +434,9 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 			break;
 		case 8:
 			ModelExportFormat = RpakModelExportFormat::XNALaraBinary;
+			break;
+		case 9:
+			ModelExportFormat = RpakModelExportFormat::RMDL;
 			break;
 		}
 	}

@@ -241,6 +241,7 @@ void RpakLib::InitializeModelExporter(RpakModelExportFormat Format)
 	case RpakModelExportFormat::Cast:
 		ModelExporter = std::make_unique<Assets::Exporters::CastAsset>();
 		break;
+	// no custom exporter for RMDL as it will be handled directly in the export func
 	default:
 		ModelExporter = std::make_unique<Assets::Exporters::SEAsset>();
 		break;
@@ -292,8 +293,17 @@ std::unique_ptr<IO::MemoryStream> RpakLib::GetFileStream(const RpakLoadAsset& As
 	return std::move(std::make_unique<IO::MemoryStream>(File.SegmentData.get(), 0, File.SegmentDataSize, false, true));
 }
 
+// this is really slow
+bool RpakLib::IsValidDescriptor(const RpakLoadAsset& Asset, uint32_t SegmentIndex, uint32_t SegmentOffset)
+{
+	uint64_t Temp = static_cast<uint64_t>(SegmentIndex) << 32 | SegmentOffset;
+	return (this->LoadedFiles[Asset.FileIndex].DescriptorList.Contains(Temp));
+}
+
 uint64_t RpakLib::GetFileOffset(const RpakLoadAsset& Asset, uint32_t SegmentIndex, uint32_t SegmentOffset)
 {
+	if (SegmentIndex < 0) return 0;
+
 	return (this->LoadedFiles[Asset.FileIndex].SegmentBlocks[SegmentIndex - this->LoadedFiles[Asset.FileIndex].StartSegmentIndex].Offset + SegmentOffset);
 }
 
@@ -725,7 +735,13 @@ bool RpakLib::ParseApexRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 	// Faster loading here by reading to the buffers directly
 	ParseStream->Read((uint8_t*)&VirtualSegments[0], 0, sizeof(RpakVirtualSegment) * Header.VirtualSegmentCount);
 	ParseStream->Read((uint8_t*)&VirtualSegmentBlocks[0], 0, sizeof(RpakVirtualSegmentBlock) * Header.VirtualSegmentBlockCount);
-	ParseStream->Read((uint8_t*)&Descriptors[0], 0, sizeof(RpakUnknownBlockThree) * Header.DescriptorCount);
+
+	for (uint32_t i = 0; i < Header.DescriptorCount; i++)
+	{
+		auto Descriptor = Reader.Read<RpakDescriptor>();
+		File->DescriptorList.EmplaceBack(static_cast<uint64_t>(Descriptor.PageIdx) << 32 | Descriptor.PageOffset);
+	}
+
 	ParseStream->Read((uint8_t*)&AssetEntries[0], 0, sizeof(RpakApexAssetEntry) * Header.AssetEntryCount);
 
 	// The fifth and sixth blocks appear to only
@@ -827,7 +843,6 @@ bool RpakLib::ParseTitanfallRpak(const string& RpakPath, std::unique_ptr<IO::Mem
 	// We need to load the rest of the data before applying a patch stream
 	List<RpakVirtualSegment> VirtualSegments;
 	List<RpakVirtualSegmentBlock> VirtualSegmentBlocks;
-	List<RpakUnknownBlockThree> UnknownBlockThrees;
 	List<RpakTitanfallAssetEntry> AssetEntries;
 
 	for (uint32_t i = 0; i < Header.VirtualSegmentCount; i++)
@@ -838,18 +853,18 @@ bool RpakLib::ParseTitanfallRpak(const string& RpakPath, std::unique_ptr<IO::Mem
 	{
 		VirtualSegmentBlocks.EmplaceBack(Reader.Read<RpakVirtualSegmentBlock>());
 	}
-	for (uint32_t i = 0; i < Header.UnknownThirdBlockCount; i++)
+	for (uint32_t i = 0; i < Header.DescriptorCount; i++)
 	{
-		UnknownBlockThrees.EmplaceBack(Reader.Read<RpakUnknownBlockThree>());
+		auto Descriptor = Reader.Read<RpakDescriptor>();
+		File->DescriptorList.EmplaceBack(static_cast<uint64_t>(Descriptor.PageIdx) << 32 | Descriptor.PageOffset);
 	}
 	for (uint32_t i = 0; i < Header.AssetEntryCount; i++)
 	{
 		AssetEntries.EmplaceBack(Reader.Read<RpakTitanfallAssetEntry>());
 	}
 
-	// The fifth and sixth blocks appear to only
-	// be used for streaming images / starpak stuff, not always there
-	ParseStream->Seek(sizeof(RpakDescriptor) * Header.UnknownFifthBlockCount, IO::SeekOrigin::Current);
+	// number of guid references in the pakfile
+	ParseStream->Seek(sizeof(RpakDescriptor) * Header.GuidDescriptorCount, IO::SeekOrigin::Current);
 	ParseStream->Seek(sizeof(RpakFileRelation) * Header.UnknownSixedBlockCount, IO::SeekOrigin::Current);
 
 	// 7th and 8th blocks are weird and useless
@@ -941,7 +956,6 @@ bool RpakLib::ParseR2TTRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 
 	List<RpakVirtualSegment> VirtualSegments;
 	List<RpakVirtualSegmentBlock> Pages;
-	List<RpakUnknownBlockThree> UnknownBlockThrees;
 	List<RpakTitanfallAssetEntry> AssetEntries;
 
 	for (uint32_t i = 0; i < Header.VirtualSegmentCount; i++)
@@ -954,7 +968,8 @@ bool RpakLib::ParseR2TTRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 	}
 	for (uint32_t i = 0; i < Header.DescriptorCount; i++)
 	{
-		UnknownBlockThrees.EmplaceBack(Reader.Read<RpakUnknownBlockThree>());
+		auto Descriptor = Reader.Read<RpakDescriptor>();
+		File->DescriptorList.EmplaceBack(static_cast<uint64_t>(Descriptor.PageIdx) << 32 | Descriptor.PageOffset);
 	}
 	for (uint32_t i = 0; i < Header.AssetEntryCount; i++)
 	{

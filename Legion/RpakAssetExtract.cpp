@@ -94,7 +94,56 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 		IO::Directory::CreateDirectory(TexturePath);
 	}
 
+	auto ModelFormat = (RpakModelExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat");
+
 	const uint64_t SkeletonOffset = this->GetFileOffset(Asset, ModHeader.SkeletonIndex, ModHeader.SkeletonOffset);
+
+	if (Path != "" && AnimPath != "" && ModelFormat == RpakModelExportFormat::RMDL)
+	{
+		auto BaseFileName = IO::Path::Combine(ModelPath, ModelName);
+
+		RpakStream->SetPosition(SkeletonOffset);
+
+		auto SkeletonHeader = Reader.Read<RMdlSkeletonHeader>();
+
+		RpakStream->SetPosition(SkeletonOffset);
+
+		char* skelBuf = new char[SkeletonHeader.DataSize];
+
+		Reader.Read(skelBuf, 0, SkeletonHeader.DataSize);
+
+		const uint64_t PhyOffset = this->GetFileOffset(Asset, ModHeader.PhyIndex, ModHeader.PhyOffset);
+
+		// check if this model has a phy segment
+		if(PhyOffset)
+		{
+			RpakStream->SetPosition(PhyOffset);
+
+			auto PhyHeader = Reader.Read<RMdlPhyHeader>();
+
+			RpakStream->SetPosition(PhyOffset + PhyHeader.TextOffset);
+
+			auto Text = Reader.ReadCString();
+
+			uint64_t PhySize = PhyHeader.TextOffset + Text.Length();
+
+			RpakStream->SetPosition(PhyOffset);
+
+			char* phyBuf = new char[PhySize];
+
+			Reader.Read(phyBuf, 0, PhySize);
+
+			std::ofstream phyOut(BaseFileName + ".phy", std::ios::out | std::ios::binary);
+			phyOut.write(phyBuf, PhySize);
+			phyOut.close();
+		}
+
+		std::ofstream rmdlOut(BaseFileName + ".rmdl", std::ios::out | std::ios::binary);
+
+		rmdlOut.write(skelBuf, SkeletonHeader.DataSize);
+		rmdlOut.close();
+		return nullptr;
+	}
 
 	Model->Bones = std::move(ExtractSkeleton(Reader, SkeletonOffset));
 	Model->GenerateGlobalTransforms(true, true); // We need global transforms
