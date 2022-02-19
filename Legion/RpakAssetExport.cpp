@@ -273,13 +273,13 @@ void RpakLib::ExportShaderSet(const RpakLoadAsset& Asset, const string& Path)
 
 	if (Assets.ContainsKey(PixelShaderGuid))
 	{
-		auto PixelShaderPath = IO::Path::Combine(ShaderSetPath, string::Format("0x%llx_ps.bin", PixelShaderGuid));
+		auto PixelShaderPath = IO::Path::Combine(ShaderSetPath, string::Format("0x%llx_ps.fxc", PixelShaderGuid));
 		this->ExtractShader(Assets[PixelShaderGuid], PixelShaderPath);
 	}
 
 	if (Assets.ContainsKey(VertexShaderGuid))
 	{
-		auto VertexShaderPath = IO::Path::Combine(ShaderSetPath, string::Format("0x%llx_vs.bin", VertexShaderGuid));
+		auto VertexShaderPath = IO::Path::Combine(ShaderSetPath, string::Format("0x%llx_vs.fxc", VertexShaderGuid));
 		this->ExtractShader(Assets[VertexShaderGuid], VertexShaderPath);
 	}
 }
