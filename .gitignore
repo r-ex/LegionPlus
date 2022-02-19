@@ -362,6 +362,7 @@ MigrationBackup/
 *.cast
 *.fbx
 *.ma
+*.mel
 *.mesh
 *.mesh.ascii
 *.mtl
