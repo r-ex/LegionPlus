@@ -356,3 +356,37 @@ MigrationBackup/
 
 # Batch files because that shouldn't be pushed
 *.bat
+
+# File format extensions that Legion+ exports
+# Models
+*.cast
+*.fbx
+*.ma
+*.mesh
+*.mesh.ascii
+*.mtl
+*.obj
+*.rmdl
+*.semodel
+*.smd
+*.xmodel_export
+
+# Animations
+*.cast
+*.rrig
+*.seanim
+
+# Images
+*.dds
+*.png
+*.tif
+
+# Text
+*.csv
+*.txt
+
+# Sounds
+*.wav
+
+# Shadersets
+*.fxc
