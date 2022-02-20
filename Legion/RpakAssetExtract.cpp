@@ -98,9 +98,14 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 	const uint64_t SkeletonOffset = this->GetFileOffset(Asset, ModHeader.SkeletonIndex, ModHeader.SkeletonOffset);
 
+	bool bExportingRawRMdl = false;
+
+	auto BaseFileName = IO::Path::Combine(ModelPath, ModelName);
+
 	if (Path != "" && AnimPath != "" && ModelFormat == RpakModelExportFormat::RMDL)
 	{
-		auto BaseFileName = IO::Path::Combine(ModelPath, ModelName);
+		// set this here so we don't have to do this check every time
+		bExportingRawRMdl = true;
 
 		RpakStream->SetPosition(SkeletonOffset);
 
@@ -142,13 +147,14 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 		rmdlOut.write(skelBuf, SkeletonHeader.DataSize);
 		rmdlOut.close();
-		return nullptr;
 	}
 
 	Model->Bones = std::move(ExtractSkeleton(Reader, SkeletonOffset));
-	Model->GenerateGlobalTransforms(true, true); // We need global transforms
 
-	if (IncludeAnimations && ModHeader.AnimSequenceCount > 0)
+	if(!bExportingRawRMdl)
+		Model->GenerateGlobalTransforms(true, true); // We need global transforms
+
+	if (IncludeAnimations && ModHeader.AnimSequenceCount > 0 && Asset.AssetVersion > 9)
 	{
 		IO::Directory::CreateDirectory(AnimationPath);
 
@@ -236,6 +242,48 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 	}
 
 	auto StarpakReader = IO::BinaryReader(StarpakStream.get(), true);
+
+	if (bExportingRawRMdl)
+	{
+		auto StarpakStream = StarpakReader.GetBaseStream();
+
+		
+		if (Asset.AssetVersion <= 8) // s1
+		{
+			StarpakStream->SetPosition(Offset);
+			char* vvBuf = new char[ModHeader.StreamedDataSize];
+
+			StarpakReader.Read(vvBuf, 0, ModHeader.StreamedDataSize);
+
+			std::ofstream vvOut(BaseFileName + ".vv", std::ios::out | std::ios::binary);
+
+			vvOut.write(vvBuf, ModHeader.StreamedDataSize);
+			vvOut.close();
+		}
+		else if (Asset.AssetVersion >= 9 && Asset.AssetVersion <= 11) // s2/3
+		{
+
+			StarpakStream->SetPosition(Offset);
+			auto VGHeader = StarpakReader.Read<RMdlVGHeaderOld>();
+
+			StarpakStream->SetPosition(Offset);
+			char* vgBuf = new char[VGHeader.DataSize];
+
+			StarpakReader.Read(vgBuf, 0, VGHeader.DataSize);
+
+			std::ofstream vgOut(BaseFileName + ".vg", std::ios::out | std::ios::binary);
+
+			vgOut.write(vgBuf, VGHeader.DataSize);
+			vgOut.close();
+		}
+		else if (Asset.AssetVersion == 13)
+		{
+
+		}
+		return nullptr;
+	}
+
+
 	this->ExtractModelLod(StarpakReader, RpakStream, ModelName, Offset, Model, Fixups, Asset.SubHeaderSize, IncludeMaterials);
 
 	return std::move(Model);
