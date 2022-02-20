@@ -701,6 +701,7 @@ namespace Assets
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE_ALPHA, Texture.Width(), Texture.Height(), 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, Texture.GetPixels());
 			break;
 		case DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM:
+		case DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Texture.Width(), Texture.Height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, Texture.GetPixels());
 			break;
 		default:
