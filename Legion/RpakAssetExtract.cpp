@@ -70,7 +70,22 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 	ModelHeaderS68 ModHeader{};
 	if (Asset.SubHeaderSize <= 0x68)
 	{
-		ModHeader = Reader.Read<ModelHeaderS68>();
+		if (Asset.AssetVersion > 8)
+		{
+			ModHeader = Reader.Read<ModelHeaderS68>();
+		}
+		else
+		{
+			auto mht = Reader.Read<ModelHeaderS50>();
+			ModHeader.SkeletonIndex = mht.SkeletonIndex;
+			ModHeader.SkeletonOffset = mht.SkeletonOffset;
+
+			ModHeader.NameIndex = mht.NameIndex;
+			ModHeader.NameOffset = mht.NameOffset;
+			ModHeader.PhyIndex = mht.PhyIndex;
+			ModHeader.PhyOffset = mht.PhyOffset;
+			ModHeader.StreamedDataSize = mht.StreamedDataSize;
+		}
 	}
 	else
 	{
@@ -1333,7 +1348,7 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 
 			char BoneFlags[256]{};
 
-			if (IsChunkInStarpak)
+			if (IsChunkInStarpak && Asset.AssetVersion > 7)
 			{
 				StarpakStream->SetPosition(ResultDataPtr);
 				StarpakStream->Read((uint8_t*)BoneFlags, 0, ((4 * (uint64_t)Skeleton.Count() + 7) / 8 + 1) & 0xFFFFFFFFFFFFFFFE);

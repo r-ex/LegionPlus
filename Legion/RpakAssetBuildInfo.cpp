@@ -12,7 +12,20 @@ void RpakLib::BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	ModelHeaderS68 ModHeader{};
 	if (Asset.SubHeaderSize <= 0x68)
 	{
-		ModHeader = Reader.Read<ModelHeaderS68>();
+		if (Asset.AssetVersion > 8)
+		{
+			ModHeader = Reader.Read<ModelHeaderS68>();
+		}
+		else
+		{
+			auto ModHeaderTmp = Reader.Read<ModelHeaderS50>();
+			ModHeader.SkeletonIndex = ModHeaderTmp.SkeletonIndex;
+			ModHeader.SkeletonOffset = ModHeaderTmp.SkeletonOffset;
+
+			ModHeader.NameIndex = ModHeaderTmp.NameIndex;
+			ModHeader.NameOffset = ModHeaderTmp.NameOffset;
+			// we don't need the rest here
+		}
 	}
 	else
 	{

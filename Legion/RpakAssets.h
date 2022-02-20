@@ -193,6 +193,34 @@ struct SettingsKeyValuePair
 	SettingsKeyValue Value;
 };
 
+struct ModelHeaderS50
+{
+	// .rmdl
+	uint32_t SkeletonIndex;
+	uint32_t SkeletonOffset;
+
+	uint32_t NameIndex;
+	uint32_t NameOffset;
+
+	// .phy
+	uint32_t PhyIndex;
+	uint32_t PhyOffset;
+	uint64_t Padding3;
+
+	// .vvd
+	uint32_t BlockIndex1;
+	uint32_t BlockOffset1;
+	uint64_t Padding4;
+
+	uint32_t Padding5;
+	uint32_t StreamedDataSize;
+	uint32_t DataFlags;
+	uint64_t Padding6;
+
+	uint32_t AnimSequenceCount;
+
+};
+
 // see struct below
 struct ModelHeaderS68
 {
