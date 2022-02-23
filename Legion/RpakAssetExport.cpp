@@ -31,7 +31,7 @@ void RpakLib::ExportMaterial(const RpakLoadAsset& Asset, const string& Path)
 	(void)this->ExtractMaterial(Asset, OutPath, true, true);
 }
 
-void RpakLib::ExportTexture(const RpakLoadAsset& Asset, const string& Path, bool IncludeImageNames, string NameOverride)
+void RpakLib::ExportTexture(const RpakLoadAsset& Asset, const string& Path, bool IncludeImageNames, string NameOverride, bool NormalRecalculate)
 {
 	string DestinationName = NameOverride == "" ? string::Format("0x%llx%s", Asset.NameHash, (const char*)ImageExtension) : NameOverride;
 	auto DestinationPath = IO::Path::Combine(Path, DestinationName);
@@ -50,7 +50,13 @@ void RpakLib::ExportTexture(const RpakLoadAsset& Asset, const string& Path, bool
 	try
 	{
 		if (Texture != nullptr)
+		{
+			if (NormalRecalculate)
+			{
+				Texture->Transcode(Assets::TranscodeType::NormalMapBC5OpenGl);
+			}
 			Texture->Save(DestinationPath, ImageSaveType);
+		}
 	}
 	catch (...)
 	{

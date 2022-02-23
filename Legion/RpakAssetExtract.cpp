@@ -663,6 +663,7 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 		auto TextureHash = Reader.Read<uint64_t>();
 		string TextureName = "";
 		bool bOverridden = false;
+		bool bNormalRecalculate = false;
 
 		if (TextureHash != 0)
 		{
@@ -671,8 +672,12 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 
 			if (PixelShaderResBindings.Count() > 0 && i < PixelShaderResBindings.Count())
 			{
-				TextureName = string::Format("%s_%s%s", Result.MaterialName.ToCString(), PixelShaderResBindings[i].Name.ToCString(), (const char*)ImageExtension);
+				string ResName = PixelShaderResBindings[i].Name;
+				TextureName = string::Format("%s_%s%s", Result.MaterialName.ToCString(), ResName.ToCString(), (const char*)ImageExtension);
 				bOverridden = true;
+
+				if (ResName == "normalTexture")
+					bNormalRecalculate = true;
 			}
 
 			switch (i)
@@ -715,7 +720,7 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 			// Make sure the data we got to is a proper texture
 			if (Asset.AssetType == (uint32_t)RpakAssetType::Texture)
 			{
-				ExportTexture(Asset, Path, IncludeImageNames, bOverridden ? TextureName : string());
+				ExportTexture(Asset, Path, IncludeImageNames, bOverridden ? TextureName : string(), bNormalRecalculate);
 			}
 		}
 	}
@@ -869,7 +874,6 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 
 		Texture = std::move(UTexture);
 	}
-
 }
 
 void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Texture>& Texture)
