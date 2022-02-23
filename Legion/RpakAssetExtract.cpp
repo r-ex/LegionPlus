@@ -623,6 +623,29 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 
 	Result.MaterialName = IO::Path::GetFileNameWithoutExtension(Reader.ReadCString());
 
+	List<ShaderResBinding> PixelShaderResBindings;
+
+	if (Assets.ContainsKey(MatHeader.ShaderSetHash))
+	{
+		auto ShaderSetAsset = Assets[MatHeader.ShaderSetHash];
+		auto ShaderSetHeader = ExtractShaderSet(ShaderSetAsset);
+
+		uint64_t PixelShaderGuid = ShaderSetHeader.PixelShaderHash;
+
+		if (ShaderSetAsset.AssetVersion <= 11)
+		{
+			PixelShaderGuid = ShaderSetHeader.OldPixelShaderHash;
+		}
+
+		if (Assets.ContainsKey(PixelShaderGuid))
+		{
+			PixelShaderResBindings = ExtractShaderResourceBindings(Assets[PixelShaderGuid], D3D_SHADER_INPUT_TYPE::D3D_SIT_TEXTURE);
+		}
+		else {
+			g_Logger.Warning("Shaderset for material '%s' referenced a pixel shader that is not currently loaded. Unable to associate texture types.\n", Result.MaterialName);
+		}
+	}
+
 	RpakStream->SetPosition(this->GetFileOffset(Asset, MatHeader.TypeIndex, MatHeader.TypeOffset));
 
 	const uint64_t TextureTable = (Asset.Version == RpakGameVersion::Apex) ? this->GetFileOffset(Asset, MatHeader.TexturesIndex, MatHeader.TexturesOffset) : this->GetFileOffset(Asset, MatHeader.TexturesTFIndex, MatHeader.TexturesTFOffset);
@@ -638,10 +661,15 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 		RpakStream->SetPosition(TextureTable + ((uint64_t)i * 8));
 
 		auto TextureHash = Reader.Read<uint64_t>();
+		string TextureSuffix = "";
 
 		if (TextureHash != 0)
 		{
-			auto TextureName = string::Format("0x%llx%s", TextureHash, (const char*)ImageExtension);
+			if (PixelShaderResBindings.Count() > 0 && i < PixelShaderResBindings.Count())
+			{
+				TextureSuffix = "_" + PixelShaderResBindings[i].Name;
+			}
+			auto TextureName = string::Format("0x%llx%s%s", TextureHash, TextureSuffix.ToCString(), (const char*)ImageExtension);
 
 			switch (i)
 			{
@@ -683,7 +711,7 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 			// Make sure the data we got to is a proper texture
 			if (Asset.AssetType == (uint32_t)RpakAssetType::Texture)
 			{
-				ExportTexture(Asset, Path, IncludeImageNames);
+				ExportTexture(Asset, Path, IncludeImageNames, TextureSuffix);
 			}
 		}
 	}
@@ -1614,4 +1642,155 @@ void RpakLib::ExtractShader(const RpakLoadAsset& Asset, const string& Path)
 	std::ofstream shaderOut(Path.ToCString(), std::ios::binary | std::ios::out);
 	shaderOut.write(bcBuf, DataHeader.DataSize);
 	shaderOut.close();
+}
+
+ShaderSetHeader RpakLib::ExtractShaderSet(const RpakLoadAsset& Asset)
+{
+	auto RpakStream = this->GetFileStream(Asset);
+	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
+
+	auto Header = Reader.Read<ShaderSetHeader>();
+
+	return Header;
+}
+
+List<ShaderVar> RpakLib::ExtractShaderVars(const RpakLoadAsset& Asset, D3D_SHADER_VARIABLE_TYPE VarsType)
+{
+	auto RpakStream = this->GetFileStream(Asset);
+	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset));
+
+	auto DataHeader = Reader.Read<ShaderDataHeader>();
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, DataHeader.ByteCodeIndex, DataHeader.ByteCodeOffset));
+
+	const uint64_t BasePos = RpakStream->GetPosition();
+	auto hdr = Reader.Read<DXBCHeader>();
+
+	List<uint32_t> ChunkOffsets(hdr.ChunkCount, true);
+	Reader.Read((uint8_t*)&ChunkOffsets[0], 0, hdr.ChunkCount*sizeof(uint32_t));
+
+	for (int i = 0; i < hdr.ChunkCount; ++i)
+		ChunkOffsets[i] += BasePos;
+
+	List<ShaderVar> Vars;
+
+	for (auto& ChunkOffset : ChunkOffsets)
+	{
+		RpakStream->SetPosition(ChunkOffset);
+
+		if (Reader.Read<uint32_t>() == 'FEDR') // Resource Definitions
+		{
+			RpakStream->SetPosition(ChunkOffset);
+
+			auto RDefHdr = Reader.Read<RDefHeader>();
+
+			if (RDefHdr.MajorVersion >= 5)
+			{
+				RpakStream->Seek(32, IO::SeekOrigin::Current); // skip RD11 header
+			}
+			
+			uint64_t ConstBufferPos = (ChunkOffset + 8) + RDefHdr.ConstBufferOffset;
+
+			for (int i = 0; i < RDefHdr.ConstBufferCount; ++i)
+			{
+				RpakStream->SetPosition(ConstBufferPos + (i * sizeof(RDefConstBuffer)));
+				auto ConstBuffer = Reader.Read<RDefConstBuffer>();
+
+				for (int j = 0; j < ConstBuffer.VariableCount; ++j)
+				{
+					RpakStream->SetPosition((ChunkOffset + 8) + ConstBuffer.VariableOffset + (j*sizeof(RDefCBufVar)));
+
+					auto CBufVar = Reader.Read<RDefCBufVar>();
+
+					uint64_t NameOffset = ChunkOffset + 8 + CBufVar.NameOffset;
+					uint64_t TypeOffset = ChunkOffset + 8 + CBufVar.TypeOffset;
+
+					RpakStream->SetPosition(NameOffset);
+					string Name = Reader.ReadCString();
+
+					RpakStream->SetPosition(TypeOffset);
+					RDefCBufVarType Type = Reader.Read<RDefCBufVarType>();
+
+					ShaderVar Var;
+
+					Var.Name = Name;
+					Var.Type = (D3D_SHADER_VARIABLE_TYPE)Type.Type;
+					
+					// make sure that the VarsType arg is actually specified and then check if this var matches that type
+					if (Var.Type != D3D_SVT_FORCE_DWORD && Var.Type == VarsType)
+						Vars.EmplaceBack(Var);
+				}
+			}
+			break;
+		}
+	}
+	return Vars;
+}
+
+List<ShaderResBinding> RpakLib::ExtractShaderResourceBindings(const RpakLoadAsset& Asset, D3D_SHADER_INPUT_TYPE InputType)
+{
+	auto RpakStream = this->GetFileStream(Asset);
+	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset));
+
+	auto DataHeader = Reader.Read<ShaderDataHeader>();
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, DataHeader.ByteCodeIndex, DataHeader.ByteCodeOffset));
+
+	const uint64_t BasePos = RpakStream->GetPosition();
+	auto hdr = Reader.Read<DXBCHeader>();
+
+	List<uint32_t> ChunkOffsets(hdr.ChunkCount, true);
+	Reader.Read((uint8_t*)&ChunkOffsets[0], 0, hdr.ChunkCount * sizeof(uint32_t));
+
+	for (int i = 0; i < hdr.ChunkCount; ++i)
+		ChunkOffsets[i] += BasePos;
+
+	List<ShaderResBinding> ResBindings;
+
+	for (auto& ChunkOffset : ChunkOffsets)
+	{
+		RpakStream->SetPosition(ChunkOffset);
+
+		if (Reader.Read<uint32_t>() == 'FEDR') // Resource Definitions
+		{
+			RpakStream->SetPosition(ChunkOffset);
+
+			auto RDefHdr = Reader.Read<RDefHeader>();
+
+			if (RDefHdr.MajorVersion >= 5)
+			{
+				RpakStream->Seek(32, IO::SeekOrigin::Current); // skip RD11 header
+			}
+
+			uint64_t ResBindingPos = (ChunkOffset + 8) + RDefHdr.ResBindingOffset;
+
+			for (int i = 0; i < RDefHdr.ResBindingCount; ++i)
+			{
+				RpakStream->SetPosition(ResBindingPos + (i * sizeof(RDefResBinding)));
+				auto ResBinding = Reader.Read<RDefResBinding>();
+
+				uint64_t NameOffset = ChunkOffset + 8 + ResBinding.NameOffset;
+
+				RpakStream->SetPosition(NameOffset);
+				string Name = Reader.ReadCString();
+
+				ShaderResBinding Res;
+				Res.Name = Name;
+				Res.Type = ResBinding.InputType;
+
+				if (Res.Type == InputType)
+				{
+					ResBindings.EmplaceBack(Res);
+				}
+			}
+			break;
+		}
+	}
+	return ResBindings;
 }

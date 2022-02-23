@@ -4,6 +4,7 @@
 #include "Vector3.h"
 #include "Quaternion.h"
 #include "ListBase.h"
+#include <d3dcommon.h>
 
 // Game structures
 // APEX
@@ -940,9 +941,9 @@ struct RMdlPackedVertexPosition
 	{
 		float x, y, z;
 
-		x = ((*_Value & 0x1FFFFF) * 0.0009765625) - 1024.0;
-		y = ((((_Value[1] & 0x3FFu) << 11) + (*_Value >> 21)) * 0.0009765625) - 1024.0;
-		z = ((*(_Value + 1) >> 10) * 0.0009765625) - 2048.0;
+		x = ((_Value[0] & 0x1FFFFF) * 0.0009765625) - 1024.0;
+		y = ((((_Value[1] & 0x3FFu) << 11) + (_Value[0] >> 21)) * 0.0009765625) - 1024.0;
+		z = ((_Value[1] >> 10) * 0.0009765625) - 2048.0;
 
 		return Math::Vector3(x, y, z);
 	}
@@ -956,14 +957,13 @@ struct RMdlPackedVertexNormal
 	{
 		float x, y, z;
 
-		uint32_t v86 = _Value;
-		float v87 = ((2 * LODWORD(v86)) >> 30);
+		float v87 = ((2 * _Value) >> 30);
 		int v88 = 255;
-		if (((8 * LODWORD(v86)) >> 31) != 0.0)
+		if (((8 * _Value) >> 31) != 0.0)
 			v88 = -255;
 		float v89 = (float)v88;
-		float v90 = ((LODWORD(v86) << 13) >> 23) + -256.0;
-		float v91 = ((16 * LODWORD(_Value)) >> 23) + -256.0;
+		float v90 = ((_Value << 13) >> 23) + -256.0;
+		float v91 = ((16 * _Value) >> 23) + -256.0;
 		float v92 = ((v91 * v91) + 65025.0) + (v90 * v90);
 
 		float v93;
@@ -1247,6 +1247,100 @@ struct StarpakStreamEntry
 {
 	uint64_t Offset;
 	uint64_t Size;
+};
+
+// shader types
+
+enum ShaderType : uint16_t
+{
+	ComputeShader = 0x4353,
+	DomainShader = 0x4453,
+	GeometryShader = 0x4753,
+	HullShader = 0x4853,
+	VertexShader = 0xFFFE,
+	PixelShader = 0xFFFF,
+};
+
+// shader "DXBC" header
+struct DXBCHeader
+{
+	char FourCC[4];
+	uint32_t Checksum[4];
+	uint32_t One;
+	uint32_t DataSize;
+	uint32_t ChunkCount;
+};
+
+struct RDefHeader
+{
+	uint32_t Magic; // RDEF
+	uint32_t DataSize;
+	uint32_t ConstBufferCount;
+	uint32_t ConstBufferOffset;
+	uint32_t ResBindingCount;
+	uint32_t ResBindingOffset;
+	uint8_t  MinorVersion;
+	uint8_t  MajorVersion;
+	ShaderType ShaderType;
+	uint32_t Flags;
+	uint32_t CompilerStringOffset;
+};
+
+struct RDefConstBuffer
+{
+	uint32_t NameOffset;
+
+	uint32_t VariableCount;
+	uint32_t VariableOffset;
+	uint32_t DataSize;
+	uint32_t Flags;
+	uint32_t BufferType;
+};
+
+struct RDefCBufVar
+{
+	uint32_t NameOffset;
+	uint32_t CBufStartOffset;
+	uint32_t Size;
+	uint32_t Flags;
+	uint32_t TypeOffset;
+	uint32_t DefaultOffset; // offset to the default value of this var
+	uint32_t unk[4];
+};
+
+struct RDefCBufVarType
+{
+	uint16_t Class;
+	uint16_t Type;
+	uint16_t MatrixRows;
+	uint16_t MatrixColumns;
+	uint16_t ArraySize;
+	uint16_t StructMemberCount;
+	uint16_t FirstMemberOffset;
+};
+
+struct RDefResBinding
+{
+	uint32_t NameOffset;
+	D3D_SHADER_INPUT_TYPE InputType;
+	D3D_RESOURCE_RETURN_TYPE ReturnType;
+	uint32_t ViewDimension;
+	uint32_t SampleCount;
+	uint32_t BindPoint;
+	uint32_t BindCount;
+	D3D_SHADER_INPUT_FLAGS InputFlags;
+};
+
+struct ShaderVar
+{
+	string Name;
+	D3D_SHADER_VARIABLE_TYPE Type;
+};
+
+struct ShaderResBinding
+{
+	string Name;
+	D3D_SHADER_INPUT_TYPE Type;
 };
 #pragma pack(pop)
 

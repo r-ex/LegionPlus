@@ -477,13 +477,16 @@ public:
 	// RpakAssetExport.cpp
 	void ExportModel(const RpakLoadAsset& Asset, const string& Path, const string& AnimPath);
 	void ExportMaterial(const RpakLoadAsset& Asset, const string& Path);
-	void ExportTexture(const RpakLoadAsset& Asset, const string& Path, bool IncludeImageNames);
+	void ExportTexture(const RpakLoadAsset& Asset, const string& Path, bool IncludeImageNames, string Suffix="");
 	void ExportUIIA(const RpakLoadAsset& Asset, const string& Path);
 	void ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path);
 	void ExportDataTable(const RpakLoadAsset& Asset, const string& Path);
 	void ExportSubtitles(const RpakLoadAsset& Asset, const string& Path);
 	void ExportShaderSet(const RpakLoadAsset& Asset, const string& Path);
 	List<List<DataTableColumnData>> ExtractDataTable(const RpakLoadAsset& Asset);
+	List<ShaderVar> ExtractShaderVars(const RpakLoadAsset& Asset, D3D_SHADER_VARIABLE_TYPE Type = D3D_SVT_FORCE_DWORD); // default value as a type that should never be used
+	List<ShaderResBinding> ExtractShaderResourceBindings(const RpakLoadAsset& Asset, D3D_SHADER_INPUT_TYPE InputType);
+
 
 	// Used by the BSP system.
 	RMdlMaterial ExtractMaterial(const RpakLoadAsset& Asset, const string& Path, bool IncludeImages, bool IncludeImageNames);
@@ -528,6 +531,7 @@ private:
 	//List<List<DataTableColumnData>> ExtractDataTable(const RpakLoadAsset& Asset);
 	List<SubtitleEntry> ExtractSubtitles(const RpakLoadAsset& Asset);
 	void ExtractShader(const RpakLoadAsset& Asset, const string& Path);
+	ShaderSetHeader ExtractShaderSet(const RpakLoadAsset& Asset);
 
 	string GetSubtitlesNameFromHash(uint64_t Hash);
 	void ParseRAnimBoneTranslationTrack(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex);
