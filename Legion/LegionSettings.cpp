@@ -532,11 +532,11 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	{
 		switch (ThisPtr->NormalRecalcType->SelectedIndex())
 		{
+		case 0:
+			NormalRecalcType = eNormalRecalcType::None;
+			break;
 		case 1:
 			NormalRecalcType = eNormalRecalcType::DirectX;
-			break;
-		case 2:
-			NormalRecalcType = eNormalRecalcType::OpenGl;
 			break;
 		}
 	}
