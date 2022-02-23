@@ -661,15 +661,19 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 		RpakStream->SetPosition(TextureTable + ((uint64_t)i * 8));
 
 		auto TextureHash = Reader.Read<uint64_t>();
-		string TextureSuffix = "";
+		string TextureName = "";
+		bool bOverridden = false;
 
 		if (TextureHash != 0)
 		{
+
+			TextureName = string::Format("0x%llx%s", TextureHash, (const char*)ImageExtension);
+
 			if (PixelShaderResBindings.Count() > 0 && i < PixelShaderResBindings.Count())
 			{
-				TextureSuffix = "_" + PixelShaderResBindings[i].Name;
+				TextureName = string::Format("%s_%s%s", Result.MaterialName.ToCString(), PixelShaderResBindings[i].Name.ToCString(), (const char*)ImageExtension);
+				bOverridden = true;
 			}
-			auto TextureName = string::Format("0x%llx%s%s", TextureHash, TextureSuffix.ToCString(), (const char*)ImageExtension);
 
 			switch (i)
 			{
@@ -711,7 +715,7 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 			// Make sure the data we got to is a proper texture
 			if (Asset.AssetType == (uint32_t)RpakAssetType::Texture)
 			{
-				ExportTexture(Asset, Path, IncludeImageNames, TextureSuffix);
+				ExportTexture(Asset, Path, IncludeImageNames, bOverridden ? TextureName : string());
 			}
 		}
 	}

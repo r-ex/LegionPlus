@@ -477,7 +477,7 @@ public:
 	// RpakAssetExport.cpp
 	void ExportModel(const RpakLoadAsset& Asset, const string& Path, const string& AnimPath);
 	void ExportMaterial(const RpakLoadAsset& Asset, const string& Path);
-	void ExportTexture(const RpakLoadAsset& Asset, const string& Path, bool IncludeImageNames, string Suffix="");
+	void ExportTexture(const RpakLoadAsset& Asset, const string& Path, bool IncludeImageNames, string NameOverride = "");
 	void ExportUIIA(const RpakLoadAsset& Asset, const string& Path);
 	void ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path);
 	void ExportDataTable(const RpakLoadAsset& Asset, const string& Path);
