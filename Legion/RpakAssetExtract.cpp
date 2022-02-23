@@ -1661,6 +1661,11 @@ List<ShaderVar> RpakLib::ExtractShaderVars(const RpakLoadAsset& Asset, D3D_SHADE
 	auto RpakStream = this->GetFileStream(Asset);
 	auto Reader = IO::BinaryReader(RpakStream.get(), true);
 
+	List<ShaderVar> Vars;
+
+	if (Asset.RawDataIndex == -1)
+		return Vars;
+
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset));
 
 	auto DataHeader = Reader.Read<ShaderDataHeader>();
@@ -1676,7 +1681,6 @@ List<ShaderVar> RpakLib::ExtractShaderVars(const RpakLoadAsset& Asset, D3D_SHADE
 	for (int i = 0; i < hdr.ChunkCount; ++i)
 		ChunkOffsets[i] += BasePos;
 
-	List<ShaderVar> Vars;
 
 	for (auto& ChunkOffset : ChunkOffsets)
 	{
@@ -1736,6 +1740,11 @@ List<ShaderResBinding> RpakLib::ExtractShaderResourceBindings(const RpakLoadAsse
 	auto RpakStream = this->GetFileStream(Asset);
 	auto Reader = IO::BinaryReader(RpakStream.get(), true);
 
+	List<ShaderResBinding> ResBindings;
+
+	if (Asset.RawDataIndex == -1)
+		return ResBindings;
+
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset));
 
 	auto DataHeader = Reader.Read<ShaderDataHeader>();
@@ -1751,7 +1760,7 @@ List<ShaderResBinding> RpakLib::ExtractShaderResourceBindings(const RpakLoadAsse
 	for (int i = 0; i < hdr.ChunkCount; ++i)
 		ChunkOffsets[i] += BasePos;
 
-	List<ShaderResBinding> ResBindings;
+	
 
 	for (auto& ChunkOffset : ChunkOffsets)
 	{
