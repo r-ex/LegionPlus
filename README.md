@@ -45,6 +45,7 @@ When multiple load flags are used together, all specified types will be loaded
 --loadmaterials
 --loaduiimages
 --loaddatatables
+--loadshadersets
 ```
 
 #### Other Flags
