@@ -314,7 +314,7 @@ void LegionSettings::InitializeComponent()
 	this->NormalRecalcType->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->NormalRecalcType->SetDropDownStyle(Forms::ComboBoxStyle::DropDownList);
 	this->NormalRecalcType->Items.Add("None");
-	this->NormalRecalcType->Items.Add("Non-OpenGL");
+	this->NormalRecalcType->Items.Add("DirectX");
 	this->NormalRecalcType->Items.Add("OpenGL");
 	this->groupBox5->AddControl(this->NormalRecalcType);
 
@@ -418,7 +418,7 @@ void LegionSettings::LoadSettings()
 	case eNormalRecalcType::None:
 		this->NormalRecalcType->SetSelectedIndex(0);
 		break;
-	case eNormalRecalcType::NonOpenGl:
+	case eNormalRecalcType::DirectX:
 		this->NormalRecalcType->SetSelectedIndex(1);
 		break;
 	case eNormalRecalcType::OpenGl:
@@ -533,7 +533,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		switch (ThisPtr->NormalRecalcType->SelectedIndex())
 		{
 		case 1:
-			NormalRecalcType = eNormalRecalcType::NonOpenGl;
+			NormalRecalcType = eNormalRecalcType::DirectX;
 			break;
 		case 2:
 			NormalRecalcType = eNormalRecalcType::OpenGl;

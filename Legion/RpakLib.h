@@ -344,7 +344,7 @@ enum class RpakSubtitlesExportFormat
 enum class eNormalRecalcType
 {
 	None,
-	NonOpenGl,
+	DirectX,
 	OpenGl
 };
 

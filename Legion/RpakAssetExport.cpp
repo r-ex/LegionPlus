@@ -61,7 +61,7 @@ void RpakLib::ExportTexture(const RpakLoadAsset& Asset, const string& Path, bool
 				{
 				case eNormalRecalcType::None:
 					break;
-				case eNormalRecalcType::NonOpenGl:
+				case eNormalRecalcType::DirectX:
 					Texture->Transcode(Assets::TranscodeType::NormalMapBC5);
 					break;
 				case eNormalRecalcType::OpenGl:
