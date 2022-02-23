@@ -33,7 +33,7 @@ void RpakLib::ExportMaterial(const RpakLoadAsset& Asset, const string& Path)
 
 void RpakLib::ExportTexture(const RpakLoadAsset& Asset, const string& Path, bool IncludeImageNames, string NameOverride)
 {
-	string DestinationName = NameOverride == "" ? string::Format("0x%llx%s", Asset.NameHash, (const char*)ImageExtension) : NameOverride + ImageExtension;
+	string DestinationName = NameOverride == "" ? string::Format("0x%llx%s", Asset.NameHash, (const char*)ImageExtension) : NameOverride;
 	auto DestinationPath = IO::Path::Combine(Path, DestinationName);
 
 	std::unique_ptr<Assets::Texture> Texture = nullptr;
