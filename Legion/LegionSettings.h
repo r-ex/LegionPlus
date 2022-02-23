@@ -37,6 +37,7 @@ private:
 	UIX::UIXLabel* label3;
 	UIX::UIXLabel* label4;
 	UIX::UIXLabel* label5;
+	UIX::UIXLabel* label6;
 	// Boxes
 	UIX::UIXGroupBox* groupBox1;
 	UIX::UIXGroupBox* groupBox2;
@@ -58,6 +59,7 @@ private:
 	UIX::UIXComboBox* AnimExportFormat;
 	UIX::UIXComboBox* ImageExportFormat;
 	UIX::UIXComboBox* SubtitlesExportFormat;
+	UIX::UIXComboBox* NormalRecalcType;
 	// Export Formats
 	UIX::UIXRadioButton* ExportCastAnim;
 	UIX::UIXRadioButton* ExportSEAnim;

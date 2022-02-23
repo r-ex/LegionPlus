@@ -341,6 +341,13 @@ enum class RpakSubtitlesExportFormat
 	TXT
 };
 
+enum class eNormalRecalcType
+{
+	None,
+	NonOpenGl,
+	OpenGl
+};
+
 // this is bad
 enum class SubtitleLanguageHash : uint64_t
 {

@@ -53,7 +53,21 @@ void RpakLib::ExportTexture(const RpakLoadAsset& Asset, const string& Path, bool
 		{
 			if (NormalRecalculate)
 			{
-				Texture->Transcode(Assets::TranscodeType::NormalMapBC5OpenGl);
+				auto NormalRecalcType = (eNormalRecalcType)ExportManager::Config.Get<System::SettingType::Integer>("NormalRecalcType");
+
+				Assets::TranscodeType Type = Assets::TranscodeType::NormalMapBC5OpenGl;
+
+				switch (NormalRecalcType)
+				{
+				case eNormalRecalcType::None:
+					break;
+				case eNormalRecalcType::NonOpenGl:
+					Texture->Transcode(Assets::TranscodeType::NormalMapBC5);
+					break;
+				case eNormalRecalcType::OpenGl:
+					Texture->Transcode(Assets::TranscodeType::NormalMapBC5OpenGl);
+					break;
+				}
 			}
 			Texture->Save(DestinationPath, ImageSaveType);
 		}

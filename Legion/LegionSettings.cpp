@@ -281,7 +281,7 @@ void LegionSettings::InitializeComponent()
 	//
 	this->label5 = new UIX::UIXLabel();
 	this->label5->SetSize({ 90, 15 });
-	this->label5->SetLocation({ 120, 20 });
+	this->label5->SetLocation({ 125, 20 });
 	this->label5->SetTabIndex(9);
 	this->label5->SetText("Subtitles Format");
 	this->label5->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
@@ -297,6 +297,26 @@ void LegionSettings::InitializeComponent()
 	this->SubtitlesExportFormat->Items.Add("CSV");
 	this->SubtitlesExportFormat->Items.Add("TXT");
 	this->groupBox5->AddControl(this->SubtitlesExportFormat);
+
+	this->label6 = new UIX::UIXLabel();
+	this->label6->SetSize({ 120, 15 });
+	this->label6->SetLocation({ 125, 65 });
+	this->label6->SetTabIndex(9);
+	this->label6->SetText("Normal Recalculation");
+	this->label6->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->label6->SetTextAlign(Drawing::ContentAlignment::TopLeft);
+	this->groupBox5->AddControl(this->label6);
+
+	this->NormalRecalcType = new UIX::UIXComboBox();
+	this->NormalRecalcType->SetSize({ 90, 20 });
+	this->NormalRecalcType->SetLocation({ 125, 80 });
+	this->NormalRecalcType->SetTabIndex(0);
+	this->NormalRecalcType->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->NormalRecalcType->SetDropDownStyle(Forms::ComboBoxStyle::DropDownList);
+	this->NormalRecalcType->Items.Add("None");
+	this->NormalRecalcType->Items.Add("Non-OpenGL");
+	this->NormalRecalcType->Items.Add("OpenGL");
+	this->groupBox5->AddControl(this->NormalRecalcType);
 
 	this->ResumeLayout(false);
 	this->PerformLayout();
@@ -318,6 +338,10 @@ void LegionSettings::LoadSettings()
 	auto AnimFormat = (RpakAnimExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat");
 	auto ImageFormat = (RpakImageExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat");
 	auto SubtitlesFormat = (RpakSubtitlesExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("SubtitlesFormat");
+	auto NormalRecalcType = (eNormalRecalcType)ExportManager::Config.Get<System::SettingType::Integer>("NormalRecalcType");
+
+	if (!ExportManager::Config.Has("NormalRecalcType"))
+		NormalRecalcType = eNormalRecalcType::OpenGl;
 
 	switch (ModelFormat)
 	{
@@ -389,6 +413,19 @@ void LegionSettings::LoadSettings()
 		break;
 	}
 
+	switch (NormalRecalcType)
+	{
+	case eNormalRecalcType::None:
+		this->NormalRecalcType->SetSelectedIndex(0);
+		break;
+	case eNormalRecalcType::NonOpenGl:
+		this->NormalRecalcType->SetSelectedIndex(1);
+		break;
+	case eNormalRecalcType::OpenGl:
+		this->NormalRecalcType->SetSelectedIndex(2);
+		break;
+	}
+
 	this->LoadModels->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadModels"));
 	this->LoadAnimations->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadAnimations"));
 	this->LoadImages->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadImages"));
@@ -419,6 +456,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	auto AnimExportFormat = RpakAnimExportFormat::Cast;
 	auto ImageExportFormat = RpakImageExportFormat::Dds;
 	auto SubtitlesExportFormat = RpakSubtitlesExportFormat::CSV;
+	auto NormalRecalcType = eNormalRecalcType::OpenGl;
 
 	if (ThisPtr->ModelExportFormat->SelectedIndex() > -1)
 	{
@@ -490,6 +528,19 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		}
 	}
 
+	if (ThisPtr->NormalRecalcType->SelectedIndex() > -1)
+	{
+		switch (ThisPtr->NormalRecalcType->SelectedIndex())
+		{
+		case 1:
+			NormalRecalcType = eNormalRecalcType::NonOpenGl;
+			break;
+		case 2:
+			NormalRecalcType = eNormalRecalcType::OpenGl;
+			break;
+		}
+	}
+
 	// have the settings actually changed?
 	bool bRefreshView = false;
 
@@ -520,6 +571,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	ExportManager::Config.Set<System::SettingType::Integer>("AnimFormat", (uint32_t)AnimExportFormat);
 	ExportManager::Config.Set<System::SettingType::Integer>("ImageFormat", (uint32_t)ImageExportFormat);
 	ExportManager::Config.Set<System::SettingType::Integer>("SubtitlesFormat", (uint32_t)SubtitlesExportFormat);
+	ExportManager::Config.Set<System::SettingType::Integer>("NormalRecalcType", (uint32_t)NormalRecalcType);
 
 	auto ExportDirectory = ThisPtr->ExportBrowseFolder->Text();
 
