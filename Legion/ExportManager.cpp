@@ -60,6 +60,8 @@ void ExportManager::InitializeExporter()
 		Config.Set<System::SettingType::Boolean>("LoadUIImages", true);
 	if (!Config.Has("LoadDataTables"))
 		Config.Set<System::SettingType::Boolean>("LoadDataTables", true);
+	if (!Config.Has("LoadShaderSets"))
+		Config.Set<System::SettingType::Boolean>("LoadShaderSets", true);
 	if (!Config.Has("OverwriteExistingFiles"))
 		Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", false);
 		

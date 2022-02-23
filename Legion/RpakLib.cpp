@@ -201,6 +201,8 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims
 			BuildSubtitleInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)RpakAssetType::ShaderSet:
+			if (!ExportManager::Config.Get<System::SettingType::Boolean>("LoadShaderSets"))
+				continue;
 			BuildShaderSetInfo(Asset, NewAsset);
 			break;
 		default:

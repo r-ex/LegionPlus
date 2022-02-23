@@ -113,7 +113,7 @@ void LegionSettings::InitializeComponent()
 	//
 	this->LoadModels = new UIX::UIXCheckBox();
 	this->LoadModels->SetSize({ 105, 18 });
-	this->LoadModels->SetLocation({ 15, 32 });
+	this->LoadModels->SetLocation({ 15, 22 });
 	this->LoadModels->SetTabIndex(0);
 	this->LoadModels->SetText("Load Models");
 	this->LoadModels->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
@@ -121,7 +121,7 @@ void LegionSettings::InitializeComponent()
 
 	this->LoadImages = new UIX::UIXCheckBox();
 	this->LoadImages->SetSize({ 105, 18 });
-	this->LoadImages->SetLocation({ 130, 32 });
+	this->LoadImages->SetLocation({ 130, 22 });
 	this->LoadImages->SetTabIndex(2);
 	this->LoadImages->SetText("Load Images");
 	this->LoadImages->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
@@ -129,7 +129,7 @@ void LegionSettings::InitializeComponent()
 
 	this->LoadAnimations = new UIX::UIXCheckBox();
 	this->LoadAnimations->SetSize({ 105, 18 });
-	this->LoadAnimations->SetLocation({ 15, 55 });
+	this->LoadAnimations->SetLocation({ 15, 45 });
 	this->LoadAnimations->SetTabIndex(1);
 	this->LoadAnimations->SetText("Load Animations");
 	this->LoadAnimations->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
@@ -137,7 +137,7 @@ void LegionSettings::InitializeComponent()
 
 	this->LoadMaterials = new UIX::UIXCheckBox();
 	this->LoadMaterials->SetSize({ 105, 18 });
-	this->LoadMaterials->SetLocation({ 130, 55 });
+	this->LoadMaterials->SetLocation({ 130, 45 });
 	this->LoadMaterials->SetTabIndex(3);
 	this->LoadMaterials->SetText("Load Materials");
 	this->LoadMaterials->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
@@ -145,7 +145,7 @@ void LegionSettings::InitializeComponent()
 
 	this->LoadUIImages = new UIX::UIXCheckBox();
 	this->LoadUIImages->SetSize({ 105, 18 });
-	this->LoadUIImages->SetLocation({ 15, 78 });
+	this->LoadUIImages->SetLocation({ 15, 68 });
 	this->LoadUIImages->SetTabIndex(2);
 	this->LoadUIImages->SetText("Load UI Images");
 	this->LoadUIImages->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
@@ -153,11 +153,19 @@ void LegionSettings::InitializeComponent()
 
 	this->LoadDataTables = new UIX::UIXCheckBox();
 	this->LoadDataTables->SetSize({ 105, 18 });
-	this->LoadDataTables->SetLocation({ 130, 78 });
+	this->LoadDataTables->SetLocation({ 130, 68 });
 	this->LoadDataTables->SetTabIndex(2);
 	this->LoadDataTables->SetText("Load DataTables");
 	this->LoadDataTables->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->groupBox3->AddControl(this->LoadDataTables);
+
+	this->LoadShaderSets = new UIX::UIXCheckBox();
+	this->LoadShaderSets->SetSize({ 105, 18 });
+	this->LoadShaderSets->SetLocation({ 15, 91 });
+	this->LoadShaderSets->SetTabIndex(2);
+	this->LoadShaderSets->SetText("Load ShaderSets");
+	this->LoadShaderSets->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox3->AddControl(this->LoadShaderSets);
 
 	// 
 	//	Toggle Settings Box
@@ -387,6 +395,7 @@ void LegionSettings::LoadSettings()
 	this->LoadMaterials->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadMaterials"));
 	this->LoadUIImages->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadUIImages"));
 	this->LoadDataTables->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadDataTables"));
+	this->LoadShaderSets->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadShaderSets"));
 	this->ToggleOverwriting->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("OverwriteExistingFiles"));
 
 
@@ -496,6 +505,8 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		bRefreshView = true;
 	if (ThisPtr->LoadDataTables->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("LoadDataTables"))
 		bRefreshView = true;
+	if (ThisPtr->LoadShaderSets->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("LoadShaderSets"))
+		bRefreshView = true;
 
 	ExportManager::Config.Set<System::SettingType::Boolean>("LoadModels", ThisPtr->LoadModels->Checked());
 	ExportManager::Config.Set<System::SettingType::Boolean>("LoadAnimations", ThisPtr->LoadAnimations->Checked());
@@ -503,6 +514,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	ExportManager::Config.Set<System::SettingType::Boolean>("LoadMaterials", ThisPtr->LoadMaterials->Checked());
 	ExportManager::Config.Set<System::SettingType::Boolean>("LoadUIImages", ThisPtr->LoadUIImages->Checked());
 	ExportManager::Config.Set<System::SettingType::Boolean>("LoadDataTables", ThisPtr->LoadDataTables->Checked());
+	ExportManager::Config.Set<System::SettingType::Boolean>("LoadShaderSets", ThisPtr->LoadShaderSets->Checked());
 	ExportManager::Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", ThisPtr->ToggleOverwriting->Checked());
 	ExportManager::Config.Set<System::SettingType::Integer>("ModelFormat", (uint32_t)ModelExportFormat);
 	ExportManager::Config.Set<System::SettingType::Integer>("AnimFormat", (uint32_t)AnimExportFormat);

@@ -85,6 +85,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				bool bLoadMaterials = cmdline.HasParam(L"--loadmaterials");
 				bool bLoadUIImages = cmdline.HasParam(L"--loaduiimages");
 				bool bLoadDataTables = cmdline.HasParam(L"--loaddatatables");
+				bool bLoadShaderSets = cmdline.HasParam(L"--loadshadersets");
+
 				
 				if (cmdline.HasParam(L"--overwrite"))
 					ExportManager::Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", true);
@@ -93,7 +95,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 				std::unique_ptr<List<ApexAsset>> AssetList;
 
-				bool bNoFlagsSpecified = !bLoadModels && !bLoadAnims && !bLoadImages && !bLoadMaterials && !bLoadUIImages && !bLoadDataTables;
+				bool bNoFlagsSpecified = !bLoadModels && !bLoadAnims && !bLoadImages && !bLoadMaterials && !bLoadUIImages && !bLoadDataTables && !bLoadShaderSets;
 
 				if (bNoFlagsSpecified)
 				{
@@ -108,6 +110,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				}
 				else
 				{
+					ExportManager::Config.Set<System::SettingType::Boolean>("LoadShaderSets", bLoadShaderSets);
 					AssetList = Rpak->BuildAssetList(bLoadModels, bLoadAnims, bLoadImages, bLoadMaterials, bLoadUIImages, bLoadDataTables);
 				}
 

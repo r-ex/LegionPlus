@@ -48,6 +48,7 @@ private:
 	UIX::UIXCheckBox* LoadImages;
 	UIX::UIXCheckBox* LoadUIImages;
 	UIX::UIXCheckBox* LoadDataTables;
+	UIX::UIXCheckBox* LoadShaderSets;
 	UIX::UIXCheckBox* LoadAnimations;
 	UIX::UIXCheckBox* LoadModels;
 	// Toggles
