@@ -86,12 +86,114 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				bool bLoadUIImages = cmdline.HasParam(L"--loaduiimages");
 				bool bLoadDataTables = cmdline.HasParam(L"--loaddatatables");
 				bool bLoadShaderSets = cmdline.HasParam(L"--loadshadersets");
-
 				
 				if (cmdline.HasParam(L"--overwrite"))
 					ExportManager::Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", true);
 				else
 					ExportManager::Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", false);
+
+				// asset formats
+				if (cmdline.HasParam(L"--mdlfmt"))
+				{
+					RpakModelExportFormat MdlFmt = (RpakModelExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat");
+
+					wstring sFmt = cmdline.GetParamValue(L"--mdlfmt");
+					sFmt = sFmt.ToLower();
+
+					if (sFmt == L"semodel")
+						MdlFmt = RpakModelExportFormat::SEModel;
+					if (sFmt == L"obj" || sFmt == L"wavefront")
+						MdlFmt = RpakModelExportFormat::OBJ;
+					if (sFmt == L"xnalara_ascii")
+						MdlFmt = RpakModelExportFormat::XNALaraText;
+					if (sFmt == L"xnalara_binary")
+						MdlFmt = RpakModelExportFormat::XNALaraBinary;
+					if (sFmt == L"smd" || sFmt == L"source")
+						MdlFmt = RpakModelExportFormat::SMD;
+					if (sFmt == L"xmodel")
+						MdlFmt = RpakModelExportFormat::XModel;
+					if (sFmt == L"maya" || sFmt == L"ma")
+						MdlFmt = RpakModelExportFormat::Maya;
+					if (sFmt == L"fbx")
+						MdlFmt = RpakModelExportFormat::FBX;
+					if (sFmt == L"cast")
+						MdlFmt = RpakModelExportFormat::Cast;
+					if (sFmt == L"rmdl")
+						MdlFmt = RpakModelExportFormat::RMDL;
+					
+					if (MdlFmt != (RpakModelExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"))
+						ExportManager::Config.Set<System::SettingType::Integer>("ModelFormat", (uint32_t)MdlFmt);
+				}
+
+				if (cmdline.HasParam(L"--animfmt"))
+				{
+					RpakAnimExportFormat AnimFmt = (RpakAnimExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat");
+
+					wstring sFmt = cmdline.GetParamValue(L"--animfmt");
+					sFmt = sFmt.ToLower();
+
+					if (sFmt == L"seanim")
+						AnimFmt = RpakAnimExportFormat::SEAnim;
+					if (sFmt == L"cast")
+						AnimFmt = RpakAnimExportFormat::Cast;
+					if (sFmt == L"ranim")
+						AnimFmt = RpakAnimExportFormat::RAnim;
+
+					if (AnimFmt != (RpakAnimExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat"))
+						ExportManager::Config.Set<System::SettingType::Integer>("AnimFormat", (uint32_t)AnimFmt);
+				}
+
+				if (cmdline.HasParam(L"--imgfmt"))
+				{
+					RpakImageExportFormat ImgFmt = (RpakImageExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat");
+
+					wstring sFmt = cmdline.GetParamValue(L"--imgfmt");
+					sFmt = sFmt.ToLower();
+
+					if (sFmt == L"dds")
+						ImgFmt = RpakImageExportFormat::Dds;
+					if (sFmt == L"png")
+						ImgFmt = RpakImageExportFormat::Png;
+					if (sFmt == L"tiff")
+						ImgFmt = RpakImageExportFormat::Tiff;
+
+					if (ImgFmt != (RpakImageExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat"))
+						ExportManager::Config.Set<System::SettingType::Integer>("ImageFormat", (uint32_t)ImgFmt);
+				}
+
+				if (cmdline.HasParam(L"--subtitlefmt"))
+				{
+					RpakSubtitlesExportFormat SubtFmt = (RpakSubtitlesExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("SubtitlesFormat");
+
+					wstring sFmt = cmdline.GetParamValue(L"--subtitlefmt");
+					sFmt = sFmt.ToLower();
+
+					if (sFmt == L"csv")
+						SubtFmt = RpakSubtitlesExportFormat::CSV;
+					if (sFmt == L"txt")
+						SubtFmt = RpakSubtitlesExportFormat::TXT;
+
+					if (SubtFmt != (RpakSubtitlesExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("SubtitlesFormat"))
+						ExportManager::Config.Set<System::SettingType::Integer>("SubtitlesFormat", (uint32_t)SubtFmt);
+				}
+
+				if (cmdline.HasParam(L"--nmlrecalc"))
+				{
+					eNormalRecalcType NmlRecalcType = (eNormalRecalcType)ExportManager::Config.Get<System::SettingType::Integer>("NormalRecalcType");
+
+					wstring sFmt = cmdline.GetParamValue(L"--nmlrecalc");
+					sFmt = sFmt.ToLower();
+
+					if (sFmt == L"none")
+						NmlRecalcType = eNormalRecalcType::None;
+					if (sFmt == L"directx" || sFmt == L"dx")
+						NmlRecalcType = eNormalRecalcType::DirectX;
+					if (sFmt == L"opengl" || sFmt == L"ogl")
+						NmlRecalcType = eNormalRecalcType::OpenGl;
+
+					if (NmlRecalcType != (eNormalRecalcType)ExportManager::Config.Get<System::SettingType::Integer>("NormalRecalcType"))
+						ExportManager::Config.Set<System::SettingType::Integer>("NormalRecalcType", (uint32_t)NmlRecalcType);
+				}
 
 				std::unique_ptr<List<ApexAsset>> AssetList;
 
