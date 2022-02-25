@@ -12,6 +12,7 @@ Originally created by DTZxPorter in 2019.
   - [Command Line Options](#command-line-options)
     - [Modes](#modes)
     - [Export Load Flags](#export-load-flags)
+    - [Export Format Flags](#export-format-flags)
     - [Other Flags](#other-flags)
 - [Support](#support)
 - [Known Issues](#known-issues)
@@ -47,6 +48,17 @@ When multiple load flags are used together, all specified types will be loaded
 --loaddatatables
 --loadshadersets
 ```
+
+#### Export Format Flags
+
+```
+Models: --mdlfmt <semodel, obj/wavefront, xnalara_binary, smd/source, xmodel, maya/ma, fbx, cast, rmdl>
+Animations: --animfmt <seanim, cast, ranim>
+Images: --imgfmt <dds, png, tiff>
+Subtitles: --subtitlefmt <csv, txt>
+Shadersets: --nmlrecalc <none, directx/dx, opengl/ogl>
+```
+`Example: LegionPlus.exe --export <path to rpak> --loadmodels --loadanimations --mdlfmt obj --animfmt seanim --imgfmt png`
 
 #### Other Flags
 ```
