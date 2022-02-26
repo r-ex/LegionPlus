@@ -298,13 +298,12 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 		return nullptr;
 	}
 
-
-	this->ExtractModelLod(StarpakReader, RpakStream, ModelName, Offset, Model, Fixups, Asset.SubHeaderSize, IncludeMaterials);
+	this->ExtractModelLod(StarpakReader, RpakStream, ModelName, Offset, Model, Fixups, Asset.AssetVersion, IncludeMaterials);
 
 	return std::move(Model);
 }
 
-void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO::MemoryStream>& RpakStream, string Name, uint64_t Offset, const std::unique_ptr<Assets::Model>& Model, RMdlFixupPatches& Fixup, uint32_t SubHeaderSize, bool IncludeMaterials)
+void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO::MemoryStream>& RpakStream, string Name, uint64_t Offset, const std::unique_ptr<Assets::Model>& Model, RMdlFixupPatches& Fixup, uint32_t Version, bool IncludeMaterials)
 {
 	auto BaseStream = Reader.GetBaseStream();
 
@@ -317,7 +316,7 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 	BaseStream->SetPosition(Offset);
 
 	RMdlVGHeader VGHeader{};
-	if(SubHeaderSize != 120)
+	if(Version >= 13)
 		VGHeader = Reader.Read<RMdlVGHeader>();
 	else {
 		RMdlVGHeaderOld TempVGHeader = Reader.Read<RMdlVGHeaderOld>();
