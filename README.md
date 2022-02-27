@@ -63,7 +63,7 @@ Shadersets: --nmlrecalc <none, directx/dx, opengl/ogl>
 #### Other Flags
 ```
 --overwrite - Enables file overwriting for replacing existing versions of exported assets
--nologfile - Disables log files being created
+--nologfile - Disables log files being created
 ```
 
 ## Support
