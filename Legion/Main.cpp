@@ -38,7 +38,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	if (argv) // This can fail yes, would be good to also check that.	
 	{
-		if (!cmdline.HasParam(L"-nologfile"))
+		if (!cmdline.HasParam(L"--nologfile"))
 			g_Logger.InitializeLogFile();
 
 
