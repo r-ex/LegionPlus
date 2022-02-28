@@ -316,7 +316,7 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 	BaseStream->SetPosition(Offset);
 
 	RMdlVGHeader VGHeader{};
-	if(Version >= 13)
+	if(Version >= 12)
 		VGHeader = Reader.Read<RMdlVGHeader>();
 	else {
 		RMdlVGHeaderOld TempVGHeader = Reader.Read<RMdlVGHeaderOld>();
