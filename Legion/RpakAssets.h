@@ -1236,8 +1236,10 @@ struct MaterialHeader
 	uint32_t TexturesOffset;
 	uint32_t UnknownIndex;
 	uint32_t UnknownOffset;
+	uint32_t UnknownOffset1;
+	uint32_t MaterialRes;
 
-	uint8_t Unknown3[0x28];
+	uint8_t Unknown3[0x20];
 
 	uint32_t TexturesTFIndex;
 	uint32_t TexturesTFOffset;
