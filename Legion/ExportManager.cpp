@@ -116,8 +116,9 @@ void ExportManager::ExportMilesAssets(const std::unique_ptr<MilesLib>& MilesFile
 			auto& Asset = ExportAssets[AssetToConvert];
 			auto& AudioAsset = MilesFileSystem->Assets[Asset.AssetHash];
 			auto  Path = IO::Path::Combine(ExportDirectory, "sounds");
-			if (AudioAsset.LocalizeIndex != -1) {
-				auto Name = LanguageName((MilesLanguageID)AudioAsset.LocalizeIndex);
+			auto  UseSubfolders = ExportManager::Config.Get<System::SettingType::Boolean>("AudioLanguageFolders");
+			if (UseSubfolders && AudioAsset.LocalizeIndex != -1) {
+				auto &Name = LanguageName((MilesLanguageID)AudioAsset.LocalizeIndex);
 				IO::Directory::CreateDirectory(IO::Path::Combine(Path, Name));
 				Path = IO::Path::Combine(Path, Name);
 			}

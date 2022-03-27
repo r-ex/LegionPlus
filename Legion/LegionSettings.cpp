@@ -190,6 +190,14 @@ void LegionSettings::InitializeComponent()
 	this->ToggleOverwriting->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->groupBox4->AddControl(this->ToggleOverwriting);
 
+	this->ToggleAudioLanguageFolders = new UIX::UIXCheckBox();
+	this->ToggleAudioLanguageFolders->SetSize({ 150, 18 });
+	this->ToggleAudioLanguageFolders->SetLocation({ 130, 20 });
+	this->ToggleAudioLanguageFolders->SetTabIndex(2);
+	this->ToggleAudioLanguageFolders->SetText("Audio Language Folders");
+	this->ToggleAudioLanguageFolders->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox4->AddControl(this->ToggleAudioLanguageFolders);
+
 	//
 	//	Assets Export Settings Box
 	//
@@ -458,6 +466,7 @@ void LegionSettings::LoadSettings()
 	this->LoadDataTables->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadDataTables"));
 	this->LoadShaderSets->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadShaderSets"));
 	this->ToggleOverwriting->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("OverwriteExistingFiles"));
+	this->ToggleAudioLanguageFolders->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("AudioLanguageFolders"));
 
 
 	if (ExportManager::Config.Has<System::SettingType::String>("ExportDirectory"))
@@ -596,6 +605,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	ExportManager::Config.Set<System::SettingType::Boolean>("LoadDataTables", ThisPtr->LoadDataTables->Checked());
 	ExportManager::Config.Set<System::SettingType::Boolean>("LoadShaderSets", ThisPtr->LoadShaderSets->Checked());
 	ExportManager::Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", ThisPtr->ToggleOverwriting->Checked());
+	ExportManager::Config.Set<System::SettingType::Boolean>("AudioLanguageFolders", ThisPtr->ToggleAudioLanguageFolders->Checked());
 	ExportManager::Config.Set<System::SettingType::Integer>("ModelFormat", (uint32_t)ModelExportFormat);
 	ExportManager::Config.Set<System::SettingType::Integer>("AnimFormat", (uint32_t)AnimExportFormat);
 	ExportManager::Config.Set<System::SettingType::Integer>("ImageFormat", (uint32_t)ImageExportFormat);

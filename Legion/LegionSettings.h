@@ -55,6 +55,7 @@ private:
 	UIX::UIXCheckBox* LoadModels;
 	// Toggles
 	UIX::UIXCheckBox* ToggleOverwriting;
+	UIX::UIXCheckBox* ToggleAudioLanguageFolders;
 	// Export Types
 	UIX::UIXComboBox* ModelExportFormat;
 	UIX::UIXComboBox* AnimExportFormat;
