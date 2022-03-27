@@ -362,3 +362,6 @@ logs/
 
 # Export folder
 exported_files/
+
+# Dll files for the bink and miles files
+*.dll
