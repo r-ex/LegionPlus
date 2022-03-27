@@ -38,6 +38,7 @@ private:
 	UIX::UIXLabel* label4;
 	UIX::UIXLabel* label5;
 	UIX::UIXLabel* label6;
+	UIX::UIXLabel* label7;
 	// Boxes
 	UIX::UIXGroupBox* groupBox1;
 	UIX::UIXGroupBox* groupBox2;
@@ -54,12 +55,14 @@ private:
 	UIX::UIXCheckBox* LoadModels;
 	// Toggles
 	UIX::UIXCheckBox* ToggleOverwriting;
+	UIX::UIXCheckBox* ToggleAudioLanguageFolders;
 	// Export Types
 	UIX::UIXComboBox* ModelExportFormat;
 	UIX::UIXComboBox* AnimExportFormat;
 	UIX::UIXComboBox* ImageExportFormat;
 	UIX::UIXComboBox* SubtitlesExportFormat;
 	UIX::UIXComboBox* NormalRecalcType;
+	UIX::UIXComboBox* AudioLanguage;
 	// Export Formats
 	UIX::UIXRadioButton* ExportCastAnim;
 	UIX::UIXRadioButton* ExportSEAnim;
