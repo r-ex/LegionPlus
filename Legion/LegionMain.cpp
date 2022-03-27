@@ -223,12 +223,9 @@ void LegionMain::LoadApexFile(const List<string>& File)
 
 				ThisPtr->RefreshView();
 			}
-			catch (...)
+			catch (const std::exception& e)
 			{
-				ThisPtr->Invoke([]()
-				{
-					Forms::MessageBox::Show("An error occured while loading the MBNK.", "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
-				});
+				Forms::MessageBox::Show("An error occurred while loading the MBNK:\n" + string(e.what()), "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
 				ThisPtr->StatusLabel->SetText("Idle");
 			}
 		}

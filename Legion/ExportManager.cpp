@@ -115,8 +115,15 @@ void ExportManager::ExportMilesAssets(const std::unique_ptr<MilesLib>& MilesFile
 
 			auto& Asset = ExportAssets[AssetToConvert];
 			auto& AudioAsset = MilesFileSystem->Assets[Asset.AssetHash];
+			auto  Path = IO::Path::Combine(ExportDirectory, "sounds");
+			if (AudioAsset.LocalizeIndex != -1) {
+				auto Name = LanguageName((MilesLanguageID)AudioAsset.LocalizeIndex);
+				IO::Directory::CreateDirectory(IO::Path::Combine(Path, Name));
+				Path = IO::Path::Combine(Path, Name);
+			}
+			Path = IO::Path::Combine(Path, AudioAsset.Name + ".wav");
 
-			bool bSuccess = MilesFileSystem->ExtractAsset(AudioAsset, IO::Path::Combine(IO::Path::Combine(ExportDirectory, "sounds"), AudioAsset.Name + ".wav"));
+			bool bSuccess = MilesFileSystem->ExtractAsset(AudioAsset, Path);
 
 			if (!bSuccess)
 			{
@@ -128,7 +135,7 @@ void ExportManager::ExportMilesAssets(const std::unique_ptr<MilesLib>& MilesFile
 
 			{
 				std::lock_guard<std::mutex> UpdateLock(UpdateMutex);
-				auto NewProgress = (uint32_t)(((float)AssetToConvert / (float)ExportAssets.Count()) * 100.f);
+				auto NewProgress = (uint32_t)(((float)(AssetToConvert + 1) / (float)ExportAssets.Count()) * 100.f);
 
 				if (NewProgress > CurrentProgress)
 				{
@@ -137,9 +144,9 @@ void ExportManager::ExportMilesAssets(const std::unique_ptr<MilesLib>& MilesFile
 				}
 			}
 		}
+		ProgressCallback(100, MainForm, true);
 	});
 
-	ProgressCallback(100, MainForm, true);
 }
 
 void ExportManager::ExportRpakAssets(const std::unique_ptr<RpakLib>& RpakFileSystem, List<ExportAsset> ExportAssets, ExportProgressCallback ProgressCallback, CheckStatusCallback StatusCallback, Forms::Form* MainForm)
