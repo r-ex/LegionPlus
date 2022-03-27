@@ -1234,10 +1234,17 @@ struct MaterialHeader
 
 	uint32_t TexturesIndex;
 	uint32_t TexturesOffset;
+	// Also Texture pointer, but less relevant for now.
 	uint32_t UnknownIndex;
 	uint32_t UnknownOffset;
 
-	uint8_t Unknown3[0x28];
+	int16_t UnknownSignature; // This seems to be the start of a modified VTF Header, I have no clue what this member does.
+	int16_t Width;
+	int16_t Height;
+	int16_t Unused;
+	uint32_t ImageFlags; // Image Flags, they decide the tiling, stretching etc.
+
+	uint8_t Unknown3[0x1C];
 
 	uint32_t TexturesTFIndex;
 	uint32_t TexturesTFOffset;
