@@ -320,7 +320,7 @@ std::unique_ptr<IO::FileStream> RpakLib::GetStarpakStream(const RpakLoadAsset& A
 	{
 		uint64_t OptStarpakIndex = Asset.OptimalStarpakOffset & 0xFF;
 #if _DEBUG
-		g_Logger.Info("Load starpak: %s\n", this->LoadedFiles[Asset.RpakFileIndex].OptimalStarpakReferences[OptStarpakIndex].ToCString());
+		//g_Logger.Info("Load starpak: %s\n", this->LoadedFiles[Asset.RpakFileIndex].OptimalStarpakReferences[OptStarpakIndex].ToCString());
 #endif
 		if (!IO::File::Exists(this->LoadedFiles[Asset.RpakFileIndex].OptimalStarpakReferences[OptStarpakIndex]))
 			return nullptr;
@@ -331,7 +331,7 @@ std::unique_ptr<IO::FileStream> RpakLib::GetStarpakStream(const RpakLoadAsset& A
 	{
 		uint64_t StarpakPatchIndex = Asset.StarpakOffset & 0xFF;
 #if _DEBUG
-		g_Logger.Info("Load starpak: %s\n", this->LoadedFiles[Asset.RpakFileIndex].StarpakReferences[StarpakPatchIndex].ToCString());
+		//g_Logger.Info("Load starpak: %s\n", this->LoadedFiles[Asset.RpakFileIndex].StarpakReferences[StarpakPatchIndex].ToCString());
 #endif
 		if (!IO::File::Exists(this->LoadedFiles[Asset.RpakFileIndex].StarpakReferences[StarpakPatchIndex]))
 			return nullptr;
