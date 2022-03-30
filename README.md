@@ -64,6 +64,7 @@ Shadersets: --nmlrecalc <none, directx/dx, opengl/ogl>
 ```
 --overwrite - Enables file overwriting for replacing existing versions of exported assets
 --nologfile - Disables log files being created
+--prioritylvl - Pick the Priority level by using: <realtime, high, above_normal, normal, below_normal, idle>
 ```
 
 ## Support
