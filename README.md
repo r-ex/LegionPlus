@@ -20,7 +20,7 @@ Originally created by DTZxPorter in 2019.
 ## Installation
 To install Legion+, you may choose to either download the latest pre-compiled release from [the releases page](https://github.com/r-ex/LegionPlus/releases/latest), or compile the source code for yourself using the provided Visual Studio Solution file (.sln)
 
-Compilation is currently only supported on Windows due to some platform-specific libraries that are used required
+Compilation is currently only supported on Windows due to some platform-specific libraries that are required
 
 ## Usage
 
