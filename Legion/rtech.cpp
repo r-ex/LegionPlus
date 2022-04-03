@@ -1637,6 +1637,14 @@ bool RTech::DecompressSnowflake(int64_t param_buffer, uint64_t data_size, uint64
 	__m128i m4 = _mm_set_epi32(0x1f801b9, 0x17a013b, 0xfc00bd, 0x7e003f);
 	__m128i m5 = _mm_set_epi32(0xd900ba, 0x9b007c, 0x5d003e, 0x1f0000);
 
+	__m128i m6 = _mm_set_epi32(0xf0e0d0c, 0xb0a0908, 0x7060504, 0x3020100);
+	__m128i m7 = _mm_set_epi32(0xf0e0d0c, 0xb0a0908, 0x3020100, 0x7060504);
+	__m128i m8 = _mm_set_epi32(0xf0e0d0c, 0x7060504, 0x3020100, 0xb0a0908);
+	__m128i m9 = _mm_set_epi32(0xb0a0908, 0x7060504, 0x3020100, 0xf0e0d0c);
+	__m128i m10 = _mm_set_epi32(0xb0a0908, 0x7060504, 0x3020100, 0xffffffff);
+	__m128i m11 = _mm_set_epi32(0, 0, 0, 0);
+	__m128i m_arr[6] = { m6, m7, m8, m9, m10, m11 };
+
 	v3 = buffer_size;
 	v4 = *(uint64_t*)(param_buffer + 149144);
 	v5 = data_size;
@@ -1660,11 +1668,11 @@ bool RTech::DecompressSnowflake(int64_t param_buffer, uint64_t data_size, uint64
 		v9 = *(uint64_t*)(param_buffer + 149152);
 		if (v3 >= v9)
 		{
-			v10 = _mm_load_si128(&m1);
-			v11 = _mm_load_si128(&m2);
-			v12 = _mm_load_si128(&m3);
-			v13 = _mm_load_si128(&m4);
-			v14 = _mm_load_si128(&m5);
+			v10 = _mm_load_si128((const __m128i*) &m1);
+			v11 = _mm_load_si128((const __m128i*) &m2);
+			v12 = _mm_load_si128((const __m128i*) &m3);
+			v13 = _mm_load_si128((const __m128i*) &m4);
+			v14 = _mm_load_si128((const __m128i*) &m5);
 			while (!v8)
 			{
 				v15 = *(uint64_t*)(param_buffer + 149208);
@@ -1867,11 +1875,11 @@ bool RTech::DecompressSnowflake(int64_t param_buffer, uint64_t data_size, uint64
 					v59 = v195;
 				}
 				sub_7FF7FC23CD20((unsigned __int8*)param_buffer, v59);
-				v10 = _mm_load_si128(&m1);
-				v11 = _mm_load_si128(&m2);
-				v12 = _mm_load_si128(&m3);
-				v13 = _mm_load_si128(&m4);
-				v14 = _mm_load_si128(&m5);
+				v10 = _mm_load_si128((const __m128i*)&m1);
+				v11 = _mm_load_si128((const __m128i*)&m2);
+				v12 = _mm_load_si128((const __m128i*)&m3);
+				v13 = _mm_load_si128((const __m128i*)&m4);
+				v14 = _mm_load_si128((const __m128i*)&m5);
 				if (v27 != 511)
 				{
 				LABEL_35:
@@ -1947,7 +1955,7 @@ bool RTech::DecompressSnowflake(int64_t param_buffer, uint64_t data_size, uint64
 								_mm_srai_epi16(
 									_mm_sub_epi16(
 										_mm_add_epi16(
-											_mm_and_si128(v78, (__m128i)_mm_set_epi32(0x1f001d1, 0x1b20193, 0x1740155, 0x1360117)),
+											_mm_and_si128(v78, (__m128i)_mm_set_epi32(0x3e103e10, 0x3e103e10, 0x3e103e10, 0x3e103e10)),
 											(__m128i)_mm_set_epi32(0xf800d9, 0xba009b, 0x7c005d, 0x3e001f)),
 										v75),
 									5u),
@@ -2201,9 +2209,10 @@ bool RTech::DecompressSnowflake(int64_t param_buffer, uint64_t data_size, uint64
 							v147).m128i_u64[0];
 						v145 = *(uint32_t*)(param_buffer + 4 * v149 + 1140);
 						v154 = _mm_loadu_si128((const __m128i*)(param_buffer + 1140));
-						*(uint8_t*)(param_buffer + 1139) = 0;
-						__m128i m6 = _mm_set_epi32(0xf0e0d0c, 0xb0a0908, 0x7060504, 0x3020100);
-						*(__m128i*)(param_buffer + 1140) = _mm_shuffle_epi8(v154, _mm_set_epi32(m6.m128i_i32[v149], 0x0, 0x0, 0x0)); //*(__m128i*)(param_buffer + 1140) = _mm_shuffle_epi8(v154, *reinterpret_cast<__m128i*>(_mm_set_epi32(0xf0e0d0c, 0xb0a0908, 0x7060504, 0x3020100).m128i_i32[v149]));
+						*(uint8_t*)(param_buffer + 1139) = 0;		
+						assert(v149 < 6);
+						 _mm_storeu_si128((__m128i*)param_buffer + 1140, _mm_shuffle_epi8(v154, (__m128i)m_arr[v149])); //*(__m128i*)(param_buffer + 1140) = _mm_shuffle_epi8(v154, *reinterpret_cast<__m128i*>(_mm_set_epi32(0xf0e0d0c, 0xb0a0908, 0x7060504, 0x3020100).m128i_i32[v149]));
+
 					}
 					v181 = *(uint64_t*)(param_buffer + 149208);
 					v182 = 0i64;
