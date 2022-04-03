@@ -34,8 +34,6 @@ namespace Assets::Exporters
 
 		Writer.WriteLine(
 			"version 1\n"
-			"// Exported by KoreLib\n"
-			"// You must credit DTZxPorter for use of this asset\n"
 			"nodes"
 		);
 

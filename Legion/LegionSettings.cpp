@@ -3,6 +3,7 @@
 #include "ExportManager.h"
 #include "Process.h"
 #include "LegionMain.h"
+#include "MilesLib.h"
 
 LegionSettings::LegionSettings()
 	: Forms::Form()
@@ -189,6 +190,14 @@ void LegionSettings::InitializeComponent()
 	this->ToggleOverwriting->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->groupBox4->AddControl(this->ToggleOverwriting);
 
+	this->ToggleAudioLanguageFolders = new UIX::UIXCheckBox();
+	this->ToggleAudioLanguageFolders->SetSize({ 150, 18 });
+	this->ToggleAudioLanguageFolders->SetLocation({ 130, 20 });
+	this->ToggleAudioLanguageFolders->SetTabIndex(2);
+	this->ToggleAudioLanguageFolders->SetText("Audio Language Folders");
+	this->ToggleAudioLanguageFolders->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox4->AddControl(this->ToggleAudioLanguageFolders);
+
 	//
 	//	Assets Export Settings Box
 	//
@@ -307,6 +316,15 @@ void LegionSettings::InitializeComponent()
 	this->label6->SetTextAlign(Drawing::ContentAlignment::TopLeft);
 	this->groupBox5->AddControl(this->label6);
 
+	this->label7 = new UIX::UIXLabel();
+	this->label7->SetSize({ 120, 15 });
+	this->label7->SetLocation({ 125, 110 });
+	this->label7->SetTabIndex(9);
+	this->label7->SetText("Audio Language");
+	this->label7->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->label7->SetTextAlign(Drawing::ContentAlignment::TopLeft);
+	this->groupBox5->AddControl(this->label7);
+
 	this->NormalRecalcType = new UIX::UIXComboBox();
 	this->NormalRecalcType->SetSize({ 90, 20 });
 	this->NormalRecalcType->SetLocation({ 125, 80 });
@@ -317,6 +335,17 @@ void LegionSettings::InitializeComponent()
 	this->NormalRecalcType->Items.Add("DirectX");
 	this->NormalRecalcType->Items.Add("OpenGL");
 	this->groupBox5->AddControl(this->NormalRecalcType);
+
+	this->AudioLanguage = new UIX::UIXComboBox();
+	this->AudioLanguage->SetSize({ 90, 20 });
+	this->AudioLanguage->SetLocation({ 125, 125 });
+	this->AudioLanguage->SetTabIndex(0);
+	this->AudioLanguage->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->AudioLanguage->SetDropDownStyle(Forms::ComboBoxStyle::DropDownList);
+	for (int i = (int)MilesLanguageID::English; i <= (int)MilesLanguageID::Korean; i++) {
+		this->AudioLanguage->Items.Add(imstring(LanguageName((MilesLanguageID)i)));
+	}
+	this->groupBox5->AddControl(this->AudioLanguage);
 
 	this->ResumeLayout(false);
 	this->PerformLayout();
@@ -339,6 +368,7 @@ void LegionSettings::LoadSettings()
 	auto ImageFormat = (RpakImageExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat");
 	auto SubtitlesFormat = (RpakSubtitlesExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("SubtitlesFormat");
 	auto NormalRecalcType = (eNormalRecalcType)ExportManager::Config.Get<System::SettingType::Integer>("NormalRecalcType");
+	auto AudioLanguage = (MilesLanguageID)ExportManager::Config.Get<System::SettingType::Integer>("AudioLanguage");
 
 	if (!ExportManager::Config.Has("NormalRecalcType"))
 		NormalRecalcType = eNormalRecalcType::OpenGl;
@@ -426,6 +456,8 @@ void LegionSettings::LoadSettings()
 		break;
 	}
 
+	this->AudioLanguage->SetSelectedIndex(static_cast<int32_t>(AudioLanguage));
+
 	this->LoadModels->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadModels"));
 	this->LoadAnimations->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadAnimations"));
 	this->LoadImages->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadImages"));
@@ -434,6 +466,7 @@ void LegionSettings::LoadSettings()
 	this->LoadDataTables->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadDataTables"));
 	this->LoadShaderSets->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadShaderSets"));
 	this->ToggleOverwriting->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("OverwriteExistingFiles"));
+	this->ToggleAudioLanguageFolders->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("AudioLanguageFolders"));
 
 
 	if (ExportManager::Config.Has<System::SettingType::String>("ExportDirectory"))
@@ -457,6 +490,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	auto ImageExportFormat = RpakImageExportFormat::Dds;
 	auto SubtitlesExportFormat = RpakSubtitlesExportFormat::CSV;
 	auto NormalRecalcType = eNormalRecalcType::OpenGl;
+	auto AudioLanguage = MilesLanguageID::English;
 
 	if (ThisPtr->ModelExportFormat->SelectedIndex() > -1)
 	{
@@ -541,6 +575,10 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		}
 	}
 
+	if (ThisPtr->AudioLanguage->SelectedIndex() > -1) {
+		AudioLanguage = (MilesLanguageID)ThisPtr->AudioLanguage->SelectedIndex();
+	}
+
 	// have the settings actually changed?
 	bool bRefreshView = false;
 
@@ -567,11 +605,13 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	ExportManager::Config.Set<System::SettingType::Boolean>("LoadDataTables", ThisPtr->LoadDataTables->Checked());
 	ExportManager::Config.Set<System::SettingType::Boolean>("LoadShaderSets", ThisPtr->LoadShaderSets->Checked());
 	ExportManager::Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", ThisPtr->ToggleOverwriting->Checked());
+	ExportManager::Config.Set<System::SettingType::Boolean>("AudioLanguageFolders", ThisPtr->ToggleAudioLanguageFolders->Checked());
 	ExportManager::Config.Set<System::SettingType::Integer>("ModelFormat", (uint32_t)ModelExportFormat);
 	ExportManager::Config.Set<System::SettingType::Integer>("AnimFormat", (uint32_t)AnimExportFormat);
 	ExportManager::Config.Set<System::SettingType::Integer>("ImageFormat", (uint32_t)ImageExportFormat);
 	ExportManager::Config.Set<System::SettingType::Integer>("SubtitlesFormat", (uint32_t)SubtitlesExportFormat);
 	ExportManager::Config.Set<System::SettingType::Integer>("NormalRecalcType", (uint32_t)NormalRecalcType);
+	ExportManager::Config.Set<System::SettingType::Integer>("AudioLanguage", (uint32_t)AudioLanguage);
 
 	auto ExportDirectory = ThisPtr->ExportBrowseFolder->Text();
 

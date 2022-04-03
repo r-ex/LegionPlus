@@ -44,7 +44,7 @@ struct RpakApexHeader
 	uint16_t StarpakReferenceSize;
 	uint16_t StarpakOptReferenceSize;
 	uint16_t VirtualSegmentCount;			// * 0x10
-	uint16_t VirtualSegmentBlockCount;		// * 0xC
+	uint16_t MemPageCount;		// * 0xC
 
 	uint32_t PatchIndex;
 
@@ -71,7 +71,7 @@ struct RpakTitanfallHeader
 
 	uint16_t StarpakReferenceSize;
 	uint16_t VirtualSegmentCount;			// * 0x10
-	uint16_t VirtualSegmentBlockCount;		// * 0xC
+	uint16_t MemPageCount;		// * 0xC
 
 	uint16_t PatchIndex;
 
@@ -99,7 +99,7 @@ struct RpakHeaderV6
 
 	uint32_t StarpakReferenceSize;
 	uint32_t VirtualSegmentCount;			// * 0x10
-	uint32_t PageCount;		// * 0xC
+	uint32_t MemPageCount;		// * 0xC
 
 	uint32_t DescriptorCount;
 	uint32_t AssetEntryCount;

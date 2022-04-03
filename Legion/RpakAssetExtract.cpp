@@ -624,7 +624,9 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 
 	List<ShaderResBinding> PixelShaderResBindings;
 
-	if (Assets.ContainsKey(MatHeader.ShaderSetHash))
+	bool shadersetLoaded = Assets.ContainsKey(MatHeader.ShaderSetHash);
+
+	if (shadersetLoaded)
 	{
 		auto ShaderSetAsset = Assets[MatHeader.ShaderSetHash];
 		auto ShaderSetHeader = ExtractShaderSet(ShaderSetAsset);
@@ -641,19 +643,22 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 			PixelShaderResBindings = ExtractShaderResourceBindings(Assets[PixelShaderGuid], D3D_SHADER_INPUT_TYPE::D3D_SIT_TEXTURE);
 		}
 		else {
-			g_Logger.Warning("Shaderset for material '%s' referenced a pixel shader that is not currently loaded. Unable to associate texture types.\n", Result.MaterialName);
 			g_Logger.Warning("Shaderset for material '%s' referenced a pixel shader that is not currently loaded. Unable to associate texture types.\n", Result.MaterialName.ToCString());
 		}
 	}
 
-	RpakStream->SetPosition(this->GetFileOffset(Asset, MatHeader.TypeIndex, MatHeader.TypeOffset));
+	g_Logger.Info("\nMaterial Info for '%s'\n", Result.MaterialName.ToCString());
+	g_Logger.Info("> ShaderSet: %llx (%s)\n", MatHeader.ShaderSetHash, shadersetLoaded ? "LOADED" : "NOT LOADED");
 
 	const uint64_t TextureTable = (Asset.Version == RpakGameVersion::Apex) ? this->GetFileOffset(Asset, MatHeader.TexturesIndex, MatHeader.TexturesOffset) : this->GetFileOffset(Asset, MatHeader.TexturesTFIndex, MatHeader.TexturesTFOffset);
 	uint32_t TexturesCount = (Asset.Version == RpakGameVersion::Apex) ? 0x10 : 0x11;
 
 	// we're actually gonna ignore the hardcoded value for apex materials
 	if (Asset.Version == RpakGameVersion::Apex)
+	{
 		TexturesCount = (MatHeader.UnknownOffset - MatHeader.TexturesOffset) / 8;
+		g_Logger.Info("> %i textures:\n", TexturesCount);
+	}
 
 	// These textures have named slots
 	for (uint32_t i = 0; i < TexturesCount; i++)
@@ -667,7 +672,6 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 
 		if (TextureHash != 0)
 		{
-
 			TextureName = string::Format("0x%llx%s", TextureHash, (const char*)ImageExtension);
 
 			if (PixelShaderResBindings.Count() > 0 && i < PixelShaderResBindings.Count())
@@ -679,6 +683,9 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 				if (ResName == "normalTexture")
 					bNormalRecalculate = true;
 			}
+
+			if(Asset.Version == RpakGameVersion::Apex)
+				g_Logger.Info(">> %i: 0x%llx - %s\n", i, TextureHash, bOverridden ? TextureName.ToCString() : "(no assigned name)");
 
 			switch (i)
 			{
@@ -724,6 +731,8 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 			}
 		}
 	}
+
+	g_Logger.Info("\n");
 
 	return Result;
 }
@@ -1196,7 +1205,7 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 					int v87 = ((v82 + 4 * (v85 % v79)) / 8 + v86 / 4 * v80) % (2 * v80) / 2
 						+ v80 * (((v82 + 4 * (v85 % v79)) / 8 + v86 / 4 * v80) % (2 * v80) % 2)
 						+ 2 * v80 * (((v82 + 4 * (v85 % v79)) / 8 + v86 / 4 * v80) / (2 * v80));
-					int v88 = 8
+					int v88 = 16
 						* ((v82 + 4 * (v85 % v79)) % 8
 							+ 8 * (unsigned int)(v87 % v80)
 							+ blocksW * (v86 % 4 + 4 * ((int)v87 / v80)));
@@ -1228,7 +1237,7 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 							//}
 							//continue;
 							// TODO(rx): reimplement?
-							//Texture->CopyTextureSlice(*Bc7Texture, { (x * 32),(y * 32),32,32 }, (x * 32), (y * 32));
+							Texture->CopyTextureSlice(Bc7Texture, { (x * 32),(y * 32),32,32 }, (x * 32), (y * 32));
 						}
 					}
 				}

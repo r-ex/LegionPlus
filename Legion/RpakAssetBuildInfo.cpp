@@ -104,9 +104,24 @@ void RpakLib::BuildMaterialInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, MatHeader.NameIndex, MatHeader.NameOffset));
 
-	Info.Name = IO::Path::GetFileNameWithoutExtension(Reader.ReadCString()).ToLower();
+	string MaterialName = Reader.ReadCString();
+
+	Info.Name = IO::Path::GetFileNameWithoutExtension(MaterialName).ToLower();
 	Info.Type = ApexAssetType::Material;
 	Info.Status = ApexAssetStatus::Loaded;
+
+	uint32_t TexturesCount = 0;
+	
+	switch (Asset.Version) {
+	case RpakGameVersion::Apex:
+		TexturesCount = (MatHeader.UnknownOffset - MatHeader.TexturesOffset) / 8;
+		break;
+	case RpakGameVersion::Titanfall:
+	case RpakGameVersion::R2TT: // unverified but should work
+		TexturesCount = (MatHeader.UnknownTFOffset - MatHeader.TexturesTFOffset) / 8;
+		break;
+	}
+	Info.Info = string::Format("Textures: %i", TexturesCount);
 }
 
 void RpakLib::BuildTextureInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
@@ -146,10 +161,29 @@ void RpakLib::BuildUIIAInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	auto TexHeader = Reader.Read<UIIAHeader>();
 
+	string CompressionType = "";
+
+	switch (TexHeader.Flags.CompressionType)
+	{
+	case 0:
+		CompressionType = "NONE";
+		break;
+	case 1:
+		CompressionType = "DEFAULT";
+		break;
+	case 2:
+		CompressionType = "SNOWFLAKE"; // idk why it's called this tbh
+		break;
+	default:
+		CompressionType = "UNKNOWN";
+		break;
+	}
+
 	Info.Name = string::Format("uiimage_0x%llx", Asset.NameHash);
-	Info.Type = ApexAssetType::Image;
+	Info.Type = ApexAssetType::UIImage;
 	Info.Status = ApexAssetStatus::Loaded;
 	Info.Info = string::Format("Width: %d Height %d", TexHeader.Width, TexHeader.Height);
+	Info.DebugInfo = string::Format("Mode: %s (%i)", CompressionType.ToCString(), TexHeader.Flags.CompressionType);
 }
 
 void RpakLib::BuildDataTableInfo(const RpakLoadAsset& Asset, ApexAsset& Info)

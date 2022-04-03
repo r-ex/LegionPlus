@@ -42,7 +42,7 @@ struct MilesAudioBank
 	uint64_t UnknownOffset8;
 
 	uint32_t UnknownCount1;
-	uint32_t UnknownCount2;
+	uint32_t DialogueCount;
 
 	uint32_t SourcesCount;
 	uint32_t UnknownCount3;
@@ -59,18 +59,11 @@ struct MilesAudioBank
 	uint32_t UnknownCount10;
 };
 
-enum class MilesSourceLocal : int16_t
-{
-	None = -1,
-	English = 0,
-	Spanish = 1
-};
-
 struct MilesApexSourceEntry
 {
 	uint32_t NameOffset;
 
-	MilesSourceLocal EntryLocal;
+	MilesLanguageID EntryLocal;
 	uint16_t PatchIndex;
 
 	uint32_t NameOffse2;
@@ -166,9 +159,8 @@ struct MilesTitanfallSourceEntry
 
 	uint64_t NegativeOne;
 
-	MilesSourceLocal EntryLocal;
+	MilesLanguageID EntryLocal;
 	uint16_t PatchIndex;
-	
 
 	uint32_t StreamDataSize2;
 };
@@ -179,7 +171,8 @@ struct MilesStreamBankHeader
 	uint32_t Magic;
 	uint16_t Version;
 
-	uint16_t LocalizeIndex;
+	MilesLanguageID LocalizeIndex;
+
 	uint32_t StreamDataOffset;
 	uint16_t PatchIndex;
 	uint16_t Zero;
@@ -206,6 +199,33 @@ struct BinkASIReader
 	uint64_t DataStreamOffset;
 	uint64_t DataStreamSize;
 };
+
+const String&
+LanguageName(MilesLanguageID lang) {
+	static const String LanguageNames[(int16_t)MilesLanguageID::COUNT + 1] = {
+		"English",
+		"French",
+		"German",
+		"Spanish",
+		"Italian",
+		"Japanese",
+		"Polish",
+		"Russian",
+		"Mandarin",
+		"Korean",
+		"Unknown",
+		"Sounds"
+	};
+	if (MilesLanguageID::English <= lang && lang < MilesLanguageID::COUNT) {
+		return LanguageNames[(int32_t)lang];
+	}
+	if (lang == MilesLanguageID::None) {
+		return LanguageNames[(int16_t)MilesLanguageID::COUNT];
+	}
+	return LanguageNames[(int32_t)MilesLanguageID::UNKNOWN];
+}
+
+
 
 static uint32_t MilesReadFileStream(char* Buffer, uint64_t Length, void* UserData)
 {
@@ -262,6 +282,8 @@ void MilesLib::MountBank(const string& Path)
 
 	ReaderStream->SetPosition(BankHeader.SourceEntryOffset);
 
+	auto SelectedLanguage = (MilesLanguageID)ExportManager::Config.Get<System::SettingType::Integer>("AudioLanguage");
+
 	if (BankHeader.Version >= 0xB && BankHeader.Version <= 0xD)
 	{
 		// TF|2
@@ -285,17 +307,33 @@ void MilesLib::MountBank(const string& Path)
 	{
 		if (BankHeader.Version == 40) {
 			// S11.1
-			List<MilesApexSourceEntry> Sources(BankHeader.SourcesCount, true);
-			ReaderStream->Read((uint8_t*)&Sources[0], 0, sizeof(MilesApexSourceEntry) * BankHeader.SourcesCount);
+			auto SoundCount = BankHeader.SourcesCount - BankHeader.DialogueCount;
+			{ 
+				// Gather non-voiced audio files
+				List<MilesApexSourceEntry> SoundSources(SoundCount, true);
+				ReaderStream->SetPosition(BankHeader.SourceEntryOffset);
+				ReaderStream->Read((uint8_t*)&SoundSources[0], 0, sizeof(MilesApexSourceEntry) * SoundCount);
+				for (auto& Entry : SoundSources)
+				{
+					ReaderStream->SetPosition(BankHeader.NameTableOffset + Entry.NameOffset);
+					auto Name = Reader.ReadCString();
+					MilesAudioAsset Asset{ Name, Entry.SampleRate, Entry.ChannelCount, Entry.StreamHeaderOffset, Entry.StreamHeaderSize, Entry.StreamDataOffset, Entry.StreamDataSize, Entry.PatchIndex, (uint32_t)Entry.EntryLocal };
+					Assets.Add(Hashing::XXHash::HashString(Name), Asset);
+				}
+			}
 
-			for (auto& Entry : Sources)
 			{
-				ReaderStream->SetPosition(BankHeader.NameTableOffset + Entry.NameOffset);
-
-				auto Name = Reader.ReadCString();
-
-				MilesAudioAsset Asset{ Name, Entry.SampleRate, Entry.ChannelCount, Entry.StreamHeaderOffset, Entry.StreamHeaderSize, Entry.StreamDataOffset, Entry.StreamDataSize, Entry.PatchIndex, (uint32_t)Entry.EntryLocal };
-				Assets.Add(Hashing::XXHash::HashString(Name), Asset);
+				// Gather voiced audio files in the selected language
+				List<MilesApexSourceEntry> DialogueSources(BankHeader.DialogueCount, true);
+				ReaderStream->SetPosition(BankHeader.SourceEntryOffset + sizeof(MilesApexSourceEntry) * (SoundCount + (int32_t)SelectedLanguage * BankHeader.DialogueCount));
+				ReaderStream->Read((uint8_t*)&DialogueSources[0], 0, sizeof(MilesApexSourceEntry) * BankHeader.DialogueCount);
+				for (auto& Entry : DialogueSources)
+				{
+					ReaderStream->SetPosition(BankHeader.NameTableOffset + Entry.NameOffset);
+					auto Name = Reader.ReadCString();
+					MilesAudioAsset Asset{ Name, Entry.SampleRate, Entry.ChannelCount, Entry.StreamHeaderOffset, Entry.StreamHeaderSize, Entry.StreamDataOffset, Entry.StreamDataSize, Entry.PatchIndex, (uint32_t)Entry.EntryLocal };
+					Assets.Add(Hashing::XXHash::HashString(Name), Asset);
+				}
 			}
 		}
 		else if (BankHeader.Version >= 28 && BankHeader.Version <= 32) {
@@ -318,21 +356,77 @@ void MilesLib::MountBank(const string& Path)
 		}
 		else {
 			g_Logger.Warning("Unknown MBNK Version: %i\n", BankHeader.Version);
-			throw new std::exception("Unknown MBNK version!");
+			throw std::exception("Unknown MBNK version!");
 		}
 	}
 
-	auto MStrFiles = IO::Directory::GetFiles(BasePath, "*.mstr");
+	auto Language = LanguageName(SelectedLanguage);
 
-	for (auto& MStr : MStrFiles)
-	{
-		auto StreamReader = IO::BinaryReader(IO::File::OpenRead(MStr));
-		auto StreamHeader = StreamReader.Read<MilesStreamBankHeader>();
+	struct MStrFile {
+		MilesLanguageID languageID;
+		int32_t patch;
+		string filename;
+	};
+	std::vector<MStrFile> NeededFiles{
+		{MilesLanguageID::None, 0, "general_stream.mstr"},
+		{MilesLanguageID::None, 1, "general_stream_patch_1.mstr"},
+		{SelectedLanguage,      0, "general_" + Language.ToLower() + ".mstr"},
+		{SelectedLanguage,      1, "general_" + Language.ToLower() + "_patch_1.mstr"},
+	};
 
-		uint32_t KeyIndex = ((uint32_t)StreamHeader.LocalizeIndex << 16) + StreamHeader.PatchIndex;
+	auto Paths = IO::Directory::GetFiles(BasePath, "*.mstr");
+	while (!NeededFiles.empty()) {
+		for (auto& Path : Paths)
+		{
+			MilesStreamBankHeader StreamHeader;
+			try {
+				auto StreamReader = IO::BinaryReader(IO::File::OpenRead(Path));
+				StreamHeader = StreamReader.Read<MilesStreamBankHeader>();
+			}
+			catch (...) { continue; }
 
-		MilesStreamBank NewBank{ MStr, StreamHeader.StreamDataOffset };
-		StreamBanks.Add(KeyIndex, NewBank);
+			if (StreamHeader.Magic != 0x43535452) {
+				g_Logger.Warning("File %s has .mstr extension but wrong magic number\n", Path.ToCString());
+				continue;
+			}
+			if (StreamHeader.LocalizeIndex != MilesLanguageID::None && StreamHeader.LocalizeIndex != SelectedLanguage) continue;
+			if (StreamHeader.PatchIndex != 0 && StreamHeader.PatchIndex != 1) continue;
+
+			g_Logger.Info("Loaded %s (patch %d) audio bank: %s\n", LanguageName(StreamHeader.LocalizeIndex).ToCString(), StreamHeader.PatchIndex, Path.ToCString());
+
+			uint32_t KeyIndex = ((uint32_t)StreamHeader.LocalizeIndex << 16) + StreamHeader.PatchIndex;
+			MilesStreamBank NewBank{ Path, StreamHeader.StreamDataOffset };
+			StreamBanks.Add(KeyIndex, NewBank);
+
+			NeededFiles.erase(
+				std::remove_if(NeededFiles.begin(), NeededFiles.end(), [&](const MStrFile& file) {
+					return file.languageID == StreamHeader.LocalizeIndex
+						&& file.patch == StreamHeader.PatchIndex;
+					}),
+				NeededFiles.end()
+			);
+		}
+
+		if (NeededFiles.empty()) break;
+
+		string Message = "Required audio files could not be found:\n";
+		for (auto& [Lang, Patch, Filename] : NeededFiles) {
+			Message += " - " + Filename + "\n";
+		}
+		Message += "Please click OK to browse for these files,\n"
+			"or click Cancel to stop loading";
+		auto Result = Forms::MessageBox::Show(Message, "Legion+", Forms::MessageBoxButtons::OKCancel, Forms::MessageBoxIcon::Warning);
+		if (Result == Forms::DialogResult::OK) {
+			Paths = Forms::OpenFileDialog::ShowMultiFileDialog("Select file(s) to load", BasePath, "MStr Files|*.mstr");
+		}
+		if (Result == Forms::DialogResult::Cancel || Paths.Empty()) {
+			Message = "The following file(s) are required for exporting " + Language + " language audio:\n";
+			for (auto& [Lang, Patch, Filename] : NeededFiles) {
+				Message += " - " + Filename + "\n";
+			}
+			Message += "Please acquire them or change your target language.";
+			throw std::exception(Message);
+		}
 	}
 }
 
@@ -352,7 +446,7 @@ bool MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 		{
 			HKEY hKey = HKEY_LOCAL_MACHINE;
 			HKEY resKey;
-			std::string installDir;
+			string installDir;
 			char buf[1024]{};
 			DWORD BufferSize = 1025;
 
@@ -367,14 +461,16 @@ bool MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 					return false;
 				}
 				else {
-					installDir = std::string(buf) + "steamapps\\common\\Apex Legends";
+					installDir = IO::Path::Combine(buf, "steamapps");
+					installDir = IO::Path::Combine(installDir, "common");
+					installDir = IO::Path::Combine(installDir, "Apex Legends");
 				}
 			}
 			else {
 				installDir = buf;
 			}
 
-			SetDllDirectoryA(installDir.c_str());
+			SetDllDirectoryA(installDir.ToCString());
 			binkawin = (uintptr_t)LoadLibraryA("binkawin64.dll");
 
 		}
@@ -606,6 +702,7 @@ bool MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 	Writer->Seek(0, IO::SeekOrigin::Begin);
 
 	Writer->Write((uint8_t*)&hdr, 0, sizeof(WAVEHEADER));
+	g_Logger.Info("Successfully exported %s\n", FilePath.ToCString());
 	return true;
 }
 
@@ -621,7 +718,8 @@ std::unique_ptr<List<ApexAsset>> MilesLib::BuildAssetList()
 		NewAsset.Hash = AssetKvp.first;
 		NewAsset.Name = AssetKvp.second.Name;
 		NewAsset.Type = ApexAssetType::Sound;
-		NewAsset.Info = string::Format("Sample Rate: %d, Channels: %d", AssetKvp.second.SampleRate, AssetKvp.second.ChannelCount);
+		String Language = AssetKvp.second.LocalizeIndex == -1 ? String("None") : LanguageName((MilesLanguageID)AssetKvp.second.LocalizeIndex);
+		NewAsset.Info = string::Format("Language: %s, Sample Rate: %d, Channels: %d", Language.ToCString(), AssetKvp.second.SampleRate, AssetKvp.second.ChannelCount);
 
 		Result->EmplaceBack(std::move(NewAsset));
 	}

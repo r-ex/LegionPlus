@@ -46,7 +46,7 @@ struct MilesAudioAsset
 	uint32_t StreamSize;
 
 	uint32_t PatchIndex;
-	uint32_t LocalizeIndex;
+	int32_t LocalizeIndex;
 
 	MilesAudioAsset() = default;
 };
@@ -58,6 +58,26 @@ struct MilesStreamBank
 
 	MilesStreamBank() = default;
 };
+
+enum class MilesLanguageID : int16_t
+{
+	None = -1,
+	English = 0,
+	French = 1,
+	German = 2,
+	Spanish = 3,
+	Italian = 4,
+	Japanese = 5,
+	Polish = 6,
+	Russian = 7,
+	Mandarin = 8,
+	Korean = 9,
+	UNKNOWN = 10,
+	COUNT = 11,
+};
+
+const String&
+LanguageName(MilesLanguageID lang);
 
 class MilesLib
 {

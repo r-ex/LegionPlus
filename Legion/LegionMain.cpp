@@ -21,7 +21,7 @@ void LegionMain::InitializeComponent()
 	this->SetAutoScaleDimensions({ 6, 13 });
 	this->SetAutoScaleMode(Forms::AutoScaleMode::Font);
 	this->SetText("Legion+");
-	this->SetClientSize({ 775, 481 });
+	this->SetClientSize({ 844, 481 });
 	this->SetMinimumSize({ 791, 520 });
 	this->SetStartPosition(Forms::FormStartPosition::CenterScreen);
 
@@ -55,7 +55,7 @@ void LegionMain::InitializeComponent()
 
 	this->StatusLabel = new UIX::UIXLabel();
 	this->StatusLabel->SetSize({ 255, 24 });
-	this->StatusLabel->SetLocation({ 508, 8 });
+	this->StatusLabel->SetLocation({ 577, 8 });
 	this->StatusLabel->SetTabIndex(7);
 	this->StatusLabel->SetText("Idle");
 	this->StatusLabel->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Right);
@@ -108,7 +108,7 @@ void LegionMain::InitializeComponent()
 
 	this->SettingsButton = new UIX::UIXButton();
 	this->SettingsButton->SetSize({ 80, 27 });
-	this->SettingsButton->SetLocation({ 683, 446});
+	this->SettingsButton->SetLocation({ 752, 446});
 	this->SettingsButton->SetTabIndex(1);
 	this->SettingsButton->SetText("Settings");
 	this->SettingsButton->Click += &OnSettingsClick;
@@ -116,15 +116,16 @@ void LegionMain::InitializeComponent()
 	this->AddControl(this->SettingsButton);
 
 	this->AssetsListView = new UIX::UIXListView();
-	this->AssetsListView->SetSize({ 751, 398 });
+	this->AssetsListView->SetSize({ 820, 398 });
 	this->AssetsListView->SetLocation({ 12, 38 });
 	this->AssetsListView->SetTabIndex(0);
 	this->AssetsListView->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left | Forms::AnchorStyles::Right);
 	this->AssetsListView->SetView(Forms::View::Details);
-	this->AssetsListView->Columns.Add({ "Name", 259 });
+	this->AssetsListView->Columns.Add({ "Name", 250 });
 	this->AssetsListView->Columns.Add({ "Type", 100 });
 	this->AssetsListView->Columns.Add({ "Status", 100 });
-	this->AssetsListView->Columns.Add({ "Info", 270 });
+	this->AssetsListView->Columns.Add({ "Info", 200 });
+	this->AssetsListView->Columns.Add({ "Debug Info", 150 });
 	this->AssetsListView->SetVirtualMode(true);
 	this->AssetsListView->SetFullRowSelect(true);
 	this->AssetsListView->VirtualItemsSelectionRangeChanged += &OnSelectedIndicesChanged;
@@ -223,12 +224,9 @@ void LegionMain::LoadApexFile(const List<string>& File)
 
 				ThisPtr->RefreshView();
 			}
-			catch (...)
+			catch (const std::exception& e)
 			{
-				ThisPtr->Invoke([]()
-				{
-					Forms::MessageBox::Show("An error occured while loading the MBNK.", "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
-				});
+				Forms::MessageBox::Show("An error occurred while loading the MBNK:\n" + string(e.what()), "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
 				ThisPtr->StatusLabel->SetText("Idle");
 			}
 		}
@@ -479,6 +477,7 @@ void LegionMain::DoPreviewSwap()
 	}
 	break;
 	case ApexAssetType::Image:
+	case ApexAssetType::UIImage:
 	{
 		auto Texture = this->RpakFileSystem->BuildPreviewTexture(Asset.Hash);
 		if (Texture == nullptr)
@@ -781,7 +780,7 @@ void LegionMain::GetVirtualItem(const std::unique_ptr<Forms::RetrieveVirtualItem
 
 	auto RemappedDisplayIndex = ThisPtr->DisplayIndices[EventArgs->ItemIndex];
 
-	static const char* AssetTypes[] = { "Model", "AnimationSet", "Image", "Material", "DataTable", "Sound", "Subtitles", "ShaderSet"};
+	static const char* AssetTypes[] = { "Model", "AnimationSet", "Image", "Material", "DataTable", "Sound", "Subtitles", "ShaderSet", "UI Image"};
 	static const Drawing::Color AssetTypesColors[] = 
 	{
 		Drawing::Color(0, 157, 220),  // Model
@@ -792,6 +791,7 @@ void LegionMain::GetVirtualItem(const std::unique_ptr<Forms::RetrieveVirtualItem
 		Drawing::Color(216, 30, 91),  // Sound,
 		Drawing::Color(239, 130, 13), // Subtitles
 		Drawing::Color(255, 246, 138),// ShaderSet
+		Drawing::Color(114, 142, 230),// UI Image
 	};
 
 	static const char* AssetStatus[] = { "Loaded", "Exporting", "Exported", "Error" };
@@ -815,7 +815,7 @@ void LegionMain::GetVirtualItem(const std::unique_ptr<Forms::RetrieveVirtualItem
 		EventArgs->Text = Asset.Name;
 		break;
 	case 1:
-		EventArgs->Text = AssetTypes[(uint32_t)Asset.Type];
+		EventArgs->Text = AssetTypes[(uint32_t)Asset.Type] + string::Format(" v%i", Asset.Version);
 		EventArgs->Style.ForeColor = AssetTypesColors[(uint32_t)Asset.Type];
 		break;
 	case 2:
@@ -824,6 +824,9 @@ void LegionMain::GetVirtualItem(const std::unique_ptr<Forms::RetrieveVirtualItem
 		break;
 	case 3:
 		EventArgs->Text = Asset.Info;
+		break;
+	case 4:
+		EventArgs->Text = Asset.DebugInfo;
 		break;
 	}
 }

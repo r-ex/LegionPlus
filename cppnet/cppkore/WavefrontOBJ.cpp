@@ -17,11 +17,6 @@ namespace Assets::Exporters
 		auto Writer = IO::StreamWriter(IO::File::Create(Path));
 		auto MaterialPath = IO::Path::ChangeExtension(Path, ".mtl");
 
-		Writer.WriteLine(
-			"# Exported by KoreLib\n"
-			"# You must credit DTZxPorter for use of this asset\n"
-		);
-
 		Writer.WriteLineFmt("\nmtllib %s\n", (char*)IO::Path::GetFileName(MaterialPath));
 
 		for (auto& Submesh : Model.Meshes)

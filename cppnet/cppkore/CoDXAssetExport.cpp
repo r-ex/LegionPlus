@@ -18,8 +18,6 @@ namespace Assets::Exporters
 		auto Writer = IO::StreamWriter(IO::File::Create(Path));
 
 		Writer.WriteLine(
-			"// Exported by KoreLib\n"
-			"// You must credit DTZxPorter for use of this asset\n"
 			"MODEL\nVERSION 6\n"
 		);
 

@@ -41,6 +41,25 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		if (!cmdline.HasParam(L"--nologfile"))
 			g_Logger.InitializeLogFile();
 
+		if (cmdline.HasParam(L"--prioritylvl"))
+		{
+
+			wstring sFmt = cmdline.GetParamValue(L"--prioritylvl");
+			sFmt = sFmt.ToLower();
+
+			if (sFmt == L"realtime")
+				SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
+			if (sFmt == L"high")
+				SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
+			if (sFmt == L"above_normal")
+				SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
+			if (sFmt == L"normal")
+				SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
+			if (sFmt == L"below_normal")
+				SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
+			if (sFmt == L"idle")
+				SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS);
+		}
 
 		if (!cmdline.HasParam(L"--export") && !cmdline.HasParam(L"--list"))
 		{

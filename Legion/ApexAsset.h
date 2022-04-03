@@ -11,7 +11,8 @@ enum class ApexAssetType
 	DataTable,
 	Sound,
 	Subtitles,
-	ShaderSet
+	ShaderSet,
+	UIImage,
 };
 
 enum class ApexAssetStatus
@@ -29,7 +30,9 @@ struct ApexAsset
 	string Name;
 	ApexAssetType Type;
 	ApexAssetStatus Status;
+	uint32_t Version;
 	string Info;
+	string DebugInfo = ""; // advanced info i suppose
 
 	ApexAsset();
 };
