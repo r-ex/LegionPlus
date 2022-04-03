@@ -21,7 +21,7 @@ void LegionMain::InitializeComponent()
 	this->SetAutoScaleDimensions({ 6, 13 });
 	this->SetAutoScaleMode(Forms::AutoScaleMode::Font);
 	this->SetText("Legion+");
-	this->SetClientSize({ 775, 481 });
+	this->SetClientSize({ 844, 481 });
 	this->SetMinimumSize({ 791, 520 });
 	this->SetStartPosition(Forms::FormStartPosition::CenterScreen);
 
@@ -116,15 +116,16 @@ void LegionMain::InitializeComponent()
 	this->AddControl(this->SettingsButton);
 
 	this->AssetsListView = new UIX::UIXListView();
-	this->AssetsListView->SetSize({ 751, 398 });
+	this->AssetsListView->SetSize({ 820, 398 });
 	this->AssetsListView->SetLocation({ 12, 38 });
 	this->AssetsListView->SetTabIndex(0);
 	this->AssetsListView->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left | Forms::AnchorStyles::Right);
 	this->AssetsListView->SetView(Forms::View::Details);
-	this->AssetsListView->Columns.Add({ "Name", 259 });
+	this->AssetsListView->Columns.Add({ "Name", 250 });
 	this->AssetsListView->Columns.Add({ "Type", 100 });
 	this->AssetsListView->Columns.Add({ "Status", 100 });
-	this->AssetsListView->Columns.Add({ "Info", 270 });
+	this->AssetsListView->Columns.Add({ "Info", 200 });
+	this->AssetsListView->Columns.Add({ "Debug Info", 150 });
 	this->AssetsListView->SetVirtualMode(true);
 	this->AssetsListView->SetFullRowSelect(true);
 	this->AssetsListView->VirtualItemsSelectionRangeChanged += &OnSelectedIndicesChanged;
@@ -823,6 +824,9 @@ void LegionMain::GetVirtualItem(const std::unique_ptr<Forms::RetrieveVirtualItem
 		break;
 	case 3:
 		EventArgs->Text = Asset.Info;
+		break;
+	case 4:
+		EventArgs->Text = Asset.DebugInfo;
 		break;
 	}
 }

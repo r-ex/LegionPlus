@@ -32,6 +32,7 @@ struct ApexAsset
 	ApexAssetStatus Status;
 	uint32_t Version;
 	string Info;
+	string DebugInfo = ""; // advanced info i suppose
 
 	ApexAsset();
 };

@@ -161,10 +161,29 @@ void RpakLib::BuildUIIAInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	auto TexHeader = Reader.Read<UIIAHeader>();
 
+	string CompressionType = "";
+
+	switch (TexHeader.Flags.CompressionType)
+	{
+	case 0:
+		CompressionType = "NONE";
+		break;
+	case 1:
+		CompressionType = "DEFAULT";
+		break;
+	case 2:
+		CompressionType = "SNOWFLAKE"; // idk why it's called this tbh
+		break;
+	default:
+		CompressionType = "UNKNOWN";
+		break;
+	}
+
 	Info.Name = string::Format("uiimage_0x%llx", Asset.NameHash);
 	Info.Type = ApexAssetType::UIImage;
 	Info.Status = ApexAssetStatus::Loaded;
 	Info.Info = string::Format("Width: %d Height %d", TexHeader.Width, TexHeader.Height);
+	Info.DebugInfo = string::Format("Mode: %s (%i)", CompressionType.ToCString(), TexHeader.Flags.CompressionType);
 }
 
 void RpakLib::BuildDataTableInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
