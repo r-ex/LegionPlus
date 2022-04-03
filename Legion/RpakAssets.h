@@ -1248,6 +1248,8 @@ struct MaterialHeader
 
 	uint32_t TexturesTFIndex;
 	uint32_t TexturesTFOffset;
+	uint32_t UnknownTFIndex;
+	uint32_t UnknownTFOffset;
 };
 
 struct StarpakStreamEntry

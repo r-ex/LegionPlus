@@ -104,9 +104,24 @@ void RpakLib::BuildMaterialInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, MatHeader.NameIndex, MatHeader.NameOffset));
 
-	Info.Name = IO::Path::GetFileNameWithoutExtension(Reader.ReadCString()).ToLower();
+	string MaterialName = Reader.ReadCString();
+
+	Info.Name = IO::Path::GetFileNameWithoutExtension(MaterialName).ToLower();
 	Info.Type = ApexAssetType::Material;
 	Info.Status = ApexAssetStatus::Loaded;
+
+	uint32_t TexturesCount = 0;
+	
+	switch (Asset.Version) {
+	case RpakGameVersion::Apex:
+		TexturesCount = (MatHeader.UnknownOffset - MatHeader.TexturesOffset) / 8;
+		break;
+	case RpakGameVersion::Titanfall:
+	case RpakGameVersion::R2TT: // unverified but should work
+		TexturesCount = (MatHeader.UnknownTFOffset - MatHeader.TexturesTFOffset) / 8;
+		break;
+	}
+	Info.Info = string::Format("Textures: %i", TexturesCount);
 }
 
 void RpakLib::BuildTextureInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
