@@ -55,7 +55,7 @@ void LegionMain::InitializeComponent()
 
 	this->StatusLabel = new UIX::UIXLabel();
 	this->StatusLabel->SetSize({ 255, 24 });
-	this->StatusLabel->SetLocation({ 508, 8 });
+	this->StatusLabel->SetLocation({ 577, 8 });
 	this->StatusLabel->SetTabIndex(7);
 	this->StatusLabel->SetText("Idle");
 	this->StatusLabel->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Right);
@@ -108,7 +108,7 @@ void LegionMain::InitializeComponent()
 
 	this->SettingsButton = new UIX::UIXButton();
 	this->SettingsButton->SetSize({ 80, 27 });
-	this->SettingsButton->SetLocation({ 683, 446});
+	this->SettingsButton->SetLocation({ 752, 446});
 	this->SettingsButton->SetTabIndex(1);
 	this->SettingsButton->SetText("Settings");
 	this->SettingsButton->Click += &OnSettingsClick;
