@@ -1205,7 +1205,7 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 					int v87 = ((v82 + 4 * (v85 % v79)) / 8 + v86 / 4 * v80) % (2 * v80) / 2
 						+ v80 * (((v82 + 4 * (v85 % v79)) / 8 + v86 / 4 * v80) % (2 * v80) % 2)
 						+ 2 * v80 * (((v82 + 4 * (v85 % v79)) / 8 + v86 / 4 * v80) / (2 * v80));
-					int v88 = 8
+					int v88 = 16
 						* ((v82 + 4 * (v85 % v79)) % 8
 							+ 8 * (unsigned int)(v87 % v80)
 							+ blocksW * (v86 % 4 + 4 * ((int)v87 / v80)));
@@ -1237,7 +1237,7 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 							//}
 							//continue;
 							// TODO(rx): reimplement?
-							//Texture->CopyTextureSlice(*Bc7Texture, { (x * 32),(y * 32),32,32 }, (x * 32), (y * 32));
+							Texture->CopyTextureSlice(Bc7Texture, { (x * 32),(y * 32),32,32 }, (x * 32), (y * 32));
 						}
 					}
 				}
