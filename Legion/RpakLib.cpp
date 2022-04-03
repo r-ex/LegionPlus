@@ -728,7 +728,7 @@ bool RpakLib::ParseApexRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 
 	// We need to load the rest of the data before applying a patch stream
 	List<RpakVirtualSegment> VirtualSegments(Header.VirtualSegmentCount, true);
-	List<RpakVirtualSegmentBlock> VirtualSegmentBlocks(Header.VirtualSegmentBlockCount, true); // mem pages
+	List<RpakVirtualSegmentBlock> MemPages(Header.MemPageCount, true); // mem pages
 
 	// each of these points to a descriptor/pointer within rpak mem pages
 	// they are used to convert the raw data into an actual pointer when the pak is loaded
@@ -738,7 +738,7 @@ bool RpakLib::ParseApexRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 
 	// Faster loading here by reading to the buffers directly
 	ParseStream->Read((uint8_t*)&VirtualSegments[0], 0, sizeof(RpakVirtualSegment) * Header.VirtualSegmentCount);
-	ParseStream->Read((uint8_t*)&VirtualSegmentBlocks[0], 0, sizeof(RpakVirtualSegmentBlock) * Header.VirtualSegmentBlockCount);
+	ParseStream->Read((uint8_t*)&MemPages[0], 0, sizeof(RpakVirtualSegmentBlock) * Header.MemPageCount);
 
 	for (uint32_t i = 0; i < Header.DescriptorCount; i++)
 	{
@@ -765,10 +765,10 @@ bool RpakLib::ParseApexRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 	auto BufferRemaining = ParseStream->GetLength() - ParseStream->GetPosition();
 
 	uint64_t Offset = 0;
-	for (uint32_t i = PatchHeader.PatchSegmentIndex; i < Header.VirtualSegmentBlockCount; i++)
+	for (uint32_t i = PatchHeader.PatchSegmentIndex; i < Header.MemPageCount; i++)
 	{
-		File->SegmentBlocks.EmplaceBack(Offset, VirtualSegmentBlocks[i].DataSize);
-		Offset += VirtualSegmentBlocks[i].DataSize;
+		File->SegmentBlocks.EmplaceBack(Offset, MemPages[i].DataSize);
+		Offset += MemPages[i].DataSize;
 	}
 
 	for (auto& Asset : AssetEntries)
@@ -846,16 +846,16 @@ bool RpakLib::ParseTitanfallRpak(const string& RpakPath, std::unique_ptr<IO::Mem
 
 	// We need to load the rest of the data before applying a patch stream
 	List<RpakVirtualSegment> VirtualSegments;
-	List<RpakVirtualSegmentBlock> VirtualSegmentBlocks;
+	List<RpakVirtualSegmentBlock> MemPages;
 	List<RpakTitanfallAssetEntry> AssetEntries;
 
 	for (uint32_t i = 0; i < Header.VirtualSegmentCount; i++)
 	{
 		VirtualSegments.EmplaceBack(Reader.Read<RpakVirtualSegment>());
 	}
-	for (uint32_t i = 0; i < Header.VirtualSegmentBlockCount; i++)
+	for (uint32_t i = 0; i < Header.MemPageCount; i++)
 	{
-		VirtualSegmentBlocks.EmplaceBack(Reader.Read<RpakVirtualSegmentBlock>());
+		MemPages.EmplaceBack(Reader.Read<RpakVirtualSegmentBlock>());
 	}
 	for (uint32_t i = 0; i < Header.DescriptorCount; i++)
 	{
@@ -887,10 +887,10 @@ bool RpakLib::ParseTitanfallRpak(const string& RpakPath, std::unique_ptr<IO::Mem
 	auto BufferRemaining = ParseStream->GetLength() - ParseStream->GetPosition();
 
 	uint64_t Offset = 0;
-	for (uint32_t i = PatchHeader.PatchSegmentIndex; i < Header.VirtualSegmentBlockCount; i++)
+	for (uint32_t i = PatchHeader.PatchSegmentIndex; i < Header.MemPageCount; i++)
 	{
-		File->SegmentBlocks.EmplaceBack(Offset, VirtualSegmentBlocks[i].DataSize);
-		Offset += VirtualSegmentBlocks[i].DataSize;
+		File->SegmentBlocks.EmplaceBack(Offset, MemPages[i].DataSize);
+		Offset += MemPages[i].DataSize;
 	}
 
 	for (auto& Asset : AssetEntries)
@@ -959,16 +959,16 @@ bool RpakLib::ParseR2TTRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 	}
 
 	List<RpakVirtualSegment> VirtualSegments;
-	List<RpakVirtualSegmentBlock> Pages;
+	List<RpakVirtualSegmentBlock> MemPages;
 	List<RpakTitanfallAssetEntry> AssetEntries;
 
 	for (uint32_t i = 0; i < Header.VirtualSegmentCount; i++)
 	{
 		VirtualSegments.EmplaceBack(Reader.Read<RpakVirtualSegment>());
 	}
-	for (uint32_t i = 0; i < Header.PageCount; i++)
+	for (uint32_t i = 0; i < Header.MemPageCount; i++)
 	{
-		Pages.EmplaceBack(Reader.Read<RpakVirtualSegmentBlock>());
+		MemPages.EmplaceBack(Reader.Read<RpakVirtualSegmentBlock>());
 	}
 	for (uint32_t i = 0; i < Header.DescriptorCount; i++)
 	{
@@ -990,10 +990,10 @@ bool RpakLib::ParseR2TTRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 	auto BufferRemaining = ParseStream->GetLength() - ParseStream->GetPosition();
 
 	uint64_t Offset = 0;
-	for (uint32_t i = 0; i < Header.PageCount; i++)
+	for (uint32_t i = 0; i < Header.MemPageCount; i++)
 	{
-		File->SegmentBlocks.EmplaceBack(Offset, Pages[i].DataSize);
-		Offset += Pages[i].DataSize;
+		File->SegmentBlocks.EmplaceBack(Offset, MemPages[i].DataSize);
+		Offset += MemPages[i].DataSize;
 	}
 
 	for (auto& Asset : AssetEntries)
