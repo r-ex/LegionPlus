@@ -162,7 +162,7 @@ void RpakLib::BuildUIIAInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	auto TexHeader = Reader.Read<UIIAHeader>();
 
 	Info.Name = string::Format("uiimage_0x%llx", Asset.NameHash);
-	Info.Type = ApexAssetType::Image;
+	Info.Type = ApexAssetType::UIImage;
 	Info.Status = ApexAssetStatus::Loaded;
 	Info.Info = string::Format("Width: %d Height %d", TexHeader.Width, TexHeader.Height);
 }

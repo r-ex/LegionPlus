@@ -209,6 +209,8 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims
 			continue;
 		}
 
+		NewAsset.Version = Asset.AssetVersion;
+
 		Result->EmplaceBack(std::move(NewAsset));
 	}
 

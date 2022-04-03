@@ -476,6 +476,7 @@ void LegionMain::DoPreviewSwap()
 	}
 	break;
 	case ApexAssetType::Image:
+	case ApexAssetType::UIImage:
 	{
 		auto Texture = this->RpakFileSystem->BuildPreviewTexture(Asset.Hash);
 		if (Texture == nullptr)
@@ -778,7 +779,7 @@ void LegionMain::GetVirtualItem(const std::unique_ptr<Forms::RetrieveVirtualItem
 
 	auto RemappedDisplayIndex = ThisPtr->DisplayIndices[EventArgs->ItemIndex];
 
-	static const char* AssetTypes[] = { "Model", "AnimationSet", "Image", "Material", "DataTable", "Sound", "Subtitles", "ShaderSet"};
+	static const char* AssetTypes[] = { "Model", "AnimationSet", "Image", "Material", "DataTable", "Sound", "Subtitles", "ShaderSet", "UI Image"};
 	static const Drawing::Color AssetTypesColors[] = 
 	{
 		Drawing::Color(0, 157, 220),  // Model
@@ -789,6 +790,7 @@ void LegionMain::GetVirtualItem(const std::unique_ptr<Forms::RetrieveVirtualItem
 		Drawing::Color(216, 30, 91),  // Sound,
 		Drawing::Color(239, 130, 13), // Subtitles
 		Drawing::Color(255, 246, 138),// ShaderSet
+		Drawing::Color(114, 142, 230),// UI Image
 	};
 
 	static const char* AssetStatus[] = { "Loaded", "Exporting", "Exported", "Error" };
@@ -812,7 +814,7 @@ void LegionMain::GetVirtualItem(const std::unique_ptr<Forms::RetrieveVirtualItem
 		EventArgs->Text = Asset.Name;
 		break;
 	case 1:
-		EventArgs->Text = AssetTypes[(uint32_t)Asset.Type];
+		EventArgs->Text = AssetTypes[(uint32_t)Asset.Type] + string::Format(" v%i", Asset.Version);
 		EventArgs->Style.ForeColor = AssetTypesColors[(uint32_t)Asset.Type];
 		break;
 	case 2:
