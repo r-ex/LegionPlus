@@ -2200,17 +2200,16 @@ bool RTech::DecompressSnowflake(int64_t param_buffer, uint64_t data_size, uint64
 						}
 						*(uint64_t*)param_buffer = *(uint64_t*)(param_buffer + 8);
 						*(uint64_t*)(param_buffer + 8) = v151;
-						*(uint64_t*)(v146 + 282) = _mm_add_epi16(
+						_mm_storeu_si128((__m128i*)v146 + 282, _mm_add_epi16(
 							_mm_srai_epi16(
 								_mm_sub_epi16(
 									_mm_loadl_epi64((const __m128i*)&LUT_Snowflake_1[v149]),
 									v147),
 								6u),
-							v147).m128i_u64[0];
+							v147));
 						v145 = *(uint32_t*)(param_buffer + 4 * v149 + 1140);
 						v154 = _mm_loadu_si128((const __m128i*)(param_buffer + 1140));
 						*(uint8_t*)(param_buffer + 1139) = 0;		
-						assert(v149 < 6);
 						 _mm_storeu_si128((__m128i*)param_buffer + 1140, _mm_shuffle_epi8(v154, (__m128i)m_arr[v149])); //*(__m128i*)(param_buffer + 1140) = _mm_shuffle_epi8(v154, *reinterpret_cast<__m128i*>(_mm_set_epi32(0xf0e0d0c, 0xb0a0908, 0x7060504, 0x3020100).m128i_i32[v149]));
 
 					}
