@@ -73,7 +73,6 @@ If you encounter any issues or errors during your usage of Legion+, please let u
 We also have a [discord server](https://discord.gg/ADek6fxVGe) where you will be able to directly ask for support and receive updates about the project
 
 ## Known Issues
-- UI Images do not export properly (some will be missing data in places, some will just be completely blank)
 
 Full TODO/task list is available [here.](https://github.com/r-ex/LegionPlus/projects/1)
 
