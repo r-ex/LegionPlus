@@ -1645,6 +1645,8 @@ bool RTech::DecompressSnowflake(int64_t param_buffer, uint64_t data_size, uint64
 	__m128i m11 = _mm_set_epi32(0, 0, 0, 0);
 	__m128i m_arr[6] = { m6, m7, m8, m9, m10, m11 };
 
+	static int cycle = 0; // This will stay in honor of my 20 hours of total debugging this.
+
 	v3 = buffer_size;
 	v4 = *(uint64_t*)(param_buffer + 149144);
 	v5 = data_size;
@@ -2200,17 +2202,21 @@ bool RTech::DecompressSnowflake(int64_t param_buffer, uint64_t data_size, uint64
 						}
 						*(uint64_t*)param_buffer = *(uint64_t*)(param_buffer + 8);
 						*(uint64_t*)(param_buffer + 8) = v151;
-						_mm_storeu_si128((__m128i*)v146 + 282, _mm_add_epi16(
-							_mm_srai_epi16(
-								_mm_sub_epi16(
-									_mm_loadl_epi64((const __m128i*)&LUT_Snowflake_1[v149]),
-									v147),
-								6u),
-							v147));
+
+						__m128i loadSnowFlake = _mm_loadl_epi64((const __m128i*)&LUT_Snowflake_1[v149]); // Get the current snowflake.
+						__m128i subtract16Bits_A_and_B = _mm_sub_epi16(loadSnowFlake, v147);
+						__m128i shiftSnowFlake16Bits = _mm_srai_epi16(subtract16Bits_A_and_B, 6u);
+						__m128i addPacked16Bits = _mm_add_epi16(shiftSnowFlake16Bits, v147);
+						void* ptr = (uint8_t*)v146 + 282; // Cast is needed to ensure we get the right memory address.
+						_mm_storel_epi64((__m128i*)ptr, addPacked16Bits);
+
 						v145 = *(uint32_t*)(param_buffer + 4 * v149 + 1140);
 						v154 = _mm_loadu_si128((const __m128i*)(param_buffer + 1140));
-						*(uint8_t*)(param_buffer + 1139) = 0;		
-						 _mm_storeu_si128((__m128i*)param_buffer + 1140, _mm_shuffle_epi8(v154, (__m128i)m_arr[v149])); //*(__m128i*)(param_buffer + 1140) = _mm_shuffle_epi8(v154, *reinterpret_cast<__m128i*>(_mm_set_epi32(0xf0e0d0c, 0xb0a0908, 0x7060504, 0x3020100).m128i_i32[v149]));
+						*(uint8_t*)(param_buffer + 1139) = 0;
+
+						__m128i packedShuffleBytes = _mm_shuffle_epi8(v154, m_arr[v149]);
+						void* ptr2 = (uint8_t*)param_buffer + 1140; // Cast is needed to ensure we get the right memory address.
+						_mm_storeu_si128((__m128i*)ptr2, packedShuffleBytes);
 
 					}
 					v181 = *(uint64_t*)(param_buffer + 149208);
@@ -2218,11 +2224,14 @@ bool RTech::DecompressSnowflake(int64_t param_buffer, uint64_t data_size, uint64
 					v183 = v181 + *(uint64_t*)(param_buffer + 149200);
 					v184 = v183 - v145;
 					*(uint64_t*)(param_buffer + 149208) = v181 + v73;
+
+					cycle++; // This will stay in honor of my 20 hours of total debugging this.
+
 					if (v145 >= 4)
 					{
 						do
 						{
-							*(uint32_t*)(v183 + v182) = *(uint32_t*)(v184 + v182); // crash here.
+							*(uint32_t*)(v183 + v182) = *(uint32_t*)(v184 + v182); // NO MORE CRASH HERE, DATA GETS WRITTEN HERE NOW.
 							v186 = v182 + 4;
 							v182 = (unsigned int)(v182 + 4);
 						} while (v186 < (unsigned int)v73);
