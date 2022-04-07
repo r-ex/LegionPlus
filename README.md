@@ -16,6 +16,7 @@ Originally created by DTZxPorter in 2019.
     - [Other Flags](#other-flags)
 - [Support](#support)
 - [Known Issues](#known-issues)
+- [kitty](https://ibb.co/S3NgFDZ)
 
 ## Installation
 To install Legion+, you may choose to either download the latest pre-compiled release from [the releases page](https://github.com/r-ex/LegionPlus/releases/latest), or compile the source code for yourself using the provided Visual Studio Solution file (.sln)
