@@ -41,6 +41,11 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		if (!cmdline.HasParam(L"--nologfile"))
 			g_Logger.InitializeLogFile();
 
+		if (cmdline.HasParam(L"--overwrite"))
+			ExportManager::Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", true);
+		else
+			ExportManager::Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", false);
+
 		if (cmdline.HasParam(L"--prioritylvl"))
 		{
 
@@ -105,11 +110,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				bool bLoadUIImages = cmdline.HasParam(L"--loaduiimages");
 				bool bLoadDataTables = cmdline.HasParam(L"--loaddatatables");
 				bool bLoadShaderSets = cmdline.HasParam(L"--loadshadersets");
-				
-				if (cmdline.HasParam(L"--overwrite"))
-					ExportManager::Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", true);
-				else
-					ExportManager::Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", false);
 
 				if (cmdline.HasParam(L"--fullpath"))
 					ExportManager::Config.Set<System::SettingType::Boolean>("UseFullPaths", true);
