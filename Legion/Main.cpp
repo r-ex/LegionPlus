@@ -38,13 +38,11 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	if (argv) // This can fail yes, would be good to also check that.	
 	{
+		// flags for all types
 		if (!cmdline.HasParam(L"--nologfile"))
 			g_Logger.InitializeLogFile();
 
-		if (cmdline.HasParam(L"--overwrite"))
-			ExportManager::Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", true);
-		else
-			ExportManager::Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", false);
+		ExportManager::Config.SetBool("OverwriteExistingFiles", cmdline.HasParam(L"--overwrite"));
 
 		if (cmdline.HasParam(L"--prioritylvl"))
 		{
@@ -103,6 +101,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				Rpak->LoadRpak(rpakPath);
 				Rpak->PatchAssets();
 
+				// load rpak flags 
 				bool bLoadModels = cmdline.HasParam(L"--loadmodels");
 				bool bLoadAnims = cmdline.HasParam(L"--loadanimations");
 				bool bLoadImages = cmdline.HasParam(L"--loadimages");
@@ -111,12 +110,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				bool bLoadDataTables = cmdline.HasParam(L"--loaddatatables");
 				bool bLoadShaderSets = cmdline.HasParam(L"--loadshadersets");
 
-				if (cmdline.HasParam(L"--fullpath"))
-					ExportManager::Config.Set<System::SettingType::Boolean>("UseFullPaths", true);
-				else
-					ExportManager::Config.Set<System::SettingType::Boolean>("UseFullPaths", false);
+				// other rpak flags
+				ExportManager::Config.SetBool("UseFullPaths", cmdline.HasParam(L"--fullpath"));
 
-				// asset formats
+				// asset rpak formats flags
 				if (cmdline.HasParam(L"--mdlfmt"))
 				{
 					RpakModelExportFormat MdlFmt = (RpakModelExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat");
