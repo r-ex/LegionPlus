@@ -58,8 +58,8 @@ void LegionSettings::InitializeComponent()
 	this->groupBox1->AddControl(this->ExportBrowseButton);
 
 	// 
-//	Toggle Settings Box
-//
+	//	Toggle Settings Box
+	//
 	this->groupBox4 = new UIX::UIXGroupBox();
 	this->groupBox4->SetSize({ 458, 48 });
 	this->groupBox4->SetLocation({ 12, 80 });
