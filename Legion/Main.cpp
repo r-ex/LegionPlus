@@ -111,6 +111,11 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				else
 					ExportManager::Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", false);
 
+				if (cmdline.HasParam(L"--fullpath"))
+					ExportManager::Config.Set<System::SettingType::Boolean>("UseFullPaths", true);
+				else
+					ExportManager::Config.Set<System::SettingType::Boolean>("UseFullPaths", false);
+
 				// asset formats
 				if (cmdline.HasParam(L"--mdlfmt"))
 				{
