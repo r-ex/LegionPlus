@@ -132,7 +132,10 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 		Reader.Read(skelBuf, 0, SkeletonHeader.DataSize);
 
-		const uint64_t PhyOffset = this->GetFileOffset(Asset, ModHeader.PhyIndex, ModHeader.PhyOffset);
+		uint64_t PhyOffset = 0;
+
+		if (ModHeader.PhyIndex != 0 || ModHeader.PhyOffset != 0)
+			this->GetFileOffset(Asset, ModHeader.PhyIndex, ModHeader.PhyOffset);
 
 		// check if this model has a phy segment
 		if(PhyOffset)
