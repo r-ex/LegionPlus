@@ -293,18 +293,18 @@ static_assert(sizeof(RpakTitanfallAssetEntry) == 0x48, "Invalid header size");
 
 enum class RpakAssetType : uint32_t
 {
-	Model = 0x5F6C646D,
-	Texture = 0x72747874,
-	TextureAnimated = 0x6e617874,
-	UIIA = 0x61696975,
-	DataTable = 0x6C627464,
-	Settings = 0x73677473,
-	Material = 0x6C74616D,
-	AnimationRig = 0x67697261,
-	Animation = 0x71657361,
-	Subtitles = 0x74627573,
-	ShaderSet = 0x73646873,
-	Shader = 0x72646873,
+	Model = 0x5F6C646D, // mdl_
+	Texture = 0x72747874, // txtr
+	TextureAnimated = 0x6e617874, // txan
+	UIIA = 0x61696975, // uiia
+	DataTable = 0x6C627464, // dtbl
+	Settings = 0x73677473, // stgs
+	Material = 0x6C74616D, // matl
+	AnimationRig = 0x67697261, // arig
+	Animation = 0x71657361, // aseq
+	Subtitles = 0x74627573, // subt
+	ShaderSet = 0x73646873, // shds
+	Shader = 0x72646873, // shdr
 };
 
 enum class RpakModelExportFormat
@@ -518,6 +518,7 @@ private:
 	uint64_t GetEmbeddedStarpakOffset(const RpakLoadAsset& asset);
 	std::unique_ptr<IO::FileStream> GetStarpakStream(const RpakLoadAsset& Asset, bool Optimal);
 
+	// RpakAssetBuildInfo.cpp
 	void BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildAnimInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildRawAnimInfo(const RpakLoadAsset& Asset, ApexAsset& Info);

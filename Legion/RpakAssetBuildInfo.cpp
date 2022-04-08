@@ -36,7 +36,13 @@ void RpakLib::BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.NameIndex, ModHeader.NameOffset));
 
-	Info.Name = IO::Path::GetFileNameWithoutExtension(Reader.ReadCString()).ToLower();
+	string ModelName = Reader.ReadCString();
+
+	if (ExportManager::Config.GetBool("UseFullPaths"))
+		Info.Name = ModelName;
+	else
+		Info.Name = IO::Path::GetFileNameWithoutExtension(ModelName).ToLower();
+
 	Info.Type = ApexAssetType::Model;
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.SkeletonIndex, ModHeader.SkeletonOffset));
@@ -64,7 +70,13 @@ void RpakLib::BuildAnimInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, RigHeader.NameIndex, RigHeader.NameOffset));
 
-	Info.Name = IO::Path::GetFileNameWithoutExtension(Reader.ReadCString()).ToLower();
+	string RigName = Reader.ReadCString();
+
+	if (ExportManager::Config.GetBool("UseFullPaths"))
+		Info.Name = RigName;
+	else
+		Info.Name = IO::Path::GetFileNameWithoutExtension(RigName).ToLower();
+
 	Info.Type = ApexAssetType::AnimationSet;
 	Info.Status = ApexAssetStatus::Loaded;
 
@@ -86,9 +98,13 @@ void RpakLib::BuildRawAnimInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, AnHeader.NameIndex, AnHeader.NameOffset));
 
-	auto AnimName = IO::Path::GetFileNameWithoutExtension(Reader.ReadCString());
+	string AnimName = Reader.ReadCString();
 
-	Info.Name = AnimName.ToLower();
+	if (ExportManager::Config.GetBool("UseFullPaths"))
+		Info.Name = AnimName;
+	else
+		Info.Name = IO::Path::GetFileNameWithoutExtension(AnimName).ToLower();
+
 	Info.Type = ApexAssetType::AnimationSet;
 	Info.Status = ApexAssetStatus::Loaded;
 }
@@ -106,7 +122,11 @@ void RpakLib::BuildMaterialInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	string MaterialName = Reader.ReadCString();
 
-	Info.Name = IO::Path::GetFileNameWithoutExtension(MaterialName).ToLower();
+	if (ExportManager::Config.GetBool("UseFullPaths"))
+		Info.Name = MaterialName;
+	else
+		Info.Name = IO::Path::GetFileNameWithoutExtension(MaterialName).ToLower();
+
 	Info.Type = ApexAssetType::Material;
 	Info.Status = ApexAssetStatus::Loaded;
 
@@ -143,7 +163,7 @@ void RpakLib::BuildTextureInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	}
 
 	if (Name.Length() > 0)
-		Info.Name = IO::Path::GetFileNameWithoutExtension(Name);
+		Info.Name = ExportManager::Config.GetBool("UseFullPaths") ? Name : IO::Path::GetFileNameWithoutExtension(Name);
 	else
 		Info.Name = string::Format("texture_0x%llx", Asset.NameHash);
 

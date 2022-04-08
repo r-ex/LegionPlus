@@ -75,6 +75,31 @@ namespace System
 		Settings() = default;
 		~Settings() = default;
 
+
+		_declspec(noinline) void SetBool(const imstring& Key, bool Value)
+		{
+			for (auto& Setting : _Settings)
+			{
+				if (Setting.Key == (const char*)Key)
+				{
+					Setting.Values.Boolean = Value;
+				}
+			}
+			_Settings.EmplaceBack(Key, SettingType::Boolean, (uint8_t*)&Value);
+		}
+
+		_declspec(noinline) void SetInt(const imstring& Key, uint32_t Value)
+		{
+			for (auto& Setting : _Settings)
+			{
+				if (Setting.Key == (const char*)Key)
+				{
+					Setting.Values.Integer = Value;
+				}
+			}
+			_Settings.EmplaceBack(Key, SettingType::Integer, (uint8_t*)&Value);
+		}
+
 		template<SettingType T, class V>
 		_declspec(noinline) void Set(const imstring& Key, V && Value)
 		{
@@ -164,6 +189,24 @@ namespace System
 
 			return;
 		};
+
+		_declspec(noinline) bool GetBool(const imstring& Key)
+		{
+			SettingsObject* Value = nullptr;
+
+			for (auto& Setting : _Settings)
+			{
+				if (Setting.Key == (const char*)Key)
+				{
+					Value = &Setting;
+					break;
+				}
+			}
+			if (Value)
+				return Value->Values.Boolean;
+
+			return false;
+		}
 
 		template<const SettingType T>
 		_declspec(noinline) auto Get(const imstring& Key)

@@ -201,7 +201,7 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims
 			BuildSubtitleInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)RpakAssetType::ShaderSet:
-			if (!ExportManager::Config.Get<System::SettingType::Boolean>("LoadShaderSets"))
+			if (!ExportManager::Config.GetBool("LoadShaderSets"))
 				continue;
 			BuildShaderSetInfo(Asset, NewAsset);
 			break;
@@ -1107,11 +1107,8 @@ bool RpakLib::MountApexRpak(const string& Path, bool Dump)
 		ResultStream->SetPosition(0);
 	}
 #endif
-	bool r = ParseApexRpak(Path, ResultStream);
 
-	g_Logger.Info("Parse: %i\n", r);
-
-	return r;
+	return ParseApexRpak(Path, ResultStream);
 }
 
 bool RpakLib::MountTitanfallRpak(const string& Path, bool Dump)

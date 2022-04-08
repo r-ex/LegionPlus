@@ -30,7 +30,7 @@ void LegionSettings::InitializeComponent()
 	//	Custom Export Directory Box
 	//
 	this->groupBox1 = new UIX::UIXGroupBox();
-	this->groupBox1->SetSize({ 458, 110 });
+	this->groupBox1->SetSize({ 458, 65 });
 	this->groupBox1->SetLocation({ 12, 10 });
 	this->groupBox1->SetTabIndex(3);
 	this->groupBox1->SetText("General Directory Settings");
@@ -57,11 +57,49 @@ void LegionSettings::InitializeComponent()
 	this->ExportBrowseButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Right);
 	this->groupBox1->AddControl(this->ExportBrowseButton);
 
+	// 
+//	Toggle Settings Box
+//
+	this->groupBox4 = new UIX::UIXGroupBox();
+	this->groupBox4->SetSize({ 458, 48 });
+	this->groupBox4->SetLocation({ 12, 80 });
+	this->groupBox4->SetTabIndex(3);
+	this->groupBox4->SetText("Toggle Settings");
+	this->groupBox4->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->AddControl(this->groupBox4);
+
+	// 
+	//	Toggle Settings
+	//
+	this->ToggleOverwriting = new UIX::UIXCheckBox();
+	this->ToggleOverwriting->SetSize({ 110, 18 });
+	this->ToggleOverwriting->SetLocation({ 15, 20 });
+	this->ToggleOverwriting->SetTabIndex(2);
+	this->ToggleOverwriting->SetText("Overwrite Files");
+	this->ToggleOverwriting->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox4->AddControl(this->ToggleOverwriting);
+
+	this->ToggleAudioLanguageFolders = new UIX::UIXCheckBox();
+	this->ToggleAudioLanguageFolders->SetSize({ 150, 18 });
+	this->ToggleAudioLanguageFolders->SetLocation({ 130, 20 });
+	this->ToggleAudioLanguageFolders->SetTabIndex(2);
+	this->ToggleAudioLanguageFolders->SetText("Audio Language Folders");
+	this->ToggleAudioLanguageFolders->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox4->AddControl(this->ToggleAudioLanguageFolders);
+
+	this->ToggleUseFullPaths = new UIX::UIXCheckBox();
+	this->ToggleUseFullPaths->SetSize({ 150, 18 });
+	this->ToggleUseFullPaths->SetLocation({ 290, 20 });
+	this->ToggleUseFullPaths->SetTabIndex(2);
+	this->ToggleUseFullPaths->SetText("Show Full Asset Paths");
+	this->ToggleUseFullPaths->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox4->AddControl(this->ToggleUseFullPaths);
+
 	//
 	//	About Box
 	//
 	this->groupBox2 = new UIX::UIXGroupBox();
-	this->groupBox2->SetSize({ 218, 110 });
+	this->groupBox2->SetSize({ 218, 118 });
 	this->groupBox2->SetLocation({ 480, 10 });
 	this->groupBox2->SetTabIndex(3);
 	this->groupBox2->SetText("About");
@@ -102,8 +140,8 @@ void LegionSettings::InitializeComponent()
 	//	Load Settings Box
 	//
 	this->groupBox3 = new UIX::UIXGroupBox();
-	this->groupBox3->SetSize({ 340, 122 });
-	this->groupBox3->SetLocation({ 12, 125 });
+	this->groupBox3->SetSize({ 340, 175 });
+	this->groupBox3->SetLocation({ 12, 135 });
 	this->groupBox3->SetTabIndex(3);
 	this->groupBox3->SetText("Load Settings");
 	this->groupBox3->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
@@ -168,42 +206,12 @@ void LegionSettings::InitializeComponent()
 	this->LoadShaderSets->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->groupBox3->AddControl(this->LoadShaderSets);
 
-	// 
-	//	Toggle Settings Box
-	//
-	this->groupBox4 = new UIX::UIXGroupBox();
-	this->groupBox4->SetSize({ 340, 48 });
-	this->groupBox4->SetLocation({ 12, 252 });
-	this->groupBox4->SetTabIndex(3);
-	this->groupBox4->SetText("Toggle Settings");
-	this->groupBox4->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->AddControl(this->groupBox4);
-
-	// 
-	//	Toggle Settings
-	//
-	this->ToggleOverwriting = new UIX::UIXCheckBox();
-	this->ToggleOverwriting->SetSize({ 110, 18 });
-	this->ToggleOverwriting->SetLocation({ 15, 20 });
-	this->ToggleOverwriting->SetTabIndex(2);
-	this->ToggleOverwriting->SetText("Overwrite Files");
-	this->ToggleOverwriting->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox4->AddControl(this->ToggleOverwriting);
-
-	this->ToggleAudioLanguageFolders = new UIX::UIXCheckBox();
-	this->ToggleAudioLanguageFolders->SetSize({ 150, 18 });
-	this->ToggleAudioLanguageFolders->SetLocation({ 130, 20 });
-	this->ToggleAudioLanguageFolders->SetTabIndex(2);
-	this->ToggleAudioLanguageFolders->SetText("Audio Language Folders");
-	this->ToggleAudioLanguageFolders->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox4->AddControl(this->ToggleAudioLanguageFolders);
-
 	//
 	//	Assets Export Settings Box
 	//
 	this->groupBox5 = new UIX::UIXGroupBox();
 	this->groupBox5->SetSize({ 340, 175 });
-	this->groupBox5->SetLocation({ 359, 125 });
+	this->groupBox5->SetLocation({ 359, 135 });
 	this->groupBox5->SetTabIndex(0);
 	this->groupBox5->SetText("Assets Export Settings");
 	this->groupBox5->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left | Forms::AnchorStyles::Right);
@@ -458,15 +466,16 @@ void LegionSettings::LoadSettings()
 
 	this->AudioLanguage->SetSelectedIndex(static_cast<int32_t>(AudioLanguage));
 
-	this->LoadModels->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadModels"));
-	this->LoadAnimations->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadAnimations"));
-	this->LoadImages->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadImages"));
-	this->LoadMaterials->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadMaterials"));
-	this->LoadUIImages->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadUIImages"));
-	this->LoadDataTables->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadDataTables"));
-	this->LoadShaderSets->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("LoadShaderSets"));
-	this->ToggleOverwriting->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("OverwriteExistingFiles"));
-	this->ToggleAudioLanguageFolders->SetChecked(ExportManager::Config.Get<System::SettingType::Boolean>("AudioLanguageFolders"));
+	this->LoadModels->SetChecked(ExportManager::Config.GetBool("LoadModels"));
+	this->LoadAnimations->SetChecked(ExportManager::Config.GetBool("LoadAnimations"));
+	this->LoadImages->SetChecked(ExportManager::Config.GetBool("LoadImages"));
+	this->LoadMaterials->SetChecked(ExportManager::Config.GetBool("LoadMaterials"));
+	this->LoadUIImages->SetChecked(ExportManager::Config.GetBool("LoadUIImages"));
+	this->LoadDataTables->SetChecked(ExportManager::Config.GetBool("LoadDataTables"));
+	this->LoadShaderSets->SetChecked(ExportManager::Config.GetBool("LoadShaderSets"));
+	this->ToggleOverwriting->SetChecked(ExportManager::Config.GetBool("OverwriteExistingFiles"));
+	this->ToggleAudioLanguageFolders->SetChecked(ExportManager::Config.GetBool("AudioLanguageFolders"));
+	this->ToggleUseFullPaths->SetChecked(ExportManager::Config.GetBool("UseFullPaths"));
 
 
 	if (ExportManager::Config.Has<System::SettingType::String>("ExportDirectory"))
@@ -582,36 +591,39 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	// have the settings actually changed?
 	bool bRefreshView = false;
 
-	if (ThisPtr->LoadModels->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("LoadModels"))
+	if (ThisPtr->LoadModels->Checked() != ExportManager::Config.GetBool("LoadModels"))
 		bRefreshView = true;
-	if (ThisPtr->LoadAnimations->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("LoadAnimations"))
+	if (ThisPtr->LoadAnimations->Checked() != ExportManager::Config.GetBool("LoadAnimations"))
 		bRefreshView = true;
-	if (ThisPtr->LoadImages->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("LoadImages"))
+	if (ThisPtr->LoadImages->Checked() != ExportManager::Config.GetBool("LoadImages"))
 		bRefreshView = true;
-	if (ThisPtr->LoadMaterials->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("LoadMaterials"))
+	if (ThisPtr->LoadMaterials->Checked() != ExportManager::Config.GetBool("LoadMaterials"))
 		bRefreshView = true;
-	if (ThisPtr->LoadUIImages->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("LoadUIImages"))
+	if (ThisPtr->LoadUIImages->Checked() != ExportManager::Config.GetBool("LoadUIImages"))
 		bRefreshView = true;
-	if (ThisPtr->LoadDataTables->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("LoadDataTables"))
+	if (ThisPtr->LoadDataTables->Checked() != ExportManager::Config.GetBool("LoadDataTables"))
 		bRefreshView = true;
-	if (ThisPtr->LoadShaderSets->Checked() != ExportManager::Config.Get<System::SettingType::Boolean>("LoadShaderSets"))
+	if (ThisPtr->LoadShaderSets->Checked() != ExportManager::Config.GetBool("LoadShaderSets"))
+		bRefreshView = true;
+	if (ThisPtr->ToggleUseFullPaths->Checked() != ExportManager::Config.GetBool("UseFullPaths"))
 		bRefreshView = true;
 
-	ExportManager::Config.Set<System::SettingType::Boolean>("LoadModels", ThisPtr->LoadModels->Checked());
-	ExportManager::Config.Set<System::SettingType::Boolean>("LoadAnimations", ThisPtr->LoadAnimations->Checked());
-	ExportManager::Config.Set<System::SettingType::Boolean>("LoadImages", ThisPtr->LoadImages->Checked());
-	ExportManager::Config.Set<System::SettingType::Boolean>("LoadMaterials", ThisPtr->LoadMaterials->Checked());
-	ExportManager::Config.Set<System::SettingType::Boolean>("LoadUIImages", ThisPtr->LoadUIImages->Checked());
-	ExportManager::Config.Set<System::SettingType::Boolean>("LoadDataTables", ThisPtr->LoadDataTables->Checked());
-	ExportManager::Config.Set<System::SettingType::Boolean>("LoadShaderSets", ThisPtr->LoadShaderSets->Checked());
-	ExportManager::Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", ThisPtr->ToggleOverwriting->Checked());
-	ExportManager::Config.Set<System::SettingType::Boolean>("AudioLanguageFolders", ThisPtr->ToggleAudioLanguageFolders->Checked());
-	ExportManager::Config.Set<System::SettingType::Integer>("ModelFormat", (uint32_t)ModelExportFormat);
-	ExportManager::Config.Set<System::SettingType::Integer>("AnimFormat", (uint32_t)AnimExportFormat);
-	ExportManager::Config.Set<System::SettingType::Integer>("ImageFormat", (uint32_t)ImageExportFormat);
-	ExportManager::Config.Set<System::SettingType::Integer>("SubtitlesFormat", (uint32_t)SubtitlesExportFormat);
-	ExportManager::Config.Set<System::SettingType::Integer>("NormalRecalcType", (uint32_t)NormalRecalcType);
-	ExportManager::Config.Set<System::SettingType::Integer>("AudioLanguage", (uint32_t)AudioLanguage);
+	ExportManager::Config.SetBool("LoadModels", ThisPtr->LoadModels->Checked());
+	ExportManager::Config.SetBool("LoadAnimations", ThisPtr->LoadAnimations->Checked());
+	ExportManager::Config.SetBool("LoadImages", ThisPtr->LoadImages->Checked());
+	ExportManager::Config.SetBool("LoadMaterials", ThisPtr->LoadMaterials->Checked());
+	ExportManager::Config.SetBool("LoadUIImages", ThisPtr->LoadUIImages->Checked());
+	ExportManager::Config.SetBool("LoadDataTables", ThisPtr->LoadDataTables->Checked());
+	ExportManager::Config.SetBool("LoadShaderSets", ThisPtr->LoadShaderSets->Checked());
+	ExportManager::Config.SetBool("OverwriteExistingFiles", ThisPtr->ToggleOverwriting->Checked());
+	ExportManager::Config.SetBool("AudioLanguageFolders", ThisPtr->ToggleAudioLanguageFolders->Checked());
+	ExportManager::Config.SetBool("UseFullPaths", ThisPtr->ToggleUseFullPaths->Checked());
+	ExportManager::Config.SetInt("ModelFormat", (uint32_t)ModelExportFormat);
+	ExportManager::Config.SetInt("AnimFormat", (uint32_t)AnimExportFormat);
+	ExportManager::Config.SetInt("ImageFormat", (uint32_t)ImageExportFormat);
+	ExportManager::Config.SetInt("SubtitlesFormat", (uint32_t)SubtitlesExportFormat);
+	ExportManager::Config.SetInt("NormalRecalcType", (uint32_t)NormalRecalcType);
+	ExportManager::Config.SetInt("AudioLanguage", (uint32_t)AudioLanguage);
 
 	auto ExportDirectory = ThisPtr->ExportBrowseFolder->Text();
 
@@ -625,6 +637,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	}
 
 	ExportManager::SaveConfigToDisk();
+
 	if(bRefreshView)
 		g_pLegionMain->RefreshView();
 }
