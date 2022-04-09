@@ -60,6 +60,7 @@ Animations: --animfmt <seanim, cast, ranim>
 Images: --imgfmt <dds, png, tiff>
 Subtitles: --subtitlefmt <csv, txt>
 Shadersets: --nmlrecalc <none, directx/dx, opengl/ogl>
+Audio Language: --audiolanguage <english, french, german, spanish, italian, japanese, polish, russian, mandarin, korean>
 ```
 `Example: LegionPlus.exe --export <path to rpak> --loadmodels --loadanimations --mdlfmt obj --animfmt seanim --imgfmt png`
 
@@ -69,6 +70,7 @@ Shadersets: --nmlrecalc <none, directx/dx, opengl/ogl>
 --nologfile - Disables log files being created
 --prioritylvl - Sets Priority Level by using: <realtime, high, above_normal, normal, below_normal, idle>
 --fullpath - Enables full path naming for the list export
+--audiolanguagefolder - Enables Audio Language Folder
 ```
 
 ## Support

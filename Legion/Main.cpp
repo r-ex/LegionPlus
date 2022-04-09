@@ -118,6 +118,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 				// other rpak flags
 				ExportManager::Config.SetBool("UseFullPaths", cmdline.HasParam(L"--fullpath"));
+				ExportManager::Config.SetBool("AudioLanguageFolders", cmdline.HasParam(L"--audiolanguagefolder"));
 
 				// asset rpak formats flags
 				if (cmdline.HasParam(L"--mdlfmt"))
@@ -220,6 +221,38 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 					if (NmlRecalcType != (eNormalRecalcType)ExportManager::Config.Get<System::SettingType::Integer>("NormalRecalcType"))
 						ExportManager::Config.Set<System::SettingType::Integer>("NormalRecalcType", (uint32_t)NmlRecalcType);
+				}
+
+				if (cmdline.HasParam(L"--audiolanguage"))
+				{
+					MilesLanguageID SubtFmt = (MilesLanguageID)ExportManager::Config.Get<System::SettingType::Integer>("AudioLanguage");
+
+					wstring sFmt = cmdline.GetParamValue(L"--audiolanguage");
+					sFmt = sFmt.ToLower();
+
+					if (sFmt == L"english")
+						SubtFmt = MilesLanguageID::English;
+					if (sFmt == L"french")
+						SubtFmt = MilesLanguageID::French;
+					if (sFmt == L"german")
+						SubtFmt = MilesLanguageID::German;
+					if (sFmt == L"spanish")
+						SubtFmt = MilesLanguageID::Spanish;
+					if (sFmt == L"italian")
+						SubtFmt = MilesLanguageID::Italian;
+					if (sFmt == L"japanese")
+						SubtFmt = MilesLanguageID::Japanese;
+					if (sFmt == L"polish")
+						SubtFmt = MilesLanguageID::Polish;
+					if (sFmt == L"russian")
+						SubtFmt = MilesLanguageID::Russian;
+					if (sFmt == L"mandarin")
+						SubtFmt = MilesLanguageID::Mandarin;
+					if (sFmt == L"korean")
+						SubtFmt = MilesLanguageID::Korean;
+
+					if (SubtFmt != (MilesLanguageID)ExportManager::Config.Get<System::SettingType::Integer>("AudioLanguage"))
+						ExportManager::Config.Set<System::SettingType::Integer>("AudioLanguage", (uint32_t)SubtFmt);
 				}
 
 				std::unique_ptr<List<ApexAsset>> AssetList;
