@@ -31,6 +31,9 @@ Compilation is currently only supported on Windows due to some platform-specific
 --export <path to rpak>
 Exports the specified rpak according to your saved configuration, unless load flags are provided
 
+----exportaudio <path to general.mbnk>
+Exports the Audio files
+
 --list <path to rpak>
 Produces a list of all exportable assets within the specified rpak
 ```

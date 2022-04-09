@@ -5,6 +5,7 @@
 #include "ExportManager.h"
 #include "UIXTheme.h"
 #include "RpakLib.h"
+#include "MilesLib.h"
 #include "KoreTheme.h"
 #include "RBspLib.h"
 #include "CommandLine.h"
@@ -64,7 +65,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS);
 		}
 
-		if (!cmdline.HasParam(L"--export") && !cmdline.HasParam(L"--list"))
+		if (!cmdline.HasParam(L"--export") && !cmdline.HasParam(L"--list") && !cmdline.HasParam(L"--exportaudio"))
 		{
 
 			if (cmdline.ArgC() >= 1) {
@@ -82,6 +83,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 			bool bExportRpak = cmdline.HasParam(L"--export");
 			bool bListRpak = cmdline.HasParam(L"--list");
+			bool bExportAudio = cmdline.HasParam(L"--exportaudio");
 
 			if (bExportRpak)
 			{
@@ -90,6 +92,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			else if (bListRpak)
 			{
 				rpakPath = wstring(cmdline.GetParamValue(L"--list")).ToString();
+			}
+			else if (bExportAudio)
+			{
+				rpakPath = wstring(cmdline.GetParamValue(L"--exportaudio")).ToString();
 			}
 
 			// handle cli stuff
@@ -101,7 +107,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				Rpak->LoadRpak(rpakPath);
 				Rpak->PatchAssets();
 
-				// load rpak flags 
+				// load rpak flags
 				bool bLoadModels = cmdline.HasParam(L"--loadmodels");
 				bool bLoadAnims = cmdline.HasParam(L"--loadanimations");
 				bool bLoadImages = cmdline.HasParam(L"--loadimages");
@@ -141,7 +147,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 						MdlFmt = RpakModelExportFormat::Cast;
 					if (sFmt == L"rmdl")
 						MdlFmt = RpakModelExportFormat::RMDL;
-					
+
 					if (MdlFmt != (RpakModelExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"))
 						ExportManager::Config.Set<System::SettingType::Integer>("ModelFormat", (uint32_t)MdlFmt);
 				}
@@ -247,6 +253,23 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 						ExportAssets.EmplaceBack(EAsset);
 					}
 					ExportManager::ExportRpakAssets(Rpak, ExportAssets, [](uint32_t i, Forms::Form*, bool) {}, [](int32_t i, Forms::Form*) -> bool { return false; }, nullptr);
+				}
+				else if (bExportAudio)
+				{
+					auto Audio = std::make_unique<MilesLib>();
+
+					Audio->MountBank(rpakPath); // not actually an rpak path?
+					Audio->Initialize();
+
+					AssetList = Audio->BuildAssetList();
+					for (auto& Asset : *AssetList.get())
+					{
+						ExportAsset EAsset;
+						EAsset.AssetHash = Asset.Hash;
+						EAsset.AssetIndex = 0;
+						ExportAssets.EmplaceBack(EAsset);
+					}
+					ExportManager::ExportMilesAssets(Audio, ExportAssets, [](uint32_t i, Forms::Form*, bool) {}, [](int32_t i, Forms::Form*) -> bool { return false; }, nullptr);
 				}
 				else if (bListRpak)
 				{
