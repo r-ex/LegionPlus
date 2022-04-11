@@ -69,9 +69,6 @@
     <ClCompile Include="ExportManager.cpp">
       <Filter>Legion\Core</Filter>
     </ClCompile>
-    <ClCompile Include="LegionTablePreview.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="RpakAssetExport.cpp">
       <Filter>RPak</Filter>
     </ClCompile>
@@ -101,6 +98,9 @@
     </ClCompile>
     <ClCompile Include="Logger.cpp">
       <Filter>Legion\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="LegionTablePreview.cpp">
+      <Filter>Legion\UI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -158,9 +158,6 @@
     <ClInclude Include="basetypes.h">
       <Filter>Legion\Core</Filter>
     </ClInclude>
-    <ClInclude Include="LegionTablePreview.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MdlLib.h">
       <Filter>MDL</Filter>
     </ClInclude>
@@ -175,6 +172,9 @@
     </ClInclude>
     <ClInclude Include="Logger.h">
       <Filter>Legion\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="LegionTablePreview.h">
+      <Filter>Legion\UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
