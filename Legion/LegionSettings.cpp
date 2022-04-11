@@ -315,6 +315,9 @@ void LegionSettings::InitializeComponent()
 	this->TextExportFormat->Items.Add("TXT");
 	this->groupBox5->AddControl(this->TextExportFormat);
 
+	//
+	//	NormalRecalcType
+	//
 	this->label6 = new UIX::UIXLabel();
 	this->label6->SetSize({ 120, 15 });
 	this->label6->SetLocation({ 125, 65 });
@@ -323,15 +326,6 @@ void LegionSettings::InitializeComponent()
 	this->label6->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->label6->SetTextAlign(Drawing::ContentAlignment::TopLeft);
 	this->groupBox5->AddControl(this->label6);
-
-	this->label7 = new UIX::UIXLabel();
-	this->label7->SetSize({ 120, 15 });
-	this->label7->SetLocation({ 125, 110 });
-	this->label7->SetTabIndex(9);
-	this->label7->SetText("Audio Language");
-	this->label7->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->label7->SetTextAlign(Drawing::ContentAlignment::TopLeft);
-	this->groupBox5->AddControl(this->label7);
 
 	this->NormalRecalcType = new UIX::UIXComboBox();
 	this->NormalRecalcType->SetSize({ 90, 20 });
@@ -343,6 +337,18 @@ void LegionSettings::InitializeComponent()
 	this->NormalRecalcType->Items.Add("DirectX");
 	this->NormalRecalcType->Items.Add("OpenGL");
 	this->groupBox5->AddControl(this->NormalRecalcType);
+
+	//
+	//	Audio Language
+	//
+	this->label7 = new UIX::UIXLabel();
+	this->label7->SetSize({ 120, 15 });
+	this->label7->SetLocation({ 125, 110 });
+	this->label7->SetTabIndex(9);
+	this->label7->SetText("Audio Language");
+	this->label7->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->label7->SetTextAlign(Drawing::ContentAlignment::TopLeft);
+	this->groupBox5->AddControl(this->label7);
 
 	this->AudioLanguage = new UIX::UIXComboBox();
 	this->AudioLanguage->SetSize({ 90, 20 });
