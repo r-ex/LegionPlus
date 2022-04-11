@@ -7,15 +7,17 @@ Originally created by DTZxPorter in 2019.
 
 ---
 ## Table of Contents
-- [Installation](#installation)
-- [Usage](#usage)
-  - [Command Line Options](#command-line-options)
-    - [Modes](#modes)
-    - [Export Load Flags](#export-load-flags)
-    - [Export Format Flags](#export-format-flags)
-    - [Other Flags](#other-flags)
-- [Support](#support)
-- [Known Issues](#known-issues)
+- [Legion+](#legion)
+  - [Table of Contents](#table-of-contents)
+  - [Installation](#installation)
+  - [Usage](#usage)
+    - [Command Line Options](#command-line-options)
+      - [Modes](#modes)
+      - [Export Load Flags](#export-load-flags)
+      - [Export Format Flags](#export-format-flags)
+      - [Other Flags](#other-flags)
+  - [Support](#support)
+  - [Known Issues](#known-issues)
 
 ## Installation
 To install Legion+, you may choose to either download the latest pre-compiled release from [the releases page](https://github.com/r-ex/LegionPlus/releases/latest), or compile the source code for yourself using the provided Visual Studio Solution file (.sln)
@@ -58,7 +60,7 @@ When multiple load flags are used together, all specified types will be loaded
 Models: --mdlfmt <semodel, obj/wavefront, xnalara_binary, smd/source, xmodel, maya/ma, fbx, cast, rmdl>
 Animations: --animfmt <seanim, cast, ranim>
 Images: --imgfmt <dds, png, tiff>
-Subtitles: --subtitlefmt <csv, txt>
+Text: --textfmt <csv, txt>
 Shadersets: --nmlrecalc <none, directx/dx, opengl/ogl>
 Audio Language: --audiolanguage <english, french, german, spanish, italian, japanese, polish, russian, mandarin, korean>
 ```

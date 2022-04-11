@@ -61,7 +61,7 @@ private:
 	UIX::UIXComboBox* ModelExportFormat;
 	UIX::UIXComboBox* AnimExportFormat;
 	UIX::UIXComboBox* ImageExportFormat;
-	UIX::UIXComboBox* SubtitlesExportFormat;
+	UIX::UIXComboBox* TextExportFormat;
 	UIX::UIXComboBox* NormalRecalcType;
 	UIX::UIXComboBox* AudioLanguage;
 	// Export Formats

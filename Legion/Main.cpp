@@ -189,11 +189,11 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 						ExportManager::Config.Set<System::SettingType::Integer>("ImageFormat", (uint32_t)ImgFmt);
 				}
 
-				if (cmdline.HasParam(L"--subtitlefmt"))
+				if (cmdline.HasParam(L"--textfmt"))
 				{
-					RpakSubtitlesExportFormat SubtFmt = (RpakSubtitlesExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("SubtitlesFormat");
+					RpakSubtitlesExportFormat SubtFmt = (RpakSubtitlesExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat");
 
-					wstring sFmt = cmdline.GetParamValue(L"--subtitlefmt");
+					wstring sFmt = cmdline.GetParamValue(L"--textfmt");
 					sFmt = sFmt.ToLower();
 
 					if (sFmt == L"csv")
@@ -201,8 +201,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 					if (sFmt == L"txt")
 						SubtFmt = RpakSubtitlesExportFormat::TXT;
 
-					if (SubtFmt != (RpakSubtitlesExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("SubtitlesFormat"))
-						ExportManager::Config.Set<System::SettingType::Integer>("SubtitlesFormat", (uint32_t)SubtFmt);
+					if (SubtFmt != (RpakSubtitlesExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat"))
+						ExportManager::Config.Set<System::SettingType::Integer>("TextFormat", (uint32_t)SubtFmt);
 				}
 
 				if (cmdline.HasParam(L"--nmlrecalc"))

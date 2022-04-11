@@ -169,7 +169,23 @@ void RpakLib::ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path)
 
 void RpakLib::ExportDataTable(const RpakLoadAsset& Asset, const string& Path)
 {
-	auto DestinationPath = IO::Path::Combine(Path, string::Format("0x%llx.csv", Asset.NameHash));
+
+
+	auto Format = (RpakSubtitlesExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat");
+
+	string sExtension = "";
+
+	switch (Format)
+	{
+	case RpakSubtitlesExportFormat::CSV:
+		sExtension = ".csv";
+		break;
+	case RpakSubtitlesExportFormat::TXT:
+		sExtension = ".txt";
+		break;
+	}
+	
+	auto DestinationPath = IO::Path::Combine(Path, string::Format("0x%llx", Asset.NameHash) + sExtension);
 
 	if (!Utils::ShouldWriteFile(DestinationPath))
 		return;
@@ -243,7 +259,7 @@ string Vector3ToHexColor(Math::Vector3 vec)
 
 void RpakLib::ExportSubtitles(const RpakLoadAsset& Asset, const string& Path)
 {
-	auto Format = (RpakSubtitlesExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("SubtitlesFormat");
+	auto Format = (RpakSubtitlesExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat");
 
 	string sExtension = "";
 
