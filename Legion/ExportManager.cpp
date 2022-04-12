@@ -279,4 +279,8 @@ void ExportManager::ExportRpakAssetList(std::unique_ptr<List<ApexAsset>>& AssetL
 
 	NameList.Sort([](const String& lhs, const String& rhs) { return lhs.Compare(rhs) < 0; });
 	IO::File::WriteAllLines(IO::Path::Combine(ExportDirectory, RpakName + ".txt"), NameList);
+
+	auto ListName = RpakName + ".txt";
+
+	g_Logger.Info("Exported List: %s\n", ListName.ToCString());
 }
