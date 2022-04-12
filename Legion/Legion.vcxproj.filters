@@ -28,6 +28,9 @@
     <Filter Include="MDL">
       <UniqueIdentifier>{c16cd7d3-8ed9-486e-a5e9-03cd17943bbd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Legion\Preview">
+      <UniqueIdentifier>{72c346a6-6ed2-46f8-a4c3-489f7b11a713}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MilesLib.cpp">
@@ -84,9 +87,6 @@
     <ClCompile Include="MdlLib.cpp">
       <Filter>MDL</Filter>
     </ClCompile>
-    <ClCompile Include="LegionPreview.cpp">
-      <Filter>Legion\UI</Filter>
-    </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>Legion\Core</Filter>
     </ClCompile>
@@ -99,8 +99,11 @@
     <ClCompile Include="Logger.cpp">
       <Filter>Legion\Core</Filter>
     </ClCompile>
+    <ClCompile Include="LegionPreview.cpp">
+      <Filter>Legion\Preview</Filter>
+    </ClCompile>
     <ClCompile Include="LegionTablePreview.cpp">
-      <Filter>Legion\UI</Filter>
+      <Filter>Legion\Preview</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -127,9 +130,6 @@
     </ClInclude>
     <ClInclude Include="LegionMain.h">
       <Filter>Legion\Main</Filter>
-    </ClInclude>
-    <ClInclude Include="LegionPreview.h">
-      <Filter>Legion\UI</Filter>
     </ClInclude>
     <ClInclude Include="LegionProgress.h">
       <Filter>Legion\UI</Filter>
@@ -173,8 +173,11 @@
     <ClInclude Include="Logger.h">
       <Filter>Legion\Core</Filter>
     </ClInclude>
+    <ClInclude Include="LegionPreview.h">
+      <Filter>Legion\Preview</Filter>
+    </ClInclude>
     <ClInclude Include="LegionTablePreview.h">
-      <Filter>Legion\UI</Filter>
+      <Filter>Legion\Preview</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
