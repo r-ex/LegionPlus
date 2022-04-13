@@ -27,5 +27,5 @@ private:
 	void HandleFileConvert(List<string>& FilesToConvert);
 
 	// Internal vpk system
-	std::unique_ptr<MdlLib> VpkFileSystem;
+	std::unique_ptr<MdlLib> MdlFS;
 };

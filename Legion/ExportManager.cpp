@@ -234,7 +234,7 @@ void ExportManager::ExportRpakAssets(const std::unique_ptr<RpakLib>& RpakFileSys
 	ProgressCallback(100, MainForm, true);
 }
 
-void ExportManager::ExportVpkAssets(const std::unique_ptr<MdlLib>& VpkFileSystem, List<string>& ExportAssets)
+void ExportManager::ExportMdlAssets(const std::unique_ptr<MdlLib>& MdlFS, List<string>& ExportAssets)
 {
 	std::atomic<uint32_t> AssetIndex = 0;
 
@@ -245,10 +245,10 @@ void ExportManager::ExportVpkAssets(const std::unique_ptr<MdlLib>& VpkFileSystem
 	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "models"));
 	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "animations"));
 
-	VpkFileSystem->InitializeModelExporter((RpakModelExportFormat)Config.Get<System::SettingType::Integer>("ModelFormat"));
-	VpkFileSystem->InitializeAnimExporter((RpakAnimExportFormat)Config.Get<System::SettingType::Integer>("AnimFormat"));
+	MdlFS->InitializeModelExporter((RpakModelExportFormat)Config.Get<System::SettingType::Integer>("ModelFormat"));
+	MdlFS->InitializeAnimExporter((RpakAnimExportFormat)Config.Get<System::SettingType::Integer>("AnimFormat"));
 
-	Threading::ParallelTask([&VpkFileSystem, &ExportAssets, &AssetIndex, &CurrentProgress, &UpdateMutex, ExportDirectory]
+	Threading::ParallelTask([&MdlFS, &ExportAssets, &AssetIndex, &CurrentProgress, &UpdateMutex, ExportDirectory]
 	{
 		(void)CoInitializeEx(0, COINIT_MULTITHREADED);
 
@@ -262,7 +262,7 @@ void ExportManager::ExportVpkAssets(const std::unique_ptr<MdlLib>& VpkFileSystem
 				continue;
 
 			auto& Asset = ExportAssets[AssetToConvert];
-			VpkFileSystem->ExportRMdl(Asset, ExportDirectory);
+			MdlFS->ExportRMdl(Asset, ExportDirectory);
 		}
 
 		CoUninitialize();

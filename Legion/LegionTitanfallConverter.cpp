@@ -84,10 +84,10 @@ void LegionTitanfallConverter::InitializeComponent()
 	this->DragDrop += &FormDragDrop;
 	this->SetAllowDrop(true);
 
-	this->VpkFileSystem = std::make_unique<MdlLib>();
+	this->MdlFS = std::make_unique<MdlLib>();
 }
 
 void LegionTitanfallConverter::HandleFileConvert(List<string>& FilesToConvert)
 {
-	ExportManager::ExportVpkAssets(this->VpkFileSystem, FilesToConvert);
+	ExportManager::ExportMdlAssets(this->MdlFS, FilesToConvert);
 }
