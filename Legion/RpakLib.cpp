@@ -297,13 +297,6 @@ std::unique_ptr<IO::MemoryStream> RpakLib::GetFileStream(const RpakLoadAsset& As
 	return std::move(std::make_unique<IO::MemoryStream>(File.SegmentData.get(), 0, File.SegmentDataSize, false, true));
 }
 
-// this is really slow
-bool RpakLib::IsValidDescriptor(const RpakLoadAsset& Asset, uint32_t SegmentIndex, uint32_t SegmentOffset)
-{
-	uint64_t Temp = static_cast<uint64_t>(SegmentIndex) << 32 | SegmentOffset;
-	return (this->LoadedFiles[Asset.FileIndex].DescriptorList.Contains(Temp));
-}
-
 uint64_t RpakLib::GetFileOffset(const RpakLoadAsset& Asset, uint32_t SegmentIndex, uint32_t SegmentOffset)
 {
 	if (SegmentIndex < 0) return 0;
@@ -739,13 +732,7 @@ bool RpakLib::ParseApexRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 	// Faster loading here by reading to the buffers directly
 	ParseStream->Read((uint8_t*)&VirtualSegments[0], 0, sizeof(RpakVirtualSegment) * Header.VirtualSegmentCount);
 	ParseStream->Read((uint8_t*)&MemPages[0], 0, sizeof(RpakVirtualSegmentBlock) * Header.MemPageCount);
-
-	for (uint32_t i = 0; i < Header.DescriptorCount; i++)
-	{
-		auto Descriptor = Reader.Read<RpakDescriptor>();
-		File->DescriptorList.EmplaceBack(static_cast<uint64_t>(Descriptor.PageIdx) << 32 | Descriptor.PageOffset);
-	}
-
+	ParseStream->Seek(Header.DescriptorCount * sizeof(RpakDescriptor), IO::SeekOrigin::Current);
 	ParseStream->Read((uint8_t*)&AssetEntries[0], 0, sizeof(RpakApexAssetEntry) * Header.AssetEntryCount);
 
 	// The fifth and sixth blocks appear to only
@@ -860,7 +847,6 @@ bool RpakLib::ParseTitanfallRpak(const string& RpakPath, std::unique_ptr<IO::Mem
 	for (uint32_t i = 0; i < Header.DescriptorCount; i++)
 	{
 		auto Descriptor = Reader.Read<RpakDescriptor>();
-		File->DescriptorList.EmplaceBack(static_cast<uint64_t>(Descriptor.PageIdx) << 32 | Descriptor.PageOffset);
 	}
 	for (uint32_t i = 0; i < Header.AssetEntryCount; i++)
 	{
@@ -973,7 +959,6 @@ bool RpakLib::ParseR2TTRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 	for (uint32_t i = 0; i < Header.DescriptorCount; i++)
 	{
 		auto Descriptor = Reader.Read<RpakDescriptor>();
-		File->DescriptorList.EmplaceBack(static_cast<uint64_t>(Descriptor.PageIdx) << 32 | Descriptor.PageOffset);
 	}
 	for (uint32_t i = 0; i < Header.AssetEntryCount; i++)
 	{

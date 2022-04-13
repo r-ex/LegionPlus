@@ -246,7 +246,6 @@ public:
 	uint64_t EmbeddedStarpakSize;
 
 	Dictionary<uint64_t, RpakApexAssetEntry> AssetHashmap;
-	List<uint64_t> DescriptorList;
 
 	std::unique_ptr<uint8_t[]> SegmentData;
 	uint64_t SegmentDataSize;
@@ -513,7 +512,6 @@ private:
 	Assets::SaveFileType ImageSaveType;
 
 	std::unique_ptr<IO::MemoryStream> GetFileStream(const RpakLoadAsset& Asset);
-	bool IsValidDescriptor(const RpakLoadAsset& Asset, uint32_t SegmentIndex, uint32_t SegmentOffset);
 	uint64_t GetFileOffset(const RpakLoadAsset& Asset, uint32_t SegmentIndex, uint32_t SegmentOffset);
 	uint64_t GetEmbeddedStarpakOffset(const RpakLoadAsset& asset);
 	std::unique_ptr<IO::FileStream> GetStarpakStream(const RpakLoadAsset& Asset, bool Optimal);
