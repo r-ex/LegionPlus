@@ -280,6 +280,8 @@ void MilesLib::MountBank(const string& Path)
 
 	auto BankHeader = Reader.Read<MilesAudioBank>();
 
+	this->MbnkVersion = BankHeader.Version;
+
 	ReaderStream->SetPosition(BankHeader.SourceEntryOffset);
 
 	auto SelectedLanguage = (MilesLanguageID)ExportManager::Config.Get<System::SettingType::Integer>("AudioLanguage");
@@ -720,6 +722,8 @@ std::unique_ptr<List<ApexAsset>> MilesLib::BuildAssetList()
 		NewAsset.Type = ApexAssetType::Sound;
 		String Language = AssetKvp.second.LocalizeIndex == -1 ? String("None") : LanguageName((MilesLanguageID)AssetKvp.second.LocalizeIndex);
 		NewAsset.Info = string::Format("Language: %s, Sample Rate: %d, Channels: %d", Language.ToCString(), AssetKvp.second.SampleRate, AssetKvp.second.ChannelCount);
+		NewAsset.Version = this->MbnkVersion;
+
 
 		Result->EmplaceBack(std::move(NewAsset));
 	}

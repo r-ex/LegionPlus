@@ -102,4 +102,6 @@ private:
 
 	// A list of streaming audio bank files
 	Dictionary<uint32_t, MilesStreamBank> StreamBanks;
+
+	uint32_t MbnkVersion;
 };
