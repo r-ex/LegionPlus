@@ -724,7 +724,6 @@ std::unique_ptr<List<ApexAsset>> MilesLib::BuildAssetList()
 		NewAsset.Info = string::Format("Language: %s, Sample Rate: %d, Channels: %d", Language.ToCString(), AssetKvp.second.SampleRate, AssetKvp.second.ChannelCount);
 		NewAsset.Version = this->MbnkVersion;
 
-
 		Result->EmplaceBack(std::move(NewAsset));
 	}
 
