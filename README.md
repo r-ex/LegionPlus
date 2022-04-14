@@ -84,6 +84,3 @@ We also have a [discord server](https://discord.gg/ADek6fxVGe) where you will be
 - DataTable Preview crash on different UTF
 
 Full TODO/task list is available [here.](https://github.com/r-ex/LegionPlus/projects/1)
-
----
-Copyright © 2021 DTZxPorter
