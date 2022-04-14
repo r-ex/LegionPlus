@@ -1074,54 +1074,61 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 			// Unswizzle Bc1 blocks.
 			//
 
-			auto blocksH = Height / 4;
-			auto blocksW = Width / 4;
+			auto Num5 = Height / 4;
+			auto Num6 = Width / 4;
 			constexpr uint32_t Bc1Bpp2x = 4 * 2;
 
 			uint64_t Bc1Offset = 0;
 
-			for (uint32_t blockI = 0; blockI < blocksH; blockI++)
+			for (uint32_t y = 0; y < Num5; y++)
 			{
-				int v77 = blocksW / 2;
-				int v147 = blocksW / 2;
-				int v78 = blockI * (blocksW / 2);
-				int v79 = blocksW / 4;
-				int v80 = blocksW / 8;
-				for (uint32_t blockJ = 0; blockJ < blocksW; blockJ++)
+				for (uint32_t x = 0; x < Num6; x++)
 				{
-					uint32_t mx = blockJ;
-					uint32_t my = blockI;
+					uint32_t mx = x;
+					uint32_t my = y;
 
+					//g_pRtech->UnswizzleBlock(x, y, Num6, 2, mx, my);
+					//g_pRtech->UnswizzleBlock(mx, my, Num6, 4, mx, my);
+					//g_pRtech->UnswizzleBlock(mx, my, Num6, 8, mx, my);
 
-					/*g_pRtech->UnswizzleBlock(j, i, Num6, 2, mx, my);
-					g_pRtech->UnswizzleBlock(mx, my, Num6, 4, mx, my);
-					g_pRtech->UnswizzleBlock(mx, my, Num6, 8, mx, my);
-					*/
+					// please don't mess with this code. it only just works and idk why it's being such a pain
+					
+					// --- 2 ---
+					int power = 2;
+					int b_2 = (mx / 2 + my * (Num6 / power)) % (2 * (Num6 / power)) /
+					2 + (Num6 / power) * ((mx / 2 + my * (Num6 / power)) % (2 * (Num6 / power)) % 2) +
+					2 * (Num6 / power) * ((mx / 2 + my * (Num6 / power)) / (2 * (Num6 / power)));
 
+					int c_2 = mx % 2 + 2 * (b_2 % (Num6 / power));
+					mx = b_2 / (Num6 / power);
+					my = c_2 / 4;
+					c_2 %= 4;
 
-					int v81 = (blockJ / 2 + v78) % (2 * (blocksW / 2)) / 2
-						+ v77 * ((blockJ / 2 + v78) % (2 * (blocksW / 2)) % 2)
-						+ 2 * (blocksW / 2) * ((blockJ / 2 + v78) / (2 * (blocksW / 2)));
-					int v82 = blockJ % 2 + 2 * (v81 % v77);
-					int v83 = v81 / v77;
-					int v84 = v82 / 4;
-					v82 %= 4;
-					int v85 = (v84 + v83 / 2 * v79) % (2 * (blocksW / 4)) / 2
-						+ v79 * ((v84 + v83 / 2 * v79) % (2 * (blocksW / 4)) % 2)
-						+ 2 * (blocksW / 4) * ((v84 + v83 / 2 * v79) / (2 * (blocksW / 4)));
-					int v86 = v83 % 2 + 2 * (v85 / v79);
-					int v87 = ((v82 + 4 * (v85 % v79)) / 8 + v86 / 4 * v80) % (2 * v80) / 2
-						+ v80 * (((v82 + 4 * (v85 % v79)) / 8 + v86 / 4 * v80) % (2 * v80) % 2)
-						+ 2 * v80 * (((v82 + 4 * (v85 % v79)) / 8 + v86 / 4 * v80) / (2 * v80));
-					int v88 = 8
-						* ((v82 + 4 * (v85 % v79)) % 8
-							+ 8 * (unsigned int)(v87 % v80)
-							+ blocksW * (v86 % 4 + 4 * ((int)v87 / v80)));
+					// --- 4 ---
+					power = 4;
+					int b_4 = (my + mx / 2 * (Num6 / power)) % (2 * (Num6 / power)) /
+					2 + (Num6 / power) * ((my + mx / 2 * (Num6 / power)) % (2 * (Num6 / power)) % 2) +
+					2 * (Num6 / power) * ((my + mx / 2 * (Num6 / power)) / (2 * (Num6 / power)));
 
-					//uint64_t destination = Bc1Bpp2x * (my * blocksW + mx);
+					int c_4 = mx % 2 + 2 * (b_4 / (Num6 / power));
+					mx = b_4 / (Num6 / power);
+					my = c_4 / 4;
+					c_4 %= 4;
 
+					// --- 8 ---
+					power = 8;
+					int b_8 = ((c_2 + 4 * (b_4 % (Num6 / 4))) / 8 + my * (Num6 / power)) % (2 * (Num6 / power)) /
+					2 + (Num6 / power) * (((c_2 + 4 * (b_4 % (Num6 / 4))) / 8 + my * (Num6 / power)) % (2 * (Num6 / power)) % 2) +
+					2 * (Num6 / power) * (((c_2 + 4 * (b_4 % (Num6 / 4))) / 8 + my * (Num6 / power)) / (2 * (Num6 / power)));
+					
+					int v85 = b_8 / (Num6 / 8);
 
-					std::memcpy(Bc1Texture->GetPixels() + v88, Bc1Destination.get() + Bc1Offset, Bc1Bpp2x);
+					my = (c_4 + 4 * ((int)b_8 / (Num6 / power)));
+					mx = (c_2 + 4 * (b_4 % (Num6 / 4))) % 8 + 8 * (unsigned int)(b_8 % (Num6 / power));
+
+					uint64_t destination = Bc1Bpp2x * (my * Num6 + mx);
+
+					std::memcpy(Bc1Texture->GetPixels() + destination, Bc1Destination.get() + Bc1Offset, Bc1Bpp2x);
 					Bc1Offset += Bc1Bpp2x;
 				}
 			}
@@ -1194,6 +1201,7 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 					g_pRtech->UnswizzleBlock(mx, my, blocksW, 4, mx, my);
 					g_pRtech->UnswizzleBlock(mx, my, blocksW, 8, mx, my);*/
 
+					// this is ugly and bad, should get put back into the function calls eventually
 					int v81 = (blockJ / 2 + v78) % (2 * (blocksW / 2)) / 2
 						+ v77 * ((blockJ / 2 + v78) % (2 * (blocksW / 2)) % 2)
 						+ 2 * (blocksW / 2) * ((blockJ / 2 + v78) / (2 * (blocksW / 2)));
@@ -1208,13 +1216,12 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 					int v87 = ((v82 + 4 * (v85 % v79)) / 8 + v86 / 4 * v80) % (2 * v80) / 2
 						+ v80 * (((v82 + 4 * (v85 % v79)) / 8 + v86 / 4 * v80) % (2 * v80) % 2)
 						+ 2 * v80 * (((v82 + 4 * (v85 % v79)) / 8 + v86 / 4 * v80) / (2 * v80));
-					int v88 = 16
+					int v88 = Bc7Bpp2x
 						* ((v82 + 4 * (v85 % v79)) % 8
 							+ 8 * (unsigned int)(v87 % v80)
 							+ blocksW * (v86 % 4 + 4 * ((int)v87 / v80)));
 
 					//uint64_t destination = Bc7Bpp2x * (my * blocksW + mx);
-
 
 					std::memcpy(Bc7Texture->GetPixels() + v88, Bc7Destination.get() + Bc7Offset, Bc7Bpp2x);
 					Bc7Offset += Bc7Bpp2x;
@@ -1234,13 +1241,7 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 
 						if (Point.Opcode == 0x41)
 						{
-							//for(int row = y * 32; row < (y + 1) * 32; row++)
-							//{
-							//	std::memcpy(Texture->GetPixels() + row * Texture->Width() + 32 * x, Bc7Texture->GetPixels() + row * Texture->Width() + 32 * x, 32);
-							//}
-							//continue;
-							// TODO(rx): reimplement?
-							Texture->CopyTextureSlice(Bc7Texture, { (x * 32),(y * 32),32,32 }, (x * 32), (y * 32));
+							Texture->CopyTextureSlice(Bc7Texture, {(x * 32), (y * 32), 32, 32}, (x * 32), (y * 32));
 						}
 					}
 				}
@@ -1489,7 +1490,6 @@ List<List<DataTableColumnData>> RpakLib::ExtractDataTable(const RpakLoadAsset& A
 	RpakStream->SetPosition(this->GetFileOffset(Asset, DtblHeader.ColumnHeaderBlock, DtblHeader.ColumnHeaderOffset));
 
 	List<DataTableColumn> Columns;
-	//List<string> ColumnNames;
 	List<List<DataTableColumnData>> Data;
 
 	for (int i = 0; i < DtblHeader.ColumnCount; ++i)
@@ -1521,7 +1521,6 @@ List<List<DataTableColumnData>> RpakLib::ExtractDataTable(const RpakLoadAsset& A
 		RpakStream->SetPosition(col.Unk0Seek);
 		string name = Reader.ReadCString();
 
-		//ColumnNames.EmplaceBack();
 		DataTableColumnData cd;
 
 		cd.stringValue = name;
@@ -1615,7 +1614,6 @@ List<SubtitleEntry> RpakLib::ExtractSubtitles(const RpakLoadAsset& Asset)
 	List<SubtitleEntry> Subtitles;
 
 	std::regex ClrRegex("<clr:([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3})>");
-
 
 	while (!RpakStream->GetIsEndOfFile())
 	{
