@@ -40,7 +40,6 @@ public:
 	}
 	void ResizeTableToWindow();
 
-
 private:
 	List<List<DataTableColumnData>> DataTable;
 	List<float> DataTableColumnWeight;

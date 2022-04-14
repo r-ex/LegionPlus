@@ -541,7 +541,6 @@ void LegionMain::RefreshView()
 
 		this->SearchForAssets();
 	}
-
 }
 
 void LegionMain::ResetDisplayIndices()
@@ -574,8 +573,6 @@ void LegionMain::OnLoadClick(Forms::Control* Sender)
 
 	List<string> OpenFileD = OpenFileDialog::ShowMultiFileDialog("Legion+: Select file(s) to load", "", "Apex Legends Files (MBnk, RPak, Bsp)|*.mbnk;*.rpak;*.bsp", Sender->FindForm());
 
-	g_Logger.Info("OpenFileD.Count() == %i\n", OpenFileD.Count());
-
 	for (int i = 0; i < OpenFileD.Count(); i++)
 	{
 		g_Logger.Info("Load rpak: %s\n", OpenFileD[i].ToCString());
@@ -583,6 +580,7 @@ void LegionMain::OnLoadClick(Forms::Control* Sender)
 
 	if (OpenFileD.Count() == 0)
 		return;
+
 	else if (OpenFileD.Count() > MAX_LOADED_FILES)
 	{
 		string msg = string::Format("Please select %i or fewer files.", MAX_LOADED_FILES);
@@ -704,7 +702,6 @@ void LegionMain::OnListKeyUp(const std::unique_ptr<KeyEventArgs>& EventArgs, For
 		if (!Form->RpakFileSystem)
 			return;
 
-
 		auto Selected = Form->AssetsListView->SelectedIndices();
 
 		if (Selected.Count() <= 0)
@@ -712,10 +709,9 @@ void LegionMain::OnListKeyUp(const std::unique_ptr<KeyEventArgs>& EventArgs, For
 
 		auto& Asset = (*Form->LoadedAssets.get())[Form->DisplayIndices[Selected[0]]];
 
-
-
 		switch (Asset.Type) {
-		case ApexAssetType::DataTable: {
+		case ApexAssetType::DataTable:
+		{
 			if (Form->TablePreviewWindow == nullptr || Form->TablePreviewWindow->GetState(Forms::ControlStates::StateDisposed))
 			{
 				Form->TablePreviewWindow = std::make_unique<LegionTablePreview>();
@@ -724,11 +720,11 @@ void LegionMain::OnListKeyUp(const std::unique_ptr<KeyEventArgs>& EventArgs, For
 				Form->TablePreviewWindow->SetDataTable(Form->RpakFileSystem->ExtractDataTable(RpakAsset));
 			}
 
-
 			Form->TablePreviewWindow->BringToFront();
 			break;
 		}
-		default: {
+		default:
+		{
 			if (Form->PreviewWindow == nullptr || Form->PreviewWindow->GetState(Forms::ControlStates::StateDisposed))
 			{
 				Form->PreviewWindow = std::make_unique<LegionPreview>();
@@ -744,9 +740,6 @@ void LegionMain::OnListKeyUp(const std::unique_ptr<KeyEventArgs>& EventArgs, For
 			break;
 		}
 		}
-
-
-		
 	}
 }
 
