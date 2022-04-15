@@ -355,7 +355,7 @@ MigrationBackup/
 *.ini
 
 # Windows Shortcut folder
-*.ink
+*.lnk
 
 # Batch files because that shouldn't be pushed
 *.bat
