@@ -174,6 +174,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 					ImgFmt = RpakImageExportFormat::Png;
 				if (sFmt == L"tiff")
 					ImgFmt = RpakImageExportFormat::Tiff;
+				if (sFmt == L"tga")
+					ImgFmt = RpakImageExportFormat::Tga;
 
 				if (ImgFmt != (RpakImageExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat"))
 					ExportManager::Config.Set<System::SettingType::Integer>("ImageFormat", (uint32_t)ImgFmt);
