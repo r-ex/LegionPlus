@@ -3,8 +3,17 @@
 
 CommandLine::CommandLine(int nArgsCount, LPWSTR* args)
 {
-    this->argc = nArgsCount;
-    this->argv = args;
+
+    if (!args)
+    {
+        LPWSTR tmp{};
+        this->argc = 0;
+        this->argv = &tmp;
+    }
+    else {
+        this->argc = nArgsCount;
+        this->argv = args;
+    }
 }
 
 CommandLine::~CommandLine()
@@ -62,7 +71,7 @@ LPWSTR CommandLine::GetParamValue(LPWSTR szArg, LPWSTR szDefault) const
 LPWSTR CommandLine::GetParamValue(const wchar_t* szArg, LPWSTR szDefault) const
 {
     int idx = FindParam((LPWSTR)szArg);
-    if (idx == this->argc - 1 || idx == 0)
+    if (idx == this->argc - 1 || idx <= 0)
         return szDefault;
 
     LPWSTR szNextParam = this->argv[idx + 1];

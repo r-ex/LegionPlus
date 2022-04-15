@@ -26,7 +26,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	ExportManager::InitializeExporter();
 
 	bool ShowGUI = true;
-	wstring sRpakFileToLoad;
+	wstring sFileToLoad;
 
 	int argc;
 	LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
@@ -37,293 +37,296 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	SetConsoleTitleA("Legion+ | Console");
 #endif
 
-	if (argv) // This can fail yes, would be good to also check that.	
+	// should we create a log file for this session?
+	if (!cmdline.HasParam(L"--nologfile"))
+		g_Logger.InitializeLogFile();
+
+	// set process priority level
 	{
-		// flags for all types
-		if (!cmdline.HasParam(L"--nologfile"))
-			g_Logger.InitializeLogFile();
+		wstring sFmt = ((wstring)cmdline.GetParamValue(L"--prioritylvl")).ToLower();
 
-		ExportManager::Config.SetBool("OverwriteExistingFiles", cmdline.HasParam(L"--overwrite"));
-
-		if (cmdline.HasParam(L"--prioritylvl"))
+		// if the param isn't set, leave the priority alone
+		if (sFmt != L"")
 		{
-
-			wstring sFmt = cmdline.GetParamValue(L"--prioritylvl");
-			sFmt = sFmt.ToLower();
-
+			DWORD priorityClass = 0;
 			if (sFmt == L"realtime")
-				SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS);
+				priorityClass = REALTIME_PRIORITY_CLASS;
 			if (sFmt == L"high")
-				SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
+				priorityClass = HIGH_PRIORITY_CLASS;
 			if (sFmt == L"above_normal")
-				SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
+				priorityClass = ABOVE_NORMAL_PRIORITY_CLASS;
 			if (sFmt == L"normal")
-				SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
+				priorityClass = NORMAL_PRIORITY_CLASS;
 			if (sFmt == L"below_normal")
-				SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
+				priorityClass = BELOW_NORMAL_PRIORITY_CLASS;
 			if (sFmt == L"idle")
-				SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS);
+				priorityClass = IDLE_PRIORITY_CLASS;
+
+			SetPriorityClass(GetCurrentProcess(), priorityClass);
+		}
+	}
+
+	if (cmdline.HasParam(L"--export") || cmdline.HasParam(L"--list") || cmdline.HasParam(L"--exportaudio"))
+	{
+		string rpakPath;
+
+		bool bExportRpak = cmdline.HasParam(L"--export");
+		bool bListRpak = cmdline.HasParam(L"--list");
+		bool bExportAudio = cmdline.HasParam(L"--exportaudio");
+
+		if (bExportRpak)
+		{
+			rpakPath = wstring(cmdline.GetParamValue(L"--export")).ToString();
+		}
+		else if (bListRpak)
+		{
+			rpakPath = wstring(cmdline.GetParamValue(L"--list")).ToString();
+		}
+		else if (bExportAudio)
+		{
+			rpakPath = wstring(cmdline.GetParamValue(L"--exportaudio")).ToString();
 		}
 
-		if (!cmdline.HasParam(L"--export") && !cmdline.HasParam(L"--list") && !cmdline.HasParam(L"--exportaudio"))
+		// handle cli stuff
+		if (!string::IsNullOrEmpty(rpakPath))
 		{
+			auto Rpak = std::make_unique<RpakLib>();
+			auto ExportAssets = List<ExportAsset>();
 
-			if (cmdline.ArgC() >= 1) {
-				sRpakFileToLoad = wstring(cmdline.GetParamAtIdx(0));
-			}
-			else {
-#ifndef _DEBUG
-				Forms::Application::Run(new LegionSplash());
-#endif
-			}
-		}
-		else
-		{
-			string rpakPath;
+			Rpak->LoadRpak(rpakPath);
+			Rpak->PatchAssets();
 
-			bool bExportRpak = cmdline.HasParam(L"--export");
-			bool bListRpak = cmdline.HasParam(L"--list");
-			bool bExportAudio = cmdline.HasParam(L"--exportaudio");
+			// load rpak flags
+			bool bLoadModels = cmdline.HasParam(L"--loadmodels");
+			bool bLoadAnims = cmdline.HasParam(L"--loadanimations");
+			bool bLoadImages = cmdline.HasParam(L"--loadimages");
+			bool bLoadMaterials = cmdline.HasParam(L"--loadmaterials");
+			bool bLoadUIImages = cmdline.HasParam(L"--loaduiimages");
+			bool bLoadDataTables = cmdline.HasParam(L"--loaddatatables");
+			bool bLoadShaderSets = cmdline.HasParam(L"--loadshadersets");
+
+			// other rpak flags
+			ExportManager::Config.SetBool("UseFullPaths", cmdline.HasParam(L"--fullpath"));
+			ExportManager::Config.SetBool("AudioLanguageFolders", cmdline.HasParam(L"--audiolanguagefolder"));
+			ExportManager::Config.SetBool("OverwriteExistingFiles", cmdline.HasParam(L"--overwrite"));
+
+			// asset rpak formats flags
+			if (cmdline.HasParam(L"--mdlfmt"))
+			{
+				RpakModelExportFormat MdlFmt = (RpakModelExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat");
+
+				wstring sFmt = cmdline.GetParamValue(L"--mdlfmt");
+				sFmt = sFmt.ToLower();
+
+				if (sFmt == L"semodel")
+					MdlFmt = RpakModelExportFormat::SEModel;
+				if (sFmt == L"obj" || sFmt == L"wavefront")
+					MdlFmt = RpakModelExportFormat::OBJ;
+				if (sFmt == L"xnalara_ascii")
+					MdlFmt = RpakModelExportFormat::XNALaraText;
+				if (sFmt == L"xnalara_binary")
+					MdlFmt = RpakModelExportFormat::XNALaraBinary;
+				if (sFmt == L"smd" || sFmt == L"source")
+					MdlFmt = RpakModelExportFormat::SMD;
+				if (sFmt == L"xmodel")
+					MdlFmt = RpakModelExportFormat::XModel;
+				if (sFmt == L"maya" || sFmt == L"ma")
+					MdlFmt = RpakModelExportFormat::Maya;
+				if (sFmt == L"fbx")
+					MdlFmt = RpakModelExportFormat::FBX;
+				if (sFmt == L"cast")
+					MdlFmt = RpakModelExportFormat::Cast;
+				if (sFmt == L"rmdl")
+					MdlFmt = RpakModelExportFormat::RMDL;
+
+				if (MdlFmt != (RpakModelExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"))
+					ExportManager::Config.Set<System::SettingType::Integer>("ModelFormat", (uint32_t)MdlFmt);
+			}
+
+			if (cmdline.HasParam(L"--animfmt"))
+			{
+				RpakAnimExportFormat AnimFmt = (RpakAnimExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat");
+
+				wstring sFmt = cmdline.GetParamValue(L"--animfmt");
+				sFmt = sFmt.ToLower();
+
+				if (sFmt == L"seanim")
+					AnimFmt = RpakAnimExportFormat::SEAnim;
+				if (sFmt == L"cast")
+					AnimFmt = RpakAnimExportFormat::Cast;
+				if (sFmt == L"ranim")
+					AnimFmt = RpakAnimExportFormat::RAnim;
+
+				if (AnimFmt != (RpakAnimExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat"))
+					ExportManager::Config.Set<System::SettingType::Integer>("AnimFormat", (uint32_t)AnimFmt);
+			}
+
+			if (cmdline.HasParam(L"--imgfmt"))
+			{
+				RpakImageExportFormat ImgFmt = (RpakImageExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat");
+
+				wstring sFmt = cmdline.GetParamValue(L"--imgfmt");
+				sFmt = sFmt.ToLower();
+
+				if (sFmt == L"dds")
+					ImgFmt = RpakImageExportFormat::Dds;
+				if (sFmt == L"png")
+					ImgFmt = RpakImageExportFormat::Png;
+				if (sFmt == L"tiff")
+					ImgFmt = RpakImageExportFormat::Tiff;
+
+				if (ImgFmt != (RpakImageExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat"))
+					ExportManager::Config.Set<System::SettingType::Integer>("ImageFormat", (uint32_t)ImgFmt);
+			}
+
+			if (cmdline.HasParam(L"--textfmt"))
+			{
+				RpakSubtitlesExportFormat SubtFmt = (RpakSubtitlesExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat");
+
+				wstring sFmt = cmdline.GetParamValue(L"--textfmt");
+				sFmt = sFmt.ToLower();
+
+				if (sFmt == L"csv")
+					SubtFmt = RpakSubtitlesExportFormat::CSV;
+				if (sFmt == L"txt")
+					SubtFmt = RpakSubtitlesExportFormat::TXT;
+
+				if (SubtFmt != (RpakSubtitlesExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat"))
+					ExportManager::Config.Set<System::SettingType::Integer>("TextFormat", (uint32_t)SubtFmt);
+			}
+
+			if (cmdline.HasParam(L"--nmlrecalc"))
+			{
+				eNormalRecalcType NmlRecalcType = (eNormalRecalcType)ExportManager::Config.Get<System::SettingType::Integer>("NormalRecalcType");
+
+				wstring sFmt = cmdline.GetParamValue(L"--nmlrecalc");
+				sFmt = sFmt.ToLower();
+
+				if (sFmt == L"none")
+					NmlRecalcType = eNormalRecalcType::None;
+				if (sFmt == L"directx" || sFmt == L"dx")
+					NmlRecalcType = eNormalRecalcType::DirectX;
+				if (sFmt == L"opengl" || sFmt == L"ogl")
+					NmlRecalcType = eNormalRecalcType::OpenGl;
+
+				if (NmlRecalcType != (eNormalRecalcType)ExportManager::Config.Get<System::SettingType::Integer>("NormalRecalcType"))
+					ExportManager::Config.Set<System::SettingType::Integer>("NormalRecalcType", (uint32_t)NmlRecalcType);
+			}
+
+			if (cmdline.HasParam(L"--audiolanguage"))
+			{
+				MilesLanguageID SubtFmt = (MilesLanguageID)ExportManager::Config.Get<System::SettingType::Integer>("AudioLanguage");
+
+				wstring sFmt = cmdline.GetParamValue(L"--audiolanguage");
+				sFmt = sFmt.ToLower();
+
+				if (sFmt == L"english")
+					SubtFmt = MilesLanguageID::English;
+				if (sFmt == L"french")
+					SubtFmt = MilesLanguageID::French;
+				if (sFmt == L"german")
+					SubtFmt = MilesLanguageID::German;
+				if (sFmt == L"spanish")
+					SubtFmt = MilesLanguageID::Spanish;
+				if (sFmt == L"italian")
+					SubtFmt = MilesLanguageID::Italian;
+				if (sFmt == L"japanese")
+					SubtFmt = MilesLanguageID::Japanese;
+				if (sFmt == L"polish")
+					SubtFmt = MilesLanguageID::Polish;
+				if (sFmt == L"russian")
+					SubtFmt = MilesLanguageID::Russian;
+				if (sFmt == L"mandarin")
+					SubtFmt = MilesLanguageID::Mandarin;
+				if (sFmt == L"korean")
+					SubtFmt = MilesLanguageID::Korean;
+
+				if (SubtFmt != (MilesLanguageID)ExportManager::Config.Get<System::SettingType::Integer>("AudioLanguage"))
+					ExportManager::Config.Set<System::SettingType::Integer>("AudioLanguage", (uint32_t)SubtFmt);
+			}
+
+			std::unique_ptr<List<ApexAsset>> AssetList;
+
+			bool bNoFlagsSpecified = !bLoadModels && !bLoadAnims && !bLoadImages && !bLoadMaterials && !bLoadUIImages && !bLoadDataTables && !bLoadShaderSets;
+
+			if (bNoFlagsSpecified)
+			{
+				const bool ShowModels = ExportManager::Config.Get<System::SettingType::Boolean>("LoadModels");
+				const bool ShowAnimations = ExportManager::Config.Get<System::SettingType::Boolean>("LoadAnimations");
+				const bool ShowImages = ExportManager::Config.Get<System::SettingType::Boolean>("LoadImages");
+				const bool ShowMaterials = ExportManager::Config.Get<System::SettingType::Boolean>("LoadMaterials");
+				const bool ShowUIImages = ExportManager::Config.Get<System::SettingType::Boolean>("LoadUIImages");
+				const bool ShowDataTables = ExportManager::Config.Get<System::SettingType::Boolean>("LoadDataTables");
+
+				AssetList = Rpak->BuildAssetList(ShowModels, ShowAnimations, ShowImages, ShowMaterials, ShowUIImages, ShowDataTables);
+			}
+			else
+			{
+				ExportManager::Config.Set<System::SettingType::Boolean>("LoadShaderSets", bLoadShaderSets);
+				AssetList = Rpak->BuildAssetList(bLoadModels, bLoadAnims, bLoadImages, bLoadMaterials, bLoadUIImages, bLoadDataTables);
+			}
 
 			if (bExportRpak)
 			{
-				rpakPath = wstring(cmdline.GetParamValue(L"--export")).ToString();
-			}
-			else if (bListRpak)
-			{
-				rpakPath = wstring(cmdline.GetParamValue(L"--list")).ToString();
+				for (auto& Asset : *AssetList.get())
+				{
+					ExportAsset EAsset;
+					EAsset.AssetHash = Asset.Hash;
+					EAsset.AssetIndex = 0;
+					ExportAssets.EmplaceBack(EAsset);
+				}
+				ExportManager::ExportRpakAssets(Rpak, ExportAssets, [](uint32_t i, Forms::Form*, bool) {}, [](int32_t i, Forms::Form*) -> bool { return false; }, nullptr);
 			}
 			else if (bExportAudio)
 			{
-				rpakPath = wstring(cmdline.GetParamValue(L"--exportaudio")).ToString();
-			}
+				auto Audio = std::make_unique<MilesLib>();
 
-			// handle cli stuff
-			if (!string::IsNullOrEmpty(rpakPath))
+				Audio->MountBank(rpakPath); // not actually an rpak path?
+				Audio->Initialize();
+
+				AssetList = Audio->BuildAssetList();
+				for (auto& Asset : *AssetList.get())
+				{
+					ExportAsset EAsset;
+					EAsset.AssetHash = Asset.Hash;
+					EAsset.AssetIndex = 0;
+					ExportAssets.EmplaceBack(EAsset);
+				}
+				ExportManager::ExportMilesAssets(Audio, ExportAssets, [](uint32_t i, Forms::Form*, bool) {}, [](int32_t i, Forms::Form*) -> bool { return false; }, nullptr);
+			}
+			else if (bListRpak)
 			{
-				auto Rpak = std::make_unique<RpakLib>();
-				auto ExportAssets = List<ExportAsset>();
-
-				Rpak->LoadRpak(rpakPath);
-				Rpak->PatchAssets();
-
-				// load rpak flags
-				bool bLoadModels = cmdline.HasParam(L"--loadmodels");
-				bool bLoadAnims = cmdline.HasParam(L"--loadanimations");
-				bool bLoadImages = cmdline.HasParam(L"--loadimages");
-				bool bLoadMaterials = cmdline.HasParam(L"--loadmaterials");
-				bool bLoadUIImages = cmdline.HasParam(L"--loaduiimages");
-				bool bLoadDataTables = cmdline.HasParam(L"--loaddatatables");
-				bool bLoadShaderSets = cmdline.HasParam(L"--loadshadersets");
-
-				// other rpak flags
-				ExportManager::Config.SetBool("UseFullPaths", cmdline.HasParam(L"--fullpath"));
-				ExportManager::Config.SetBool("AudioLanguageFolders", cmdline.HasParam(L"--audiolanguagefolder"));
-
-				// asset rpak formats flags
-				if (cmdline.HasParam(L"--mdlfmt"))
-				{
-					RpakModelExportFormat MdlFmt = (RpakModelExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat");
-
-					wstring sFmt = cmdline.GetParamValue(L"--mdlfmt");
-					sFmt = sFmt.ToLower();
-
-					if (sFmt == L"semodel")
-						MdlFmt = RpakModelExportFormat::SEModel;
-					if (sFmt == L"obj" || sFmt == L"wavefront")
-						MdlFmt = RpakModelExportFormat::OBJ;
-					if (sFmt == L"xnalara_ascii")
-						MdlFmt = RpakModelExportFormat::XNALaraText;
-					if (sFmt == L"xnalara_binary")
-						MdlFmt = RpakModelExportFormat::XNALaraBinary;
-					if (sFmt == L"smd" || sFmt == L"source")
-						MdlFmt = RpakModelExportFormat::SMD;
-					if (sFmt == L"xmodel")
-						MdlFmt = RpakModelExportFormat::XModel;
-					if (sFmt == L"maya" || sFmt == L"ma")
-						MdlFmt = RpakModelExportFormat::Maya;
-					if (sFmt == L"fbx")
-						MdlFmt = RpakModelExportFormat::FBX;
-					if (sFmt == L"cast")
-						MdlFmt = RpakModelExportFormat::Cast;
-					if (sFmt == L"rmdl")
-						MdlFmt = RpakModelExportFormat::RMDL;
-
-					if (MdlFmt != (RpakModelExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"))
-						ExportManager::Config.Set<System::SettingType::Integer>("ModelFormat", (uint32_t)MdlFmt);
-				}
-
-				if (cmdline.HasParam(L"--animfmt"))
-				{
-					RpakAnimExportFormat AnimFmt = (RpakAnimExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat");
-
-					wstring sFmt = cmdline.GetParamValue(L"--animfmt");
-					sFmt = sFmt.ToLower();
-
-					if (sFmt == L"seanim")
-						AnimFmt = RpakAnimExportFormat::SEAnim;
-					if (sFmt == L"cast")
-						AnimFmt = RpakAnimExportFormat::Cast;
-					if (sFmt == L"ranim")
-						AnimFmt = RpakAnimExportFormat::RAnim;
-
-					if (AnimFmt != (RpakAnimExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat"))
-						ExportManager::Config.Set<System::SettingType::Integer>("AnimFormat", (uint32_t)AnimFmt);
-				}
-
-				if (cmdline.HasParam(L"--imgfmt"))
-				{
-					RpakImageExportFormat ImgFmt = (RpakImageExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat");
-
-					wstring sFmt = cmdline.GetParamValue(L"--imgfmt");
-					sFmt = sFmt.ToLower();
-
-					if (sFmt == L"dds")
-						ImgFmt = RpakImageExportFormat::Dds;
-					if (sFmt == L"png")
-						ImgFmt = RpakImageExportFormat::Png;
-					if (sFmt == L"tiff")
-						ImgFmt = RpakImageExportFormat::Tiff;
-
-					if (ImgFmt != (RpakImageExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat"))
-						ExportManager::Config.Set<System::SettingType::Integer>("ImageFormat", (uint32_t)ImgFmt);
-				}
-
-				if (cmdline.HasParam(L"--textfmt"))
-				{
-					RpakSubtitlesExportFormat SubtFmt = (RpakSubtitlesExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat");
-
-					wstring sFmt = cmdline.GetParamValue(L"--textfmt");
-					sFmt = sFmt.ToLower();
-
-					if (sFmt == L"csv")
-						SubtFmt = RpakSubtitlesExportFormat::CSV;
-					if (sFmt == L"txt")
-						SubtFmt = RpakSubtitlesExportFormat::TXT;
-
-					if (SubtFmt != (RpakSubtitlesExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat"))
-						ExportManager::Config.Set<System::SettingType::Integer>("TextFormat", (uint32_t)SubtFmt);
-				}
-
-				if (cmdline.HasParam(L"--nmlrecalc"))
-				{
-					eNormalRecalcType NmlRecalcType = (eNormalRecalcType)ExportManager::Config.Get<System::SettingType::Integer>("NormalRecalcType");
-
-					wstring sFmt = cmdline.GetParamValue(L"--nmlrecalc");
-					sFmt = sFmt.ToLower();
-
-					if (sFmt == L"none")
-						NmlRecalcType = eNormalRecalcType::None;
-					if (sFmt == L"directx" || sFmt == L"dx")
-						NmlRecalcType = eNormalRecalcType::DirectX;
-					if (sFmt == L"opengl" || sFmt == L"ogl")
-						NmlRecalcType = eNormalRecalcType::OpenGl;
-
-					if (NmlRecalcType != (eNormalRecalcType)ExportManager::Config.Get<System::SettingType::Integer>("NormalRecalcType"))
-						ExportManager::Config.Set<System::SettingType::Integer>("NormalRecalcType", (uint32_t)NmlRecalcType);
-				}
-
-				if (cmdline.HasParam(L"--audiolanguage"))
-				{
-					MilesLanguageID SubtFmt = (MilesLanguageID)ExportManager::Config.Get<System::SettingType::Integer>("AudioLanguage");
-
-					wstring sFmt = cmdline.GetParamValue(L"--audiolanguage");
-					sFmt = sFmt.ToLower();
-
-					if (sFmt == L"english")
-						SubtFmt = MilesLanguageID::English;
-					if (sFmt == L"french")
-						SubtFmt = MilesLanguageID::French;
-					if (sFmt == L"german")
-						SubtFmt = MilesLanguageID::German;
-					if (sFmt == L"spanish")
-						SubtFmt = MilesLanguageID::Spanish;
-					if (sFmt == L"italian")
-						SubtFmt = MilesLanguageID::Italian;
-					if (sFmt == L"japanese")
-						SubtFmt = MilesLanguageID::Japanese;
-					if (sFmt == L"polish")
-						SubtFmt = MilesLanguageID::Polish;
-					if (sFmt == L"russian")
-						SubtFmt = MilesLanguageID::Russian;
-					if (sFmt == L"mandarin")
-						SubtFmt = MilesLanguageID::Mandarin;
-					if (sFmt == L"korean")
-						SubtFmt = MilesLanguageID::Korean;
-
-					if (SubtFmt != (MilesLanguageID)ExportManager::Config.Get<System::SettingType::Integer>("AudioLanguage"))
-						ExportManager::Config.Set<System::SettingType::Integer>("AudioLanguage", (uint32_t)SubtFmt);
-				}
-
-				std::unique_ptr<List<ApexAsset>> AssetList;
-
-				bool bNoFlagsSpecified = !bLoadModels && !bLoadAnims && !bLoadImages && !bLoadMaterials && !bLoadUIImages && !bLoadDataTables && !bLoadShaderSets;
-
-				if (bNoFlagsSpecified)
-				{
-					const bool ShowModels = ExportManager::Config.Get<System::SettingType::Boolean>("LoadModels");
-					const bool ShowAnimations = ExportManager::Config.Get<System::SettingType::Boolean>("LoadAnimations");
-					const bool ShowImages = ExportManager::Config.Get<System::SettingType::Boolean>("LoadImages");
-					const bool ShowMaterials = ExportManager::Config.Get<System::SettingType::Boolean>("LoadMaterials");
-					const bool ShowUIImages = ExportManager::Config.Get<System::SettingType::Boolean>("LoadUIImages");
-					const bool ShowDataTables = ExportManager::Config.Get<System::SettingType::Boolean>("LoadDataTables");
-
-					AssetList = Rpak->BuildAssetList(ShowModels, ShowAnimations, ShowImages, ShowMaterials, ShowUIImages, ShowDataTables);
-				}
-				else
-				{
-					ExportManager::Config.Set<System::SettingType::Boolean>("LoadShaderSets", bLoadShaderSets);
-					AssetList = Rpak->BuildAssetList(bLoadModels, bLoadAnims, bLoadImages, bLoadMaterials, bLoadUIImages, bLoadDataTables);
-				}
-
-				if (bExportRpak)
-				{
-					for (auto& Asset : *AssetList.get())
-					{
-						ExportAsset EAsset;
-						EAsset.AssetHash = Asset.Hash;
-						EAsset.AssetIndex = 0;
-						ExportAssets.EmplaceBack(EAsset);
-					}
-					ExportManager::ExportRpakAssets(Rpak, ExportAssets, [](uint32_t i, Forms::Form*, bool) {}, [](int32_t i, Forms::Form*) -> bool { return false; }, nullptr);
-				}
-				else if (bExportAudio)
-				{
-					auto Audio = std::make_unique<MilesLib>();
-
-					Audio->MountBank(rpakPath); // not actually an rpak path?
-					Audio->Initialize();
-
-					AssetList = Audio->BuildAssetList();
-					for (auto& Asset : *AssetList.get())
-					{
-						ExportAsset EAsset;
-						EAsset.AssetHash = Asset.Hash;
-						EAsset.AssetIndex = 0;
-						ExportAssets.EmplaceBack(EAsset);
-					}
-					ExportManager::ExportMilesAssets(Audio, ExportAssets, [](uint32_t i, Forms::Form*, bool) {}, [](int32_t i, Forms::Form*) -> bool { return false; }, nullptr);
-				}
-				else if (bListRpak)
-				{
-					string filename = IO::Path::GetFileNameWithoutExtension(rpakPath);
-					ExportManager::ExportRpakAssetList(AssetList, filename);
-				}
-
-				ShowGUI = false;
+				string filename = IO::Path::GetFileNameWithoutExtension(rpakPath);
+				ExportManager::ExportRpakAssetList(AssetList, filename);
 			}
+
+			ShowGUI = false;
+		}
+	} else {
+		if (cmdline.ArgC() >= 1) {
+			wstring firstParam = cmdline.GetParamAtIdx(0);
+			
+			// check that the first param is actually a file that exists
+			// i'm sure this is bad in some way but once i push it, it's not my problem anymore
+			if (IO::File::Exists(firstParam.ToString()))
+				sFileToLoad = firstParam;
+		}
+		else {
+#ifndef _DEBUG
+			// splash screen only exists on release because yes
+			Forms::Application::Run(new LegionSplash());
+#endif
 		}
 	}
-	else {
-		g_Logger.InitializeLogFile();
-	}
+	g_Logger.InitializeLogFile();
+
 	if (ShowGUI)
 	{
 		LegionMain* main = new LegionMain();
-		if (!wstring::IsNullOrEmpty(sRpakFileToLoad))
+		if (!wstring::IsNullOrEmpty(sFileToLoad))
 		{
 			List<string> paks;
-			paks.EmplaceBack(sRpakFileToLoad.ToString());
+			paks.EmplaceBack(sFileToLoad.ToString());
 			main->LoadApexFile(paks);
 			main->RefreshView();
 		}
