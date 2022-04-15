@@ -3,7 +3,6 @@
 
 CommandLine::CommandLine(int nArgsCount, LPWSTR* args)
 {
-
     if (!args)
     {
         LPWSTR tmp{};
