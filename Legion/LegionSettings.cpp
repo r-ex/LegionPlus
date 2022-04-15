@@ -291,6 +291,7 @@ void LegionSettings::InitializeComponent()
 	this->ImageExportFormat->Items.Add("DDS");
 	this->ImageExportFormat->Items.Add("PNG");
 	this->ImageExportFormat->Items.Add("TIFF");
+	this->ImageExportFormat->Items.Add("TGA");
 	this->groupBox5->AddControl(this->ImageExportFormat);
 
 	//
@@ -445,6 +446,9 @@ void LegionSettings::LoadSettings()
 	case RpakImageExportFormat::Tiff:
 		this->ImageExportFormat->SetSelectedIndex(2);
 		break;
+	case RpakImageExportFormat::Tga:
+		this->ImageExportFormat->SetSelectedIndex(3);
+		break;
 	}
 
 	switch (TextFormat)
@@ -563,6 +567,9 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 			break;
 		case 2:
 			ImageExportFormat = RpakImageExportFormat::Tiff;
+			break;
+		case 3:
+			ImageExportFormat = RpakImageExportFormat::Tga;
 			break;
 		}
 	}

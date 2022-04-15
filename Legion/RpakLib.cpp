@@ -285,6 +285,10 @@ void RpakLib::InitializeImageExporter(RpakImageExportFormat Format)
 		ImageSaveType = Assets::SaveFileType::Tiff;
 		ImageExtension = Assets::Texture::GetExtensionForType(ImageSaveType);
 		break;
+	case RpakImageExportFormat::Tga:
+		ImageSaveType = Assets::SaveFileType::Tga;
+		ImageExtension = Assets::Texture::GetExtensionForType(ImageSaveType);
+		break;
 	}
 
 	m_bImageExporterInitialized = true;

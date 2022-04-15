@@ -331,7 +331,8 @@ enum class RpakImageExportFormat
 {
 	Dds,
 	Png,
-	Tiff
+	Tiff,
+	Tga,
 };
 
 enum class RpakSubtitlesExportFormat
