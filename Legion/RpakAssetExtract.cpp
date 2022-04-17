@@ -6,10 +6,13 @@
 #include "DDS.h"
 #include "rtech.h"
 #include "RpakImageTiles.h"
+#include "..\cppkore_incl\OODLE\oodle2.h"
 
 std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, uint64_t& DataSize, uint8_t Format)
 {
-	if (Format == 0x1)
+	switch ((CompressionType)Format)
+	{
+	case CompressionType::PAKFILE:
 	{
 		rpak_decomp_state state;
 
@@ -25,7 +28,7 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 
 		return std::make_unique<IO::MemoryStream>(Result, 0, state.decompressed_size);
 	}
-	else if (Format == 0x2)
+	case CompressionType::SNOWFLAKE:
 	{
 		auto State = std::make_unique<uint8_t[]>(0x25000);
 		g_pRtech->DecompressSnowflakeInit((long long)&State.get()[0], (int64_t)Data, DataSize);
@@ -52,10 +55,21 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 
 		return std::make_unique<IO::MemoryStream>(Result, 0, EditState[0x48db]);
 	}
-	else
+	case CompressionType::OODLE:
+	{
+		OodleLZDecoder* decoder = OodleLZDecoder_Create(OodleLZ_Compressor::OodleLZ_Compressor_Kraken, DataSize, nullptr, NULL); // Still need compressor detection.
+		OodleLZ_DecodeSome_Out out{};
+		auto outBuf = new uint8_t[DataSize];
+
+		bool decodeResult = OodleLZDecoder_DecodeSome(decoder, &out, outBuf, 0, DataSize, DataSize, Data, DataSize, OodleLZ_FuzzSafe_No, OodleLZ_CheckCRC_No, OodleLZ_Verbosity::OodleLZ_Verbosity_Lots, OodleLZ_Decode_Unthreaded);
+
+		return std::make_unique<IO::MemoryStream>(outBuf, 0, DataSize);
+	}
+	default:
 	{
 		DataSize = 0;
 		return nullptr;
+	}
 	}
 }
 
@@ -784,6 +798,7 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		if (this->LoadedFiles[Asset.FileIndex].OptimalStarpakMap.ContainsKey(Asset.OptimalStarpakOffset))
 		{
 			Offset += (this->LoadedFiles[Asset.FileIndex].OptimalStarpakMap[Asset.OptimalStarpakOffset] - BlockSize);
+
 			bStreamed = true;
 		}
 		else

@@ -9,6 +9,16 @@
 // Game structures
 // APEX
 #pragma pack(push, 1)
+
+enum class CompressionType : uint32_t
+{
+	DEFAULT = 0x0,
+	PAKFILE = 0x1,
+	SNOWFLAKE = 0x2,
+	OODLE = 0x3
+};
+
+
 struct TextureHeader
 {
 	uint64_t NameHash;
