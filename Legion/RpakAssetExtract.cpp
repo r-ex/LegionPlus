@@ -1020,20 +1020,19 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 
 		for (uint32_t i = 0; i < TotalBlocks; i++)
 		{
-			// This opcode requires us to copy an existing opcode.
-			if (CodePoints[i].Opcode == 0xC0)
+			switch (CodePoints[i].Opcode)
 			{
-				CodePoints[i] = CodePoints[CodePoints[i].Offset];
-			}
-
-			// Standard block compressed opcodes (Bc1/Bc7).
-			if (CodePoints[i].Opcode == 0x40)
-			{
+			case 0x40: // bc1 block
 				NumBc1Blocks++;
-			}
-			else if (CodePoints[i].Opcode == 0x41)
-			{
+				break;
+			case 0x41: // bc7 block
 				NumBc7Blocks++;
+				break;
+			case 0xC0: // This opcode requires us to copy an existing opcode.
+				CodePoints[i] = CodePoints[CodePoints[i].Offset];
+				break;
+			default:
+				break;
 			}
 		}
 
@@ -1176,7 +1175,7 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 			}
 
 			//
-			// Unswizzle Bc1 blocks.
+			// Unswizzle Bc7 blocks.
 			//
 
 			auto blocksH = Height / 4;
