@@ -38,7 +38,7 @@ namespace System
 
 	SettingsObject::~SettingsObject()
 	{
-		if (Values.String != NULL && (Type == SettingType::String || Type == SettingType::ProtectedString))
+		if (Values.String != NULL && (Type == SettingType::ProtectedString))
 			delete[] Values.String;
 	}
 
