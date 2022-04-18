@@ -57,11 +57,30 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 	}
 	case CompressionType::OODLE:
 	{
-		OodleLZDecoder* decoder = OodleLZDecoder_Create(OodleLZ_Compressor::OodleLZ_Compressor_Kraken, DataSize, nullptr, NULL); // Still need compressor detection.
+		OO_S32 sizeNeeded = OodleLZDecoder_MemorySizeNeeded(OodleLZ_Compressor_Invalid, -1);
+		auto decoder = new uint8_t[sizeNeeded];
+		OodleLZDecoder_Create(OodleLZ_Compressor::OodleLZ_Compressor_Invalid, DataSize, decoder, sizeNeeded);
+
 		OodleLZ_DecodeSome_Out out{};
 		auto outBuf = new uint8_t[DataSize];
+		int decPos = 0;
+		int DataPos = 0;
 
-		bool decodeResult = OodleLZDecoder_DecodeSome(decoder, &out, outBuf, 0, DataSize, DataSize, Data, DataSize, OodleLZ_FuzzSafe_No, OodleLZ_CheckCRC_No, OodleLZ_Verbosity::OodleLZ_Verbosity_Lots, OodleLZ_Decode_Unthreaded);
+		bool decodeResult = OodleLZDecoder_DecodeSome((OodleLZDecoder*)decoder, &out, outBuf, decPos, DataSize, DataSize - decPos, Data + DataPos, DataSize - DataPos, OodleLZ_FuzzSafe_No, OodleLZ_CheckCRC_No, OodleLZ_Verbosity::OodleLZ_Verbosity_Lots, OodleLZ_Decode_Unthreaded);
+
+		while (true)
+		{
+			decPos += out.decodedCount;
+			DataPos += out.compBufUsed;
+
+			if (out.compBufUsed + out.decodedCount == 0)
+				break;
+
+			if (decPos >= DataSize)
+				break;
+
+			bool decodeResult = OodleLZDecoder_DecodeSome((OodleLZDecoder*)decoder, &out, outBuf, decPos, DataSize, DataSize - decPos, Data + DataPos, DataSize - DataPos, OodleLZ_FuzzSafe_No, OodleLZ_CheckCRC_No, OodleLZ_Verbosity::OodleLZ_Verbosity_Lots, OodleLZ_Decode_Unthreaded);
+		}
 
 		return std::make_unique<IO::MemoryStream>(outBuf, 0, DataSize);
 	}
