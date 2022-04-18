@@ -58,13 +58,15 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 	case CompressionType::OODLE:
 	{
 		OO_S32 sizeNeeded = OodleLZDecoder_MemorySizeNeeded(OodleLZ_Compressor_Invalid, -1);
+
 		auto decoder = new uint8_t[sizeNeeded];
+
 		OodleLZDecoder_Create(OodleLZ_Compressor::OodleLZ_Compressor_Invalid, DataSize, decoder, sizeNeeded);
 
 		OodleLZ_DecodeSome_Out out{};
-		auto outBuf = new uint8_t[DataSize];
 		int decPos = 0;
 		int DataPos = 0;
+		auto outBuf = new uint8_t[DataSize];
 
 		bool decodeResult = OodleLZDecoder_DecodeSome((OodleLZDecoder*)decoder, &out, outBuf, decPos, DataSize, DataSize - decPos, Data + DataPos, DataSize - DataPos, OodleLZ_FuzzSafe_No, OodleLZ_CheckCRC_No, OodleLZ_Verbosity::OodleLZ_Verbosity_Lots, OodleLZ_Decode_Unthreaded);
 
@@ -82,6 +84,7 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 			bool decodeResult = OodleLZDecoder_DecodeSome((OodleLZDecoder*)decoder, &out, outBuf, decPos, DataSize, DataSize - decPos, Data + DataPos, DataSize - DataPos, OodleLZ_FuzzSafe_No, OodleLZ_CheckCRC_No, OodleLZ_Verbosity::OodleLZ_Verbosity_Lots, OodleLZ_Decode_Unthreaded);
 		}
 
+		delete decoder;
 		return std::make_unique<IO::MemoryStream>(outBuf, 0, DataSize);
 	}
 	default:
