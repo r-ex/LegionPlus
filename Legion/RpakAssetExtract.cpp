@@ -72,6 +72,8 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 		{
 			// If it fails it shouldn't be compressed?
 			delete[] decoder;
+			delete[] outBuf;
+
 			return std::make_unique<IO::MemoryStream>(const_cast<uint8_t*>(Data), 0, DataSize);
 		}
 
