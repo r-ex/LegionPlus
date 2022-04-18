@@ -22,7 +22,7 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 		state.out_mask = UINT64_MAX;
 		state.out = (uint64_t)Result;
 
-		std::uint8_t decomp_result = g_pRtech->DecompressPakFile(&state, DataSize, dSize); // porter uses 0x400000, but using decompsize should be enough.
+		uint8_t decomp_result = g_pRtech->DecompressPakFile(&state, DataSize, dSize); // porter uses 0x400000, but using decompsize should be enough.
 
 		DataSize = state.decompressed_size;
 
@@ -57,18 +57,23 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 	}
 	case CompressionType::OODLE:
 	{
-		OO_S32 sizeNeeded = OodleLZDecoder_MemorySizeNeeded(OodleLZ_Compressor_Invalid, -1);
+		int sizeNeeded = OodleLZDecoder_MemorySizeNeeded(OodleLZ_Compressor_Invalid, -1);
 
 		auto decoder = new uint8_t[sizeNeeded];
 
 		OodleLZDecoder_Create(OodleLZ_Compressor::OodleLZ_Compressor_Invalid, DataSize, decoder, sizeNeeded);
 
-		OodleLZ_DecodeSome_Out out{};
 		int decPos = 0;
 		int DataPos = 0;
-		auto outBuf = new uint8_t[DataSize];
 
-		bool decodeResult = OodleLZDecoder_DecodeSome((OodleLZDecoder*)decoder, &out, outBuf, decPos, DataSize, DataSize - decPos, Data + DataPos, DataSize - DataPos, OodleLZ_FuzzSafe_No, OodleLZ_CheckCRC_No, OodleLZ_Verbosity::OodleLZ_Verbosity_Lots, OodleLZ_Decode_ThreadPhaseAll);
+		OodleLZ_DecodeSome_Out out{};
+		auto outBuf = new uint8_t[DataSize];
+		if (!OodleLZDecoder_DecodeSome((OodleLZDecoder*)decoder, &out, outBuf, decPos, DataSize, DataSize - decPos, Data + DataPos, DataSize - DataPos, OodleLZ_FuzzSafe_No, OodleLZ_CheckCRC_No, OodleLZ_Verbosity::OodleLZ_Verbosity_None, OodleLZ_Decode_ThreadPhaseAll))
+		{
+			// If it fails it shouldn't be compressed?
+			delete[] decoder;
+			return std::make_unique<IO::MemoryStream>(const_cast<uint8_t*>(Data), 0, DataSize);
+		}
 
 		while (true)
 		{
@@ -81,7 +86,7 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 			if (decPos >= DataSize)
 				break;
 
-			bool decodeResult = OodleLZDecoder_DecodeSome((OodleLZDecoder*)decoder, &out, outBuf, decPos, DataSize, DataSize - decPos, Data + DataPos, DataSize - DataPos, OodleLZ_FuzzSafe_No, OodleLZ_CheckCRC_No, OodleLZ_Verbosity::OodleLZ_Verbosity_Lots, OodleLZ_Decode_ThreadPhaseAll);
+			bool decodeResult = OodleLZDecoder_DecodeSome((OodleLZDecoder*)decoder, &out, outBuf, decPos, DataSize, DataSize - decPos, Data + DataPos, DataSize - DataPos, OodleLZ_FuzzSafe_No, OodleLZ_CheckCRC_No, OodleLZ_Verbosity::OodleLZ_Verbosity_None, OodleLZ_Decode_ThreadPhaseAll);
 		}
 
 		delete[] decoder;
