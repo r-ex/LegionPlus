@@ -84,7 +84,7 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 			bool decodeResult = OodleLZDecoder_DecodeSome((OodleLZDecoder*)decoder, &out, outBuf, decPos, DataSize, DataSize - decPos, Data + DataPos, DataSize - DataPos, OodleLZ_FuzzSafe_No, OodleLZ_CheckCRC_No, OodleLZ_Verbosity::OodleLZ_Verbosity_Lots, OodleLZ_Decode_Unthreaded);
 		}
 
-		delete decoder;
+		delete[] decoder;
 		return std::make_unique<IO::MemoryStream>(outBuf, 0, DataSize);
 	}
 	default:
