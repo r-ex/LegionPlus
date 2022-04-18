@@ -68,7 +68,7 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 		int DataPos = 0;
 		auto outBuf = new uint8_t[DataSize];
 
-		bool decodeResult = OodleLZDecoder_DecodeSome((OodleLZDecoder*)decoder, &out, outBuf, decPos, DataSize, DataSize - decPos, Data + DataPos, DataSize - DataPos, OodleLZ_FuzzSafe_No, OodleLZ_CheckCRC_No, OodleLZ_Verbosity::OodleLZ_Verbosity_Lots, OodleLZ_Decode_Unthreaded);
+		bool decodeResult = OodleLZDecoder_DecodeSome((OodleLZDecoder*)decoder, &out, outBuf, decPos, DataSize, DataSize - decPos, Data + DataPos, DataSize - DataPos, OodleLZ_FuzzSafe_No, OodleLZ_CheckCRC_No, OodleLZ_Verbosity::OodleLZ_Verbosity_Lots, OodleLZ_Decode_ThreadPhaseAll);
 
 		while (true)
 		{
@@ -81,7 +81,7 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 			if (decPos >= DataSize)
 				break;
 
-			bool decodeResult = OodleLZDecoder_DecodeSome((OodleLZDecoder*)decoder, &out, outBuf, decPos, DataSize, DataSize - decPos, Data + DataPos, DataSize - DataPos, OodleLZ_FuzzSafe_No, OodleLZ_CheckCRC_No, OodleLZ_Verbosity::OodleLZ_Verbosity_Lots, OodleLZ_Decode_Unthreaded);
+			bool decodeResult = OodleLZDecoder_DecodeSome((OodleLZDecoder*)decoder, &out, outBuf, decPos, DataSize, DataSize - decPos, Data + DataPos, DataSize - DataPos, OodleLZ_FuzzSafe_No, OodleLZ_CheckCRC_No, OodleLZ_Verbosity::OodleLZ_Verbosity_Lots, OodleLZ_Decode_ThreadPhaseAll);
 		}
 
 		delete[] decoder;
