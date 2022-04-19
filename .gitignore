@@ -360,11 +360,16 @@ MigrationBackup/
 # Batch files because that shouldn't be pushed
 *.bat
 
+# Dll files for the bink and miles files
+*.dll
+
+# Compression archives formats
+*.zip
+*.rar
+*.7z
+
 # Logs folder
 logs/
 
 # Export folder
 exported_files/
-
-# Dll files for the bink and miles files
-*.dll
