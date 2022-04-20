@@ -650,13 +650,11 @@ void LegionMain::OnListRightClick(const std::unique_ptr<MouseEventArgs>& EventAr
 	if (EventArgs->Button != Forms::MouseButtons::Right)
 		return;
 
-	// CopyStringToClipboard causes a heap corruption
-
 	auto ThisPtr = ((LegionMain*)Sender->FindForm());
 	auto AssetsListView = ThisPtr->AssetsListView;
 
 	auto SelectedIndices = AssetsListView->SelectedIndices();
-	std::string yes = "";
+	string endString = "";
 
 	g_Logger.Info("selected asset names:\n");
 	for (uint32_t i = 0; i < SelectedIndices.Count(); i++)
@@ -666,16 +664,13 @@ void LegionMain::OnListRightClick(const std::unique_ptr<MouseEventArgs>& EventAr
 
 		g_Logger.Info(Asset.Name + "\n");
 
-		//if (i != SelectedIndices.Count() - 1)
-		//	yes += Asset.Name + "\n";
-		//else
-		//	yes += Asset.Name;
+		if (i != SelectedIndices.Count() - 1)
+			endString += Asset.Name + "\n";
+		else
+			endString += Asset.Name;
 	}
 
-
-	return;
-
-	CopyStringToClipboard(yes, Sender->GetHandle());
+	clip::set_text(endString.ToCString());
 
 	g_Logger.Info("copying %i asset name%s to clipboard\n", SelectedIndices.Count(), SelectedIndices.Count() == 1 ? "" : "s");
 }

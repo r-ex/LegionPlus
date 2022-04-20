@@ -206,6 +206,8 @@
     <ClInclude Include="CheckBox.h" />
     <ClInclude Include="CheckBoxImage.h" />
     <ClInclude Include="CheckState.h" />
+    <ClInclude Include="clipboard\clip.h" />
+    <ClInclude Include="clipboard\clip_lock_impl.h" />
     <ClInclude Include="CloseReason.h" />
     <ClInclude Include="CoDXAssetExport.h" />
     <ClInclude Include="ColumnClickEventArgs.h" />
@@ -424,6 +426,12 @@
     <ClCompile Include="CastAsset.cpp" />
     <ClCompile Include="CastNode.cpp" />
     <ClCompile Include="CheckBox.cpp" />
+    <ClCompile Include="clipboard\clip.cpp">
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../stdafx.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="clipboard\clip_win.cpp">
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">../stdafx.h</PrecompiledHeaderFile>
+    </ClCompile>
     <ClCompile Include="CoDXAssetExport.cpp" />
     <ClCompile Include="ColumnClickEventArgs.cpp" />
     <ClCompile Include="ColumnHeader.cpp" />

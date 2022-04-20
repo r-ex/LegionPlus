@@ -117,6 +117,7 @@
 #include "RegistryValueType.h"
 #include "Registry.h"
 #include "Win32Error.h"
+#include "clipboard/clip.h"
 #endif
 
 #if KORE_ENABLE_COMP

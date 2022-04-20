@@ -135,6 +135,12 @@
     <Filter Include="Source Files\Jobs">
       <UniqueIdentifier>{6a6efd51-9e66-4743-9230-ca30f9e8f648}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Clipboard">
+      <UniqueIdentifier>{397d58cc-16d7-4d29-98f1-9fd4d17b1ed1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Clipboard">
+      <UniqueIdentifier>{27d34575-ed65-4358-abfe-15a2b3247727}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -827,6 +833,12 @@
     <ClInclude Include="Adler32.h">
       <Filter>Header Files\Hashing</Filter>
     </ClInclude>
+    <ClInclude Include="clipboard\clip.h">
+      <Filter>Header Files\Clipboard</Filter>
+    </ClInclude>
+    <ClInclude Include="clipboard\clip_lock_impl.h">
+      <Filter>Header Files\Clipboard</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -1254,6 +1266,12 @@
     </ClCompile>
     <ClCompile Include="Adler32.cpp">
       <Filter>Source Files\Hashing</Filter>
+    </ClCompile>
+    <ClCompile Include="clipboard\clip.cpp">
+      <Filter>Source Files\Clipboard</Filter>
+    </ClCompile>
+    <ClCompile Include="clipboard\clip_win.cpp">
+      <Filter>Source Files\Clipboard</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
