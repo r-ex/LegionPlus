@@ -133,10 +133,13 @@ void LegionTablePreview::ToggleShowVectorColors(Forms::Control* Sender)
 
 void LegionTablePreview::ResizeTableToWindow()
 {
-	auto First = DataTable[0];
-	for (auto col : this->AssetsListView->Columns)
+	if (DataTable.Count() > 0)
 	{
-		col.SetWidth(this->Size().Width / (int)First.Count());
+		auto First = DataTable[0];
+		for (auto col : this->AssetsListView->Columns)
+		{
+			col.SetWidth(this->Size().Width / (int)First.Count());
+		}
 	}
 }
 
