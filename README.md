@@ -81,6 +81,5 @@ If you encounter any issues or errors during your usage of Legion+, please let u
 We also have a [discord server](https://discord.gg/ADek6fxVGe) where you will be able to directly ask for support and receive updates about the project
 
 ## Known Issues
-- DataTable Preview crash on different UTF
 
 Full TODO/task list is available [here.](https://github.com/r-ex/LegionPlus/projects/1)
