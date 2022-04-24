@@ -1897,15 +1897,25 @@ void RpakLib::ExtractUIImageAtlas(const RpakLoadAsset& Asset, const string& Path
 
 	for (int i = 0; i < Header.TexturesCount; ++i)
 	{
-		UIAtlasImages[i].offsets = Reader.Read<UIAtlasOffset>();
+		auto offset = Reader.Read<UIAtlasOffset>();
+		UIAtlasImages[i].offsets = offset;
 	}
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Header.TextureDimsIndex, Header.TextureDimsOffset));
 
 	for (int i = 0; i < Header.TexturesCount; ++i)
 	{
-		UIAtlasImages[i].Width =  Reader.Read<uint16_t>();
+		auto offsets = UIAtlasImages[i].offsets;
+		auto uvs = UIAtlasImages[i].uvs;
+
+		UIAtlasImages[i].Width = Reader.Read<uint16_t>();
 		UIAtlasImages[i].Height = Reader.Read<uint16_t>();
+
+		// ya
+		if (offsets.endX < 1)
+			UIAtlasImages[i].Width = Header.Width * uvs.uv1x;
+		if (offsets.endY < 1)
+			UIAtlasImages[i].Height = Header.Height * uvs.uv1y;
 	}
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Header.TextureHashesIndex, Header.TextureHashesOffset));
@@ -1913,10 +1923,17 @@ void RpakLib::ExtractUIImageAtlas(const RpakLoadAsset& Asset, const string& Path
 	for (int i = 0; i < Header.TexturesCount; ++i)
 	{
 		UIAtlasImages[i].Hash = Reader.Read<uint32_t>();
-		//UIAtlasImages[i].PathTableOffset = Reader.Read<uint64_t>(); // i don't really know when this needs to be read
+		UIAtlasImages[i].PathTableOffset = Reader.Read<uint64_t>();
 	}
 
-	// i'll do image names later or something idk
+	if (Header.TextureNamesIndex != 0 || Header.TextureNamesOffset != 0)
+	{
+		RpakStream->SetPosition(this->GetFileOffset(Asset, Header.TextureNamesIndex, Header.TextureNamesOffset));
+		for (int i = 0; i < Header.TexturesCount; ++i)
+		{
+			UIAtlasImages[i].Path = Reader.ReadCString();
+		}
+	}
 
 	std::unique_ptr<Assets::Texture> Texture = nullptr;
 	string Name;
@@ -1926,7 +1943,6 @@ void RpakLib::ExtractUIImageAtlas(const RpakLoadAsset& Asset, const string& Path
 
 	for (auto& img : UIAtlasImages)
 	{
-
 		std::unique_ptr<Assets::Texture> tmp = std::make_unique<Assets::Texture>(img.Width, img.Height, Texture.get()->Format());
 		uint32_t BytesPerPixel = tmp->GetBpp() / 8;
 
@@ -1934,6 +1950,11 @@ void RpakLib::ExtractUIImageAtlas(const RpakLoadAsset& Asset, const string& Path
 
 		tmp->CopyTextureSlice(Texture, srcRect, 0, 0);
 
-		tmp->Save(IO::Path::Combine(Path, string::Format("0x%x%s", img.Hash, (const char*)ImageExtension)), ImageSaveType);
+		string ImageName = string::Format("0x%x%s", img.Hash, (const char*)ImageExtension);
+
+		if (img.Path.Length() > 0)
+			ImageName = string::Format("%s%s", IO::Path::GetFileNameWithoutExtension(img.Path).ToCString(), (const char*)ImageExtension);
+
+		tmp->Save(IO::Path::Combine(Path, ImageName), ImageSaveType);
 	}
 }
