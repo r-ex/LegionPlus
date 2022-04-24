@@ -304,6 +304,7 @@ enum class RpakAssetType : uint32_t
 	Subtitles = 0x74627573, // subt
 	ShaderSet = 0x73646873, // shds
 	Shader = 0x72646873, // shdr
+	UIImageAtlas = 0x676D6975, // uimg
 };
 
 enum class RpakModelExportFormat
@@ -490,6 +491,7 @@ public:
 	void ExportDataTable(const RpakLoadAsset& Asset, const string& Path);
 	void ExportSubtitles(const RpakLoadAsset& Asset, const string& Path);
 	void ExportShaderSet(const RpakLoadAsset& Asset, const string& Path);
+	void ExportUIImageAtlas(const RpakLoadAsset& Asset, const string& Path);
 	List<List<DataTableColumnData>> ExtractDataTable(const RpakLoadAsset& Asset);
 	List<ShaderVar> ExtractShaderVars(const RpakLoadAsset& Asset, D3D_SHADER_VARIABLE_TYPE Type = D3D_SVT_FORCE_DWORD); // default value as a type that should never be used
 	List<ShaderResBinding> ExtractShaderResourceBindings(const RpakLoadAsset& Asset, D3D_SHADER_INPUT_TYPE InputType);
@@ -527,6 +529,7 @@ private:
 	void BuildDataTableInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildSubtitleInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildShaderSetInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
+	void BuildUIImageAtlasInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 
 	// RpakAssetExtract.cpp
 	std::unique_ptr<Assets::Model> ExtractModel(const RpakLoadAsset& Asset, const string& Path, const string& AnimPath, bool IncludeMaterials, bool IncludeAnimations);
@@ -539,6 +542,7 @@ private:
 	List<SubtitleEntry> ExtractSubtitles(const RpakLoadAsset& Asset);
 	void ExtractShader(const RpakLoadAsset& Asset, const string& Path);
 	ShaderSetHeader ExtractShaderSet(const RpakLoadAsset& Asset);
+	void ExtractUIImageAtlas(const RpakLoadAsset& Asset, const string& Path);
 
 	string GetSubtitlesNameFromHash(uint64_t Hash);
 	void ParseRAnimBoneTranslationTrack(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex);

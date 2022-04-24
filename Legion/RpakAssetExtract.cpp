@@ -1284,7 +1284,8 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 
 						if (Point.Opcode == 0x41)
 						{
-							Texture->CopyTextureSlice(Bc7Texture, {(x * 32), (y * 32), 32, 32}, (x * 32), (y * 32));
+							DirectX::Rect srcRect{ (x * 32), (y * 32), 32, 32 };
+							Texture->CopyTextureSlice(Bc7Texture, srcRect, (x * 32), (y * 32));
 						}
 					}
 				}
@@ -1863,4 +1864,76 @@ List<ShaderResBinding> RpakLib::ExtractShaderResourceBindings(const RpakLoadAsse
 		}
 	}
 	return ResBindings;
+}
+
+void RpakLib::ExtractUIImageAtlas(const RpakLoadAsset& Asset, const string& Path)
+{
+	auto RpakStream = this->GetFileStream(Asset);
+	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+
+	if (Asset.RawDataIndex == -1) // no uvs - we shouldn't be able to get to this point
+		return;
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
+	
+	auto Header = Reader.Read<UIAtlasHeader>();
+
+	if (!Assets.ContainsKey(Header.TextureGuid)) // can't get the images without texture data so let's head out
+		return;
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset));
+
+	List<UIAtlasImage> UIAtlasImages(Header.TexturesCount, true);
+
+	for (int i = 0; i < Header.TexturesCount; ++i)
+	{
+		auto uvs = Reader.Read<UIAtlasUV>();
+		UIAtlasImages[i].uvs = uvs;
+		UIAtlasImages[i].PosX = uvs.uv0x * Header.Width;
+		UIAtlasImages[i].PosY = uvs.uv0y * Header.Height;
+	}
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, Header.TextureOffsetsIndex, Header.TextureOffsetsOffset));
+
+	for (int i = 0; i < Header.TexturesCount; ++i)
+	{
+		UIAtlasImages[i].offsets = Reader.Read<UIAtlasOffset>();
+	}
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, Header.TextureDimsIndex, Header.TextureDimsOffset));
+
+	for (int i = 0; i < Header.TexturesCount; ++i)
+	{
+		UIAtlasImages[i].Width =  Reader.Read<uint16_t>();
+		UIAtlasImages[i].Height = Reader.Read<uint16_t>();
+	}
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, Header.TextureHashesIndex, Header.TextureHashesOffset));
+
+	for (int i = 0; i < Header.TexturesCount; ++i)
+	{
+		UIAtlasImages[i].Hash = Reader.Read<uint32_t>();
+		//UIAtlasImages[i].PathTableOffset = Reader.Read<uint64_t>(); // i don't really know when this needs to be read
+	}
+
+	// i'll do image names later or something idk
+
+	std::unique_ptr<Assets::Texture> Texture = nullptr;
+	string Name;
+
+	this->ExtractTexture(Assets[Header.TextureGuid], Texture, Name);
+	Texture->ConvertToFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
+
+	for (auto& img : UIAtlasImages)
+	{
+
+		std::unique_ptr<Assets::Texture> tmp = std::make_unique<Assets::Texture>(img.Width, img.Height, Texture.get()->Format());
+		uint32_t BytesPerPixel = tmp->GetBpp() / 8;
+
+		DirectX::Rect srcRect{ img.PosX, img.PosY, img.Width, img.Height };
+
+		tmp->CopyTextureSlice(Texture, srcRect, 0, 0);
+
+		tmp->Save(IO::Path::Combine(Path, string::Format("0x%x%s", img.Hash, (const char*)ImageExtension)), ImageSaveType);
+	}
 }

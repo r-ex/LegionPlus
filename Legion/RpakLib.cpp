@@ -205,6 +205,12 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims
 				continue;
 			BuildShaderSetInfo(Asset, NewAsset);
 			break;
+		case (uint32_t)RpakAssetType::UIImageAtlas:
+			// i'll implement this later
+			//if (!ExportManager::Config.GetBool("LoadUIAtlases"))
+			//	continue;
+			BuildUIImageAtlasInfo(Asset, NewAsset);
+			break;
 		default:
 			continue;
 		}
@@ -621,6 +627,11 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 		case (uint32_t)RpakAssetType::Shader:
 		{
 			return true;
+		}
+		case (uint32_t)RpakAssetType::UIImageAtlas:
+		{ // finally an actual check for this
+			auto Header = Reader.Read<UIAtlasHeader>();
+			return Header.TexturesCount != 0;
 		}
 		default:
 			return false;

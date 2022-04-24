@@ -115,17 +115,10 @@ namespace Assets
 	}
 
 	// this function assumes that both of the textures are in the same format
-	void Texture::CopyTextureSlice(std::unique_ptr<Texture>& SourceTexture, std::vector<uint32_t> params, uint32_t x, uint32_t y)
+	void Texture::CopyTextureSlice(std::unique_ptr<Texture>& SourceTexture, DirectX::Rect& srcRect, uint32_t x, uint32_t y)
 	{
-		uint32_t bpp = this->GetBpp();
-		uint32_t bytesPerPixel = bpp / 8;
-		for (int row = y; row < y + params[3]; ++row)
-		{
-			std::memcpy(this->GetPixels() + ((params[0] * bytesPerPixel) + (row * Width() * bytesPerPixel)), SourceTexture.get()->GetPixels() + ((params[0] * bytesPerPixel) + (row * Width() * bytesPerPixel)), params[2] * bytesPerPixel);
-		}
+		DirectX::CopyRectangle(*((DirectX::ScratchImage*)SourceTexture->DirectXImage)->GetImage(0, 0, 0), srcRect, *InternalScratchImage->GetImage(0, 0, 0), DirectX::TEX_FILTER_DEFAULT, x, y);
 	}
-
-
 
 	void Texture::ConvertToFormat(DXGI_FORMAT Format)
 	{

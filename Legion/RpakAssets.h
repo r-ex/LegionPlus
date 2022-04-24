@@ -1268,7 +1268,7 @@ struct StarpakStreamEntry
 	uint64_t Size;
 };
 
-// shader types
+// shdr, shds - shader, shaderset
 
 enum ShaderType : uint16_t
 {
@@ -1361,6 +1361,72 @@ struct ShaderResBinding
 	string Name;
 	D3D_SHADER_INPUT_TYPE Type;
 };
+
+// uimg - ui image atlas
+struct UIAtlasHeader
+{
+	uint64_t Unk0;
+	uint16_t Width; // full dimensions of the atlas texture
+	uint16_t Height;
+	uint16_t TexturesCount; // number of textures
+	uint16_t UnkE;
+	uint32_t TextureOffsetsIndex; // texture "offsets" (idrk what this actually does tbh)
+	uint32_t TextureOffsetsOffset;
+	uint32_t TextureDimsIndex; // texture dimensions
+	uint32_t TextureDimsOffset;
+	uint32_t Unk20;
+	uint32_t Unk24;
+	uint32_t TextureHashesIndex; // texture hashes
+	uint32_t TextureHashesOffset;
+	uint32_t TextureNamesIndex; // texture paths ( not always present )
+	uint32_t TextureNamesOffset;
+	uint64_t TextureGuid; // asset guid for the texture that contains our images
+};
+
+struct UIAtlasUV
+{
+	float uv0x; // top left corner
+	float uv0y;
+
+	float uv1x;
+	float uv1y;
+};
+
+struct UIAtlasOffset
+{
+	// these don't seem to matter all that much as long as they are a valid float number
+	float f0 = 0.f;
+	float f1 = 0.f;
+
+	// endX and endY define where the edge of the image is, with 1.f being the full length of the image and 0.5f being half of the image
+	float endX = 1.f;
+	float endY = 1.f;
+
+	// startX and startY define where the top left corner is in proportion to the full image dimensions
+	float startX = 0.f;
+	float startY = 0.f;
+
+	// changing these 2 values causes the image to be distorted on each axis
+	float unkX = 1.f;
+	float unkY = 1.f;
+};
+
+struct UIAtlasImage // uiai wen
+{
+	string Path;
+	uint32_t Hash;
+	uint64_t PathTableOffset;
+
+	UIAtlasOffset offsets; // idk anymore
+	UIAtlasUV uvs;
+
+	uint16_t Width;
+	uint16_t Height;
+
+	uint16_t PosX; // top left corner's absolute position in the atlas texture
+	uint16_t PosY;
+};
+
 #pragma pack(pop)
 
 // Validate all game structures

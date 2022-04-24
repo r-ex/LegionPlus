@@ -343,3 +343,13 @@ void RpakLib::ExportShaderSet(const RpakLoadAsset& Asset, const string& Path)
 		this->ExtractShader(Assets[VertexShaderGuid], VertexShaderPath);
 	}
 }
+
+void RpakLib::ExportUIImageAtlas(const RpakLoadAsset& Asset, const string& Path)
+{
+	auto AtlasPath = IO::Path::Combine(Path, string::Format("0x%llx", Asset.NameHash));
+
+	if (!IO::Directory::Exists(AtlasPath))
+		IO::Directory::CreateDirectory(AtlasPath);
+
+	this->ExtractUIImageAtlas(Asset, AtlasPath);
+}

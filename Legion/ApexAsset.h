@@ -13,6 +13,7 @@ enum class ApexAssetType
 	Subtitles,
 	ShaderSet,
 	UIImage,
+	UIImageAtlas,
 };
 
 enum class ApexAssetStatus

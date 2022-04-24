@@ -240,3 +240,18 @@ void RpakLib::BuildShaderSetInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	Info.Status = ApexAssetStatus::Loaded;
 	Info.Info = "N/A";
 }
+
+void RpakLib::BuildUIImageAtlasInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
+{
+	auto RpakStream = this->GetFileStream(Asset);
+	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
+
+	auto Header = Reader.Read<UIAtlasHeader>();
+
+	Info.Name = string::Format("atlas_0x%llx", Asset.NameHash);
+	Info.Type = ApexAssetType::UIImageAtlas;
+	Info.Status = ApexAssetStatus::Loaded;
+	Info.Info = string::Format("Textures: %i", Header.TexturesCount);
+}
