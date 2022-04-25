@@ -58,21 +58,29 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 	case CompressionType::OODLE:
 	{
 		int sizeNeeded = OodleLZDecoder_MemorySizeNeeded(OodleLZ_Compressor_Invalid, -1);
+		int SizeNeeded = OodleLZDecoder_MemorySizeNeeded(OodleLZ_Compressor_Invalid, -1);
 
 		auto decoder = new uint8_t[sizeNeeded];
+		auto Decoder = new uint8_t[SizeNeeded];
 
 		OodleLZDecoder_Create(OodleLZ_Compressor::OodleLZ_Compressor_Invalid, DataSize, decoder, sizeNeeded);
+		OodleLZDecoder_Create(OodleLZ_Compressor::OodleLZ_Compressor_Invalid, DataSize, Decoder, SizeNeeded);
 
 		int decPos = 0;
+		int DecPos = 0;
 		int DataPos = 0;
 
 		OodleLZ_DecodeSome_Out out{};
 		auto outBuf = new uint8_t[DataSize];
 		if (!OodleLZDecoder_DecodeSome((OodleLZDecoder*)decoder, &out, outBuf, decPos, DataSize, DataSize - decPos, Data + DataPos, DataSize - DataPos, OodleLZ_FuzzSafe_No, OodleLZ_CheckCRC_No, OodleLZ_Verbosity::OodleLZ_Verbosity_None, OodleLZ_Decode_ThreadPhaseAll))
+		auto OutBuf = new uint8_t[DataSize];
+		if (!OodleLZDecoder_DecodeSome((OodleLZDecoder*)Decoder, &out, OutBuf, DecPos, DataSize, DataSize - DecPos, Data + DataPos, DataSize - DataPos, OodleLZ_FuzzSafe_No, OodleLZ_CheckCRC_No, OodleLZ_Verbosity::OodleLZ_Verbosity_None, OodleLZ_Decode_ThreadPhaseAll))
 		{
 			// If it fails it shouldn't be compressed?
 			delete[] decoder;
 			delete[] outBuf;
+			delete[] Decoder;
+			delete[] OutBuf;
 
 			return std::make_unique<IO::MemoryStream>(const_cast<uint8_t*>(Data), 0, DataSize);
 		}
@@ -80,19 +88,24 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 		while (true)
 		{
 			decPos += out.decodedCount;
+			DecPos += out.decodedCount;
 			DataPos += out.compBufUsed;
 
 			if (out.compBufUsed + out.decodedCount == 0)
 				break;
 
 			if (decPos >= DataSize)
+			if (DecPos >= DataSize)
 				break;
 
 			bool decodeResult = OodleLZDecoder_DecodeSome((OodleLZDecoder*)decoder, &out, outBuf, decPos, DataSize, DataSize - decPos, Data + DataPos, DataSize - DataPos, OodleLZ_FuzzSafe_No, OodleLZ_CheckCRC_No, OodleLZ_Verbosity::OodleLZ_Verbosity_None, OodleLZ_Decode_ThreadPhaseAll);
+			bool DecodeResult = OodleLZDecoder_DecodeSome((OodleLZDecoder*)Decoder, &out, OutBuf, DecPos, DataSize, DataSize - DecPos, Data + DataPos, DataSize - DataPos, OodleLZ_FuzzSafe_No, OodleLZ_CheckCRC_No, OodleLZ_Verbosity::OodleLZ_Verbosity_None, OodleLZ_Decode_ThreadPhaseAll);
 		}
 
 		delete[] decoder;
 		return std::make_unique<IO::MemoryStream>(outBuf, 0, DataSize);
+		delete[] Decoder;
+		return std::make_unique<IO::MemoryStream>(OutBuf, 0, DataSize);
 	}
 	default:
 	{

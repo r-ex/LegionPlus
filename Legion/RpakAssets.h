@@ -11,6 +11,7 @@
 #pragma pack(push, 1)
 
 enum class CompressionType : uint32_t
+enum class CompressionType : uint8_t
 {
 	DEFAULT = 0x0,
 	PAKFILE = 0x1,
