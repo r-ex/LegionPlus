@@ -18,7 +18,6 @@ enum class CompressionType : uint8_t
 	OODLE = 0x3
 };
 
-
 struct TextureHeader
 {
 	uint64_t NameHash;
@@ -45,6 +44,7 @@ struct TextureHeader
 	uint8_t UnknownPad[0x15];
 };
 
+// --- txan ---
 struct TextureAnimatedHeader
 {
 	uint32_t Index1;
@@ -57,6 +57,7 @@ struct TextureAnimatedHeader
 	uint32_t Offset3;
 };
 
+// --- uiia ---
 struct UIIAFlags
 {
 	uint8_t HasLowTable : 1;
@@ -89,6 +90,34 @@ struct UIIAHeader
 	float FloatTable[0x8];
 };
 
+struct RUIImage
+{
+	uint32_t Zero[0x8];
+
+	uint16_t HighResolutionWidth;
+	uint16_t HighResolutionHeight;
+
+	uint16_t LowResolutionWidth;
+	uint16_t LowResolutionHeight;
+
+	uint32_t BufferIndex;
+	uint32_t BufferOffset;
+
+	uint32_t Zero2[0x4];
+};
+
+// --- dtbl ---
+enum DataTableColumnDataType
+{
+	Bool,
+	Int,
+	Float,
+	Vector,
+	StringT,
+	Asset,
+	AssetNoPrecache
+};
+
 struct DataTableHeader
 {
 	uint32_t ColumnCount;
@@ -107,31 +136,12 @@ struct DataTableHeader
 	uint32_t Padding;
 };
 
-//struct DataTableColumn
-//{
-//	uint32_t Flags;
-//	uint32_t StringOffset;
-//	uint32_t ColumnDataType;
-//	uint32_t RowDataOffset;
-//};
-
 struct DataTableColumn
 {
 	uint64_t Unk0Seek;
 	uint64_t Unk8;
 	uint32_t Type;
 	uint32_t RowOffset;
-};
-
-enum DataTableColumnDataType
-{
-	Bool,
-	Int,
-	Float,
-	Vector,
-	StringT,
-	Asset,
-	AssetNoPrecache
 };
 
 struct DataTableColumnData
@@ -146,6 +156,7 @@ struct DataTableColumnData
 	string assetNPValue;
 };
 
+// --- subt ---
 struct SubtitleHeader
 {
 	char padding[0x10];
@@ -160,6 +171,7 @@ struct SubtitleEntry
 	string SubtitleText;
 };
 
+// --- stgs ---
 struct SettingsHeader
 {
 	uint64_t Hash;
@@ -180,18 +192,6 @@ struct SettingsHeader
 	uint8_t Unk2[0xC];
 };
 
-struct PatchHeader
-{
-	uint32_t Version;
-	uint32_t Count;
-
-	uint32_t EntriesIndex;
-	uint32_t EntriesOffset;
-
-	uint32_t PatchesIndex;
-	uint32_t PatchesOffset;
-};
-
 struct SettingsKeyValue
 {
 	uint32_t BlockIndex;
@@ -204,128 +204,21 @@ struct SettingsKeyValuePair
 	SettingsKeyValue Value;
 };
 
-struct ModelHeaderS50
+// --- Ptch ---
+struct PatchHeader
 {
-	// .rmdl
-	uint32_t SkeletonIndex;
-	uint32_t SkeletonOffset;
+	uint32_t Version;
+	uint32_t Count;
 
-	uint32_t NameIndex;
-	uint32_t NameOffset;
+	uint32_t EntriesIndex;
+	uint32_t EntriesOffset;
 
-	// .phy
-	uint32_t PhyIndex;
-	uint32_t PhyOffset;
-	uint64_t Padding3;
-
-	// .vvd
-	uint32_t BlockIndex1;
-	uint32_t BlockOffset1;
-	uint64_t Padding4;
-
-	uint32_t Padding5;
-	uint32_t StreamedDataSize;
-	uint32_t DataFlags;
-	uint64_t Padding6;
-
-	uint32_t AnimSequenceCount;
-
+	uint32_t PatchesIndex;
+	uint32_t PatchesOffset;
 };
 
-// see struct below
-struct ModelHeaderS68
-{
-	// .rmdl
-	uint32_t SkeletonIndex;
-	uint32_t SkeletonOffset;
-	uint64_t Padding;
-
-	uint32_t NameIndex;
-	uint32_t NameOffset;
-	uint64_t Padding2;
-
-	// .phy
-	uint32_t PhyIndex;
-	uint32_t PhyOffset;
-	uint64_t Padding3;
-	
-	// .vvd
-	uint32_t BlockIndex1;
-	uint32_t BlockOffset1;
-	uint64_t Padding4;
-
-	uint32_t Padding5;
-	uint32_t StreamedDataSize;
-	uint32_t DataFlags;
-	uint64_t Padding6;
-
-	uint32_t AnimSequenceCount;
-	uint32_t AnimSequenceIndex;
-	uint32_t AnimSequenceOffset;
-
-	uint64_t Padding7;
-};
-
-struct ModelHeaderS80
-{
-	// .rmdl
-	uint32_t SkeletonIndex;
-	uint32_t SkeletonOffset;
-	uint64_t Padding;
-
-	uint32_t NameIndex;
-	uint32_t NameOffset;
-	uint64_t Padding2;
-
-	// .phy
-	uint32_t PhyIndex;
-	uint32_t PhyOffset;
-	uint64_t Padding3;
-
-	// .vvd
-	// this pointer is not always registered
-	// similar data will often be streamed from a mandatory starpak
-	uint32_t VGIndex1;
-	uint32_t VGOffset1;
-	uint64_t Padding4;
-
-	uint32_t Padding5;
-	uint32_t StreamedDataSize;
-	uint32_t DataFlags;
-
-	float Box[6];
-	uint64_t Padding6;
-
-	uint32_t AnimSequenceCount;
-	uint32_t AnimSequenceIndex;
-	uint32_t AnimSequenceOffset;
-
-	uint64_t Padding7;
-};
-
-struct ShaderHeader
-{
-	uint64_t Padding;
-	uint64_t DataSize;
-	uint64_t Padding2;
-
-	uint32_t Index1;
-	uint32_t Offset1;
-
-	uint32_t Index2;
-	uint32_t Offset2;
-};
-
-struct RShaderImage
-{
-	uint32_t DataIndex;
-	uint32_t DataOffset;
-	uint32_t DataSize;
-	uint32_t Size2;
-	uint32_t DataIndex2;
-	uint32_t DataOffset2;
-};
-
+// ANIMATIONS
+// --- aseq ---
 struct AnimHeader
 {
 	uint32_t AnimationIndex;
@@ -340,31 +233,7 @@ struct AnimHeader
 	uint32_t ModelHashOffset;
 };
 
-struct ShaderSetHeader {
-	uint8_t Unknown1[0x18];
-	uint16_t Count1;
-	uint16_t Count2;
-	uint16_t Count3;
-	uint8_t Byte1;
-	uint8_t Byte2;
-
-	uint8_t Unknown2[0x10];
-
-	uint64_t OldVertexShaderHash;
-	uint64_t OldPixelShaderHash;
-
-	// only used for version 12+
-	uint64_t VertexShaderHash;
-	uint64_t PixelShaderHash;
-};
-
-struct ShaderDataHeader
-{
-	uint32_t ByteCodeIndex;
-	uint32_t ByteCodeOffset;
-	uint32_t DataSize;
-};
-
+// --- arig ---
 struct AnimRigHeader
 {
 	uint32_t SkeletonIndex;
@@ -381,22 +250,6 @@ struct AnimRigHeader
 
 	uint32_t Unk3;
 	uint32_t Unk4;
-};
-
-struct RUIImage
-{
-	uint32_t Zero[0x8];
-
-	uint16_t HighResolutionWidth;
-	uint16_t HighResolutionHeight;
-
-	uint16_t LowResolutionWidth;
-	uint16_t LowResolutionHeight;
-
-	uint32_t BufferIndex;
-	uint32_t BufferOffset;
-
-	uint32_t Zero2[0x4];
 };
 
 struct RAnimHeader
@@ -520,6 +373,106 @@ struct RAnimBoneHeader
 	uint16_t ScaleZ;
 
 	uint32_t DataSize;
+};
+
+// MODELS
+// --- mdl_ ---
+struct ModelHeaderS50
+{
+	// .rmdl
+	uint32_t SkeletonIndex;
+	uint32_t SkeletonOffset;
+
+	uint32_t NameIndex;
+	uint32_t NameOffset;
+
+	// .phy
+	uint32_t PhyIndex;
+	uint32_t PhyOffset;
+	uint64_t Padding3;
+
+	// .vvd
+	uint32_t BlockIndex1;
+	uint32_t BlockOffset1;
+	uint64_t Padding4;
+
+	uint32_t Padding5;
+	uint32_t StreamedDataSize;
+	uint32_t DataFlags;
+	uint64_t Padding6;
+
+	uint32_t AnimSequenceCount;
+
+};
+
+struct ModelHeaderS68
+{
+	// .rmdl
+	uint32_t SkeletonIndex;
+	uint32_t SkeletonOffset;
+	uint64_t Padding;
+
+	uint32_t NameIndex;
+	uint32_t NameOffset;
+	uint64_t Padding2;
+
+	// .phy
+	uint32_t PhyIndex;
+	uint32_t PhyOffset;
+	uint64_t Padding3;
+
+	// .vvd
+	uint32_t BlockIndex1;
+	uint32_t BlockOffset1;
+	uint64_t Padding4;
+
+	uint32_t Padding5;
+	uint32_t StreamedDataSize;
+	uint32_t DataFlags;
+	uint64_t Padding6;
+
+	uint32_t AnimSequenceCount;
+	uint32_t AnimSequenceIndex;
+	uint32_t AnimSequenceOffset;
+
+	uint64_t Padding7;
+};
+
+struct ModelHeaderS80
+{
+	// .rmdl
+	uint32_t SkeletonIndex;
+	uint32_t SkeletonOffset;
+	uint64_t Padding;
+
+	uint32_t NameIndex;
+	uint32_t NameOffset;
+	uint64_t Padding2;
+
+	// .phy
+	uint32_t PhyIndex;
+	uint32_t PhyOffset;
+	uint64_t Padding3;
+
+	// .vvd
+	// this pointer is not always registered
+	// similar data will often be streamed from a mandatory starpak
+	uint32_t VGIndex1;
+	uint32_t VGOffset1;
+	uint64_t Padding4;
+
+	uint32_t Padding5;
+	uint32_t StreamedDataSize;
+	uint32_t DataFlags;
+
+	float Box[6];
+	uint64_t Padding6;
+
+	uint32_t AnimSequenceCount;
+	uint32_t AnimSequenceIndex;
+	uint32_t AnimSequenceOffset;
+
+	uint64_t Padding7;
 };
 
 struct RMdlSkeletonHeader
@@ -1227,6 +1180,8 @@ struct RMdlTexture
 	uint64_t MaterialHash;
 };
 
+// MATERIALS
+// --- matl ---
 struct MaterialHeader
 {
 	uint8_t Unknown[0x10];
@@ -1268,8 +1223,59 @@ struct StarpakStreamEntry
 	uint64_t Size;
 };
 
-// shdr, shds - shader, shaderset
 
+// SHADERS
+// --- shdr ---
+struct ShaderHeader
+{
+	uint64_t Padding;
+	uint64_t DataSize;
+	uint64_t Padding2;
+
+	uint32_t Index1;
+	uint32_t Offset1;
+
+	uint32_t Index2;
+	uint32_t Offset2;
+};
+
+struct RShaderImage
+{
+	uint32_t DataIndex;
+	uint32_t DataOffset;
+	uint32_t DataSize;
+	uint32_t Size2;
+	uint32_t DataIndex2;
+	uint32_t DataOffset2;
+};
+
+// --- shds ---
+struct ShaderSetHeader {
+	uint8_t Unknown1[0x18];
+	uint16_t Count1;
+	uint16_t Count2;
+	uint16_t Count3;
+	uint8_t Byte1;
+	uint8_t Byte2;
+
+	uint8_t Unknown2[0x10];
+
+	uint64_t OldVertexShaderHash;
+	uint64_t OldPixelShaderHash;
+
+	// only used for version 12+
+	uint64_t VertexShaderHash;
+	uint64_t PixelShaderHash;
+};
+
+struct ShaderDataHeader
+{
+	uint32_t ByteCodeIndex;
+	uint32_t ByteCodeOffset;
+	uint32_t DataSize;
+};
+
+// DX Shader Types
 enum ShaderType : uint16_t
 {
 	ComputeShader = 0x4353,
