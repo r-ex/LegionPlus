@@ -33,17 +33,16 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 		auto State = std::make_unique<uint8_t[]>(0x25000);
 		g_pRtech->DecompressSnowflakeInit((long long)&State.get()[0], (int64_t)Data, DataSize);
 
-		// TODO PIX AND REXX: Verify the DecompSize and debug it.
-		auto EditState = (__int64*)&State.get()[0];
-		auto DecompressedSize = EditState[0x48D3];
+		__int64* EditState = (__int64*)&State.get()[0];
+		__int64 DecompressedSize = EditState[0x48D3];
 
-		auto v15 = *((unsigned int*)EditState + 0x91A4);
-		auto v16 = DecompressedSize;
+		unsigned int v15 = *((unsigned int*)EditState + 0x91A4);
+		__int64 v16 = DecompressedSize;
 		*((uint32_t*)EditState + 0x91A2) = 0;
 		if (v15 < DecompressedSize)
 			v16 = v15;
 
-		auto Result = new uint8_t[DecompressedSize]{};
+		uint8_t* Result = new uint8_t[DecompressedSize]{};
 
 		EditState[0x48D4] = (__int64)v16;
 		EditState[0x48DA] = (__int64)Result;
@@ -59,7 +58,7 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 	{
 		int SizeNeeded = OodleLZDecoder_MemorySizeNeeded(OodleLZ_Compressor_Invalid, -1);
 
-		auto Decoder = new uint8_t[SizeNeeded];
+		uint8_t* Decoder = new uint8_t[SizeNeeded];
 
 		OodleLZDecoder_Create(OodleLZ_Compressor::OodleLZ_Compressor_Invalid, DataSize, Decoder, SizeNeeded);
 
@@ -67,7 +66,7 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 		int DataPos = 0;
 
 		OodleLZ_DecodeSome_Out out{};
-		auto OutBuf = new uint8_t[DataSize];
+		uint8_t* OutBuf = new uint8_t[DataSize];
 		if (!OodleLZDecoder_DecodeSome((OodleLZDecoder*)Decoder, &out, OutBuf, DecPos, DataSize, DataSize - DecPos, Data + DataPos, DataSize - DataPos, OodleLZ_FuzzSafe_No, OodleLZ_CheckCRC_No, OodleLZ_Verbosity::OodleLZ_Verbosity_None, OodleLZ_Decode_ThreadPhaseAll))
 		{
 			// If it fails it shouldn't be compressed?
@@ -105,7 +104,7 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset, const string& Path, const string& AnimPath, bool IncludeMaterials, bool IncludeAnimations)
 {
 	auto RpakStream = this->GetFileStream(Asset);
-	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 	auto Model = std::make_unique<Assets::Model>(0, 0);
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
@@ -119,7 +118,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 		}
 		else
 		{
-			auto mht = Reader.Read<ModelHeaderS50>();
+			ModelHeaderS50 mht = Reader.Read<ModelHeaderS50>();
 			ModHeader.SkeletonIndex = mht.SkeletonIndex;
 			ModHeader.SkeletonOffset = mht.SkeletonOffset;
 
@@ -132,17 +131,17 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 	}
 	else
 	{
-		auto ModHeaderTmp = Reader.Read<ModelHeaderS80>();
+		ModelHeaderS80 ModHeaderTmp = Reader.Read<ModelHeaderS80>();
 		std::memcpy(&ModHeader, &ModHeaderTmp, offsetof(ModelHeaderS80, DataFlags));
 		std::memcpy(&ModHeader.AnimSequenceCount, &ModHeaderTmp.AnimSequenceCount, sizeof(uint32_t) * 3);
 	}
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.NameIndex, ModHeader.NameOffset));
 
-	auto ModelName = IO::Path::GetFileNameWithoutExtension(Reader.ReadCString());
-	auto ModelPath = IO::Path::Combine(Path, ModelName);
-	auto TexturePath = IO::Path::Combine(ModelPath, "_images");
-	auto AnimationPath = IO::Path::Combine(AnimPath, ModelName);
+	string ModelName = IO::Path::GetFileNameWithoutExtension(Reader.ReadCString());
+	string ModelPath = IO::Path::Combine(Path, ModelName);
+	string TexturePath = IO::Path::Combine(ModelPath, "_images");
+	string AnimationPath = IO::Path::Combine(AnimPath, ModelName);
 
 	Model->Name = ModelName;
 
@@ -158,7 +157,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 	bool bExportingRawRMdl = false;
 
-	auto BaseFileName = IO::Path::Combine(ModelPath, ModelName);
+	string BaseFileName = IO::Path::Combine(ModelPath, ModelName);
 
 	if (Path != "" && AnimPath != "" && ModelFormat == RpakModelExportFormat::RMDL)
 	{
@@ -189,7 +188,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 			RpakStream->SetPosition(PhyOffset + PhyHeader.TextOffset);
 
-			auto Text = Reader.ReadCString();
+			string Text = Reader.ReadCString();
 
 			uint64_t PhySize = PhyHeader.TextOffset + Text.Length();
 
@@ -223,7 +222,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 		for (uint32_t i = 0; i < ModHeader.AnimSequenceCount; i++)
 		{
-			auto AnimHash = Reader.Read<uint64_t>();
+			uint64_t AnimHash = Reader.Read<uint64_t>();
 
 			if (!Assets.ContainsKey(AnimHash))
 				continue;	// Should never happen
@@ -302,11 +301,11 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 		return nullptr;
 	}
 
-	auto StarpakReader = IO::BinaryReader(StarpakStream.get(), true);
+	IO::BinaryReader StarpakReader = IO::BinaryReader(StarpakStream.get(), true);
 
 	if (bExportingRawRMdl)
 	{
-		auto StarpakStream = StarpakReader.GetBaseStream();
+		IO::Stream* StarpakStream = StarpakReader.GetBaseStream();
 
 		
 		if (Asset.AssetVersion <= 8) // s1
@@ -351,7 +350,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO::MemoryStream>& RpakStream, string Name, uint64_t Offset, const std::unique_ptr<Assets::Model>& Model, RMdlFixupPatches& Fixup, uint32_t Version, bool IncludeMaterials)
 {
-	auto BaseStream = Reader.GetBaseStream();
+	IO::Stream* BaseStream = Reader.GetBaseStream();
 
 	if (!BaseStream)
 	{
@@ -421,7 +420,7 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 	}
 
 	// Offsets in submesh are relative to the submesh we're reading...
-	const auto SubmeshPointer = BaseStream->GetPosition();
+	const uint64_t SubmeshPointer = BaseStream->GetPosition();
 
 	// We need to read the submeshes
 	List<RMdlVGSubmesh> SubmeshBuffer(VGHeader.SubmeshCount, true);
@@ -430,7 +429,7 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 	// Loop and read submeshes
 	for (uint32_t s = 0; s < VGHeader.SubmeshCount; s++)
 	{
-		auto& Submesh = SubmeshBuffer[s];
+		RMdlVGSubmesh& Submesh = SubmeshBuffer[s];
 
 		// We have buffers per submesh now thank god
 		List<uint8_t> VertexBuffer(Submesh.VertexCountBytes, true);
@@ -460,13 +459,13 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 			continue;
 		}
 
-		auto& BoneRemapBuffer = *Fixup.BoneRemaps;
+		List<uint8_t>& BoneRemapBuffer = *Fixup.BoneRemaps;
 
-		auto& Mesh = Model->Meshes.Emplace(0x10, (((Submesh.Flags2 & 0x2) == 0x2) ? 2 : 1));	// max weights / max uvs
-		auto& Strip = StripBuffer[0];
+		Assets::Mesh& Mesh = Model->Meshes.Emplace(0x10, (((Submesh.Flags2 & 0x2) == 0x2) ? 2 : 1));	// max weights / max uvs
+		RMdlVGStrip& Strip = StripBuffer[0];
 
-		auto VertexBufferPtr = (uint8_t*)&VertexBuffer[0];
-		auto FaceBufferPtr = (uint16_t*)&IndexBuffer[0];
+		uint8_t* VertexBufferPtr = (uint8_t*)&VertexBuffer[0];
+		uint16_t* FaceBufferPtr = (uint16_t*)&IndexBuffer[0];
 
 		// Cache these here, flags in the submesh dictate what to use
 		Math::Vector3 Position{};
@@ -509,7 +508,7 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 			UVs = *(Math::Vector2*)(VertexBufferPtr + Shift);
 			Shift += sizeof(Math::Vector2);
 
-			auto Vertex = Mesh.Vertices.Emplace(Position, Normal, Color, UVs);
+			Assets::Vertex Vertex = Mesh.Vertices.Emplace(Position, Normal, Color, UVs);
 
 			if ((Submesh.Flags2 & 0x2) == 0x2)
 			{
@@ -547,7 +546,7 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 						ExtendedIndexShift = ExtendedWeightsIndex + ExtendedCounter;
 						ExtendedIndexShift = ExtendedIndexShift + -1;
 
-						auto& ExtendedWeight = ExtendedWeights[ExtendedIndexShift];
+						RMdlExtendedWeight& ExtendedWeight = ExtendedWeights[ExtendedIndexShift];
 
 						float ExtendedValue = (float)(ExtendedWeight.Weight + 1) / (float)0x8000;
 						uint32_t ExtendedIndex = BoneRemapBuffer[ExtendedWeight.BoneId];
@@ -599,9 +598,9 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 
 		for (uint32_t f = 0; f < (Strip.IndexCount / 3); f++)
 		{
-			auto i1 = *(uint16_t*)FaceBufferPtr;
-			auto i2 = *(uint16_t*)(FaceBufferPtr + 1);
-			auto i3 = *(uint16_t*)(FaceBufferPtr + 2);
+			uint16_t i1 = *(uint16_t*)FaceBufferPtr;
+			uint16_t i2 = *(uint16_t*)(FaceBufferPtr + 1);
+			uint16_t i3 = *(uint16_t*)(FaceBufferPtr + 2);
 
 			Mesh.Faces.EmplaceBack(i1, i2, i3);
 
@@ -610,18 +609,18 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 
 		RpakStream->SetPosition(Fixup.FixupTableOffset);
 
-		auto SubmeshLodReader = IO::BinaryReader(RpakStream.get(), true);
-		auto SubmeshLod = SubmeshLodReader.Read<RMdlLodSubmesh>();
-		auto& Material = (*Fixup.Materials)[SubmeshLod.Index];
+		IO::BinaryReader SubmeshLodReader = IO::BinaryReader(RpakStream.get(), true);
+		RMdlLodSubmesh SubmeshLod = SubmeshLodReader.Read<RMdlLodSubmesh>();
+		RMdlTexture& Material = (*Fixup.Materials)[SubmeshLod.Index];
 
 		if (SubmeshLod.Index < Fixup.Materials->Count() && Assets.ContainsKey(Material.MaterialHash))
 		{
-			auto& MaterialAsset = Assets[Material.MaterialHash];
+			RpakLoadAsset& MaterialAsset = Assets[Material.MaterialHash];
 
-			auto ParsedMaterial = this->ExtractMaterial(MaterialAsset, Fixup.MaterialPath, IncludeMaterials, false);
-			auto MaterialIndex = Model->AddMaterial(ParsedMaterial.MaterialName, ParsedMaterial.AlbedoHash);
+			RMdlMaterial ParsedMaterial = this->ExtractMaterial(MaterialAsset, Fixup.MaterialPath, IncludeMaterials, false);
+			uint32_t MaterialIndex = Model->AddMaterial(ParsedMaterial.MaterialName, ParsedMaterial.AlbedoHash);
 
-			auto& MaterialInstance = Model->Materials[MaterialIndex];
+			Assets::Material& MaterialInstance = Model->Materials[MaterialIndex];
 
 			if (ParsedMaterial.AlbedoMapName != "")
 				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Albedo, { "_images\\" + ParsedMaterial.AlbedoMapName, ParsedMaterial.AlbedoHash });
@@ -658,11 +657,11 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 	RMdlMaterial Result;
 
 	auto RpakStream = this->GetFileStream(Asset);
-	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	auto MatHeader = Reader.Read<MaterialHeader>();
+	MaterialHeader MatHeader = Reader.Read<MaterialHeader>();
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, MatHeader.NameIndex, MatHeader.NameOffset));
 
@@ -674,8 +673,8 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 
 	if (shadersetLoaded)
 	{
-		auto ShaderSetAsset = Assets[MatHeader.ShaderSetHash];
-		auto ShaderSetHeader = ExtractShaderSet(ShaderSetAsset);
+		RpakLoadAsset ShaderSetAsset = Assets[MatHeader.ShaderSetHash];
+		ShaderSetHeader ShaderSetHeader = ExtractShaderSet(ShaderSetAsset);
 
 		uint64_t PixelShaderGuid = ShaderSetHeader.PixelShaderHash;
 
@@ -711,7 +710,7 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 	{
 		RpakStream->SetPosition(TextureTable + ((uint64_t)i * 8));
 
-		auto TextureHash = Reader.Read<uint64_t>();
+		uint64_t TextureHash = Reader.Read<uint64_t>();
 		string TextureName = "";
 		bool bOverridden = false;
 		bool bNormalRecalculate = false;
@@ -769,7 +768,7 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 		// Extract to disk if need be
 		if (IncludeImages && Assets.ContainsKey(TextureHash))
 		{
-			auto& Asset = Assets[TextureHash];
+			RpakLoadAsset& Asset = Assets[TextureHash];
 			// Make sure the data we got to is a proper texture
 			if (Asset.AssetType == (uint32_t)RpakAssetType::Texture)
 			{
@@ -786,11 +785,11 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Texture>& Texture, string& Name)
 {
 	auto RpakStream = this->GetFileStream(Asset);
-	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	auto TexHeader = Reader.Read<TextureHeader>();
+	TextureHeader TexHeader = Reader.Read<TextureHeader>();
 
 	Assets::DDSFormat Fmt;
 
@@ -935,12 +934,12 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Texture>& Texture)
 {
 	auto RpakStream = this->GetFileStream(Asset);
-	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	auto TexHeader = Reader.Read<UIIAHeader>();
-	auto UnpackedShift = (~(unsigned __int8)((*(unsigned __int16*)&TexHeader.Flags) >> 5) & 2);
+	UIIAHeader TexHeader = Reader.Read<UIIAHeader>();
+	int UnpackedShift = (~(unsigned __int8)((*(unsigned __int16*)&TexHeader.Flags) >> 5) & 2);
 
 	uint64_t ActualStarpakOffset = Asset.StarpakOffset & 0xFFFFFFFFFFFFFF00;
 	uint64_t ActualOptStarpakOffset = Asset.OptimalStarpakOffset & 0xFFFFFFFFFFFFFF00;
@@ -972,7 +971,7 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 
 		if (this->LoadedFiles[Asset.FileIndex].StarpakMap.ContainsKey(Asset.StarpakOffset))
 		{
-			auto BufferSize = this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset];
+			uint64_t BufferSize = this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset];
 			auto CompressedBuffer = std::make_unique<uint8_t[]>(BufferSize);
 
 			TempStream->SetPosition(ActualStarpakOffset);
@@ -989,7 +988,7 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 	{
 		RpakStream->SetPosition(this->LoadedFiles[Asset.FileIndex].EmbeddedStarpakOffset);
 
-		auto BufferSize = this->LoadedFiles[Asset.FileIndex].EmbeddedStarpakSize;
+		uint64_t BufferSize = this->LoadedFiles[Asset.FileIndex].EmbeddedStarpakSize;
 		auto CompressedBuffer = std::make_unique<uint8_t[]>(BufferSize);
 
 		RpakStream->Read(CompressedBuffer.get(), 0, BufferSize);
@@ -1016,13 +1015,13 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 		if (RImage.LowResolutionHeight + UnpackedShift > 2)
 			RImage.LowResolutionHeight += UnpackedShift;
 
-		auto UseHighResolution = StarpakStream != nullptr;
+		bool UseHighResolution = StarpakStream != nullptr;
 
-		auto WidthBlocks = UseHighResolution ? (RImage.HighResolutionWidth + 29) / 31 : (RImage.LowResolutionWidth + 29) / 31;
-		auto HeightBlocks = UseHighResolution ? (RImage.HighResolutionHeight + 29) / 31 : (RImage.LowResolutionHeight + 29) / 31;
-		auto TotalBlocks = WidthBlocks * HeightBlocks;
-		auto Width = WidthBlocks * 32;
-		auto Height = HeightBlocks * 32;
+		int WidthBlocks = UseHighResolution ? (RImage.HighResolutionWidth + 29) / 31 : (RImage.LowResolutionWidth + 29) / 31;
+		int HeightBlocks = UseHighResolution ? (RImage.HighResolutionHeight + 29) / 31 : (RImage.LowResolutionHeight + 29) / 31;
+		int TotalBlocks = WidthBlocks * HeightBlocks;
+		int Width = WidthBlocks * 32;
+		int Height = HeightBlocks * 32;
 
 		uint64_t Offset = UseHighResolution ? 0 : this->GetFileOffset(Asset, RImage.BufferIndex, RImage.BufferOffset);
 
@@ -1033,7 +1032,7 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 		RpakStream->SetPosition(Offset);
 
 		auto CodePoints = std::make_unique<RUIImageTile[]>(TotalBlocks);
-		auto CodePointsSize = TotalBlocks * sizeof(RUIImageTile);
+		uint64_t CodePointsSize = TotalBlocks * sizeof(RUIImageTile);
 
 		// Check if we have tables for the tiles, if not, generate the opcodes directly.
 		if (!UseHighResolution && (!TexHeader.Flags.HasLowTable || !TexHeader.Flags.LowTableBc7))
@@ -1097,8 +1096,8 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 			{
 				for (uint32_t x = 0; x < WidthBlocks; x++)
 				{
-					auto& Point = CodePoints[x + (y * WidthBlocks)];
-					auto BlockOffset = (x * 512) + ((y * WidthBlocks) * 512);
+					RUIImageTile& Point = CodePoints[x + (y * WidthBlocks)];
+					uint32_t BlockOffset = (x * 512) + ((y * WidthBlocks) * 512);
 
 					if (Point.Opcode != 0x40)
 					{
@@ -1117,8 +1116,8 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 			// Unswizzle Bc1 blocks.
 			//
 
-			auto Num5 = Height / 4;
-			auto Num6 = Width / 4;
+			uint32_t Num5 = Height / 4;
+			uint32_t Num6 = Width / 4;
 			constexpr uint32_t Bc1Bpp2x = 4 * 2;
 
 			uint64_t Bc1Offset = 0;
@@ -1202,8 +1201,8 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 			{
 				for (uint32_t x = 0; x < WidthBlocks; x++)
 				{
-					auto& Point = CodePoints[x + (y * WidthBlocks)];
-					auto BlockOffset = (x * 1024) + ((y * WidthBlocks) * 1024);
+					RUIImageTile& Point = CodePoints[x + (y * WidthBlocks)];
+					uint32_t BlockOffset = (x * 1024) + ((y * WidthBlocks) * 1024);
 
 					if (Point.Opcode != 0x41)
 					{
@@ -1222,8 +1221,8 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 			// Unswizzle Bc7 blocks.
 			//
 
-			auto blocksH = Height / 4;
-			auto blocksW = Width / 4;
+			uint32_t blocksH = Height / 4;
+			uint32_t blocksW = Width / 4;
 			constexpr uint32_t Bc7Bpp2x = 8 * 2;
 
 			uint64_t Bc7Offset = 0;
@@ -1280,7 +1279,7 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 				{
 					for (uint32_t x = 0; x < WidthBlocks; x++)
 					{
-						auto& Point = CodePoints[x + (y * WidthBlocks)];
+						RUIImageTile& Point = CodePoints[x + (y * WidthBlocks)];
 
 						if (Point.Opcode == 0x41)
 						{
@@ -1302,21 +1301,21 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bone>& Skeleton, const string& Path)
 {
 	auto RpakStream = this->GetFileStream(Asset);
-	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	auto AnHeader = Reader.Read<AnimHeader>();
+	AnimHeader AnHeader = Reader.Read<AnimHeader>();
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, AnHeader.NameIndex, AnHeader.NameOffset));
 
-	auto AnimName = IO::Path::GetFileNameWithoutExtension(Reader.ReadCString());
+	string AnimName = IO::Path::GetFileNameWithoutExtension(Reader.ReadCString());
 
 	const uint64_t AnimationOffset = this->GetFileOffset(Asset, AnHeader.AnimationIndex, AnHeader.AnimationOffset);
 
 	RpakStream->SetPosition(AnimationOffset);
 
-	auto AnimSequenceHeader = Reader.Read<RAnimHeader>();
+	RAnimHeader AnimSequenceHeader = Reader.Read<RAnimHeader>();
 
 	uint64_t ActualStarpakOffset = Asset.StarpakOffset & 0xFFFFFFFFFFFFFF00;
 	uint64_t ActualOptStarpakOffset = Asset.OptimalStarpakOffset & 0xFFFFFFFFFFFFFF00;
@@ -1337,19 +1336,19 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 		StarpakStream = this->GetStarpakStream(Asset, false);
 	}
 
-	auto StarpakReader = IO::BinaryReader(StarpakStream.get(), true);
+	IO::BinaryReader StarpakReader = IO::BinaryReader(StarpakStream.get(), true);
 
 	for (uint32_t i = 0; i < AnimSequenceHeader.AnimationCount; i++)
 	{
 		RpakStream->SetPosition(AnimationOffset + AnimSequenceHeader.AnimationOffset + ((uint64_t)i * 0x4));
 
-		auto AnimDataOffset = Reader.Read<uint32_t>();
+		uint32_t AnimDataOffset = Reader.Read<uint32_t>();
 
 		RpakStream->SetPosition(AnimationOffset + AnimDataOffset);
 
-		auto offseq = RpakStream->GetPosition();
+		uint64_t offseq = RpakStream->GetPosition();
 
-		auto AnimDataHeader = Reader.Read<RAnimSequenceHeader>();
+		RAnimSequenceHeader AnimDataHeader = Reader.Read<RAnimSequenceHeader>();
 
 		if (!(AnimDataHeader.Flags & 0x20000))
 			continue;
@@ -1366,7 +1365,7 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 		{
 			Anim->Bones.EmplaceBack(Bone.Name(), Bone.Parent(), Bone.LocalPosition(), Bone.LocalRotation());
 
-			auto& CurveNodes = Anim->GetNodeCurves(Bone.Name());
+			List<Assets::Curve>& CurveNodes = Anim->GetNodeCurves(Bone.Name());
 
 			// Inject curve nodes here, we can use the purge empty later to remove them
 			CurveNodes.EmplaceBack(Bone.Name(), Assets::CurveProperty::RotateQuaternion, AnimCurveType);
@@ -1378,7 +1377,7 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 			CurveNodes.EmplaceBack(Bone.Name(), Assets::CurveProperty::ScaleZ, AnimCurveType);
 		}
 
-		const auto AnimHeaderPointer = AnimationOffset + AnimDataOffset;
+		const uint64_t AnimHeaderPointer = AnimationOffset + AnimDataOffset;
 
 		for (uint32_t Frame = 0; Frame < AnimDataHeader.FrameCount; Frame++)
 		{
@@ -1397,8 +1396,8 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 			}
 			else if (ChunkFrame >= AnimDataHeader.FrameSplitCount)
 			{
-				auto FrameCount = AnimDataHeader.FrameCount;
-				auto ChunkFrameMinusSplitCount = ChunkFrame - AnimDataHeader.FrameSplitCount;
+				uint32_t FrameCount = AnimDataHeader.FrameCount;
+				uint32_t ChunkFrameMinusSplitCount = ChunkFrame - AnimDataHeader.FrameSplitCount;
 				if (FrameCount <= AnimDataHeader.FrameMedianCount || ChunkFrame != FrameCount - 1)
 				{
 					ChunkTableIndex = ChunkFrameMinusSplitCount / AnimDataHeader.FrameMedianCount + 1;
@@ -1421,7 +1420,7 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 
 			if (IsChunkInStarpak)
 			{
-				auto v13 = AnimDataHeader.SomeDataOffset;
+				uint64_t v13 = AnimDataHeader.SomeDataOffset;
 				if (v13)
 				{
 					ResultDataPtr = v13 + FirstChunk;
@@ -1429,7 +1428,7 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 				else
 				{
 					RpakStream->SetPosition(AnimHeaderPointer + ChunkDataOffset);
-					auto v14 = Reader.Read<uint32_t>();
+					uint32_t v14 = Reader.Read<uint32_t>();
 					ResultDataPtr = OffsetOfStarpakData + v14;
 				}
 			}
@@ -1461,7 +1460,7 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 				{
 					uint64_t TrackDataRead = 0;
 
-					auto BoneDataFlags = IsChunkInStarpak ? StarpakReader.Read<RAnimBoneFlag>() : Reader.Read<RAnimBoneFlag>();
+					RAnimBoneFlag BoneDataFlags = IsChunkInStarpak ? StarpakReader.Read<RAnimBoneFlag>() : Reader.Read<RAnimBoneFlag>();
 					auto BoneTrackData = IsChunkInStarpak ? StarpakReader.Read((BoneDataFlags.Size > 0) ? BoneDataFlags.Size - sizeof(uint16_t) : 0, TrackDataRead) : Reader.Read((BoneDataFlags.Size > 0) ? BoneDataFlags.Size - sizeof(uint16_t) : 0, TrackDataRead);
 
 					uint16_t* BoneTrackDataPtr = (uint16_t*)BoneTrackData.get();
@@ -1498,23 +1497,23 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 
 List<Assets::Bone> RpakLib::ExtractSkeleton(IO::BinaryReader& Reader, uint64_t SkeletonOffset)
 {
-	auto RpakStream = Reader.GetBaseStream();
+	IO::Stream* RpakStream = Reader.GetBaseStream();
 
 	RpakStream->SetPosition(SkeletonOffset);
 
-	auto SkeletonHeader = Reader.Read<RMdlSkeletonHeader>();
+	RMdlSkeletonHeader SkeletonHeader = Reader.Read<RMdlSkeletonHeader>();
 
-	auto Result = List<Assets::Bone>(SkeletonHeader.BoneCount);
+	List<Assets::Bone> Result = List<Assets::Bone>(SkeletonHeader.BoneCount);
 
 	for (uint32_t i = 0; i < SkeletonHeader.BoneCount; i++)
 	{
-		auto Position = SkeletonOffset + SkeletonHeader.BoneDataOffset + (i * sizeof(RMdlBone));
+		uint64_t Position = SkeletonOffset + SkeletonHeader.BoneDataOffset + (i * sizeof(RMdlBone));
 
 		RpakStream->SetPosition(Position);
-		auto Bone = Reader.Read<RMdlBone>();
+		RMdlBone Bone = Reader.Read<RMdlBone>();
 		RpakStream->SetPosition(Position + Bone.NameOffset);
 
-		auto TagName = Reader.ReadCString();
+		string TagName = Reader.ReadCString();
 
 		Result.EmplaceBack(TagName, Bone.ParentIndex, Bone.Position, Bone.Rotation);
 	}
@@ -1525,11 +1524,11 @@ List<Assets::Bone> RpakLib::ExtractSkeleton(IO::BinaryReader& Reader, uint64_t S
 List<List<DataTableColumnData>> RpakLib::ExtractDataTable(const RpakLoadAsset& Asset)
 {
 	auto RpakStream = this->GetFileStream(Asset);
-	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	auto DtblHeader = Reader.Read<DataTableHeader>();
+	DataTableHeader DtblHeader = Reader.Read<DataTableHeader>();
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, DtblHeader.ColumnHeaderBlock, DtblHeader.ColumnHeaderOffset));
 
@@ -1647,11 +1646,11 @@ List<List<DataTableColumnData>> RpakLib::ExtractDataTable(const RpakLoadAsset& A
 List<SubtitleEntry> RpakLib::ExtractSubtitles(const RpakLoadAsset& Asset)
 {
 	auto RpakStream = this->GetFileStream(Asset);
-	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	auto SubtHdr = Reader.Read<SubtitleHeader>();
+	SubtitleHeader SubtHdr = Reader.Read<SubtitleHeader>();
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, SubtHdr.EntriesIndex, SubtHdr.EntriesOffset));
 
@@ -1689,11 +1688,11 @@ void RpakLib::ExtractShader(const RpakLoadAsset& Asset, const string& Path)
 		return;
 
 	auto RpakStream = this->GetFileStream(Asset);
-	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset));
 
-	auto DataHeader = Reader.Read<ShaderDataHeader>();
+	ShaderDataHeader DataHeader = Reader.Read<ShaderDataHeader>();
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, DataHeader.ByteCodeIndex, DataHeader.ByteCodeOffset));
 
@@ -1709,11 +1708,11 @@ void RpakLib::ExtractShader(const RpakLoadAsset& Asset, const string& Path)
 ShaderSetHeader RpakLib::ExtractShaderSet(const RpakLoadAsset& Asset)
 {
 	auto RpakStream = this->GetFileStream(Asset);
-	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	auto Header = Reader.Read<ShaderSetHeader>();
+	ShaderSetHeader Header = Reader.Read<ShaderSetHeader>();
 
 	return Header;
 }
@@ -1721,7 +1720,7 @@ ShaderSetHeader RpakLib::ExtractShaderSet(const RpakLoadAsset& Asset)
 List<ShaderVar> RpakLib::ExtractShaderVars(const RpakLoadAsset& Asset, D3D_SHADER_VARIABLE_TYPE VarsType)
 {
 	auto RpakStream = this->GetFileStream(Asset);
-	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
 	List<ShaderVar> Vars;
 
@@ -1730,12 +1729,12 @@ List<ShaderVar> RpakLib::ExtractShaderVars(const RpakLoadAsset& Asset, D3D_SHADE
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset));
 
-	auto DataHeader = Reader.Read<ShaderDataHeader>();
+	ShaderDataHeader DataHeader = Reader.Read<ShaderDataHeader>();
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, DataHeader.ByteCodeIndex, DataHeader.ByteCodeOffset));
 
 	const uint64_t BasePos = RpakStream->GetPosition();
-	auto hdr = Reader.Read<DXBCHeader>();
+	DXBCHeader hdr = Reader.Read<DXBCHeader>();
 
 	List<uint32_t> ChunkOffsets(hdr.ChunkCount, true);
 	Reader.Read((uint8_t*)&ChunkOffsets[0], 0, hdr.ChunkCount*sizeof(uint32_t));
@@ -1752,7 +1751,7 @@ List<ShaderVar> RpakLib::ExtractShaderVars(const RpakLoadAsset& Asset, D3D_SHADE
 		{
 			RpakStream->SetPosition(ChunkOffset);
 
-			auto RDefHdr = Reader.Read<RDefHeader>();
+			RDefHeader RDefHdr = Reader.Read<RDefHeader>();
 
 			if (RDefHdr.MajorVersion >= 5)
 			{
@@ -1764,13 +1763,13 @@ List<ShaderVar> RpakLib::ExtractShaderVars(const RpakLoadAsset& Asset, D3D_SHADE
 			for (int i = 0; i < RDefHdr.ConstBufferCount; ++i)
 			{
 				RpakStream->SetPosition(ConstBufferPos + (i * sizeof(RDefConstBuffer)));
-				auto ConstBuffer = Reader.Read<RDefConstBuffer>();
+				RDefConstBuffer ConstBuffer = Reader.Read<RDefConstBuffer>();
 
 				for (int j = 0; j < ConstBuffer.VariableCount; ++j)
 				{
 					RpakStream->SetPosition((ChunkOffset + 8) + ConstBuffer.VariableOffset + (j*sizeof(RDefCBufVar)));
 
-					auto CBufVar = Reader.Read<RDefCBufVar>();
+					RDefCBufVar CBufVar = Reader.Read<RDefCBufVar>();
 
 					uint64_t NameOffset = ChunkOffset + 8 + CBufVar.NameOffset;
 					uint64_t TypeOffset = ChunkOffset + 8 + CBufVar.TypeOffset;
@@ -1800,7 +1799,7 @@ List<ShaderVar> RpakLib::ExtractShaderVars(const RpakLoadAsset& Asset, D3D_SHADE
 List<ShaderResBinding> RpakLib::ExtractShaderResourceBindings(const RpakLoadAsset& Asset, D3D_SHADER_INPUT_TYPE InputType)
 {
 	auto RpakStream = this->GetFileStream(Asset);
-	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
 	List<ShaderResBinding> ResBindings;
 
@@ -1809,7 +1808,7 @@ List<ShaderResBinding> RpakLib::ExtractShaderResourceBindings(const RpakLoadAsse
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset));
 
-	auto DataHeader = Reader.Read<ShaderDataHeader>();
+	ShaderDataHeader DataHeader = Reader.Read<ShaderDataHeader>();
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, DataHeader.ByteCodeIndex, DataHeader.ByteCodeOffset));
 
@@ -1822,8 +1821,6 @@ List<ShaderResBinding> RpakLib::ExtractShaderResourceBindings(const RpakLoadAsse
 	for (int i = 0; i < hdr.ChunkCount; ++i)
 		ChunkOffsets[i] += BasePos;
 
-	
-
 	for (auto& ChunkOffset : ChunkOffsets)
 	{
 		RpakStream->SetPosition(ChunkOffset);
@@ -1832,7 +1829,7 @@ List<ShaderResBinding> RpakLib::ExtractShaderResourceBindings(const RpakLoadAsse
 		{
 			RpakStream->SetPosition(ChunkOffset);
 
-			auto RDefHdr = Reader.Read<RDefHeader>();
+			RDefHeader RDefHdr = Reader.Read<RDefHeader>();
 
 			if (RDefHdr.MajorVersion >= 5)
 			{
@@ -1844,7 +1841,7 @@ List<ShaderResBinding> RpakLib::ExtractShaderResourceBindings(const RpakLoadAsse
 			for (int i = 0; i < RDefHdr.ResBindingCount; ++i)
 			{
 				RpakStream->SetPosition(ResBindingPos + (i * sizeof(RDefResBinding)));
-				auto ResBinding = Reader.Read<RDefResBinding>();
+				RDefResBinding ResBinding = Reader.Read<RDefResBinding>();
 
 				uint64_t NameOffset = ChunkOffset + 8 + ResBinding.NameOffset;
 
@@ -1869,14 +1866,14 @@ List<ShaderResBinding> RpakLib::ExtractShaderResourceBindings(const RpakLoadAsse
 void RpakLib::ExtractUIImageAtlas(const RpakLoadAsset& Asset, const string& Path)
 {
 	auto RpakStream = this->GetFileStream(Asset);
-	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
 	if (Asset.RawDataIndex == -1) // no uvs - we shouldn't be able to get to this point
 		return;
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 	
-	auto Header = Reader.Read<UIAtlasHeader>();
+	UIAtlasHeader Header = Reader.Read<UIAtlasHeader>();
 
 	if (!Assets.ContainsKey(Header.TextureGuid)) // can't get the images without texture data so let's head out
 		return;
@@ -1887,7 +1884,7 @@ void RpakLib::ExtractUIImageAtlas(const RpakLoadAsset& Asset, const string& Path
 
 	for (int i = 0; i < Header.TexturesCount; ++i)
 	{
-		auto uvs = Reader.Read<UIAtlasUV>();
+		UIAtlasUV uvs = Reader.Read<UIAtlasUV>();
 		UIAtlasImages[i].uvs = uvs;
 		UIAtlasImages[i].PosX = uvs.uv0x * Header.Width;
 		UIAtlasImages[i].PosY = uvs.uv0y * Header.Height;
@@ -1897,7 +1894,7 @@ void RpakLib::ExtractUIImageAtlas(const RpakLoadAsset& Asset, const string& Path
 
 	for (int i = 0; i < Header.TexturesCount; ++i)
 	{
-		auto offset = Reader.Read<UIAtlasOffset>();
+		UIAtlasOffset offset = Reader.Read<UIAtlasOffset>();
 		UIAtlasImages[i].offsets = offset;
 	}
 
@@ -1905,8 +1902,8 @@ void RpakLib::ExtractUIImageAtlas(const RpakLoadAsset& Asset, const string& Path
 
 	for (int i = 0; i < Header.TexturesCount; ++i)
 	{
-		auto offsets = UIAtlasImages[i].offsets;
-		auto uvs = UIAtlasImages[i].uvs;
+		UIAtlasOffset offsets = UIAtlasImages[i].offsets;
+		UIAtlasUV uvs = UIAtlasImages[i].uvs;
 
 		UIAtlasImages[i].Width = Reader.Read<uint16_t>();
 		UIAtlasImages[i].Height = Reader.Read<uint16_t>();

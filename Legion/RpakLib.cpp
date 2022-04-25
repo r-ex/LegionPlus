@@ -78,7 +78,7 @@ void RpakLib::PatchAssets()
 		{
 			if (!this->Assets.ContainsKey(Kvp.first))
 			{
-				auto Asset = RpakLoadAsset(
+				RpakLoadAsset Asset = RpakLoadAsset(
 					Kvp.second.NameHash,
 					i,
 					Kvp.second.Magic,
@@ -127,11 +127,11 @@ void RpakLib::PatchAssets()
 			if (i == Kvp.second.FileIndex)
 				continue;
 
-			auto& File = this->LoadedFiles[i];
+			RpakFile& File = this->LoadedFiles[i];
 
 			if (File.AssetHashmap.ContainsKey(Kvp.first))
 			{
-				auto& Asset = File.AssetHashmap[Kvp.first];
+				RpakApexAssetEntry& Asset = File.AssetHashmap[Kvp.first];
 
 				Kvp.second.RpakFileIndex = i;
 				Kvp.second.StarpakOffset = Asset.StarpakOffset;
@@ -159,7 +159,7 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims
 
 	for (auto& AssetKvp : Assets)
 	{
-		auto& Asset = AssetKvp.Value();
+		RpakLoadAsset& Asset = AssetKvp.Value();
 
 		ApexAsset NewAsset;
 		NewAsset.Hash = AssetKvp.first;
@@ -302,7 +302,7 @@ void RpakLib::InitializeImageExporter(RpakImageExportFormat Format)
 
 std::unique_ptr<IO::MemoryStream> RpakLib::GetFileStream(const RpakLoadAsset& Asset)
 {
-	auto& File = this->LoadedFiles[Asset.FileIndex];
+	RpakFile& File = this->LoadedFiles[Asset.FileIndex];
 
 	return std::move(std::make_unique<IO::MemoryStream>(File.SegmentData.get(), 0, File.SegmentDataSize, false, true));
 }
@@ -358,7 +358,7 @@ void RpakLib::ParseRAnimBoneTranslationTrack(const RAnimBoneFlag& BoneFlags, uin
 
 	if (!BoneFlags.bDynamicTranslation)
 	{
-		auto& Curves = Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name());
+		List<Assets::Curve>& Curves = Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name());
 
 		// TranslateX/Y/Z
 		Curves[1].Keyframes.EmplaceBack(FrameIndex, Math::Half(TranslationDataPtr[0]).ToFloat());
@@ -380,7 +380,7 @@ void RpakLib::ParseRAnimBoneTranslationTrack(const RAnimBoneFlag& BoneFlags, uin
 		uint8_t* TranslationDataY = &TranslationDataX[2 * DataYOffset];	// Data for y
 		uint8_t* TranslationDataZ = &TranslationDataX[2 * DataZOffset];	// Data for z
 
-		auto& Bone = Anim->Bones[BoneIndex].LocalPosition();
+		const Math::Vector3& Bone = Anim->Bones[BoneIndex].LocalPosition();
 
 		float Result[3]{ Bone.X, Bone.Y, Bone.Z };
 
@@ -407,7 +407,7 @@ void RpakLib::ParseRAnimBoneTranslationTrack(const RAnimBoneFlag& BoneFlags, uin
 			++TranslationIndex;
 		} while (TranslationIndex < 3);
 
-		auto& Curves = Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name());
+		List<Assets::Curve>& Curves = Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name());
 
 		// TranslateX/Y/Z
 		Curves[1].Keyframes.EmplaceBack(FrameIndex, Result[0]);
@@ -432,7 +432,7 @@ void RpakLib::ParseRAnimBoneRotationTrack(const RAnimBoneFlag& BoneFlags, uint16
 
 	if (!BoneFlags.bDynamicRotation)
 	{
-		auto PackedQuat = *(Quat64*)RotationDataPtr;
+		Quat64 PackedQuat = *(Quat64*)RotationDataPtr;
 
 		Math::Quaternion Quat;
 
@@ -461,8 +461,7 @@ void RpakLib::ParseRAnimBoneRotationTrack(const RAnimBoneFlag& BoneFlags, uint16
 		uint8_t* TranslationDataY = &TranslationDataX[2 * DataYOffset];	// Data for y
 		uint8_t* TranslationDataZ = &TranslationDataX[2 * DataZOffset];	// Data for z
 
-
-		auto BoneRotation = Anim->Bones[BoneIndex].LocalRotation().ToEulerAngles();
+		Math::Vector3 BoneRotation = Anim->Bones[BoneIndex].LocalRotation().ToEulerAngles();
 
 		float EulerResult[4]{ Math::MathHelper::DegreesToRadians(BoneRotation.X),Math::MathHelper::DegreesToRadians(BoneRotation.Y),Math::MathHelper::DegreesToRadians(BoneRotation.Z),0 };
 
@@ -500,7 +499,7 @@ void RpakLib::ParseRAnimBoneScaleTrack(const RAnimBoneFlag& BoneFlags, uint16_t*
 
 	if (!BoneFlags.bDynamicScale)
 	{
-		auto& Curves = Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name());
+		List<Assets::Curve>& Curves = Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name());
 
 		// ScaleX/Y/Z
 		Curves[4].Keyframes.EmplaceBack(FrameIndex, Math::Half(ScaleDataPtr[0]).ToFloat());
@@ -521,7 +520,7 @@ void RpakLib::ParseRAnimBoneScaleTrack(const RAnimBoneFlag& BoneFlags, uint16_t*
 		uint8_t* TranslationDataY = &TranslationDataX[2 * DataYOffset];	// Data for y
 		uint8_t* TranslationDataZ = &TranslationDataX[2 * DataZOffset];	// Data for z
 
-		auto& BoneScale = Anim->Bones[BoneIndex].Scale();
+		const Math::Vector3& BoneScale = Anim->Bones[BoneIndex].Scale();
 
 		float Result[3]{ BoneScale.X, BoneScale.Y, BoneScale.Z };
 
@@ -564,7 +563,7 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 		// The sub header and data blocks are within the packages...
 		// We now need to check if the asset subheader blocks are within the package...
 		auto RpakStream = this->GetFileStream(Asset);
-		auto Reader = IO::BinaryReader(RpakStream.get(), true);
+		IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
 		RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
@@ -574,28 +573,28 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 		{
 			if (Asset.SubHeaderSize <= 0x68)
 			{
-				auto SubHeader = Reader.Read<ModelHeaderS68>();
+				ModelHeaderS68 SubHeader = Reader.Read<ModelHeaderS68>();
 				return (SubHeader.NameIndex >= LoadedFile.StartSegmentIndex && SubHeader.SkeletonIndex >= LoadedFile.StartSegmentIndex);
 			}
 			else
 			{
-				auto SubHeader = Reader.Read<ModelHeaderS80>();
+				ModelHeaderS80 SubHeader = Reader.Read<ModelHeaderS80>();
 				return (SubHeader.NameIndex >= LoadedFile.StartSegmentIndex && SubHeader.SkeletonIndex >= LoadedFile.StartSegmentIndex);
 			}
 		}
 		case (uint32_t)RpakAssetType::Texture:
 		{
-			auto SubHeader = Reader.Read<TextureHeader>();
+			TextureHeader SubHeader = Reader.Read<TextureHeader>();
 			return (SubHeader.DataSize > 0);
 		}
 		case (uint32_t)RpakAssetType::UIIA:
 		{
-			auto SubHeader = Reader.Read<UIIAHeader>();
+			UIIAHeader SubHeader = Reader.Read<UIIAHeader>();
 			return (SubHeader.Width > 0 && SubHeader.Height > 0);
 		}
 		case (uint32_t)RpakAssetType::Material:
 		{
-			auto SubHeader = Reader.Read<MaterialHeader>();
+			MaterialHeader SubHeader = Reader.Read<MaterialHeader>();
 			if (Asset.Version == RpakGameVersion::Apex)
 				return (SubHeader.NameIndex >= LoadedFile.StartSegmentIndex && SubHeader.TexturesIndex >= LoadedFile.StartSegmentIndex);
 			else
@@ -603,17 +602,17 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 		}
 		case (uint32_t)RpakAssetType::AnimationRig:
 		{
-			auto SubHeader = Reader.Read<AnimRigHeader>();
+			AnimRigHeader SubHeader = Reader.Read<AnimRigHeader>();
 			return (SubHeader.NameIndex >= LoadedFile.StartSegmentIndex && SubHeader.SkeletonIndex >= LoadedFile.StartSegmentIndex && SubHeader.AnimationReferenceIndex >= LoadedFile.StartSegmentIndex);
 		}
 		case (uint32_t)RpakAssetType::Animation:
 		{
-			auto SubHeader = Reader.Read<AnimHeader>();
+			AnimHeader SubHeader = Reader.Read<AnimHeader>();
 			return (SubHeader.AnimationIndex >= LoadedFile.StartSegmentIndex);
 		}
 		case (uint32_t)RpakAssetType::DataTable:
 		{
-			auto SubHeader = Reader.Read<DataTableHeader>();
+			DataTableHeader SubHeader = Reader.Read<DataTableHeader>();
 			return (SubHeader.ColumnCount != 0 && SubHeader.RowCount != 0);
 		}
 		case (uint32_t)RpakAssetType::Subtitles:
@@ -630,7 +629,7 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 		}
 		case (uint32_t)RpakAssetType::UIImageAtlas:
 		{ // finally an actual check for this
-			auto Header = Reader.Read<UIAtlasHeader>();
+			UIAtlasHeader Header = Reader.Read<UIAtlasHeader>();
 			return Header.TexturesCount != 0;
 		}
 		default:
@@ -666,8 +665,8 @@ bool RpakLib::ValidateAssetStreamStatus(const RpakLoadAsset& Asset)
 
 bool RpakLib::MountRpak(const string& Path, bool Dump)
 {
-	auto Reader = IO::BinaryReader(IO::File::OpenRead(Path));
-	auto BaseHeader = Reader.Read<RpakBaseHeader>();
+	IO::BinaryReader Reader = IO::BinaryReader(IO::File::OpenRead(Path));
+	RpakBaseHeader BaseHeader = Reader.Read<RpakBaseHeader>();
 
 	if (BaseHeader.Magic != 0x6B615052)
 	{
@@ -689,10 +688,10 @@ bool RpakLib::MountRpak(const string& Path, bool Dump)
 
 bool RpakLib::ParseApexRpak(const string& RpakPath, std::unique_ptr<IO::MemoryStream>& ParseStream)
 {
-	auto Reader = IO::BinaryReader(ParseStream.get(), true);
-	auto RpakRoot = IO::Path::GetDirectoryName(RpakPath);
-	auto Header = Reader.Read<RpakApexHeader>();
-	auto File = &this->LoadedFiles[this->LoadedFileIndex++];
+	IO::BinaryReader Reader = IO::BinaryReader(ParseStream.get(), true);
+	string RpakRoot = IO::Path::GetDirectoryName(RpakPath);
+	RpakApexHeader Header = Reader.Read<RpakApexHeader>();
+	RpakFile* File = &this->LoadedFiles[this->LoadedFileIndex++];
 
 	RpakPatchHeader PatchHeader{};
 	RpakPatchCompressPair PatchCompressPairs[16]{};
@@ -708,11 +707,11 @@ bool RpakLib::ParseApexRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 	uint32_t StarpakLen = Header.StarpakReferenceSize;
 	while (StarpakLen > 0)
 	{
-		auto Starpak = Reader.ReadCString();
+		string Starpak = Reader.ReadCString();
 
 		if (Starpak.Length() > 0)
 		{
-			auto Path = IO::Path::Combine(RpakRoot, IO::Path::GetFileName(Starpak));
+			string Path = IO::Path::Combine(RpakRoot, IO::Path::GetFileName(Starpak));
 			this->MountStarpak(Path, this->LoadedFileIndex - 1, File->StarpakReferences.Count(), false);
 			File->StarpakReferences.EmplaceBack(Path);
 		}
@@ -722,11 +721,11 @@ bool RpakLib::ParseApexRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 	StarpakLen = Header.StarpakOptReferenceSize;
 	while (StarpakLen > 0)
 	{
-		auto Starpak = Reader.ReadCString();
+		string Starpak = Reader.ReadCString();
 
 		if (Starpak.Length() > 0)
 		{
-			auto Path = IO::Path::Combine(RpakRoot, IO::Path::GetFileName(Starpak));
+			string Path = IO::Path::Combine(RpakRoot, IO::Path::GetFileName(Starpak));
 			this->MountStarpak(Path, this->LoadedFileIndex - 1, File->OptimalStarpakReferences.Count(), true);
 			File->OptimalStarpakReferences.EmplaceBack(Path);
 		}
@@ -764,7 +763,7 @@ bool RpakLib::ParseApexRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 		ParseStream->Read(File->PatchData.get(), 0, PatchHeader.PatchDataSize);
 	}
 
-	auto BufferRemaining = ParseStream->GetLength() - ParseStream->GetPosition();
+	uint64_t BufferRemaining = ParseStream->GetLength() - ParseStream->GetPosition();
 
 	uint64_t Offset = 0;
 	for (uint32_t i = PatchHeader.PatchSegmentIndex; i < Header.MemPageCount; i++)
@@ -787,18 +786,18 @@ bool RpakLib::ParseApexRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 
 	if (this->LoadedFileIndex == 1)
 	{
-		auto BasePath = IO::Path::GetDirectoryName(RpakPath);
-		auto FileNameNoExt = IO::Path::GetFileNameWithoutExtension(RpakPath);
+		string BasePath = IO::Path::GetDirectoryName(RpakPath);
+		string FileNameNoExt = IO::Path::GetFileNameWithoutExtension(RpakPath);
 
 		// Trim off the () if exists
 		if (FileNameNoExt.Contains("("))
 			FileNameNoExt = FileNameNoExt.Substring(0, FileNameNoExt.IndexOf("("));
 
-		auto FinalPath = IO::Path::Combine(BasePath, FileNameNoExt);
+		string FinalPath = IO::Path::Combine(BasePath, FileNameNoExt);
 
 		for (uint32_t i = 0; i < Header.PatchIndex; i++)
 		{
-			auto PatchIndexToFile = PatchIndicesToFile[i];
+			uint16_t PatchIndexToFile = PatchIndicesToFile[i];
 
 			if (PatchIndexToFile == 0)
 				this->LoadFileQueue.EmplaceBack(string::Format("%s.rpak", FinalPath.ToCString()));
@@ -812,10 +811,10 @@ bool RpakLib::ParseApexRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 
 bool RpakLib::ParseTitanfallRpak(const string& RpakPath, std::unique_ptr<IO::MemoryStream>& ParseStream)
 {
-	auto Reader = IO::BinaryReader(ParseStream.get(), true);
-	auto RpakRoot = IO::Path::GetDirectoryName(RpakPath);
-	auto Header = Reader.Read<RpakTitanfallHeader>();
-	auto File = &this->LoadedFiles[this->LoadedFileIndex++];
+	IO::BinaryReader Reader = IO::BinaryReader(ParseStream.get(), true);
+	string RpakRoot = IO::Path::GetDirectoryName(RpakPath);
+	RpakTitanfallHeader Header = Reader.Read<RpakTitanfallHeader>();
+	RpakFile* File = &this->LoadedFiles[this->LoadedFileIndex++];
 
 	// Default version is apex, 0x8, must make sure this is set.
 	File->Version = RpakGameVersion::Titanfall;
@@ -834,11 +833,11 @@ bool RpakLib::ParseTitanfallRpak(const string& RpakPath, std::unique_ptr<IO::Mem
 	uint32_t StarpakLen = Header.StarpakReferenceSize;
 	while (StarpakLen > 0)
 	{
-		auto Starpak = Reader.ReadCString();
+		string Starpak = Reader.ReadCString();
 
 		if (Starpak.Length() > 0)
 		{
-			auto Path = IO::Path::Combine(RpakRoot, IO::Path::GetFileName(Starpak));
+			string Path = IO::Path::Combine(RpakRoot, IO::Path::GetFileName(Starpak));
 			this->MountStarpak(Path, this->LoadedFileIndex - 1, File->StarpakReferences.Count(), false);
 			File->StarpakReferences.EmplaceBack(Path);
 		}
@@ -861,7 +860,7 @@ bool RpakLib::ParseTitanfallRpak(const string& RpakPath, std::unique_ptr<IO::Mem
 	}
 	for (uint32_t i = 0; i < Header.DescriptorCount; i++)
 	{
-		auto Descriptor = Reader.Read<RpakDescriptor>();
+		RpakDescriptor Descriptor = Reader.Read<RpakDescriptor>();
 	}
 	for (uint32_t i = 0; i < Header.AssetEntryCount; i++)
 	{
@@ -885,7 +884,7 @@ bool RpakLib::ParseTitanfallRpak(const string& RpakPath, std::unique_ptr<IO::Mem
 		ParseStream->Read(File->PatchData.get(), 0, PatchHeader.PatchDataSize);
 	}
 
-	auto BufferRemaining = ParseStream->GetLength() - ParseStream->GetPosition();
+	uint64_t BufferRemaining = ParseStream->GetLength() - ParseStream->GetPosition();
 
 	uint64_t Offset = 0;
 	for (uint32_t i = PatchHeader.PatchSegmentIndex; i < Header.MemPageCount; i++)
@@ -912,18 +911,18 @@ bool RpakLib::ParseTitanfallRpak(const string& RpakPath, std::unique_ptr<IO::Mem
 
 	if (this->LoadedFileIndex == 1)
 	{
-		auto BasePath = IO::Path::GetDirectoryName(RpakPath);
-		auto FileNameNoExt = IO::Path::GetFileNameWithoutExtension(RpakPath);
+		string BasePath = IO::Path::GetDirectoryName(RpakPath);
+		string FileNameNoExt = IO::Path::GetFileNameWithoutExtension(RpakPath);
 
 		// Trim off the () if exists
 		if (FileNameNoExt.Contains("("))
 			FileNameNoExt = FileNameNoExt.Substring(0, FileNameNoExt.IndexOf("("));
 
-		auto FinalPath = IO::Path::Combine(BasePath, FileNameNoExt);
+		string FinalPath = IO::Path::Combine(BasePath, FileNameNoExt);
 
 		for (uint32_t i = 0; i < Header.PatchIndex; i++)
 		{
-			auto PatchIndexToFile = PatchIndicesToFile[i];
+			uint16_t PatchIndexToFile = PatchIndicesToFile[i];
 			if (PatchIndexToFile == 0)
 				this->LoadFileQueue.EmplaceBack(string::Format("%s.rpak", FinalPath.ToCString()));
 			else
@@ -936,10 +935,10 @@ bool RpakLib::ParseTitanfallRpak(const string& RpakPath, std::unique_ptr<IO::Mem
 
 bool RpakLib::ParseR2TTRpak(const string& RpakPath, std::unique_ptr<IO::MemoryStream>& ParseStream)
 {
-	auto Reader = IO::BinaryReader(ParseStream.get(), true);
-	auto RpakRoot = IO::Path::GetDirectoryName(RpakPath);
-	auto Header = Reader.Read<RpakHeaderV6>();
-	auto File = &this->LoadedFiles[this->LoadedFileIndex++];
+	IO::BinaryReader Reader = IO::BinaryReader(ParseStream.get(), true);
+	string RpakRoot = IO::Path::GetDirectoryName(RpakPath);
+	RpakHeaderV6 Header = Reader.Read<RpakHeaderV6>();
+	RpakFile* File = &this->LoadedFiles[this->LoadedFileIndex++];
 
 	// Default version is apex, 0x8, must make sure this is set.
 	File->Version = RpakGameVersion::R2TT;
@@ -947,11 +946,11 @@ bool RpakLib::ParseR2TTRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 	uint32_t StarpakLen = Header.StarpakReferenceSize;
 	while (StarpakLen > 0)
 	{
-		auto Starpak = Reader.ReadCString();
+		string Starpak = Reader.ReadCString();
 
 		if (Starpak.Length() > 0)
 		{
-			auto Path = IO::Path::Combine(RpakRoot, IO::Path::GetFileName(Starpak));
+			string Path = IO::Path::Combine(RpakRoot, IO::Path::GetFileName(Starpak));
 			this->MountStarpak(Path, this->LoadedFileIndex - 1, File->StarpakReferences.Count(), false);
 			File->StarpakReferences.EmplaceBack(Path);
 		}
@@ -973,7 +972,7 @@ bool RpakLib::ParseR2TTRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 	}
 	for (uint32_t i = 0; i < Header.DescriptorCount; i++)
 	{
-		auto Descriptor = Reader.Read<RpakDescriptor>();
+		RpakDescriptor Descriptor = Reader.Read<RpakDescriptor>();
 	}
 	for (uint32_t i = 0; i < Header.AssetEntryCount; i++)
 	{
@@ -987,7 +986,7 @@ bool RpakLib::ParseR2TTRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 	ParseStream->Seek(sizeof(uint32_t) * Header.UnknownSeventhBlockCount, IO::SeekOrigin::Current);
 	ParseStream->Seek(Header.UnknownEighthBlockCount, IO::SeekOrigin::Current);
 
-	auto BufferRemaining = ParseStream->GetLength() - ParseStream->GetPosition();
+	uint64_t BufferRemaining = ParseStream->GetLength() - ParseStream->GetPosition();
 
 	uint64_t Offset = 0;
 	for (uint32_t i = 0; i < Header.MemPageCount; i++)
@@ -1014,14 +1013,14 @@ bool RpakLib::ParseR2TTRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 
 	if (this->LoadedFileIndex == 1)
 	{
-		auto BasePath = IO::Path::GetDirectoryName(RpakPath);
-		auto FileNameNoExt = IO::Path::GetFileNameWithoutExtension(RpakPath);
+		string BasePath = IO::Path::GetDirectoryName(RpakPath);
+		string FileNameNoExt = IO::Path::GetFileNameWithoutExtension(RpakPath);
 
 		// Trim off the () if exists
 		if (FileNameNoExt.Contains("("))
 			FileNameNoExt = FileNameNoExt.Substring(0, FileNameNoExt.IndexOf("("));
 
-		auto FinalPath = IO::Path::Combine(BasePath, FileNameNoExt);
+		string FinalPath = IO::Path::Combine(BasePath, FileNameNoExt);
 
 		this->LoadFileQueue.EmplaceBack(string::Format("%s.rpak", FinalPath.ToCString()));
 	}
@@ -1031,7 +1030,7 @@ bool RpakLib::ParseR2TTRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 
 void RpakLib::MountStarpak(const string& Path, uint32_t FileIndex, uint32_t StarpakIndex, bool Optimal)
 {
-	auto& File = this->LoadedFiles[FileIndex];
+	RpakFile& File = this->LoadedFiles[FileIndex];
 
 	if (!IO::File::Exists(Path))
 	{
@@ -1039,18 +1038,18 @@ void RpakLib::MountStarpak(const string& Path, uint32_t FileIndex, uint32_t Star
 		return;
 	}
 
-	auto Reader = IO::BinaryReader(IO::File::OpenRead(Path));
-	auto StarpakStream = Reader.GetBaseStream();
+	IO::BinaryReader Reader = IO::BinaryReader(IO::File::OpenRead(Path));
+	IO::Stream* StarpakStream = Reader.GetBaseStream();
 
 	StarpakStream->SetPosition(StarpakStream->GetLength() - sizeof(uint64_t));
 
-	auto EntryCount = Reader.Read<uint64_t>();
+	uint64_t EntryCount = Reader.Read<uint64_t>();
 
 	StarpakStream->SetPosition(StarpakStream->GetLength() - sizeof(uint64_t) - (sizeof(StarpakStreamEntry) * EntryCount));
 
 	for (uint32_t i = 0; i < EntryCount; i++)
 	{
-		auto Entry = Reader.Read<StarpakStreamEntry>();
+		StarpakStreamEntry Entry = Reader.Read<StarpakStreamEntry>();
 
 		if (Optimal)
 		{
@@ -1065,8 +1064,8 @@ void RpakLib::MountStarpak(const string& Path, uint32_t FileIndex, uint32_t Star
 
 bool RpakLib::MountApexRpak(const string& Path, bool Dump)
 {
-	auto Reader = IO::BinaryReader(IO::File::OpenRead(Path));
-	auto Header = Reader.Read<RpakApexHeader>();
+	IO::BinaryReader Reader = IO::BinaryReader(IO::File::OpenRead(Path));
+	RpakApexHeader Header = Reader.Read<RpakApexHeader>();
 
 	if (!Header.IsCompressed && Header.CompressedSize == Header.DecompressedSize)
 	{
@@ -1113,8 +1112,8 @@ bool RpakLib::MountApexRpak(const string& Path, bool Dump)
 
 bool RpakLib::MountTitanfallRpak(const string& Path, bool Dump)
 {
-	auto Reader = IO::BinaryReader(IO::File::OpenRead(Path));
-	auto Header = Reader.Read<RpakTitanfallHeader>();
+	IO::BinaryReader Reader = IO::BinaryReader(IO::File::OpenRead(Path));
+	RpakTitanfallHeader Header = Reader.Read<RpakTitanfallHeader>();
 
 	if (Header.CompressedSize == Header.DecompressedSize)
 	{
@@ -1162,8 +1161,8 @@ bool RpakLib::MountTitanfallRpak(const string& Path, bool Dump)
 
 bool RpakLib::MountR2TTRpak(const string& Path, bool Dump)
 {
-	auto Reader = IO::BinaryReader(IO::File::OpenRead(Path));
-	auto Header = Reader.Read<RpakHeaderV6>();
+	IO::BinaryReader Reader = IO::BinaryReader(IO::File::OpenRead(Path));
+	RpakHeaderV6 Header = Reader.Read<RpakHeaderV6>();
 
 	// rpak v6 doesn't seem to support compression
 
