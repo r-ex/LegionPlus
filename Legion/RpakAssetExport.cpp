@@ -20,8 +20,8 @@ void RpakLib::ExportModel(const RpakLoadAsset& Asset, const string& Path, const 
 
 void RpakLib::ExportMaterial(const RpakLoadAsset& Asset, const string& Path)
 {
-	auto Material = this->ExtractMaterial(Asset, Path, false, false);
-	auto OutPath = IO::Path::Combine(Path, Material.MaterialName);
+	RMdlMaterial Material = this->ExtractMaterial(Asset, Path, false, false);
+	string OutPath = IO::Path::Combine(Path, Material.MaterialName);
 
 	if (!Utils::ShouldWriteFile(OutPath))
 		return;
@@ -34,7 +34,7 @@ void RpakLib::ExportMaterial(const RpakLoadAsset& Asset, const string& Path)
 void RpakLib::ExportTexture(const RpakLoadAsset& Asset, const string& Path, bool IncludeImageNames, string NameOverride, bool NormalRecalculate)
 {
 	string DestinationName = NameOverride == "" ? string::Format("0x%llx%s", Asset.NameHash, (const char*)ImageExtension) : NameOverride;
-	auto DestinationPath = IO::Path::Combine(Path, DestinationName);
+	string DestinationPath = IO::Path::Combine(Path, DestinationName);
 
 	std::unique_ptr<Assets::Texture> Texture = nullptr;
 	string Name;
@@ -53,7 +53,7 @@ void RpakLib::ExportTexture(const RpakLoadAsset& Asset, const string& Path, bool
 		{
 			if (NormalRecalculate)
 			{
-				auto NormalRecalcType = (eNormalRecalcType)ExportManager::Config.Get<System::SettingType::Integer>("NormalRecalcType");
+				eNormalRecalcType NormalRecalcType = (eNormalRecalcType)ExportManager::Config.Get<System::SettingType::Integer>("NormalRecalcType");
 
 				Assets::TranscodeType Type = Assets::TranscodeType::NormalMapBC5OpenGl;
 
@@ -80,7 +80,7 @@ void RpakLib::ExportTexture(const RpakLoadAsset& Asset, const string& Path, bool
 
 void RpakLib::ExportUIIA(const RpakLoadAsset& Asset, const string& Path)
 {
-	auto DestinationPath = IO::Path::Combine(Path, string::Format("0x%llx%s", Asset.NameHash, (const char*)ImageExtension));
+	string DestinationPath = IO::Path::Combine(Path, string::Format("0x%llx%s", Asset.NameHash, (const char*)ImageExtension));
 
 	if (!Utils::ShouldWriteFile(DestinationPath))	// Ignore existing assets...
 		return;
@@ -103,28 +103,28 @@ void RpakLib::ExportUIIA(const RpakLoadAsset& Asset, const string& Path)
 void RpakLib::ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path)
 {
 	auto RpakStream = this->GetFileStream(Asset);
-	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	auto RigHeader = Reader.Read<AnimRigHeader>();
+	AnimRigHeader RigHeader = Reader.Read<AnimRigHeader>();
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, RigHeader.NameIndex, RigHeader.NameOffset));
 
-	auto FullAnimSetName = Reader.ReadCString();
-	auto AnimSetName = IO::Path::GetFileNameWithoutExtension(FullAnimSetName);
-	auto AnimSetPath = IO::Path::Combine(Path, AnimSetName);
+	string FullAnimSetName = Reader.ReadCString();
+	string AnimSetName = IO::Path::GetFileNameWithoutExtension(FullAnimSetName);
+	string AnimSetPath = IO::Path::Combine(Path, AnimSetName);
 
 	IO::Directory::CreateDirectory(AnimSetPath);
 
-	auto AnimFormat = (RpakAnimExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat");
+	RpakAnimExportFormat AnimFormat = (RpakAnimExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat");
 
 	if (AnimFormat == RpakAnimExportFormat::RAnim)
 	{
-		auto SkeletonOffset = this->GetFileOffset(Asset, RigHeader.SkeletonIndex, RigHeader.SkeletonOffset);
+		uint64_t SkeletonOffset = this->GetFileOffset(Asset, RigHeader.SkeletonIndex, RigHeader.SkeletonOffset);
 		RpakStream->SetPosition(SkeletonOffset);
 
-		auto SkeletonHeader = Reader.Read<RMdlSkeletonHeader>();
+		RMdlSkeletonHeader SkeletonHeader = Reader.Read<RMdlSkeletonHeader>();
 
 		RpakStream->SetPosition(SkeletonOffset);
 
@@ -139,7 +139,7 @@ void RpakLib::ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path)
 		return;
 	}
 
-	const auto Skeleton = this->ExtractSkeleton(Reader, this->GetFileOffset(Asset, RigHeader.SkeletonIndex, RigHeader.SkeletonOffset));
+	const List<Assets::Bone> Skeleton = this->ExtractSkeleton(Reader, this->GetFileOffset(Asset, RigHeader.SkeletonIndex, RigHeader.SkeletonOffset));
 
 	const uint64_t ReferenceOffset = this->GetFileOffset(Asset, RigHeader.AnimationReferenceIndex, RigHeader.AnimationReferenceOffset);
 
@@ -147,7 +147,7 @@ void RpakLib::ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path)
 	{
 		RpakStream->SetPosition(ReferenceOffset + ((uint64_t)i * 0x8));
 
-		auto AnimHash = Reader.Read<uint64_t>();
+		uint64_t AnimHash = Reader.Read<uint64_t>();
 
 		// excluded by DFS
 		if (AnimHash == 0xdf5)
@@ -169,9 +169,7 @@ void RpakLib::ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path)
 
 void RpakLib::ExportDataTable(const RpakLoadAsset& Asset, const string& Path)
 {
-
-
-	auto Format = (RpakSubtitlesExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat");
+	RpakSubtitlesExportFormat Format = (RpakSubtitlesExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat");
 
 	string sExtension = "";
 
@@ -185,12 +183,12 @@ void RpakLib::ExportDataTable(const RpakLoadAsset& Asset, const string& Path)
 		break;
 	}
 	
-	auto DestinationPath = IO::Path::Combine(Path, string::Format("0x%llx", Asset.NameHash) + sExtension);
+	string DestinationPath = IO::Path::Combine(Path, string::Format("0x%llx", Asset.NameHash) + sExtension);
 
 	if (!Utils::ShouldWriteFile(DestinationPath))
 		return;
 
-	auto DataTable = this->ExtractDataTable(Asset);
+	List<List<DataTableColumnData>> DataTable = this->ExtractDataTable(Asset);
 
 	std::ofstream dtbl_out(DestinationPath.ToCString(), std::ios::out);
 
@@ -245,7 +243,6 @@ void RpakLib::ExportDataTable(const RpakLoadAsset& Asset, const string& Path)
 	}
 
 	dtbl_out.close();
-
 }
 
 string Vector3ToHexColor(Math::Vector3 vec)
@@ -259,7 +256,7 @@ string Vector3ToHexColor(Math::Vector3 vec)
 
 void RpakLib::ExportSubtitles(const RpakLoadAsset& Asset, const string& Path)
 {
-	auto Format = (RpakSubtitlesExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat");
+	RpakSubtitlesExportFormat Format = (RpakSubtitlesExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat");
 
 	string sExtension = "";
 
@@ -273,12 +270,12 @@ void RpakLib::ExportSubtitles(const RpakLoadAsset& Asset, const string& Path)
 		break;
 	}
 
-	auto DestinationPath = IO::Path::Combine(Path, GetSubtitlesNameFromHash(Asset.NameHash) + sExtension);
+	string DestinationPath = IO::Path::Combine(Path, GetSubtitlesNameFromHash(Asset.NameHash) + sExtension);
 
 	if (!Utils::ShouldWriteFile(DestinationPath))
 		return;
 
-	auto Subtitles = this->ExtractSubtitles(Asset);
+	List<SubtitleEntry> Subtitles = this->ExtractSubtitles(Asset);
 
 	std::ofstream subt_out(DestinationPath.ToCString(), std::ios::out);
 
@@ -311,14 +308,14 @@ void RpakLib::ExportSubtitles(const RpakLoadAsset& Asset, const string& Path)
 
 void RpakLib::ExportShaderSet(const RpakLoadAsset& Asset, const string& Path)
 {
-	auto ShaderSetPath = IO::Path::Combine(Path, string::Format("0x%llx", Asset.NameHash));
+	string ShaderSetPath = IO::Path::Combine(Path, string::Format("0x%llx", Asset.NameHash));
 
 	auto RpakStream = this->GetFileStream(Asset);
-	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	auto Header = Reader.Read<ShaderSetHeader>();
+	ShaderSetHeader Header = Reader.Read<ShaderSetHeader>();
 
 	uint64_t PixelShaderGuid = Header.PixelShaderHash;
 	uint64_t VertexShaderGuid = Header.VertexShaderHash;
@@ -333,20 +330,20 @@ void RpakLib::ExportShaderSet(const RpakLoadAsset& Asset, const string& Path)
 
 	if (Assets.ContainsKey(PixelShaderGuid))
 	{
-		auto PixelShaderPath = IO::Path::Combine(ShaderSetPath, string::Format("0x%llx_ps.fxc", PixelShaderGuid));
+		string PixelShaderPath = IO::Path::Combine(ShaderSetPath, string::Format("0x%llx_ps.fxc", PixelShaderGuid));
 		this->ExtractShader(Assets[PixelShaderGuid], PixelShaderPath);
 	}
 
 	if (Assets.ContainsKey(VertexShaderGuid))
 	{
-		auto VertexShaderPath = IO::Path::Combine(ShaderSetPath, string::Format("0x%llx_vs.fxc", VertexShaderGuid));
+		string VertexShaderPath = IO::Path::Combine(ShaderSetPath, string::Format("0x%llx_vs.fxc", VertexShaderGuid));
 		this->ExtractShader(Assets[VertexShaderGuid], VertexShaderPath);
 	}
 }
 
 void RpakLib::ExportUIImageAtlas(const RpakLoadAsset& Asset, const string& Path)
 {
-	auto AtlasPath = IO::Path::Combine(Path, string::Format("0x%llx", Asset.NameHash));
+	string AtlasPath = IO::Path::Combine(Path, string::Format("0x%llx", Asset.NameHash));
 
 	if (!IO::Directory::Exists(AtlasPath))
 		IO::Directory::CreateDirectory(AtlasPath);

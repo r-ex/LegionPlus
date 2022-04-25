@@ -5,7 +5,7 @@
 void RpakLib::BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 {
 	auto RpakStream = this->GetFileStream(Asset);
-	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
@@ -18,7 +18,7 @@ void RpakLib::BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 		}
 		else
 		{
-			auto ModHeaderTmp = Reader.Read<ModelHeaderS50>();
+			ModelHeaderS50 ModHeaderTmp = Reader.Read<ModelHeaderS50>();
 			ModHeader.SkeletonIndex = ModHeaderTmp.SkeletonIndex;
 			ModHeader.SkeletonOffset = ModHeaderTmp.SkeletonOffset;
 
@@ -29,7 +29,7 @@ void RpakLib::BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	}
 	else
 	{
-		auto ModHeaderTmp = Reader.Read<ModelHeaderS80>();
+		ModelHeaderS80 ModHeaderTmp = Reader.Read<ModelHeaderS80>();
 		std::memcpy(&ModHeader, &ModHeaderTmp, offsetof(ModelHeaderS80, DataFlags));
 		std::memcpy(&ModHeader.AnimSequenceCount, &ModHeaderTmp.AnimSequenceCount, sizeof(uint32_t) * 3);
 	}
@@ -47,7 +47,7 @@ void RpakLib::BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.SkeletonIndex, ModHeader.SkeletonOffset));
 
-	auto SkeletonHeader = Reader.Read<RMdlSkeletonHeader>();
+	RMdlSkeletonHeader SkeletonHeader = Reader.Read<RMdlSkeletonHeader>();
 
 	if (ModHeader.AnimSequenceCount > 0)
 	{
@@ -62,11 +62,11 @@ void RpakLib::BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 void RpakLib::BuildAnimInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 {
 	auto RpakStream = this->GetFileStream(Asset);
-	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	auto RigHeader = Reader.Read<AnimRigHeader>();
+	AnimRigHeader RigHeader = Reader.Read<AnimRigHeader>();
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, RigHeader.NameIndex, RigHeader.NameOffset));
 
@@ -82,7 +82,7 @@ void RpakLib::BuildAnimInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, RigHeader.SkeletonIndex, RigHeader.SkeletonOffset));
 
-	auto SkeletonHeader = Reader.Read<RMdlSkeletonHeader>();
+	RMdlSkeletonHeader SkeletonHeader = Reader.Read<RMdlSkeletonHeader>();
 
 	Info.Info = string::Format("Animations: %d, Bones: %d", RigHeader.AnimationReferenceCount, SkeletonHeader.BoneCount);
 }
@@ -90,11 +90,11 @@ void RpakLib::BuildAnimInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 void RpakLib::BuildRawAnimInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 {
 	auto RpakStream = this->GetFileStream(Asset);
-	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	auto AnHeader = Reader.Read<AnimHeader>();
+	AnimHeader AnHeader = Reader.Read<AnimHeader>();
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, AnHeader.NameIndex, AnHeader.NameOffset));
 
@@ -112,11 +112,11 @@ void RpakLib::BuildRawAnimInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 void RpakLib::BuildMaterialInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 {
 	auto RpakStream = this->GetFileStream(Asset);
-	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	auto MatHeader = Reader.Read<MaterialHeader>();
+	MaterialHeader MatHeader = Reader.Read<MaterialHeader>();
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, MatHeader.NameIndex, MatHeader.NameOffset));
 
@@ -147,11 +147,11 @@ void RpakLib::BuildMaterialInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 void RpakLib::BuildTextureInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 {
 	auto RpakStream = this->GetFileStream(Asset);
-	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	auto TexHeader = Reader.Read<TextureHeader>();
+	TextureHeader TexHeader = Reader.Read<TextureHeader>();
 
 	string Name = "";
 
@@ -175,11 +175,11 @@ void RpakLib::BuildTextureInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 void RpakLib::BuildUIIAInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 {
 	auto RpakStream = this->GetFileStream(Asset);
-	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	auto TexHeader = Reader.Read<UIIAHeader>();
+	UIIAHeader TexHeader = Reader.Read<UIIAHeader>();
 
 	string CompressionType = "";
 
@@ -209,10 +209,10 @@ void RpakLib::BuildUIIAInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 void RpakLib::BuildDataTableInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 {
 	auto RpakStream = this->GetFileStream(Asset);
-	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
-	auto DtblHeader = Reader.Read<DataTableHeader>();
+	DataTableHeader DtblHeader = Reader.Read<DataTableHeader>();
 
 	Info.Name = string::Format("datatable_0x%llx", Asset.NameHash);
 	Info.Type = ApexAssetType::DataTable;
@@ -223,7 +223,7 @@ void RpakLib::BuildDataTableInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 void RpakLib::BuildSubtitleInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 {
 	auto RpakStream = this->GetFileStream(Asset);
-	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
@@ -244,11 +244,11 @@ void RpakLib::BuildShaderSetInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 void RpakLib::BuildUIImageAtlasInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 {
 	auto RpakStream = this->GetFileStream(Asset);
-	auto Reader = IO::BinaryReader(RpakStream.get(), true);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	auto Header = Reader.Read<UIAtlasHeader>();
+	UIAtlasHeader Header = Reader.Read<UIAtlasHeader>();
 
 	Info.Name = string::Format("atlas_0x%llx", Asset.NameHash);
 	Info.Type = ApexAssetType::UIImageAtlas;

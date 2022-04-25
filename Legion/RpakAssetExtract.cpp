@@ -18,7 +18,7 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 
 		uint32_t dSize = g_pRtech->DecompressPakfileInit(&state, (uint8_t*)Data, DataSize, 0, 0);
 
-		auto Result = new uint8_t[state.decompressed_size]{};
+		uint8_t* Result = new uint8_t[state.decompressed_size]{};
 		state.out_mask = UINT64_MAX;
 		state.out = (uint64_t)Result;
 

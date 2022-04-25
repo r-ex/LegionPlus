@@ -43,7 +43,7 @@ std::unique_ptr<Assets::Texture> RpakLib::BuildPreviewMaterial(uint64_t Hash)
 		return nullptr;
 
 	auto& Asset = this->Assets[Hash];
-	auto Material = this->ExtractMaterial(Asset, "", false, false);
+	RMdlMaterial Material = this->ExtractMaterial(Asset, "", false, false);
 
 	return this->BuildPreviewTexture(Material.AlbedoHash);
 }
