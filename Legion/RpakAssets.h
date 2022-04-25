@@ -6,6 +6,8 @@
 #include "ListBase.h"
 #include <d3dcommon.h>
 
+#define ASSERT_SIZE(Type, Size) static_assert(sizeof(Type) == Size, "Invalid type size for " #Type)
+
 // Game structures
 // APEX
 #pragma pack(push, 1)
@@ -1437,37 +1439,34 @@ struct UIAtlasImage // uiai wen
 
 // Validate all game structures
 // APEX
-static_assert(sizeof(TextureHeader) == 0x38, "Invalid Header Size");
-static_assert(sizeof(DataTableHeader) == 0x28, "Invalid Header Size");
-static_assert(sizeof(DataTableColumn) == 0x18, "Invalid Header Size");
-static_assert(sizeof(SubtitleHeader) == 0x18, "Invalid Header Size");
-static_assert(sizeof(SettingsHeader) == 0x48, "Invalid Header Size");
-static_assert(sizeof(PatchHeader) == 0x18, "Invalid Header Size");
-static_assert(sizeof(UIIAHeader) == 0x40, "Invalid Header Size");
-static_assert(sizeof(SettingsKeyValue) == 0x8, "Invalid Header Size");
-static_assert(sizeof(SettingsKeyValuePair) == 0x10, "Invalid Header Size");
-static_assert(sizeof(ModelHeaderS68) == 0x68, "Invalid Header Size");
-static_assert(sizeof(ModelHeaderS80) == 0x80, "Invalid Header Size");
-static_assert(sizeof(AnimHeader) == 0x30, "Invalid Header Size");
-static_assert(sizeof(AnimRigHeader) == 0x28, "Invalid Header Size");
-static_assert(sizeof(RMdlBone) == 0xB4, "Invalid Header Size");
-//static_assert(sizeof(RMdlSkeletonHeader) == 0x118, "Invalid Header Size");
-static_assert(sizeof(RMdlMeshStreamHeader) == 0x24, "Invalid Header Size");
-static_assert(sizeof(RMdlMeshHeader) == 0x40, "Invalid Header Size");
-static_assert(sizeof(RMdlFixup) == 0xC, "Invalid Header Size");
-static_assert(sizeof(RMdlVertex) == 0x30, "Invalid Header Size");
-static_assert(sizeof(RMdlBodyPart) == 0x8, "Invalid Header Size");
-static_assert(sizeof(RMdlModel) == 0x8, "Invalid Header Size");
-static_assert(sizeof(RMdlLod) == 0xC, "Invalid Header Size");
-static_assert(sizeof(RMdlSubmesh) == 0x9, "Invalid Header Size");
-static_assert(sizeof(RMdlStripGroup) == 0x19, "Invalid Header Size");
-static_assert(sizeof(RMdlStripVert) == 0x9, "Invalid Header Size");
-static_assert(sizeof(RMdlStrip) == 0x1B, "Invalid Header Size");
-static_assert(sizeof(RMdlExtendedWeight) == 0x4, "Invalid Header Size");
-static_assert(sizeof(RMdlLodSubmesh) == 0x4C, "Invalid Header Size");
-static_assert(sizeof(RMdlTexture) == 0xC, "Invalid Header Size");
-static_assert(sizeof(RAnimHeader) == 0x40, "Invalid Header Size");
-static_assert(sizeof(StarpakStreamEntry) == 0x10, "Invalid Header Size");
+ASSERT_SIZE(TextureHeader, 0x38);
+ASSERT_SIZE(DataTableHeader, 0x28);
+ASSERT_SIZE(DataTableColumn, 0x18);
+ASSERT_SIZE(SubtitleHeader, 0x18);
+ASSERT_SIZE(SettingsHeader, 0x48);
+ASSERT_SIZE(PatchHeader, 0x18);
+ASSERT_SIZE(UIIAHeader, 0x40);
+ASSERT_SIZE(SettingsKeyValue, 0x8);
+ASSERT_SIZE(SettingsKeyValuePair, 0x10);
+ASSERT_SIZE(ModelHeaderS68, 0x68);
+ASSERT_SIZE(ModelHeaderS80, 0x80);
+ASSERT_SIZE(AnimHeader, 0x30);
+ASSERT_SIZE(AnimRigHeader, 0x28);
+ASSERT_SIZE(RMdlBone, 0xB4);
+ASSERT_SIZE(RMdlMeshStreamHeader, 0x24);
+ASSERT_SIZE(RMdlMeshHeader, 0x40);
+ASSERT_SIZE(RMdlFixup, 0xC);
+ASSERT_SIZE(RMdlVertex, 0x30);
+ASSERT_SIZE(RMdlBodyPart, 0x8);
+ASSERT_SIZE(RMdlModel, 0x8);
+ASSERT_SIZE(RMdlLod, 0xC);
+ASSERT_SIZE(RMdlSubmesh, 0x9);
+ASSERT_SIZE(RMdlStripGroup, 0x19);
+ASSERT_SIZE(RMdlStripVert, 0x9);
+ASSERT_SIZE(RMdlStrip, 0x1B);
+ASSERT_SIZE(RMdlExtendedWeight, 0x4);
+ASSERT_SIZE(RMdlTexture, 0xC);
+ASSERT_SIZE(RAnimHeader, 0x40);
 
 // Game helper structs
 struct RMdlFixupPatches
