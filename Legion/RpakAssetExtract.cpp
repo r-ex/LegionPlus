@@ -1017,11 +1017,11 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 
 		bool UseHighResolution = StarpakStream != nullptr;
 
-		int WidthBlocks = UseHighResolution ? (RImage.HighResolutionWidth + 29) / 31 : (RImage.LowResolutionWidth + 29) / 31;
-		int HeightBlocks = UseHighResolution ? (RImage.HighResolutionHeight + 29) / 31 : (RImage.LowResolutionHeight + 29) / 31;
-		int TotalBlocks = WidthBlocks * HeightBlocks;
-		int Width = WidthBlocks * 32;
-		int Height = HeightBlocks * 32;
+		uint32_t WidthBlocks = UseHighResolution ? (RImage.HighResolutionWidth + 29) / 31 : (RImage.LowResolutionWidth + 29) / 31;
+		uint32_t HeightBlocks = UseHighResolution ? (RImage.HighResolutionHeight + 29) / 31 : (RImage.LowResolutionHeight + 29) / 31;
+		uint32_t TotalBlocks = WidthBlocks * HeightBlocks;
+		uint32_t Width = WidthBlocks * 32;
+		uint32_t Height = HeightBlocks * 32;
 
 		uint64_t Offset = UseHighResolution ? 0 : this->GetFileOffset(Asset, RImage.BufferIndex, RImage.BufferOffset);
 
@@ -1535,7 +1535,7 @@ List<List<DataTableColumnData>> RpakLib::ExtractDataTable(const RpakLoadAsset& A
 	List<DataTableColumn> Columns;
 	List<List<DataTableColumnData>> Data;
 
-	for (int i = 0; i < DtblHeader.ColumnCount; ++i)
+	for (uint32_t i = 0; i < DtblHeader.ColumnCount; ++i)
 	{
 		DataTableColumn col{};
 
@@ -1557,7 +1557,7 @@ List<List<DataTableColumnData>> RpakLib::ExtractDataTable(const RpakLoadAsset& A
 
 	List<DataTableColumnData> ColumnNameData;
 
-	for (int i = 0; i < DtblHeader.ColumnCount; ++i)
+	for (uint32_t i = 0; i < DtblHeader.ColumnCount; ++i)
 	{
 		DataTableColumn col = Columns[i];
 
@@ -1576,11 +1576,11 @@ List<List<DataTableColumnData>> RpakLib::ExtractDataTable(const RpakLoadAsset& A
 
 	uint64_t rows_seek = this->GetFileOffset(Asset, DtblHeader.RowHeaderBlock, DtblHeader.RowHeaderOffset);
 
-	for (int i = 0; i < DtblHeader.RowCount; ++i)
+	for (uint32_t i = 0; i < DtblHeader.RowCount; ++i)
 	{
 		List<DataTableColumnData> RowData;
 
-		for (int c = 0; c < DtblHeader.ColumnCount; ++c)
+		for (uint32_t c = 0; c < DtblHeader.ColumnCount; ++c)
 		{
 			DataTableColumn col = Columns[c];
 
@@ -1739,9 +1739,8 @@ List<ShaderVar> RpakLib::ExtractShaderVars(const RpakLoadAsset& Asset, D3D_SHADE
 	List<uint32_t> ChunkOffsets(hdr.ChunkCount, true);
 	Reader.Read((uint8_t*)&ChunkOffsets[0], 0, hdr.ChunkCount*sizeof(uint32_t));
 
-	for (int i = 0; i < hdr.ChunkCount; ++i)
+	for (uint32_t i = 0; i < hdr.ChunkCount; ++i)
 		ChunkOffsets[i] += BasePos;
-
 
 	for (auto& ChunkOffset : ChunkOffsets)
 	{
@@ -1760,12 +1759,12 @@ List<ShaderVar> RpakLib::ExtractShaderVars(const RpakLoadAsset& Asset, D3D_SHADE
 			
 			uint64_t ConstBufferPos = (ChunkOffset + 8) + RDefHdr.ConstBufferOffset;
 
-			for (int i = 0; i < RDefHdr.ConstBufferCount; ++i)
+			for (uint32_t i = 0; i < RDefHdr.ConstBufferCount; ++i)
 			{
 				RpakStream->SetPosition(ConstBufferPos + (i * sizeof(RDefConstBuffer)));
 				RDefConstBuffer ConstBuffer = Reader.Read<RDefConstBuffer>();
 
-				for (int j = 0; j < ConstBuffer.VariableCount; ++j)
+				for (uint32_t j = 0; j < ConstBuffer.VariableCount; ++j)
 				{
 					RpakStream->SetPosition((ChunkOffset + 8) + ConstBuffer.VariableOffset + (j*sizeof(RDefCBufVar)));
 
@@ -1818,7 +1817,7 @@ List<ShaderResBinding> RpakLib::ExtractShaderResourceBindings(const RpakLoadAsse
 	List<uint32_t> ChunkOffsets(hdr.ChunkCount, true);
 	Reader.Read((uint8_t*)&ChunkOffsets[0], 0, hdr.ChunkCount * sizeof(uint32_t));
 
-	for (int i = 0; i < hdr.ChunkCount; ++i)
+	for (uint32_t i = 0; i < hdr.ChunkCount; ++i)
 		ChunkOffsets[i] += BasePos;
 
 	for (auto& ChunkOffset : ChunkOffsets)
@@ -1838,7 +1837,7 @@ List<ShaderResBinding> RpakLib::ExtractShaderResourceBindings(const RpakLoadAsse
 
 			uint64_t ResBindingPos = (ChunkOffset + 8) + RDefHdr.ResBindingOffset;
 
-			for (int i = 0; i < RDefHdr.ResBindingCount; ++i)
+			for (uint32_t i = 0; i < RDefHdr.ResBindingCount; ++i)
 			{
 				RpakStream->SetPosition(ResBindingPos + (i * sizeof(RDefResBinding)));
 				RDefResBinding ResBinding = Reader.Read<RDefResBinding>();

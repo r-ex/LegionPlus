@@ -192,11 +192,11 @@ void RpakLib::ExportDataTable(const RpakLoadAsset& Asset, const string& Path)
 
 	std::ofstream dtbl_out(DestinationPath.ToCString(), std::ios::out);
 
-	for (int i = 0; i < DataTable.Count(); ++i)
+	for (uint32_t i = 0; i < DataTable.Count(); ++i)
 	{
 		List<DataTableColumnData> Row = DataTable[i];
 
-		for (int c = 0; c < Row.Count(); ++c)
+		for (uint32_t c = 0; c < Row.Count(); ++c)
 		{
 			DataTableColumnData cd = Row[c];
 

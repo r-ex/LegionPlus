@@ -6,3 +6,5 @@ namespace Utils
 	string GetDate();
 };
 
+
+#define ASSERT_SIZE(Type, Size) static_assert(sizeof(Type) == Size, "Invalid type size for " #Type)

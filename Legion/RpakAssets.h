@@ -5,8 +5,7 @@
 #include "Quaternion.h"
 #include "ListBase.h"
 #include <d3dcommon.h>
-
-#define ASSERT_SIZE(Type, Size) static_assert(sizeof(Type) == Size, "Invalid type size for " #Type)
+#include "Utils.h"
 
 // Game structures
 // APEX

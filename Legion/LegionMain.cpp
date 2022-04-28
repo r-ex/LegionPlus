@@ -573,7 +573,7 @@ void LegionMain::OnLoadClick(Forms::Control* Sender)
 
 	List<string> OpenFileD = OpenFileDialog::ShowMultiFileDialog("Legion+: Select file(s) to load", "", "Apex Legends Files (MBnk, RPak, Bsp)|*.mbnk;*.rpak;*.bsp", Sender->FindForm());
 
-	for (int i = 0; i < OpenFileD.Count(); i++)
+	for (uint32_t i = 0; i < OpenFileD.Count(); i++)
 	{
 		g_Logger.Info("Load rpak: %s\n", OpenFileD[i].ToCString());
 	}
@@ -628,21 +628,6 @@ void LegionMain::OnRefreshClick(Forms::Control* Sender)
 	auto ThisPtr = (LegionMain*)Sender->FindForm();
 
 	ThisPtr->RefreshView();
-}
-
-void CopyStringToClipboard(std::string s, HWND hWnd)
-{
-	HANDLE hData = GlobalAlloc(GMEM_FIXED, s.length()+1);
-	memcpy_s(hData, s.length() + 1, s.c_str(), s.length() + 1);
-	GlobalLock(hData);
-
-	OpenClipboard(hWnd);
-	EmptyClipboard();
-	SetClipboardData(CF_TEXT, hData);
-	CloseClipboard();
-
-	GlobalUnlock(hData);
-	GlobalFree(hData);
 }
 
 void LegionMain::OnListRightClick(const std::unique_ptr<MouseEventArgs>& EventArgs, Forms::Control* Sender)

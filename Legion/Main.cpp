@@ -333,7 +333,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			main->RefreshView();
 		}
 		Forms::Application::Run(main);
-
 	}
 
 	UIX::UIXTheme::ShutdownRenderer();
