@@ -21,32 +21,32 @@ RBspLib::RBspLib()
 {
 }
 
-void RBspLib::InitializeModelExporter(RpakModelExportFormat Format)
+void RBspLib::InitializeModelExporter(ModelExportFormat_t Format)
 {
 	switch (Format)
 	{
-	case RpakModelExportFormat::Maya:
+	case ModelExportFormat_t::Maya:
 		ModelExporter = std::make_unique<Assets::Exporters::AutodeskMaya>();
 		break;
-	case RpakModelExportFormat::OBJ:
+	case ModelExportFormat_t::OBJ:
 		ModelExporter = std::make_unique<Assets::Exporters::WavefrontOBJ>();
 		break;
-	case RpakModelExportFormat::XNALaraText:
+	case ModelExportFormat_t::XNALaraText:
 		ModelExporter = std::make_unique<Assets::Exporters::XNALaraAscii>();
 		break;
-	case RpakModelExportFormat::XNALaraBinary:
+	case ModelExportFormat_t::XNALaraBinary:
 		ModelExporter = std::make_unique<Assets::Exporters::XNALaraBinary>();
 		break;
-	case RpakModelExportFormat::SMD:
+	case ModelExportFormat_t::SMD:
 		ModelExporter = std::make_unique<Assets::Exporters::ValveSMD>();
 		break;
-	case RpakModelExportFormat::XModel:
+	case ModelExportFormat_t::XModel:
 		ModelExporter = std::make_unique<Assets::Exporters::CoDXAssetExport>();
 		break;
-	case RpakModelExportFormat::FBX:
+	case ModelExportFormat_t::FBX:
 		ModelExporter = std::make_unique<Assets::Exporters::KaydaraFBX>();
 		break;
-	case RpakModelExportFormat::Cast:
+	case ModelExportFormat_t::Cast:
 		ModelExporter = std::make_unique<Assets::Exporters::CastAsset>();
 		break;
 	default:

@@ -113,105 +113,105 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			// asset rpak formats flags
 			if (cmdline.HasParam(L"--mdlfmt"))
 			{
-				RpakModelExportFormat MdlFmt = (RpakModelExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat");
+				ModelExportFormat_t MdlFmt = (ModelExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat");
 
 				wstring sFmt = cmdline.GetParamValue(L"--mdlfmt");
 				sFmt = sFmt.ToLower();
 
 				if (sFmt == L"semodel")
-					MdlFmt = RpakModelExportFormat::SEModel;
+					MdlFmt = ModelExportFormat_t::SEModel;
 				if (sFmt == L"obj" || sFmt == L"wavefront")
-					MdlFmt = RpakModelExportFormat::OBJ;
+					MdlFmt = ModelExportFormat_t::OBJ;
 				if (sFmt == L"xnalara_ascii")
-					MdlFmt = RpakModelExportFormat::XNALaraText;
+					MdlFmt = ModelExportFormat_t::XNALaraText;
 				if (sFmt == L"xnalara_binary")
-					MdlFmt = RpakModelExportFormat::XNALaraBinary;
+					MdlFmt = ModelExportFormat_t::XNALaraBinary;
 				if (sFmt == L"smd" || sFmt == L"source")
-					MdlFmt = RpakModelExportFormat::SMD;
+					MdlFmt = ModelExportFormat_t::SMD;
 				if (sFmt == L"xmodel")
-					MdlFmt = RpakModelExportFormat::XModel;
+					MdlFmt = ModelExportFormat_t::XModel;
 				if (sFmt == L"maya" || sFmt == L"ma")
-					MdlFmt = RpakModelExportFormat::Maya;
+					MdlFmt = ModelExportFormat_t::Maya;
 				if (sFmt == L"fbx")
-					MdlFmt = RpakModelExportFormat::FBX;
+					MdlFmt = ModelExportFormat_t::FBX;
 				if (sFmt == L"cast")
-					MdlFmt = RpakModelExportFormat::Cast;
+					MdlFmt = ModelExportFormat_t::Cast;
 				if (sFmt == L"rmdl")
-					MdlFmt = RpakModelExportFormat::RMDL;
+					MdlFmt = ModelExportFormat_t::RMDL;
 
-				if (MdlFmt != (RpakModelExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"))
+				if (MdlFmt != (ModelExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"))
 					ExportManager::Config.Set<System::SettingType::Integer>("ModelFormat", (uint32_t)MdlFmt);
 			}
 
 			if (cmdline.HasParam(L"--animfmt"))
 			{
-				RpakAnimExportFormat AnimFmt = (RpakAnimExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat");
+				AnimExportFormat_t AnimFmt = (AnimExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat");
 
 				wstring sFmt = cmdline.GetParamValue(L"--animfmt");
 				sFmt = sFmt.ToLower();
 
 				if (sFmt == L"seanim")
-					AnimFmt = RpakAnimExportFormat::SEAnim;
+					AnimFmt = AnimExportFormat_t::SEAnim;
 				if (sFmt == L"cast")
-					AnimFmt = RpakAnimExportFormat::Cast;
+					AnimFmt = AnimExportFormat_t::Cast;
 				if (sFmt == L"ranim")
-					AnimFmt = RpakAnimExportFormat::RAnim;
+					AnimFmt = AnimExportFormat_t::RAnim;
 
-				if (AnimFmt != (RpakAnimExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat"))
+				if (AnimFmt != (AnimExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat"))
 					ExportManager::Config.Set<System::SettingType::Integer>("AnimFormat", (uint32_t)AnimFmt);
 			}
 
 			if (cmdline.HasParam(L"--imgfmt"))
 			{
-				RpakImageExportFormat ImgFmt = (RpakImageExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat");
+				ImageExportFormat_t ImgFmt = (ImageExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat");
 
 				wstring sFmt = cmdline.GetParamValue(L"--imgfmt");
 				sFmt = sFmt.ToLower();
 
 				if (sFmt == L"dds")
-					ImgFmt = RpakImageExportFormat::Dds;
+					ImgFmt = ImageExportFormat_t::Dds;
 				if (sFmt == L"png")
-					ImgFmt = RpakImageExportFormat::Png;
+					ImgFmt = ImageExportFormat_t::Png;
 				if (sFmt == L"tiff")
-					ImgFmt = RpakImageExportFormat::Tiff;
+					ImgFmt = ImageExportFormat_t::Tiff;
 				if (sFmt == L"tga")
-					ImgFmt = RpakImageExportFormat::Tga;
+					ImgFmt = ImageExportFormat_t::Tga;
 
-				if (ImgFmt != (RpakImageExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat"))
+				if (ImgFmt != (ImageExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat"))
 					ExportManager::Config.Set<System::SettingType::Integer>("ImageFormat", (uint32_t)ImgFmt);
 			}
 
 			if (cmdline.HasParam(L"--textfmt"))
 			{
-				RpakSubtitlesExportFormat SubtFmt = (RpakSubtitlesExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat");
+				SubtitleExportFormat_t SubtFmt = (SubtitleExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat");
 
 				wstring sFmt = cmdline.GetParamValue(L"--textfmt");
 				sFmt = sFmt.ToLower();
 
 				if (sFmt == L"csv")
-					SubtFmt = RpakSubtitlesExportFormat::CSV;
+					SubtFmt = SubtitleExportFormat_t::CSV;
 				if (sFmt == L"txt")
-					SubtFmt = RpakSubtitlesExportFormat::TXT;
+					SubtFmt = SubtitleExportFormat_t::TXT;
 
-				if (SubtFmt != (RpakSubtitlesExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat"))
+				if (SubtFmt != (SubtitleExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat"))
 					ExportManager::Config.Set<System::SettingType::Integer>("TextFormat", (uint32_t)SubtFmt);
 			}
 
 			if (cmdline.HasParam(L"--nmlrecalc"))
 			{
-				eNormalRecalcType NmlRecalcType = (eNormalRecalcType)ExportManager::Config.Get<System::SettingType::Integer>("NormalRecalcType");
+				NormalRecalcType_t NmlRecalcType = (NormalRecalcType_t)ExportManager::Config.Get<System::SettingType::Integer>("NormalRecalcType");
 
 				wstring sFmt = cmdline.GetParamValue(L"--nmlrecalc");
 				sFmt = sFmt.ToLower();
 
 				if (sFmt == L"none")
-					NmlRecalcType = eNormalRecalcType::None;
+					NmlRecalcType = NormalRecalcType_t::None;
 				if (sFmt == L"directx" || sFmt == L"dx")
-					NmlRecalcType = eNormalRecalcType::DirectX;
+					NmlRecalcType = NormalRecalcType_t::DirectX;
 				if (sFmt == L"opengl" || sFmt == L"ogl")
-					NmlRecalcType = eNormalRecalcType::OpenGl;
+					NmlRecalcType = NormalRecalcType_t::OpenGl;
 
-				if (NmlRecalcType != (eNormalRecalcType)ExportManager::Config.Get<System::SettingType::Integer>("NormalRecalcType"))
+				if (NmlRecalcType != (NormalRecalcType_t)ExportManager::Config.Get<System::SettingType::Integer>("NormalRecalcType"))
 					ExportManager::Config.Set<System::SettingType::Integer>("NormalRecalcType", (uint32_t)NmlRecalcType);
 			}
 

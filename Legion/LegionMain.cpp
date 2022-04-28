@@ -188,10 +188,10 @@ void LegionMain::LoadApexFile(const List<string>& File)
 			{
 				if (ThisPtr->RpakFileSystem != nullptr)
 				{
-					ThisPtr->RpakFileSystem->InitializeImageExporter((RpakImageExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat"));
-					ThisPtr->RpakFileSystem->InitializeModelExporter((RpakModelExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"));
+					ThisPtr->RpakFileSystem->InitializeImageExporter((ImageExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat"));
+					ThisPtr->RpakFileSystem->InitializeModelExporter((ModelExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"));
 				}
-				BspLibrary->InitializeModelExporter((RpakModelExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"));
+				BspLibrary->InitializeModelExporter((ModelExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"));
 				BspLibrary->ExportBsp(ThisPtr->RpakFileSystem, ThisPtr->LoadPath[0], ExportManager::GetMapExportPath());
 
 				ThisPtr->Invoke([]()

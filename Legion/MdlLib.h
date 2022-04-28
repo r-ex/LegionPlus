@@ -26,9 +26,9 @@ public:
 	std::unique_ptr<Assets::Exporters::Exporter> AnimExporter;
 
 	// Initializes a model exporter
-	void InitializeModelExporter(RpakModelExportFormat Format = RpakModelExportFormat::SEModel);
+	void InitializeModelExporter(ModelExportFormat_t Format = ModelExportFormat_t::SEModel);
 	// Initializes a anim exporter
-	void InitializeAnimExporter(RpakAnimExportFormat Format = RpakAnimExportFormat::SEAnim);
+	void InitializeAnimExporter(AnimExportFormat_t Format = AnimExportFormat_t::SEAnim);
 
 	// Exports an on-disk mdl asset
 	void ExportRMdl(const string& Asset, const string& Path);

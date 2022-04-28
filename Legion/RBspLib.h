@@ -72,7 +72,7 @@ public:
 	std::unique_ptr<Assets::Exporters::Exporter> ModelExporter;
 
 	// Initializes a model exporter
-	void InitializeModelExporter(RpakModelExportFormat Format = RpakModelExportFormat::SEModel);
+	void InitializeModelExporter(ModelExportFormat_t Format = ModelExportFormat_t::SEModel);
 
 	// Exports an on-disk bsp asset
 	void ExportPropContainer(std::unique_ptr<IO::MemoryStream>& Stream, const string& Name, const string& Path);

@@ -8,7 +8,7 @@ std::unique_ptr<Assets::Model> RpakLib::BuildPreviewModel(uint64_t Hash)
 
 	auto& Asset = this->Assets[Hash];
 
-	if (Asset.AssetType != (uint32_t)RpakAssetType::Model)
+	if (Asset.AssetType != (uint32_t)AssetType_t::Model)
 		return nullptr;
 
 	return std::move(this->ExtractModel(Asset, "", "", false, false));
@@ -26,10 +26,10 @@ std::unique_ptr<Assets::Texture> RpakLib::BuildPreviewTexture(uint64_t Hash)
 
 	switch (Asset.AssetType)
 	{
-	case (uint32_t)RpakAssetType::Texture:
+	case (uint32_t)AssetType_t::Texture:
 		this->ExtractTexture(Asset, Result, Name);
 		return Result;
-	case (uint32_t)RpakAssetType::UIIA:
+	case (uint32_t)AssetType_t::UIIA:
 		this->ExtractUIIA(Asset, Result);
 		return Result;
 	default:

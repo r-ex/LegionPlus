@@ -151,7 +151,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 		IO::Directory::CreateDirectory(TexturePath);
 	}
 
-	auto ModelFormat = (RpakModelExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat");
+	auto ModelFormat = (ModelExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat");
 
 	const uint64_t SkeletonOffset = this->GetFileOffset(Asset, ModHeader.SkeletonIndex, ModHeader.SkeletonOffset);
 
@@ -159,7 +159,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 	string BaseFileName = IO::Path::Combine(ModelPath, ModelName);
 
-	if (Path != "" && AnimPath != "" && ModelFormat == RpakModelExportFormat::RMDL)
+	if (Path != "" && AnimPath != "" && ModelFormat == ModelExportFormat_t::RMDL)
 	{
 		// set this here so we don't have to do this check every time
 		bExportingRawRMdl = true;
@@ -770,7 +770,7 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 		{
 			RpakLoadAsset& Asset = Assets[TextureHash];
 			// Make sure the data we got to is a proper texture
-			if (Asset.AssetType == (uint32_t)RpakAssetType::Texture)
+			if (Asset.AssetType == (uint32_t)AssetType_t::Texture)
 			{
 				ExportTexture(Asset, Path, IncludeImageNames, bOverridden ? TextureName : string(), bNormalRecalculate);
 			}

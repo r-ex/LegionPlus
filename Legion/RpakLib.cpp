@@ -97,9 +97,9 @@ void RpakLib::PatchAssets()
 				if (this->ValidateAssetPatchStatus(Asset))
 				{
 					// If we have a model or texture, it must also pass the stream test
-					if (Asset.AssetType == (uint32_t)RpakAssetType::Model
-						|| Asset.AssetType == (uint32_t)RpakAssetType::Texture
-						|| Asset.AssetType == (uint32_t)RpakAssetType::UIIA)
+					if (Asset.AssetType == (uint32_t)AssetType_t::Model
+						|| Asset.AssetType == (uint32_t)AssetType_t::Texture
+						|| Asset.AssetType == (uint32_t)AssetType_t::UIIA)
 					{
 						if (this->ValidateAssetStreamStatus(Asset))
 						{
@@ -166,46 +166,46 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims
 
 		switch (Asset.AssetType)
 		{
-		case (uint32_t)RpakAssetType::Model:
+		case (uint32_t)AssetType_t::Model:
 			if (!Models)
 				continue;
 			BuildModelInfo(Asset, NewAsset);
 			break;
-		case (uint32_t)RpakAssetType::AnimationRig:
+		case (uint32_t)AssetType_t::AnimationRig:
 			if (!Anims)
 				continue;
 			BuildAnimInfo(Asset, NewAsset);
 			break;
-		case (uint32_t)RpakAssetType::Material:
+		case (uint32_t)AssetType_t::Material:
 			if (!Materials)
 				continue;
 			BuildMaterialInfo(Asset, NewAsset);
 			break;
-		case (uint32_t)RpakAssetType::Texture:
+		case (uint32_t)AssetType_t::Texture:
 			if (!Images)
 				continue;
 			BuildTextureInfo(Asset, NewAsset);
 			break;
-		case (uint32_t)RpakAssetType::UIIA:
+		case (uint32_t)AssetType_t::UIIA:
 			if (!UIImages)
 				continue;
 			BuildUIIAInfo(Asset, NewAsset);
 			break;
-		case (uint32_t)RpakAssetType::DataTable:
+		case (uint32_t)AssetType_t::DataTable:
 			if (!DataTables)
 				continue;
 			BuildDataTableInfo(Asset, NewAsset);
 			break;
-		case (uint32_t)RpakAssetType::Subtitles:
+		case (uint32_t)AssetType_t::Subtitles:
 			// todo: subtitle loading setting
 			BuildSubtitleInfo(Asset, NewAsset);
 			break;
-		case (uint32_t)RpakAssetType::ShaderSet:
+		case (uint32_t)AssetType_t::ShaderSet:
 			if (!ExportManager::Config.GetBool("LoadShaderSets"))
 				continue;
 			BuildShaderSetInfo(Asset, NewAsset);
 			break;
-		case (uint32_t)RpakAssetType::UIImageAtlas:
+		case (uint32_t)AssetType_t::UIImageAtlas:
 			// i'll implement this later
 			//if (!ExportManager::Config.GetBool("LoadUIAtlases"))
 			//	continue;
@@ -223,32 +223,32 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims
 	return std::move(Result);
 }
 
-void RpakLib::InitializeModelExporter(RpakModelExportFormat Format)
+void RpakLib::InitializeModelExporter(ModelExportFormat_t Format)
 {
 	switch (Format)
 	{
-	case RpakModelExportFormat::Maya:
+	case ModelExportFormat_t::Maya:
 		ModelExporter = std::make_unique<Assets::Exporters::AutodeskMaya>();
 		break;
-	case RpakModelExportFormat::OBJ:
+	case ModelExportFormat_t::OBJ:
 		ModelExporter = std::make_unique<Assets::Exporters::WavefrontOBJ>();
 		break;
-	case RpakModelExportFormat::XNALaraText:
+	case ModelExportFormat_t::XNALaraText:
 		ModelExporter = std::make_unique<Assets::Exporters::XNALaraAscii>();
 		break;
-	case RpakModelExportFormat::XNALaraBinary:
+	case ModelExportFormat_t::XNALaraBinary:
 		ModelExporter = std::make_unique<Assets::Exporters::XNALaraBinary>();
 		break;
-	case RpakModelExportFormat::SMD:
+	case ModelExportFormat_t::SMD:
 		ModelExporter = std::make_unique<Assets::Exporters::ValveSMD>();
 		break;
-	case RpakModelExportFormat::XModel:
+	case ModelExportFormat_t::XModel:
 		ModelExporter = std::make_unique<Assets::Exporters::CoDXAssetExport>();
 		break;
-	case RpakModelExportFormat::FBX:
+	case ModelExportFormat_t::FBX:
 		ModelExporter = std::make_unique<Assets::Exporters::KaydaraFBX>();
 		break;
-	case RpakModelExportFormat::Cast:
+	case ModelExportFormat_t::Cast:
 		ModelExporter = std::make_unique<Assets::Exporters::CastAsset>();
 		break;
 	// no custom exporter for RMDL as it will be handled directly in the export func
@@ -260,11 +260,11 @@ void RpakLib::InitializeModelExporter(RpakModelExportFormat Format)
 	m_bModelExporterInitialized = true;
 }
 
-void RpakLib::InitializeAnimExporter(RpakAnimExportFormat Format)
+void RpakLib::InitializeAnimExporter(AnimExportFormat_t Format)
 {
 	switch (Format)
 	{
-	case RpakAnimExportFormat::Cast:
+	case AnimExportFormat_t::Cast:
 		AnimExporter = std::make_unique<Assets::Exporters::CastAsset>();
 		break;
 	default:
@@ -275,23 +275,23 @@ void RpakLib::InitializeAnimExporter(RpakAnimExportFormat Format)
 	m_bAnimExporterInitialized = true;
 }
 
-void RpakLib::InitializeImageExporter(RpakImageExportFormat Format)
+void RpakLib::InitializeImageExporter(ImageExportFormat_t Format)
 {
 	switch (Format)
 	{
-	case RpakImageExportFormat::Dds:
+	case ImageExportFormat_t::Dds:
 		ImageSaveType = Assets::SaveFileType::Dds;
 		ImageExtension = Assets::Texture::GetExtensionForType(ImageSaveType);
 		break;
-	case RpakImageExportFormat::Png:
+	case ImageExportFormat_t::Png:
 		ImageSaveType = Assets::SaveFileType::Png;
 		ImageExtension = Assets::Texture::GetExtensionForType(ImageSaveType);
 		break;
-	case RpakImageExportFormat::Tiff:
+	case ImageExportFormat_t::Tiff:
 		ImageSaveType = Assets::SaveFileType::Tiff;
 		ImageExtension = Assets::Texture::GetExtensionForType(ImageSaveType);
 		break;
-	case RpakImageExportFormat::Tga:
+	case ImageExportFormat_t::Tga:
 		ImageSaveType = Assets::SaveFileType::Tga;
 		ImageExtension = Assets::Texture::GetExtensionForType(ImageSaveType);
 		break;
@@ -569,7 +569,7 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 
 		switch (Asset.AssetType)
 		{
-		case (uint32_t)RpakAssetType::Model:
+		case (uint32_t)AssetType_t::Model:
 		{
 			if (Asset.SubHeaderSize <= 0x68)
 			{
@@ -582,17 +582,17 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 				return (SubHeader.NameIndex >= LoadedFile.StartSegmentIndex && SubHeader.SkeletonIndex >= LoadedFile.StartSegmentIndex);
 			}
 		}
-		case (uint32_t)RpakAssetType::Texture:
+		case (uint32_t)AssetType_t::Texture:
 		{
 			TextureHeader SubHeader = Reader.Read<TextureHeader>();
 			return (SubHeader.DataSize > 0);
 		}
-		case (uint32_t)RpakAssetType::UIIA:
+		case (uint32_t)AssetType_t::UIIA:
 		{
 			UIIAHeader SubHeader = Reader.Read<UIIAHeader>();
 			return (SubHeader.Width > 0 && SubHeader.Height > 0);
 		}
-		case (uint32_t)RpakAssetType::Material:
+		case (uint32_t)AssetType_t::Material:
 		{
 			MaterialHeader SubHeader = Reader.Read<MaterialHeader>();
 			if (Asset.Version == RpakGameVersion::Apex)
@@ -600,34 +600,34 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 			else
 				return (SubHeader.NameIndex >= LoadedFile.StartSegmentIndex && SubHeader.TexturesTFIndex >= LoadedFile.StartSegmentIndex);
 		}
-		case (uint32_t)RpakAssetType::AnimationRig:
+		case (uint32_t)AssetType_t::AnimationRig:
 		{
 			AnimRigHeader SubHeader = Reader.Read<AnimRigHeader>();
 			return (SubHeader.NameIndex >= LoadedFile.StartSegmentIndex && SubHeader.SkeletonIndex >= LoadedFile.StartSegmentIndex && SubHeader.AnimationReferenceIndex >= LoadedFile.StartSegmentIndex);
 		}
-		case (uint32_t)RpakAssetType::Animation:
+		case (uint32_t)AssetType_t::Animation:
 		{
 			AnimHeader SubHeader = Reader.Read<AnimHeader>();
 			return (SubHeader.AnimationIndex >= LoadedFile.StartSegmentIndex);
 		}
-		case (uint32_t)RpakAssetType::DataTable:
+		case (uint32_t)AssetType_t::DataTable:
 		{
 			DataTableHeader SubHeader = Reader.Read<DataTableHeader>();
 			return (SubHeader.ColumnCount != 0 && SubHeader.RowCount != 0);
 		}
-		case (uint32_t)RpakAssetType::Subtitles:
+		case (uint32_t)AssetType_t::Subtitles:
 		{
 			return true;
 		}
-		case (uint32_t)RpakAssetType::ShaderSet:
+		case (uint32_t)AssetType_t::ShaderSet:
 		{
 			return true;
 		}
-		case (uint32_t)RpakAssetType::Shader:
+		case (uint32_t)AssetType_t::Shader:
 		{
 			return true;
 		}
-		case (uint32_t)RpakAssetType::UIImageAtlas:
+		case (uint32_t)AssetType_t::UIImageAtlas:
 		{ // finally an actual check for this
 			UIAtlasHeader Header = Reader.Read<UIAtlasHeader>();
 			return Header.TexturesCount != 0;
@@ -1082,7 +1082,6 @@ bool RpakLib::MountApexRpak(const string& Path, bool Dump)
 
 	Reader.Read(CompressedBuffer.get() + sizeof(RpakApexHeader), 0, Header.CompressedSize - sizeof(RpakApexHeader));
 
-	//std::int64_t params[18];
 	rpak_decomp_state state;
 
 	uint32_t dSize = g_pRtech->DecompressPakfileInit(&state, CompressedBuffer.get(), Header.CompressedSize, 0, sizeof(RpakApexHeader));
@@ -1130,15 +1129,12 @@ bool RpakLib::MountTitanfallRpak(const string& Path, bool Dump)
 
 	Reader.Read(CompressedBuffer.get() + sizeof(RpakTitanfallHeader), 0, Header.CompressedSize - sizeof(RpakTitanfallHeader));
 
-	//std::int64_t params[18];
 	rpak_decomp_state state;
 
 	uint32_t dSize = g_pRtech->DecompressPakfileInit(&state, CompressedBuffer.get(), Header.CompressedSize, 0, sizeof(RpakTitanfallHeader));
 
 	std::vector<std::uint8_t> pakbuf(dSize, 0);
 
-	//params[1] = std::int64_t(pakbuf.data());
-	//params[3] = -1i64;
 	state.out_mask = UINT64_MAX;
 	state.out = uint64_t(pakbuf.data());
 

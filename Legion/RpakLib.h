@@ -290,7 +290,7 @@ static_assert(sizeof(RpakApexAssetEntry) == 0x50, "Invalid header size");
 static_assert(sizeof(RpakTitanfallHeader) == 0x58, "Invalid header size");
 static_assert(sizeof(RpakTitanfallAssetEntry) == 0x48, "Invalid header size");
 
-enum class RpakAssetType : uint32_t
+enum class AssetType_t : uint32_t
 {
 	Model = 0x5F6C646D, // mdl_
 	Texture = 0x72747874, // txtr
@@ -307,7 +307,7 @@ enum class RpakAssetType : uint32_t
 	UIImageAtlas = 0x676D6975, // uimg
 };
 
-enum class RpakModelExportFormat
+enum class ModelExportFormat_t
 {
 	SEModel,
 	OBJ,
@@ -321,14 +321,14 @@ enum class RpakModelExportFormat
 	RMDL
 };
 
-enum class RpakAnimExportFormat
+enum class AnimExportFormat_t
 {
 	SEAnim,
 	Cast,
 	RAnim
 };
 
-enum class RpakImageExportFormat
+enum class ImageExportFormat_t
 {
 	Dds,
 	Png,
@@ -336,13 +336,13 @@ enum class RpakImageExportFormat
 	Tga,
 };
 
-enum class RpakSubtitlesExportFormat
+enum class SubtitleExportFormat_t
 {
 	CSV,
 	TXT
 };
 
-enum class eNormalRecalcType
+enum class NormalRecalcType_t
 {
 	None,
 	DirectX,
@@ -476,11 +476,11 @@ public:
 	std::unique_ptr<Assets::Texture> BuildPreviewMaterial(uint64_t Hash);
 
 	// Initializes a model exporter
-	void InitializeModelExporter(RpakModelExportFormat Format = RpakModelExportFormat::SEModel);
+	void InitializeModelExporter(ModelExportFormat_t Format = ModelExportFormat_t::SEModel);
 	// Initializes a anim exporter
-	void InitializeAnimExporter(RpakAnimExportFormat Format = RpakAnimExportFormat::SEAnim);
+	void InitializeAnimExporter(AnimExportFormat_t Format = AnimExportFormat_t::SEAnim);
 	// Initializes a image exporter
-	void InitializeImageExporter(RpakImageExportFormat Format = RpakImageExportFormat::Dds);
+	void InitializeImageExporter(ImageExportFormat_t Format = ImageExportFormat_t::Dds);
 
 	// RpakAssetExport.cpp
 	void ExportModel(const RpakLoadAsset& Asset, const string& Path, const string& AnimPath);

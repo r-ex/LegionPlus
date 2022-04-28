@@ -53,18 +53,18 @@ void RpakLib::ExportTexture(const RpakLoadAsset& Asset, const string& Path, bool
 		{
 			if (NormalRecalculate)
 			{
-				eNormalRecalcType NormalRecalcType = (eNormalRecalcType)ExportManager::Config.Get<System::SettingType::Integer>("NormalRecalcType");
+				NormalRecalcType_t NormalRecalcType = (NormalRecalcType_t)ExportManager::Config.Get<System::SettingType::Integer>("NormalRecalcType");
 
 				Assets::TranscodeType Type = Assets::TranscodeType::NormalMapBC5OpenGl;
 
 				switch (NormalRecalcType)
 				{
-				case eNormalRecalcType::None:
+				case NormalRecalcType_t::None:
 					break;
-				case eNormalRecalcType::DirectX:
+				case NormalRecalcType_t::DirectX:
 					Texture->Transcode(Assets::TranscodeType::NormalMapBC5);
 					break;
-				case eNormalRecalcType::OpenGl:
+				case NormalRecalcType_t::OpenGl:
 					Texture->Transcode(Assets::TranscodeType::NormalMapBC5OpenGl);
 					break;
 				}
@@ -117,9 +117,9 @@ void RpakLib::ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path)
 
 	IO::Directory::CreateDirectory(AnimSetPath);
 
-	RpakAnimExportFormat AnimFormat = (RpakAnimExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat");
+	AnimExportFormat_t AnimFormat = (AnimExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat");
 
-	if (AnimFormat == RpakAnimExportFormat::RAnim)
+	if (AnimFormat == AnimExportFormat_t::RAnim)
 	{
 		uint64_t SkeletonOffset = this->GetFileOffset(Asset, RigHeader.SkeletonIndex, RigHeader.SkeletonOffset);
 		RpakStream->SetPosition(SkeletonOffset);
@@ -169,16 +169,16 @@ void RpakLib::ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path)
 
 void RpakLib::ExportDataTable(const RpakLoadAsset& Asset, const string& Path)
 {
-	RpakSubtitlesExportFormat Format = (RpakSubtitlesExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat");
+	SubtitleExportFormat_t Format = (SubtitleExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat");
 
 	string sExtension = "";
 
 	switch (Format)
 	{
-	case RpakSubtitlesExportFormat::CSV:
+	case SubtitleExportFormat_t::CSV:
 		sExtension = ".csv";
 		break;
-	case RpakSubtitlesExportFormat::TXT:
+	case SubtitleExportFormat_t::TXT:
 		sExtension = ".txt";
 		break;
 	}
@@ -256,16 +256,16 @@ string Vector3ToHexColor(Math::Vector3 vec)
 
 void RpakLib::ExportSubtitles(const RpakLoadAsset& Asset, const string& Path)
 {
-	RpakSubtitlesExportFormat Format = (RpakSubtitlesExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat");
+	SubtitleExportFormat_t Format = (SubtitleExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat");
 
 	string sExtension = "";
 
 	switch (Format)
 	{
-	case RpakSubtitlesExportFormat::CSV:
+	case SubtitleExportFormat_t::CSV:
 		sExtension = ".csv";
 		break;
-	case RpakSubtitlesExportFormat::TXT:
+	case SubtitleExportFormat_t::TXT:
 		sExtension = ".txt";
 		break;
 	}
@@ -281,7 +281,7 @@ void RpakLib::ExportSubtitles(const RpakLoadAsset& Asset, const string& Path)
 
 	switch (Format)
 	{
-	case RpakSubtitlesExportFormat::CSV:
+	case SubtitleExportFormat_t::CSV:
 	{
 		subt_out << "color,text\n";
 		for (auto& Entry : Subtitles)
@@ -290,7 +290,7 @@ void RpakLib::ExportSubtitles(const RpakLoadAsset& Asset, const string& Path)
 		}
 		break;
 	}
-	case RpakSubtitlesExportFormat::TXT:
+	case SubtitleExportFormat_t::TXT:
 	{
 		for (auto& Entry : Subtitles)
 		{

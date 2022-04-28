@@ -378,98 +378,98 @@ void LegionSettings::InitializeComponent()
 
 void LegionSettings::LoadSettings()
 {
-	auto ModelFormat = (RpakModelExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat");
-	auto AnimFormat = (RpakAnimExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat");
-	auto ImageFormat = (RpakImageExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat");
-	auto TextFormat = (RpakSubtitlesExportFormat)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat");
-	auto NormalRecalcType = (eNormalRecalcType)ExportManager::Config.Get<System::SettingType::Integer>("NormalRecalcType");
+	auto ModelFormat = (ModelExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat");
+	auto AnimFormat = (AnimExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat");
+	auto ImageFormat = (ImageExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat");
+	auto TextFormat = (SubtitleExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat");
+	auto NormalRecalcType = (NormalRecalcType_t)ExportManager::Config.Get<System::SettingType::Integer>("NormalRecalcType");
 	auto AudioLanguage = (MilesLanguageID)ExportManager::Config.Get<System::SettingType::Integer>("AudioLanguage");
 
 	if (!ExportManager::Config.Has("NormalRecalcType"))
-		NormalRecalcType = eNormalRecalcType::OpenGl;
+		NormalRecalcType = NormalRecalcType_t::OpenGl;
 
 	switch (ModelFormat)
 	{
-	case RpakModelExportFormat::Cast:
+	case ModelExportFormat_t::Cast:
 		this->ModelExportFormat->SetSelectedIndex(0);
 		break;
-	case RpakModelExportFormat::FBX:
+	case ModelExportFormat_t::FBX:
 		this->ModelExportFormat->SetSelectedIndex(1);
 		break;
-	case RpakModelExportFormat::Maya:
+	case ModelExportFormat_t::Maya:
 		this->ModelExportFormat->SetSelectedIndex(2);
 		break;
-	case RpakModelExportFormat::OBJ:
+	case ModelExportFormat_t::OBJ:
 		this->ModelExportFormat->SetSelectedIndex(3);
 		break;
-	case RpakModelExportFormat::SEModel:
+	case ModelExportFormat_t::SEModel:
 		this->ModelExportFormat->SetSelectedIndex(4);
 		break;
-	case RpakModelExportFormat::SMD:
+	case ModelExportFormat_t::SMD:
 		this->ModelExportFormat->SetSelectedIndex(5);
 		break;
-	case RpakModelExportFormat::XModel:
+	case ModelExportFormat_t::XModel:
 		this->ModelExportFormat->SetSelectedIndex(6);
 		break;
-	case RpakModelExportFormat::XNALaraText:
+	case ModelExportFormat_t::XNALaraText:
 		this->ModelExportFormat->SetSelectedIndex(7);
 		break;
-	case RpakModelExportFormat::XNALaraBinary:
+	case ModelExportFormat_t::XNALaraBinary:
 		this->ModelExportFormat->SetSelectedIndex(8);
 		break;
-	case RpakModelExportFormat::RMDL:
+	case ModelExportFormat_t::RMDL:
 		this->ModelExportFormat->SetSelectedIndex(9);
 		break;
 	}
 
 	switch (AnimFormat)
 	{
-	case RpakAnimExportFormat::Cast:
+	case AnimExportFormat_t::Cast:
 		this->AnimExportFormat->SetSelectedIndex(0);
 		break;
-	case RpakAnimExportFormat::SEAnim:
+	case AnimExportFormat_t::SEAnim:
 		this->AnimExportFormat->SetSelectedIndex(1);
 		break;
-	case RpakAnimExportFormat::RAnim:
+	case AnimExportFormat_t::RAnim:
 		this->AnimExportFormat->SetSelectedIndex(2);
 		break;
 	}
 
 	switch (ImageFormat)
 	{
-	case RpakImageExportFormat::Dds:
+	case ImageExportFormat_t::Dds:
 		this->ImageExportFormat->SetSelectedIndex(0);
 		break;
-	case RpakImageExportFormat::Png:
+	case ImageExportFormat_t::Png:
 		this->ImageExportFormat->SetSelectedIndex(1);
 		break;
-	case RpakImageExportFormat::Tiff:
+	case ImageExportFormat_t::Tiff:
 		this->ImageExportFormat->SetSelectedIndex(2);
 		break;
-	case RpakImageExportFormat::Tga:
+	case ImageExportFormat_t::Tga:
 		this->ImageExportFormat->SetSelectedIndex(3);
 		break;
 	}
 
 	switch (TextFormat)
 	{
-	case RpakSubtitlesExportFormat::CSV:
+	case SubtitleExportFormat_t::CSV:
 		this->TextExportFormat->SetSelectedIndex(0);
 		break;
-	case RpakSubtitlesExportFormat::TXT:
+	case SubtitleExportFormat_t::TXT:
 		this->TextExportFormat->SetSelectedIndex(1);
 		break;
 	}
 
 	switch (NormalRecalcType)
 	{
-	case eNormalRecalcType::None:
+	case NormalRecalcType_t::None:
 		this->NormalRecalcType->SetSelectedIndex(0);
 		break;
-	case eNormalRecalcType::DirectX:
+	case NormalRecalcType_t::DirectX:
 		this->NormalRecalcType->SetSelectedIndex(1);
 		break;
-	case eNormalRecalcType::OpenGl:
+	case NormalRecalcType_t::OpenGl:
 		this->NormalRecalcType->SetSelectedIndex(2);
 		break;
 	}
@@ -504,11 +504,11 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	auto ThisPtr = (LegionSettings*)Sender->FindForm();
 
 	// Fetch settings from controls
-	auto ModelExportFormat = RpakModelExportFormat::Cast;
-	auto AnimExportFormat = RpakAnimExportFormat::Cast;
-	auto ImageExportFormat = RpakImageExportFormat::Dds;
-	auto TextExportFormat = RpakSubtitlesExportFormat::CSV;
-	auto NormalRecalcType = eNormalRecalcType::OpenGl;
+	auto ModelExportFormat = ModelExportFormat_t::Cast;
+	auto AnimExportFormat = AnimExportFormat_t::Cast;
+	auto ImageExportFormat = ImageExportFormat_t::Dds;
+	auto TextExportFormat = SubtitleExportFormat_t::CSV;
+	auto NormalRecalcType = NormalRecalcType_t::OpenGl;
 	auto AudioLanguage = MilesLanguageID::English;
 
 	if (ThisPtr->ModelExportFormat->SelectedIndex() > -1)
@@ -516,31 +516,31 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		switch (ThisPtr->ModelExportFormat->SelectedIndex())
 		{
 		case 1:
-			ModelExportFormat = RpakModelExportFormat::FBX;
+			ModelExportFormat = ModelExportFormat_t::FBX;
 			break;
 		case 2:
-			ModelExportFormat = RpakModelExportFormat::Maya;
+			ModelExportFormat = ModelExportFormat_t::Maya;
 			break;
 		case 3:
-			ModelExportFormat = RpakModelExportFormat::OBJ;
+			ModelExportFormat = ModelExportFormat_t::OBJ;
 			break;
 		case 4:
-			ModelExportFormat = RpakModelExportFormat::SEModel;
+			ModelExportFormat = ModelExportFormat_t::SEModel;
 			break;
 		case 5:
-			ModelExportFormat = RpakModelExportFormat::SMD;
+			ModelExportFormat = ModelExportFormat_t::SMD;
 			break;
 		case 6:
-			ModelExportFormat = RpakModelExportFormat::XModel;
+			ModelExportFormat = ModelExportFormat_t::XModel;
 			break;
 		case 7:
-			ModelExportFormat = RpakModelExportFormat::XNALaraText;
+			ModelExportFormat = ModelExportFormat_t::XNALaraText;
 			break;
 		case 8:
-			ModelExportFormat = RpakModelExportFormat::XNALaraBinary;
+			ModelExportFormat = ModelExportFormat_t::XNALaraBinary;
 			break;
 		case 9:
-			ModelExportFormat = RpakModelExportFormat::RMDL;
+			ModelExportFormat = ModelExportFormat_t::RMDL;
 			break;
 		}
 	}
@@ -550,10 +550,10 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		switch (ThisPtr->AnimExportFormat->SelectedIndex())
 		{
 		case 1:
-			AnimExportFormat = RpakAnimExportFormat::SEAnim;
+			AnimExportFormat = AnimExportFormat_t::SEAnim;
 			break;
 		case 2:
-			AnimExportFormat = RpakAnimExportFormat::RAnim;
+			AnimExportFormat = AnimExportFormat_t::RAnim;
 			break;
 		}
 	}
@@ -563,13 +563,13 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		switch (ThisPtr->ImageExportFormat->SelectedIndex())
 		{
 		case 1:
-			ImageExportFormat = RpakImageExportFormat::Png;
+			ImageExportFormat = ImageExportFormat_t::Png;
 			break;
 		case 2:
-			ImageExportFormat = RpakImageExportFormat::Tiff;
+			ImageExportFormat = ImageExportFormat_t::Tiff;
 			break;
 		case 3:
-			ImageExportFormat = RpakImageExportFormat::Tga;
+			ImageExportFormat = ImageExportFormat_t::Tga;
 			break;
 		}
 	}
@@ -579,7 +579,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		switch (ThisPtr->TextExportFormat->SelectedIndex())
 		{
 		case 1:
-			TextExportFormat = RpakSubtitlesExportFormat::TXT;
+			TextExportFormat = SubtitleExportFormat_t::TXT;
 			break;
 		}
 	}
@@ -589,10 +589,10 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		switch (ThisPtr->NormalRecalcType->SelectedIndex())
 		{
 		case 0:
-			NormalRecalcType = eNormalRecalcType::None;
+			NormalRecalcType = NormalRecalcType_t::None;
 			break;
 		case 1:
-			NormalRecalcType = eNormalRecalcType::DirectX;
+			NormalRecalcType = NormalRecalcType_t::DirectX;
 			break;
 		}
 	}
