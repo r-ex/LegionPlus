@@ -15,7 +15,7 @@ void ExportManager::InitializeExporter()
 {
 	ApplicationPath = System::Environment::GetApplicationPath();
 
-	auto ConfigPath = IO::Path::Combine(ApplicationPath, "LegionPlus.cfg");
+	string ConfigPath = IO::Path::Combine(ApplicationPath, "LegionPlus.cfg");
 
 	if (IO::File::Exists(ConfigPath))
 	{
@@ -28,7 +28,7 @@ void ExportManager::InitializeExporter()
 	}
 	else
 	{
-		auto ExportDirectory = Config.Get<System::SettingType::String>("ExportDirectory");
+		string ExportDirectory = Config.Get<System::SettingType::String>("ExportDirectory");
 
 		if (IO::Directory::Exists(ExportDirectory))
 		{
@@ -70,7 +70,7 @@ void ExportManager::InitializeExporter()
 
 void ExportManager::SaveConfigToDisk()
 {
-	auto ExportDirectory = Config.Get<System::SettingType::String>("ExportDirectory");
+	string ExportDirectory = Config.Get<System::SettingType::String>("ExportDirectory");
 
 	if (IO::Directory::Exists(ExportDirectory))
 	{
@@ -87,7 +87,7 @@ void ExportManager::SaveConfigToDisk()
 
 string ExportManager::GetMapExportPath()
 {
-	auto Result = IO::Path::Combine(ExportPath, "maps");
+	string Result = IO::Path::Combine(ExportPath, "maps");
 	IO::Directory::CreateDirectory(Result);
 	return Result;
 }
@@ -108,15 +108,15 @@ void ExportManager::ExportMilesAssets(const std::unique_ptr<MilesLib>& MilesFile
 
 		while (AssetIndex < ExportAssets.Count() && !IsCancel)
 		{
-			auto AssetToConvert = AssetIndex++;
+			unsigned int AssetToConvert = AssetIndex++;
 
 			if (AssetToConvert >= ExportAssets.Count())
 				continue;
 
-			auto& Asset = ExportAssets[AssetToConvert];
-			auto& AudioAsset = MilesFileSystem->Assets[Asset.AssetHash];
-			auto  Path = IO::Path::Combine(ExportDirectory, "sounds");
-			auto  UseSubfolders = ExportManager::Config.Get<System::SettingType::Boolean>("AudioLanguageFolders");
+			ExportAsset& Asset = ExportAssets[AssetToConvert];
+			MilesAudioAsset& AudioAsset = MilesFileSystem->Assets[Asset.AssetHash];
+			string  Path = IO::Path::Combine(ExportDirectory, "sounds");
+			bool  UseSubfolders = ExportManager::Config.Get<System::SettingType::Boolean>("AudioLanguageFolders");
 			if (UseSubfolders && AudioAsset.LocalizeIndex != -1) {
 				auto &Name = LanguageName((MilesLanguageID)AudioAsset.LocalizeIndex);
 				IO::Directory::CreateDirectory(IO::Path::Combine(Path, Name));
@@ -136,7 +136,7 @@ void ExportManager::ExportMilesAssets(const std::unique_ptr<MilesLib>& MilesFile
 
 			{
 				std::lock_guard<std::mutex> UpdateLock(UpdateMutex);
-				auto NewProgress = (uint32_t)(((float)(AssetToConvert + 1) / (float)ExportAssets.Count()) * 100.f);
+				uint32_t NewProgress = (uint32_t)(((float)(AssetToConvert + 1) / (float)ExportAssets.Count()) * 100.f);
 
 				if (NewProgress > CurrentProgress)
 				{
