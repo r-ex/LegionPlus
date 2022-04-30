@@ -115,7 +115,7 @@ namespace Assets
 	}
 
 	// this function assumes that both of the textures are in the same format
-	void Texture::CopyTextureSlice(std::unique_ptr<Texture>& SourceTexture, DirectX::Rect& srcRect, uint32_t x, uint32_t y)
+	void Texture::CopyTextureSlice(std::unique_ptr<Texture>& SourceTexture, DirectX::Rect srcRect, uint32_t x, uint32_t y)
 	{
 		DirectX::CopyRectangle(*((DirectX::ScratchImage*)SourceTexture->DirectXImage)->GetImage(0, 0, 0), srcRect, *InternalScratchImage->GetImage(0, 0, 0), DirectX::TEX_FILTER_DEFAULT, x, y);
 	}

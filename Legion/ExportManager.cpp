@@ -7,6 +7,12 @@
 #include "Environment.h"
 #include "LegionMain.h"
 
+#define CONFIG_PATH "LegionPlus.cfg"
+
+#define INIT_SETTING(SType, Name, Val) \
+		if (!Config.Has(Name)) \
+			Config.Set<System::SettingType::SType>(Name, Val);
+
 System::Settings ExportManager::Config = System::Settings();
 string ExportManager::ApplicationPath = "";
 string ExportManager::ExportPath = "";
@@ -15,7 +21,7 @@ void ExportManager::InitializeExporter()
 {
 	ApplicationPath = System::Environment::GetApplicationPath();
 
-	string ConfigPath = IO::Path::Combine(ApplicationPath, "LegionPlus.cfg");
+	string ConfigPath = IO::Path::Combine(ApplicationPath, CONFIG_PATH);
 
 	if (IO::File::Exists(ConfigPath))
 	{
@@ -41,30 +47,20 @@ void ExportManager::InitializeExporter()
 		}
 	}
 
-	if (!Config.Has("ModelFormat"))
-		Config.Set<System::SettingType::Integer>("ModelFormat", (uint32_t)ModelExportFormat_t::Cast);
-	if (!Config.Has("AnimFormat"))
-		Config.Set<System::SettingType::Integer>("AnimFormat", (uint32_t)AnimExportFormat_t::Cast);
-	if (!Config.Has("ImageFormat"))
-		Config.Set<System::SettingType::Integer>("ImageFormat", (uint32_t)ImageExportFormat_t::Dds);
+	// init settings if they don't already exist
+	INIT_SETTING(Integer, "ModelFormat", (uint32_t)ModelExportFormat_t::Cast);
+	INIT_SETTING(Integer, "AnimFormat", (uint32_t)AnimExportFormat_t::Cast);
+	INIT_SETTING(Integer, "ImageFormat", (uint32_t)ImageExportFormat_t::Dds);
 
-	if (!Config.Has("LoadModels"))
-		Config.Set<System::SettingType::Boolean>("LoadModels", true);
-	if (!Config.Has("LoadAnimations"))
-		Config.Set<System::SettingType::Boolean>("LoadAnimations", true);
-	if (!Config.Has("LoadImages"))
-		Config.Set<System::SettingType::Boolean>("LoadImages", true);
-	if (!Config.Has("LoadMaterials"))
-		Config.Set<System::SettingType::Boolean>("LoadMaterials", true);
-	if (!Config.Has("LoadUIImages"))
-		Config.Set<System::SettingType::Boolean>("LoadUIImages", true);
-	if (!Config.Has("LoadDataTables"))
-		Config.Set<System::SettingType::Boolean>("LoadDataTables", true);
-	if (!Config.Has("LoadShaderSets"))
-		Config.Set<System::SettingType::Boolean>("LoadShaderSets", true);
-	if (!Config.Has("OverwriteExistingFiles"))
-		Config.Set<System::SettingType::Boolean>("OverwriteExistingFiles", false);
-		
+	INIT_SETTING(Boolean, "LoadModels", true);
+	INIT_SETTING(Boolean, "LoadAnimations", true);
+	INIT_SETTING(Boolean, "LoadImages", true);
+	INIT_SETTING(Boolean, "LoadMaterials", true);
+	INIT_SETTING(Boolean, "LoadUIImages", true);
+	INIT_SETTING(Boolean, "LoadDataTables", true);
+	INIT_SETTING(Boolean, "LoadShaderSets", true);
+	INIT_SETTING(Boolean, "OverwriteExistingFiles", false);
+
 	Config.Save(ConfigPath);
 }
 
@@ -82,7 +78,7 @@ void ExportManager::SaveConfigToDisk()
 		Config.Remove<System::SettingType::String>("ExportDirectory");
 	}
 
-	Config.Save(IO::Path::Combine(ApplicationPath, "LegionPlus.cfg"));
+	Config.Save(IO::Path::Combine(ApplicationPath, CONFIG_PATH));
 }
 
 string ExportManager::GetMapExportPath()

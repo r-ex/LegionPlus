@@ -511,12 +511,12 @@ void LegionMain::RefreshView()
 	{
 		this->AssetsListView->SetVirtualListSize(0);
 
-		const bool ShowModels = ExportManager::Config.Get<System::SettingType::Boolean>("LoadModels");
-		const bool ShowAnimations = ExportManager::Config.Get<System::SettingType::Boolean>("LoadAnimations");
-		const bool ShowImages = ExportManager::Config.Get<System::SettingType::Boolean>("LoadImages");
-		const bool ShowMaterials = ExportManager::Config.Get<System::SettingType::Boolean>("LoadMaterials");
-		const bool ShowUIImages = ExportManager::Config.Get<System::SettingType::Boolean>("LoadUIImages");
-		const bool ShowDataTables = ExportManager::Config.Get<System::SettingType::Boolean>("LoadDataTables");
+		const bool ShowModels = ExportManager::Config.GetBool("LoadModels");
+		const bool ShowAnimations = ExportManager::Config.GetBool("LoadAnimations");
+		const bool ShowImages = ExportManager::Config.GetBool("LoadImages");
+		const bool ShowMaterials = ExportManager::Config.GetBool("LoadMaterials");
+		const bool ShowUIImages = ExportManager::Config.GetBool("LoadUIImages");
+		const bool ShowDataTables = ExportManager::Config.GetBool("LoadDataTables");
 
 		this->LoadedAssets = this->RpakFileSystem->BuildAssetList(ShowModels, ShowAnimations, ShowImages, ShowMaterials, ShowUIImages, ShowDataTables);
 		this->LoadedAssets->Sort([](const ApexAsset& lhs, const ApexAsset& rhs) { return lhs.Name.Compare(rhs.Name) < 0; });

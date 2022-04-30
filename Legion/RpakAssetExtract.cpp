@@ -1283,8 +1283,7 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 
 						if (Point.Opcode == 0x41)
 						{
-							DirectX::Rect srcRect{ (x * 32), (y * 32), 32, 32 };
-							Texture->CopyTextureSlice(Bc7Texture, srcRect, (x * 32), (y * 32));
+							Texture->CopyTextureSlice(Bc7Texture, {(x * 32), (y * 32), 32, 32}, (x * 32), (y * 32));
 						}
 					}
 				}
@@ -1634,7 +1633,6 @@ List<List<DataTableColumnData>> RpakLib::ExtractDataTable(const RpakLoadAsset& A
 				d.stringValue = Reader.ReadCString();
 				break;
 			}
-
 			}
 			RowData.EmplaceBack(d);
 		}

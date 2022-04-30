@@ -99,7 +99,7 @@ namespace Assets
 		// idrk
 		const uint8_t Pixbl() const;
 
-		void CopyTextureSlice(std::unique_ptr<Texture>& SourceTexture, DirectX::Rect& srcRect, uint32_t x, uint32_t y);
+		void CopyTextureSlice(std::unique_ptr<Texture>& SourceTexture, DirectX::Rect srcRect, uint32_t x, uint32_t y);
 
 		// Sets the format of the image data (Converted on call)
 		void ConvertToFormat(DXGI_FORMAT Format);
