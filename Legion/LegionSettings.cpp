@@ -381,7 +381,7 @@ void LegionSettings::LoadSettings()
 	ModelExportFormat_t ModelFormat = (ModelExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat");
 	AnimExportFormat_t AnimFormat = (AnimExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat");
 	ImageExportFormat_t ImageFormat = (ImageExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat");
-	SubtitleExportFormat_t TextFormat = (SubtitleExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat");
+	TextExportFormat_t TextFormat = (TextExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat");
 	NormalRecalcType_t NormalRecalcType = (NormalRecalcType_t)ExportManager::Config.Get<System::SettingType::Integer>("NormalRecalcType");
 	MilesLanguageID AudioLanguage = (MilesLanguageID)ExportManager::Config.Get<System::SettingType::Integer>("AudioLanguage");
 
@@ -453,10 +453,10 @@ void LegionSettings::LoadSettings()
 
 	switch (TextFormat)
 	{
-	case SubtitleExportFormat_t::CSV:
+	case TextExportFormat_t::CSV:
 		this->TextExportFormat->SetSelectedIndex(0);
 		break;
-	case SubtitleExportFormat_t::TXT:
+	case TextExportFormat_t::TXT:
 		this->TextExportFormat->SetSelectedIndex(1);
 		break;
 	}
@@ -507,7 +507,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	auto ModelExportFormat = ModelExportFormat_t::Cast;
 	auto AnimExportFormat = AnimExportFormat_t::Cast;
 	auto ImageExportFormat = ImageExportFormat_t::Dds;
-	auto TextExportFormat = SubtitleExportFormat_t::CSV;
+	auto TextExportFormat = TextExportFormat_t::CSV;
 	auto NormalRecalcType = NormalRecalcType_t::OpenGl;
 	auto AudioLanguage = MilesLanguageID::English;
 
@@ -579,7 +579,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		switch (ThisPtr->TextExportFormat->SelectedIndex())
 		{
 		case 1:
-			TextExportFormat = SubtitleExportFormat_t::TXT;
+			TextExportFormat = TextExportFormat_t::TXT;
 			break;
 		}
 	}

@@ -336,7 +336,7 @@ enum class ImageExportFormat_t
 	Tga,
 };
 
-enum class SubtitleExportFormat_t
+enum class TextExportFormat_t
 {
 	CSV,
 	TXT

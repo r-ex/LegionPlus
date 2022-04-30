@@ -169,16 +169,16 @@ void RpakLib::ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path)
 
 void RpakLib::ExportDataTable(const RpakLoadAsset& Asset, const string& Path)
 {
-	SubtitleExportFormat_t Format = (SubtitleExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat");
+	TextExportFormat_t Format = (TextExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat");
 
 	string sExtension = "";
 
 	switch (Format)
 	{
-	case SubtitleExportFormat_t::CSV:
+	case TextExportFormat_t::CSV:
 		sExtension = ".csv";
 		break;
-	case SubtitleExportFormat_t::TXT:
+	case TextExportFormat_t::TXT:
 		sExtension = ".txt";
 		break;
 	}
@@ -256,16 +256,16 @@ string Vector3ToHexColor(Math::Vector3 vec)
 
 void RpakLib::ExportSubtitles(const RpakLoadAsset& Asset, const string& Path)
 {
-	SubtitleExportFormat_t Format = (SubtitleExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat");
+	TextExportFormat_t Format = (TextExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat");
 
 	string sExtension = "";
 
 	switch (Format)
 	{
-	case SubtitleExportFormat_t::CSV:
+	case TextExportFormat_t::CSV:
 		sExtension = ".csv";
 		break;
-	case SubtitleExportFormat_t::TXT:
+	case TextExportFormat_t::TXT:
 		sExtension = ".txt";
 		break;
 	}
@@ -281,7 +281,7 @@ void RpakLib::ExportSubtitles(const RpakLoadAsset& Asset, const string& Path)
 
 	switch (Format)
 	{
-	case SubtitleExportFormat_t::CSV:
+	case TextExportFormat_t::CSV:
 	{
 		subt_out << "color,text\n";
 		for (auto& Entry : Subtitles)
@@ -290,7 +290,7 @@ void RpakLib::ExportSubtitles(const RpakLoadAsset& Asset, const string& Path)
 		}
 		break;
 	}
-	case SubtitleExportFormat_t::TXT:
+	case TextExportFormat_t::TXT:
 	{
 		for (auto& Entry : Subtitles)
 		{

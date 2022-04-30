@@ -183,17 +183,17 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 			if (cmdline.HasParam(L"--textfmt"))
 			{
-				SubtitleExportFormat_t SubtFmt = (SubtitleExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat");
+				TextExportFormat_t SubtFmt = (TextExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat");
 
 				wstring sFmt = cmdline.GetParamValue(L"--textfmt");
 				sFmt = sFmt.ToLower();
 
 				if (sFmt == L"csv")
-					SubtFmt = SubtitleExportFormat_t::CSV;
+					SubtFmt = TextExportFormat_t::CSV;
 				if (sFmt == L"txt")
-					SubtFmt = SubtitleExportFormat_t::TXT;
+					SubtFmt = TextExportFormat_t::TXT;
 
-				if (SubtFmt != (SubtitleExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat"))
+				if (SubtFmt != (TextExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat"))
 					ExportManager::Config.Set<System::SettingType::Integer>("TextFormat", (uint32_t)SubtFmt);
 			}
 
