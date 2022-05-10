@@ -33,8 +33,8 @@ namespace Themes
 	const static auto HeaderBrush = Drawing::Color(46, 53, 84);*/
 
 	// New Theme, saving for anyone else who wants to help.
-	const static auto BorderBrush = Drawing::Color(215, 106, 127);
-	const static auto DarkBorderBrush = Drawing::Color(125, 125, 125);
+	const static auto BorderBrush = Drawing::Color(113, 156, 235);
+	const static auto DarkBorderBrush = Drawing::Color(113, 156, 235);
 	const static auto DisabledBorderBrush = Drawing::Color(160, 160, 160);
 
 	const static auto BackgroundBrush = Drawing::Color(33, 33, 33);
@@ -49,8 +49,8 @@ namespace Themes
 	const static auto TextEnabledBrush = Drawing::Color(Drawing::Color::White);
 	const static auto TextDisabledBrush = Drawing::Color(Drawing::Color::Gray);
 
-	const static auto ProgressGrad1 = Drawing::Color(215, 106, 127);
-	const static auto ProgressGrad2 = Drawing::Color(215, 106, 127);
+	const static auto ProgressGrad1 = Drawing::Color(113, 156, 235);
+	const static auto ProgressGrad2 = Drawing::Color(113, 156, 235);
 
 	const static auto HeaderBrush = Drawing::Color(54, 54, 54);
 	

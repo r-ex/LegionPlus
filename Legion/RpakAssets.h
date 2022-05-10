@@ -45,6 +45,24 @@ struct TextureHeader
 	uint8_t UnknownPad[0x15];
 };
 
+struct TextureHeaderV9
+{
+	uint32_t NameIndex;
+	uint32_t NameOffset;
+	uint16_t Format;
+	uint16_t Width;
+	uint16_t Height;
+	uint16_t Un1;
+	uint8_t ArraySize;
+	uint8_t byte11;
+	uint8_t gap12;
+	uint8_t char13;
+	uint32_t DataSize;
+	uint8_t MipLevels;
+	uint8_t MipLevelsStreamed;
+	uint8_t MipLevelsStreamedOpt;
+};
+
 // --- txan ---
 struct TextureAnimatedHeader
 {

@@ -791,6 +791,19 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 
 	TextureHeader TexHeader = Reader.Read<TextureHeader>();
 
+	if (Asset.AssetVersion >= 9)
+	{
+		RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
+		auto TexHeaderV9 = Reader.Read<TextureHeaderV9>();
+
+		TexHeader.NameIndex = TexHeaderV9.NameIndex;
+		TexHeader.NameOffset = TexHeaderV9.NameOffset;
+		TexHeader.Width = TexHeaderV9.Width;
+		TexHeader.Height = TexHeaderV9.Height;
+		TexHeader.Format = TexHeaderV9.Format;
+		TexHeader.DataSize = TexHeaderV9.DataSize;
+	}
+
 	Assets::DDSFormat Fmt;
 
 	Fmt.Format = TxtrFormatToDXGI[TexHeader.Format];
@@ -809,7 +822,7 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 
 	Texture = std::make_unique<Assets::Texture>(TexHeader.Width, TexHeader.Height, Fmt.Format);
 
-	uint32_t BlockSize = Texture->BlockSize();
+	uint64_t BlockSize = Texture->BlockSize();
 
 	uint64_t ActualStarpakOffset = Asset.StarpakOffset & 0xFFFFFFFFFFFFFF00;
 	uint64_t ActualOptStarpakOffset = Asset.OptimalStarpakOffset & 0xFFFFFFFFFFFFFF00;
@@ -825,9 +838,27 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 
 		if (this->LoadedFiles[Asset.FileIndex].OptimalStarpakMap.ContainsKey(Asset.OptimalStarpakOffset))
 		{
-			Offset += (this->LoadedFiles[Asset.FileIndex].OptimalStarpakMap[Asset.OptimalStarpakOffset] - BlockSize);
+			if (Asset.AssetVersion != 9)
+			{
+				Offset += (this->LoadedFiles[Asset.FileIndex].OptimalStarpakMap[Asset.OptimalStarpakOffset] - BlockSize);
+				bStreamed = true;
+			}
+			else
+			{
+				auto BufferSize = this->LoadedFiles[Asset.FileIndex].OptimalStarpakMap[Asset.OptimalStarpakOffset];
+				auto Buffer = std::make_unique<uint8_t[]>(BufferSize);
 
-			bStreamed = true;
+				// Get location of compress starpakstream buffer.
+				auto TempStream = this->GetStarpakStream(Asset, true);
+				TempStream->SetPosition(ActualOptStarpakOffset);
+				TempStream->Read(Buffer.get(), 0, BufferSize);
+				
+				// Decompress starpak texture.
+				auto BufferResult = DecompressStreamedBuffer(Buffer.get(), BlockSize, (uint8_t)CompressionType::OODLE);
+				BufferResult->Read(Texture->GetPixels(), 0, BlockSize);
+
+				return;
+			}
 		}
 		else
 		{
@@ -844,7 +875,10 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 			// ???: why didnt this originally just check if it also had non-opt starpak offsets and use that for the image?
 			//      then at least the image would be higher quality than the highest permanent mip
 			///
-			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.DataSize - BlockSize);
+			if (Asset.AssetVersion != 9)
+				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.DataSize - BlockSize);
+			else
+				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
 		}
 	}
 	else if (Asset.StarpakOffset != -1)
@@ -860,7 +894,11 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		else
 		{
 			g_Logger.Warning("Starpak for asset 0x%llx is not loaded. Output may be incorrect/weird\n", Asset.NameHash);
-			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.DataSize - BlockSize);
+
+			if (Asset.AssetVersion != 9)
+				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.DataSize - BlockSize);
+			else
+				this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
 		}
 	}
 	else if (Asset.RawDataIndex != -1 && Asset.RawDataIndex >= this->LoadedFiles[Asset.FileIndex].StartSegmentIndex)
@@ -869,7 +907,10 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		// All texture data is inline in rpak, we can calculate without anything else
 		//
 
-		Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.DataSize - BlockSize);
+		if (Asset.AssetVersion != 9)
+			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.DataSize - BlockSize);
+		else
+			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.DataSize - BlockSize);
 	}
 	else
 	{

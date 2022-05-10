@@ -155,9 +155,40 @@ void RpakLib::BuildTextureInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	string Name = "";
 
-	if (TexHeader.NameIndex || TexHeader.NameOffset)
+	uint16_t TextureWidth = 0;
+	uint16_t TextureHeight = 0;
+	uint32_t NameIndex = 0;
+	uint32_t NameOffset = 0;
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
+
+	switch (Asset.AssetVersion)
 	{
-		RpakStream->SetPosition(this->GetFileOffset(Asset, TexHeader.NameIndex, TexHeader.NameOffset));
+	case 9:
+	{
+		auto TexHeader = Reader.Read<TextureHeaderV9>();
+
+		TextureWidth = TexHeader.Width;
+		TextureHeight = TexHeader.Height;
+		NameIndex = TexHeader.NameIndex;
+		NameOffset = TexHeader.NameOffset;
+		break;
+	}
+	default:
+	{
+		auto TexHeader = Reader.Read<TextureHeader>();
+
+		TextureWidth = TexHeader.Width;
+		TextureHeight = TexHeader.Height;
+		NameIndex = TexHeader.NameIndex;
+		NameOffset = TexHeader.NameOffset;
+		break;
+	}
+	}
+
+	if (NameIndex || NameOffset)
+	{
+		RpakStream->SetPosition(this->GetFileOffset(Asset, NameIndex, NameOffset));
 
 		Name = Reader.ReadCString();
 	}
@@ -169,7 +200,7 @@ void RpakLib::BuildTextureInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	Info.Type = ApexAssetType::Image;
 	Info.Status = ApexAssetStatus::Loaded;
-	Info.Info = string::Format("Width: %d Height %d", TexHeader.Width, TexHeader.Height);
+	Info.Info = string::Format("Width: %d Height %d", TextureWidth, TextureHeight);
 }
 
 void RpakLib::BuildUIIAInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
