@@ -910,7 +910,7 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		if (Asset.AssetVersion != 9)
 			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.DataSize - BlockSize);
 		else
-			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.DataSize - BlockSize);
+			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
 	}
 	else
 	{
