@@ -105,12 +105,12 @@ void LegionTablePreview::GetVirtualItem(const std::unique_ptr<Forms::RetrieveVir
 	}
 
 	case DataTableColumnDataType::Asset: {
-		CellValue << "Asset" << "\"" << Cell.assetValue << "\"";
+		CellValue << "$" << "\"" << Cell.assetValue << "\"";
 		break;
 	}
 
 	case DataTableColumnDataType::AssetNoPrecache: {
-		CellValue << "AssetNP" << "\"" << Cell.assetNPValue << "\"";
+		CellValue << "$" << "\"" << Cell.assetNPValue << "\"";
 		break;
 	}
 
