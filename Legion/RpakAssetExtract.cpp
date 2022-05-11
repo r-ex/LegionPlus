@@ -58,7 +58,8 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 	{
 		int SizeNeeded = OodleLZDecoder_MemorySizeNeeded(OodleLZ_Compressor_Invalid, -1);
 
-		uint8_t* Decoder = new uint8_t[SizeNeeded];
+		uint8_t* Decoder = new uint8_t[SizeNeeded]{};
+		uint8_t* OutBuf = new uint8_t[DataSize]{};
 
 		OodleLZDecoder_Create(OodleLZ_Compressor::OodleLZ_Compressor_Invalid, DataSize, Decoder, SizeNeeded);
 
@@ -66,14 +67,13 @@ std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, 
 		int DataPos = 0;
 
 		OodleLZ_DecodeSome_Out out{};
-		uint8_t* OutBuf = new uint8_t[DataSize];
 		if (!OodleLZDecoder_DecodeSome((OodleLZDecoder*)Decoder, &out, OutBuf, DecPos, DataSize, DataSize - DecPos, Data + DataPos, DataSize - DataPos, OodleLZ_FuzzSafe_No, OodleLZ_CheckCRC_No, OodleLZ_Verbosity::OodleLZ_Verbosity_None, OodleLZ_Decode_ThreadPhaseAll))
 		{
 			// If it fails it shouldn't be compressed?
 			delete[] Decoder;
 			delete[] OutBuf;
 
-			return std::make_unique<IO::MemoryStream>(const_cast<uint8_t*>(Data), 0, DataSize);
+			return std::make_unique<IO::MemoryStream>(const_cast<uint8_t*>(Data), 0, DataSize, true, true);
 		}
 
 		while (true)
@@ -856,6 +856,7 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 				// Decompress starpak texture.
 				auto BufferResult = DecompressStreamedBuffer(Buffer.get(), BlockSize, (uint8_t)CompressionType::OODLE);
 				BufferResult->Read(Texture->GetPixels(), 0, BlockSize);
+				BufferResult.get()->Close();
 
 				return;
 			}
