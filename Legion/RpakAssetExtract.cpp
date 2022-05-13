@@ -717,12 +717,16 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 
 		if (TextureHash != 0)
 		{
+
 			TextureName = string::Format("0x%llx%s", TextureHash, (const char*)ImageExtension);
 
 			if (PixelShaderResBindings.Count() > 0 && i < PixelShaderResBindings.Count())
 			{
 				string ResName = PixelShaderResBindings[i].Name;
-				TextureName = string::Format("%s_%s%s", Result.MaterialName.ToCString(), ResName.ToCString(), (const char*)ImageExtension);
+				if (!ExportManager::Config.GetBool("UseTxtrGuids"))
+				{
+					TextureName = string::Format("%s_%s%s", Result.MaterialName.ToCString(), ResName.ToCString(), (const char*)ImageExtension);
+				}
 				bOverridden = true;
 
 				if (ResName == "normalTexture")
