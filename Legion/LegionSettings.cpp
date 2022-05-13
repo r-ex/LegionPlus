@@ -14,7 +14,7 @@ LegionSettings::LegionSettings()
 void LegionSettings::InitializeComponent()
 {
 	const INT WindowX = 710;
-	const INT WindowY = 315;
+	const INT WindowY = 335;
 
 	this->SuspendLayout();
 	this->SetAutoScaleDimensions({ 6, 13 });
@@ -61,7 +61,7 @@ void LegionSettings::InitializeComponent()
 	//	Toggle Settings Box
 	//
 	this->groupBox4 = new UIX::UIXGroupBox();
-	this->groupBox4->SetSize({ 458, 48 });
+	this->groupBox4->SetSize({ 458, 68 });
 	this->groupBox4->SetLocation({ 12, 80 });
 	this->groupBox4->SetTabIndex(3);
 	this->groupBox4->SetText("Toggle Settings");
@@ -95,11 +95,20 @@ void LegionSettings::InitializeComponent()
 	this->ToggleUseFullPaths->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->groupBox4->AddControl(this->ToggleUseFullPaths);
 
+	this->ToggleUseTxtrGuids = new UIX::UIXCheckBox();
+	this->ToggleUseTxtrGuids->SetSize({ 105, 18 });
+	this->ToggleUseTxtrGuids->SetLocation({ 15, 43 });
+	this->ToggleUseTxtrGuids->SetTabIndex(2);
+	this->ToggleUseTxtrGuids->SetText("Use Image Guids");
+	this->ToggleUseTxtrGuids->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox4->AddControl(this->ToggleUseTxtrGuids);
+
+
 	//
 	//	About Box
 	//
 	this->groupBox2 = new UIX::UIXGroupBox();
-	this->groupBox2->SetSize({ 218, 118 });
+	this->groupBox2->SetSize({ 218, 138 });
 	this->groupBox2->SetLocation({ 480, 10 });
 	this->groupBox2->SetTabIndex(3);
 	this->groupBox2->SetText("About");
@@ -111,7 +120,7 @@ void LegionSettings::InitializeComponent()
 	//
 	this->label1 = new UIX::UIXLabel();
 	this->label1->SetSize({ 200, 60 });
-	this->label1->SetLocation({ 12, 12 });
+	this->label1->SetLocation({ 12, 27 });
 	this->label1->SetTabIndex(0);
 	this->label1->SetText("Legion is the Apex Legends asset extraction tool. Originally created by DTZxPorter in 2019. Currently maintained by various contributors on GitHub.");
 	this->label1->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
@@ -122,7 +131,7 @@ void LegionSettings::InitializeComponent()
 	//
 	this->GithubButton = new UIX::UIXButton();
 	this->GithubButton->SetSize({ 95, 25 });
-	this->GithubButton->SetLocation({ 13, 73 });
+	this->GithubButton->SetLocation({ 13, 93 });
 	this->GithubButton->SetTabIndex(1);
 	this->GithubButton->SetText("Github Repository");
 	this->groupBox2->AddControl(this->GithubButton);
@@ -131,7 +140,7 @@ void LegionSettings::InitializeComponent()
 	//
 	this->DiscordButton = new UIX::UIXButton();
 	this->DiscordButton->SetSize({ 95, 25 });
-	this->DiscordButton->SetLocation({ 112, 73 });
+	this->DiscordButton->SetLocation({ 112, 93 });
 	this->DiscordButton->SetTabIndex(1);
 	this->DiscordButton->SetText("Discord");
 	this->groupBox2->AddControl(this->DiscordButton);
@@ -141,7 +150,7 @@ void LegionSettings::InitializeComponent()
 	//
 	this->groupBox3 = new UIX::UIXGroupBox();
 	this->groupBox3->SetSize({ 340, 175 });
-	this->groupBox3->SetLocation({ 12, 135 });
+	this->groupBox3->SetLocation({ 12, 155 });
 	this->groupBox3->SetTabIndex(3);
 	this->groupBox3->SetText("Load Settings");
 	this->groupBox3->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
@@ -206,20 +215,12 @@ void LegionSettings::InitializeComponent()
 	this->LoadShaderSets->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->groupBox3->AddControl(this->LoadShaderSets);
 
-	this->UseTxtrGuids = new UIX::UIXCheckBox();
-	this->UseTxtrGuids->SetSize({ 105, 18 });
-	this->UseTxtrGuids->SetLocation({ 130, 91 });
-	this->UseTxtrGuids->SetTabIndex(2);
-	this->UseTxtrGuids->SetText("Use Image Guids");
-	this->UseTxtrGuids->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox3->AddControl(this->UseTxtrGuids);
-
 	//
 	//	Assets Export Settings Box
 	//
 	this->groupBox5 = new UIX::UIXGroupBox();
 	this->groupBox5->SetSize({ 340, 175 });
-	this->groupBox5->SetLocation({ 359, 135 });
+	this->groupBox5->SetLocation({ 359, 155 });
 	this->groupBox5->SetTabIndex(0);
 	this->groupBox5->SetText("Assets Export Settings");
 	this->groupBox5->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left | Forms::AnchorStyles::Right);
@@ -491,7 +492,7 @@ void LegionSettings::LoadSettings()
 	this->LoadUIImages->SetChecked(ExportManager::Config.GetBool("LoadUIImages"));
 	this->LoadDataTables->SetChecked(ExportManager::Config.GetBool("LoadDataTables"));
 	this->LoadShaderSets->SetChecked(ExportManager::Config.GetBool("LoadShaderSets"));
-	this->UseTxtrGuids->SetChecked(ExportManager::Config.GetBool("UseTxtrGuids"));
+	this->ToggleUseTxtrGuids->SetChecked(ExportManager::Config.GetBool("UseTxtrGuids"));
 	this->ToggleOverwriting->SetChecked(ExportManager::Config.GetBool("OverwriteExistingFiles"));
 	this->ToggleAudioLanguageFolders->SetChecked(ExportManager::Config.GetBool("AudioLanguageFolders"));
 	this->ToggleUseFullPaths->SetChecked(ExportManager::Config.GetBool("UseFullPaths"));
@@ -637,10 +638,10 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	ExportManager::Config.SetBool("LoadUIImages", ThisPtr->LoadUIImages->Checked());
 	ExportManager::Config.SetBool("LoadDataTables", ThisPtr->LoadDataTables->Checked());
 	ExportManager::Config.SetBool("LoadShaderSets", ThisPtr->LoadShaderSets->Checked());
-	ExportManager::Config.SetBool("UseTxtrGuids", ThisPtr->UseTxtrGuids->Checked());
 	ExportManager::Config.SetBool("OverwriteExistingFiles", ThisPtr->ToggleOverwriting->Checked());
 	ExportManager::Config.SetBool("AudioLanguageFolders", ThisPtr->ToggleAudioLanguageFolders->Checked());
 	ExportManager::Config.SetBool("UseFullPaths", ThisPtr->ToggleUseFullPaths->Checked());
+	ExportManager::Config.SetBool("UseTxtrGuids", ThisPtr->ToggleUseTxtrGuids->Checked());
 	ExportManager::Config.SetInt("ModelFormat", (uint32_t)ModelExportFormat);
 	ExportManager::Config.SetInt("AnimFormat", (uint32_t)AnimExportFormat);
 	ExportManager::Config.SetInt("ImageFormat", (uint32_t)ImageExportFormat);
