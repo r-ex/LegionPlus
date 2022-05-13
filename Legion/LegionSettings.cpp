@@ -206,6 +206,14 @@ void LegionSettings::InitializeComponent()
 	this->LoadShaderSets->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->groupBox3->AddControl(this->LoadShaderSets);
 
+	this->UseTxtrGuids = new UIX::UIXCheckBox();
+	this->UseTxtrGuids->SetSize({ 105, 18 });
+	this->UseTxtrGuids->SetLocation({ 130, 91 });
+	this->UseTxtrGuids->SetTabIndex(2);
+	this->UseTxtrGuids->SetText("Use Image Guids");
+	this->UseTxtrGuids->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox3->AddControl(this->UseTxtrGuids);
+
 	//
 	//	Assets Export Settings Box
 	//
@@ -483,6 +491,7 @@ void LegionSettings::LoadSettings()
 	this->LoadUIImages->SetChecked(ExportManager::Config.GetBool("LoadUIImages"));
 	this->LoadDataTables->SetChecked(ExportManager::Config.GetBool("LoadDataTables"));
 	this->LoadShaderSets->SetChecked(ExportManager::Config.GetBool("LoadShaderSets"));
+	this->UseTxtrGuids->SetChecked(ExportManager::Config.GetBool("UseTxtrGuids"));
 	this->ToggleOverwriting->SetChecked(ExportManager::Config.GetBool("OverwriteExistingFiles"));
 	this->ToggleAudioLanguageFolders->SetChecked(ExportManager::Config.GetBool("AudioLanguageFolders"));
 	this->ToggleUseFullPaths->SetChecked(ExportManager::Config.GetBool("UseFullPaths"));
@@ -628,6 +637,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	ExportManager::Config.SetBool("LoadUIImages", ThisPtr->LoadUIImages->Checked());
 	ExportManager::Config.SetBool("LoadDataTables", ThisPtr->LoadDataTables->Checked());
 	ExportManager::Config.SetBool("LoadShaderSets", ThisPtr->LoadShaderSets->Checked());
+	ExportManager::Config.SetBool("UseTxtrGuids", ThisPtr->UseTxtrGuids->Checked());
 	ExportManager::Config.SetBool("OverwriteExistingFiles", ThisPtr->ToggleOverwriting->Checked());
 	ExportManager::Config.SetBool("AudioLanguageFolders", ThisPtr->ToggleAudioLanguageFolders->Checked());
 	ExportManager::Config.SetBool("UseFullPaths", ThisPtr->ToggleUseFullPaths->Checked());
