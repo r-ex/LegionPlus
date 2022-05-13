@@ -109,6 +109,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			ExportManager::Config.SetBool("UseFullPaths", cmdline.HasParam(L"--fullpath"));
 			ExportManager::Config.SetBool("AudioLanguageFolders", cmdline.HasParam(L"--audiolanguagefolder"));
 			ExportManager::Config.SetBool("OverwriteExistingFiles", cmdline.HasParam(L"--overwrite"));
+			ExportManager::Config.SetBool("UseTxtrGuids", cmdline.HasParam(L"--useTxtrGuids"));
 
 			// asset rpak formats flags
 			if (cmdline.HasParam(L"--mdlfmt"))

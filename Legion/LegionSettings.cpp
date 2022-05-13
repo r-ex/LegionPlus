@@ -492,10 +492,10 @@ void LegionSettings::LoadSettings()
 	this->LoadUIImages->SetChecked(ExportManager::Config.GetBool("LoadUIImages"));
 	this->LoadDataTables->SetChecked(ExportManager::Config.GetBool("LoadDataTables"));
 	this->LoadShaderSets->SetChecked(ExportManager::Config.GetBool("LoadShaderSets"));
-	this->ToggleUseTxtrGuids->SetChecked(ExportManager::Config.GetBool("UseTxtrGuids"));
 	this->ToggleOverwriting->SetChecked(ExportManager::Config.GetBool("OverwriteExistingFiles"));
 	this->ToggleAudioLanguageFolders->SetChecked(ExportManager::Config.GetBool("AudioLanguageFolders"));
 	this->ToggleUseFullPaths->SetChecked(ExportManager::Config.GetBool("UseFullPaths"));
+	this->ToggleUseTxtrGuids->SetChecked(ExportManager::Config.GetBool("UseTxtrGuids"));
 
 
 	if (ExportManager::Config.Has<System::SettingType::String>("ExportDirectory"))
