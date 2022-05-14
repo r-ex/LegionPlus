@@ -73,7 +73,7 @@ Audio Language: --audiolanguage <english, french, german, spanish, italian, japa
 --prioritylvl - Sets Priority Level by using: <realtime, high, above_normal, normal, below_normal, idle>
 --fullpath - Enables full path naming for the list export
 --audiolanguagefolder - Enables Audio Language Folder
---usetxtrguids - Enables the renameing of Guid names for Textures (e.g. adding _albedoTexture, etc.)
+--usetxtrguids - Enables the renaming of Guid names for Textures (e.g. adding _albedoTexture, etc.)
 ```
 
 ## Support
