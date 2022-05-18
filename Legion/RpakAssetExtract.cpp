@@ -893,8 +893,28 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 
 		if (this->LoadedFiles[Asset.FileIndex].StarpakMap.ContainsKey(Asset.StarpakOffset))
 		{
-			Offset += (this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset] - BlockSize);
-			bStreamed = true;
+			if (Asset.AssetVersion != 9)
+			{
+				Offset += (this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset] - BlockSize);
+				bStreamed = true;
+			}
+			else
+			{
+				auto BufferSize = this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset];
+				auto Buffer = std::make_unique<uint8_t[]>(BufferSize);
+
+				// Get location of compress starpakstream buffer.
+				auto TempStream = this->GetStarpakStream(Asset, false);
+				TempStream->SetPosition(ActualStarpakOffset);
+				TempStream->Read(Buffer.get(), 0, BufferSize);
+
+				// Decompress starpak texture.
+				auto BufferResult = DecompressStreamedBuffer(Buffer.get(), BlockSize, (uint8_t)CompressionType::OODLE);
+				BufferResult->Read(Texture->GetPixels(), 0, BlockSize);
+				BufferResult.get()->Close();
+
+				return;
+			}
 		}
 		else
 		{
