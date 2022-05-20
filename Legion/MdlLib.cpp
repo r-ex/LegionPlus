@@ -151,7 +151,7 @@ void MdlLib::ExportRMdl(const string& Asset, const string& Path)
 
 		struct ModelSubmeshList
 		{
-			mstudiomodel_t Model;
+			RMdlTitanfallModel Model;
 			List<RMdlTitanfallLodSubmesh> Meshes;
 		};
 
@@ -168,10 +168,10 @@ void MdlLib::ExportRMdl(const string& Asset, const string& Path)
 			for (uint32_t p = 0; p < Part.NumModels; p++)
 			{
 				ModelSubmeshList& NewModel = NewPart.Emplace();
-				uint64_t ModelPosition = Position + Part.ModelOffset + (p * sizeof(mstudiomodel_t));
+				uint64_t ModelPosition = Position + Part.ModelOffset + (p * sizeof(RMdlTitanfallModel));
 
 				Stream->SetPosition(ModelPosition);
-				NewModel.Model = Reader.Read<mstudiomodel_t>();
+				NewModel.Model = Reader.Read<RMdlTitanfallModel>();
 
 				for (uint32_t m = 0; m < NewModel.Model.NumMeshes; m++)
 				{
