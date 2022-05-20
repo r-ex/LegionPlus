@@ -39,4 +39,6 @@ public:
 	static void ExportMdlAssets(const std::unique_ptr<MdlLib>& MdlFS, List<string>& ExportAssets);
 	// Write a list of loaded rpak assets to disk
 	static void ExportRpakAssetList(std::unique_ptr<List<ApexAsset>>& AssetList, string RpakName);
+	// Write a list of loaded Audio assets to disk
+	static void ExportAudioAssetList(std::unique_ptr<List<ApexAsset>>& AssetList);
 };

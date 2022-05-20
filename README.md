@@ -38,6 +38,9 @@ Exports the Audio files
 
 --list <path to rpak>
 Produces a list of all exportable assets within the specified rpak
+
+--listaudio <path to the general.mbnk file>
+Produces a list of all exportable audio files
 ```
 
 #### Export Load Flags

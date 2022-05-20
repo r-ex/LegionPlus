@@ -66,25 +66,30 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		}
 	}
 
-	if (cmdline.HasParam(L"--export") || cmdline.HasParam(L"--list") || cmdline.HasParam(L"--exportaudio"))
+	if (cmdline.HasParam(L"--export") || cmdline.HasParam(L"--exportaudio") || cmdline.HasParam(L"--list") || cmdline.HasParam(L"--listaudio"))
 	{
 		string rpakPath;
 
 		bool bExportRpak = cmdline.HasParam(L"--export");
-		bool bListRpak = cmdline.HasParam(L"--list");
 		bool bExportAudio = cmdline.HasParam(L"--exportaudio");
+		bool bListRpak = cmdline.HasParam(L"--list");
+		bool bListAudio = cmdline.HasParam(L"--listaudio");
 
 		if (bExportRpak)
 		{
 			rpakPath = wstring(cmdline.GetParamValue(L"--export")).ToString();
 		}
+		else if (bExportAudio)
+		{
+			rpakPath = wstring(cmdline.GetParamValue(L"--exportaudio")).ToString();
+		}
 		else if (bListRpak)
 		{
 			rpakPath = wstring(cmdline.GetParamValue(L"--list")).ToString();
 		}
-		else if (bExportAudio)
+		else if (bListAudio)
 		{
-			rpakPath = wstring(cmdline.GetParamValue(L"--exportaudio")).ToString();
+			rpakPath = wstring(cmdline.GetParamValue(L"--listaudio")).ToString();
 		}
 
 		// handle cli stuff
@@ -302,13 +307,23 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				string filename = IO::Path::GetFileNameWithoutExtension(rpakPath);
 				ExportManager::ExportRpakAssetList(AssetList, filename);
 			}
+			else if (bListAudio)
+			{
+				auto Audio = std::make_unique<MilesLib>();
+				Audio->MountBank(rpakPath); // not actually an rpak path?
+				AssetList = Audio->BuildAssetList();
+
+				string filename = IO::Path::GetFileNameWithoutExtension(rpakPath);
+				ExportManager::ExportAudioAssetList(AssetList);
+			}
 
 			ShowGUI = false;
 		}
-	} else {
+	}
+	else {
 		if (cmdline.ArgC() >= 1) {
 			wstring firstParam = cmdline.GetParamAtIdx(0);
-			
+
 			// check that the first param is actually a file that exists
 			// i'm sure this is bad in some way but once i push it, it's not my problem anymore
 			if (IO::File::Exists(firstParam.ToString()))

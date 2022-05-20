@@ -283,3 +283,19 @@ void ExportManager::ExportRpakAssetList(std::unique_ptr<List<ApexAsset>>& AssetL
 
 	g_Logger.Info("Exported List: %s\n", ListName.ToCString());
 }
+
+void ExportManager::ExportAudioAssetList(std::unique_ptr<List<ApexAsset>>& AssetList)
+{
+	String ExportDirectory = IO::Path::Combine(ExportPath, "lists");
+	IO::Directory::CreateDirectory(ExportDirectory);
+	List<String> NameList;
+	for (auto& Asset : *AssetList)
+		NameList.EmplaceBack(Asset.Name);
+
+	NameList.Sort([](const String& lhs, const String& rhs) { return lhs.Compare(rhs) < 0; });
+	IO::File::WriteAllLines(IO::Path::Combine(ExportDirectory, "Audio.txt"), NameList);
+
+	auto ListName = "Audio.txt";
+
+	g_Logger.Info("Exported List: %s\n", "Audio.txt");
+}
