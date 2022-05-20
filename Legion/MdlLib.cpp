@@ -151,7 +151,7 @@ void MdlLib::ExportRMdl(const string& Asset, const string& Path)
 
 		struct ModelSubmeshList
 		{
-			RMdlTitanfallModel Model;
+			mstudiomodel_t Model;
 			List<RMdlTitanfallLodSubmesh> Meshes;
 		};
 
@@ -160,18 +160,18 @@ void MdlLib::ExportRMdl(const string& Asset, const string& Path)
 		for (uint32_t i = 0; i < Header.BodyPartCount; i++)
 		{
 			List<ModelSubmeshList>& NewPart = PartModelMeshes.Emplace();
-			uint64_t Position = Header.BodyPartOffset + (i * sizeof(RMdlTitanfallBodyPart));
+			uint64_t Position = Header.BodyPartOffset + (i * sizeof(r2mstudiobodyparts_t));
 
 			Stream->SetPosition(Position);
-			RMdlTitanfallBodyPart Part = Reader.Read<RMdlTitanfallBodyPart>();
+			r2mstudiobodyparts_t Part = Reader.Read<r2mstudiobodyparts_t>();
 
 			for (uint32_t p = 0; p < Part.NumModels; p++)
 			{
 				ModelSubmeshList& NewModel = NewPart.Emplace();
-				uint64_t ModelPosition = Position + Part.ModelOffset + (p * sizeof(RMdlTitanfallModel));
+				uint64_t ModelPosition = Position + Part.ModelOffset + (p * sizeof(mstudiomodel_t));
 
 				Stream->SetPosition(ModelPosition);
-				NewModel.Model = Reader.Read<RMdlTitanfallModel>();
+				NewModel.Model = Reader.Read<mstudiomodel_t>();
 
 				for (uint32_t m = 0; m < NewModel.Model.NumMeshes; m++)
 				{
@@ -189,10 +189,10 @@ void MdlLib::ExportRMdl(const string& Asset, const string& Path)
 
 		for (uint32_t i = 0; i < LodHeader.NumBodyParts; i++)
 		{
-			uint64_t Position = (uint64_t)Header.SubmeshLodsOffset + LodHeader.BodyPartOffset + (i * sizeof(RMdlBodyPart));
+			uint64_t Position = (uint64_t)Header.SubmeshLodsOffset + LodHeader.BodyPartOffset + (i * sizeof(mstudiobodyparts_t));
 
 			Stream->SetPosition(Position);
-			RMdlBodyPart Part = Reader.Read<RMdlBodyPart>();
+			mstudiobodyparts_t Part = Reader.Read<mstudiobodyparts_t>();
 
 			for (uint32_t m = 0; m < Part.NumModels; m++)
 			{

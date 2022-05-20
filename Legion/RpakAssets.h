@@ -1046,13 +1046,13 @@ struct RMdlVertex
 	Math::Vector2 UVs;
 };
 
-struct RMdlBodyPart
+struct mstudiobodyparts_t
 {
 	uint32_t NumModels;
 	uint32_t ModelOffset;
 };
 
-struct RMdlTitanfallBodyPart
+struct r2mstudiobodyparts_t
 {
 	uint32_t NameOffset;
 	uint32_t NumModels;
@@ -1474,7 +1474,7 @@ ASSERT_SIZE(RMdlMeshStreamHeader, 0x24);
 ASSERT_SIZE(RMdlMeshHeader, 0x40);
 ASSERT_SIZE(RMdlFixup, 0xC);
 ASSERT_SIZE(RMdlVertex, 0x30);
-ASSERT_SIZE(RMdlBodyPart, 0x8);
+ASSERT_SIZE(mstudiobodyparts_t, 0x8);
 ASSERT_SIZE(RMdlModel, 0x8);
 ASSERT_SIZE(RMdlLod, 0xC);
 ASSERT_SIZE(RMdlSubmesh, 0x9);
