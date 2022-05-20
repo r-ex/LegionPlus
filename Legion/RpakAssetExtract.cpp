@@ -180,7 +180,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 			this->GetFileOffset(Asset, ModHeader.PhyIndex, ModHeader.PhyOffset);
 
 		// check if this model has a phy segment
-		if(PhyOffset)
+		if (PhyOffset)
 		{
 			RpakStream->SetPosition(PhyOffset);
 
@@ -211,7 +211,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 	Model->Bones = std::move(ExtractSkeleton(Reader, SkeletonOffset));
 
-	if(!bExportingRawRMdl)
+	if (!bExportingRawRMdl)
 		Model->GenerateGlobalTransforms(true, true); // We need global transforms
 
 	if (IncludeAnimations && ModHeader.AnimSequenceCount > 0 && Asset.AssetVersion > 9)
@@ -235,7 +235,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 	RpakStream->SetPosition(SkeletonOffset);
 
 	RMdlSkeletonHeader SkeletonHeader{};
-	
+
 	if (Asset.SubHeaderSize != 120)
 	{
 		SkeletonHeader = Reader.Read<RMdlSkeletonHeader>();
@@ -307,7 +307,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 	{
 		IO::Stream* StarpakStream = StarpakReader.GetBaseStream();
 
-		
+
 		if (Asset.AssetVersion <= 8) // s1
 		{
 			StarpakStream->SetPosition(Offset);
@@ -361,7 +361,7 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 	BaseStream->SetPosition(Offset);
 
 	RMdlVGHeader VGHeader{};
-	if(Version >= 12)
+	if (Version >= 12)
 		VGHeader = Reader.Read<RMdlVGHeader>();
 	else {
 		RMdlVGHeaderOld TempVGHeader = Reader.Read<RMdlVGHeaderOld>();
@@ -733,7 +733,7 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 					bNormalRecalculate = true;
 			}
 
-			if(Asset.Version == RpakGameVersion::Apex)
+			if (Asset.Version == RpakGameVersion::Apex)
 				g_Logger.Info(">> %i: 0x%llx - %s\n", i, TextureHash, bOverridden ? TextureName.ToCString() : "(no assigned name)");
 
 			switch (i)
@@ -856,7 +856,7 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 				auto TempStream = this->GetStarpakStream(Asset, true);
 				TempStream->SetPosition(ActualOptStarpakOffset);
 				TempStream->Read(Buffer.get(), 0, BufferSize);
-				
+
 				// Decompress starpak texture.
 				auto BufferResult = DecompressStreamedBuffer(Buffer.get(), BlockSize, (uint8_t)CompressionType::OODLE);
 				BufferResult->Read(Texture->GetPixels(), 0, BlockSize);
@@ -1005,7 +1005,8 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
 	UIIAHeader TexHeader = Reader.Read<UIIAHeader>();
-	int UnpackedShift = (~(unsigned __int8)((*(unsigned __int16*)&TexHeader.Flags) >> 5) & 2);
+	int UnpackedShiftWidth = (~(unsigned __int8)((*(unsigned __int16*)&TexHeader.Flags) >> 5) & 2);
+	int UnpackedShiftHeight = (~(unsigned __int8)((*(unsigned __int16*)&TexHeader.Flags) >> 6) & 2);
 
 	uint64_t ActualStarpakOffset = Asset.StarpakOffset & 0xFFFFFFFFFFFFFF00;
 	uint64_t ActualOptStarpakOffset = Asset.OptimalStarpakOffset & 0xFFFFFFFFFFFFFF00;
@@ -1072,14 +1073,14 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 		RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset));
 		RpakStream->Read((uint8_t*)&RImage, 0, sizeof(RUIImage));
 
-		if (RImage.HighResolutionWidth + UnpackedShift > 2)
-			RImage.HighResolutionWidth += UnpackedShift;
-		if (RImage.HighResolutionHeight + UnpackedShift > 2)
-			RImage.HighResolutionHeight += UnpackedShift;
-		if (RImage.LowResolutionWidth + UnpackedShift > 2)
-			RImage.LowResolutionWidth += UnpackedShift;
-		if (RImage.LowResolutionHeight + UnpackedShift > 2)
-			RImage.LowResolutionHeight += UnpackedShift;
+		if (RImage.HighResolutionWidth + UnpackedShiftWidth > 2)
+			RImage.HighResolutionWidth += UnpackedShiftWidth;
+		if (RImage.HighResolutionHeight + UnpackedShiftHeight > 2)
+			RImage.HighResolutionHeight += UnpackedShiftHeight;
+		if (RImage.LowResolutionWidth + UnpackedShiftWidth > 2)
+			RImage.LowResolutionWidth += UnpackedShiftWidth;
+		if (RImage.LowResolutionHeight + UnpackedShiftHeight > 2)
+			RImage.LowResolutionHeight += UnpackedShiftHeight;
 
 		bool UseHighResolution = StarpakStream != nullptr;
 
@@ -1349,7 +1350,7 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 
 						if (Point.Opcode == 0x41)
 						{
-							Texture->CopyTextureSlice(Bc7Texture, {(x * 32), (y * 32), 32, 32}, (x * 32), (y * 32));
+							Texture->CopyTextureSlice(Bc7Texture, { (x * 32), (y * 32), 32, 32 }, (x * 32), (y * 32));
 						}
 					}
 				}
@@ -1611,7 +1612,7 @@ List<List<DataTableColumnData>> RpakLib::ExtractDataTable(const RpakLoadAsset& A
 
 		// todo: season 3 and earlier will not have "Unk8", but all later builds do,
 		// in order to maintain compatibility, something must be used to determine which version of dtbl this is
-		if(Asset.Version == RpakGameVersion::Apex)
+		if (Asset.Version == RpakGameVersion::Apex)
 			col.Unk8 = Reader.Read<uint64_t>(); // old apex datatables do not have this
 
 		col.Type = Reader.Read<uint32_t>();
@@ -1801,7 +1802,7 @@ List<ShaderVar> RpakLib::ExtractShaderVars(const RpakLoadAsset& Asset, D3D_SHADE
 	DXBCHeader hdr = Reader.Read<DXBCHeader>();
 
 	List<uint32_t> ChunkOffsets(hdr.ChunkCount, true);
-	Reader.Read((uint8_t*)&ChunkOffsets[0], 0, hdr.ChunkCount*sizeof(uint32_t));
+	Reader.Read((uint8_t*)&ChunkOffsets[0], 0, hdr.ChunkCount * sizeof(uint32_t));
 
 	for (uint32_t i = 0; i < hdr.ChunkCount; ++i)
 		ChunkOffsets[i] += BasePos;
@@ -1820,7 +1821,7 @@ List<ShaderVar> RpakLib::ExtractShaderVars(const RpakLoadAsset& Asset, D3D_SHADE
 			{
 				RpakStream->Seek(32, IO::SeekOrigin::Current); // skip RD11 header
 			}
-			
+
 			uint64_t ConstBufferPos = (ChunkOffset + 8) + RDefHdr.ConstBufferOffset;
 
 			for (uint32_t i = 0; i < RDefHdr.ConstBufferCount; ++i)
@@ -1830,7 +1831,7 @@ List<ShaderVar> RpakLib::ExtractShaderVars(const RpakLoadAsset& Asset, D3D_SHADE
 
 				for (uint32_t j = 0; j < ConstBuffer.VariableCount; ++j)
 				{
-					RpakStream->SetPosition((ChunkOffset + 8) + ConstBuffer.VariableOffset + (j*sizeof(RDefCBufVar)));
+					RpakStream->SetPosition((ChunkOffset + 8) + ConstBuffer.VariableOffset + (j * sizeof(RDefCBufVar)));
 
 					RDefCBufVar CBufVar = Reader.Read<RDefCBufVar>();
 
@@ -1847,7 +1848,7 @@ List<ShaderVar> RpakLib::ExtractShaderVars(const RpakLoadAsset& Asset, D3D_SHADE
 
 					Var.Name = Name;
 					Var.Type = (D3D_SHADER_VARIABLE_TYPE)Type.Type;
-					
+
 					// make sure that the VarsType arg is actually specified and then check if this var matches that type
 					if (Var.Type != D3D_SVT_FORCE_DWORD && Var.Type == VarsType)
 						Vars.EmplaceBack(Var);
@@ -1935,7 +1936,7 @@ void RpakLib::ExtractUIImageAtlas(const RpakLoadAsset& Asset, const string& Path
 		return;
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
-	
+
 	UIAtlasHeader Header = Reader.Read<UIAtlasHeader>();
 
 	if (!Assets.ContainsKey(Header.TextureGuid)) // can't get the images without texture data so let's head out

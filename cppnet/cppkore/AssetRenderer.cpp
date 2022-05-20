@@ -64,7 +64,7 @@ namespace Assets
 
 			if (Submesh.MaterialIndices.Count() > 0 && this->_MaterialStreamer != nullptr && Model.Materials.Count() != 0)
 			{
-				auto& Material = Model.Materials[Submesh.MaterialIndices[0]];
+				Assets::Material& Material = Model.Materials[Submesh.MaterialIndices[0]];
 
 				if (Material.Slots.ContainsKey(MaterialSlotType::Albedo))
 				{
