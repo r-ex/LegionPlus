@@ -124,7 +124,7 @@ void RpakLib::ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path)
 		uint64_t SkeletonOffset = this->GetFileOffset(Asset, RigHeader.SkeletonIndex, RigHeader.SkeletonOffset);
 		RpakStream->SetPosition(SkeletonOffset);
 
-		RMdlSkeletonHeader SkeletonHeader = Reader.Read<RMdlSkeletonHeader>();
+		studiohdr_t SkeletonHeader = Reader.Read<studiohdr_t>();
 
 		RpakStream->SetPosition(SkeletonOffset);
 

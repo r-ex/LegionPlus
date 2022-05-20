@@ -74,3 +74,5 @@ namespace Math
 
 	static_assert(sizeof(Vector3) == 0xC, "Invalid Math::Vector3 size, expected 0xC");
 }
+
+using Vector3 = Math::Vector3;

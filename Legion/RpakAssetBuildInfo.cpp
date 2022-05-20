@@ -47,7 +47,7 @@ void RpakLib::BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.SkeletonIndex, ModHeader.SkeletonOffset));
 
-	RMdlSkeletonHeader SkeletonHeader = Reader.Read<RMdlSkeletonHeader>();
+	studiohdr_t SkeletonHeader = Reader.Read<studiohdr_t>();
 
 	if (ModHeader.AnimSequenceCount > 0)
 	{
@@ -82,7 +82,7 @@ void RpakLib::BuildAnimInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, RigHeader.SkeletonIndex, RigHeader.SkeletonOffset));
 
-	RMdlSkeletonHeader SkeletonHeader = Reader.Read<RMdlSkeletonHeader>();
+	studiohdr_t SkeletonHeader = Reader.Read<studiohdr_t>();
 
 	Info.Info = string::Format("Animations: %d, Bones: %d", RigHeader.AnimationReferenceCount, SkeletonHeader.BoneCount);
 }

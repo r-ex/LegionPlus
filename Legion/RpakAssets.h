@@ -494,7 +494,7 @@ struct ModelHeaderS80
 	uint64_t Padding7;
 };
 
-struct RMdlSkeletonHeader
+struct studiohdr_t // latest studiohdr
 {
 	uint32_t Magic;
 	uint32_t Version;
@@ -558,7 +558,7 @@ struct RMdlSkeletonHeader
 	uint32_t BoneRemapCount;
 };
 
-struct RMdlSkeletonHeader_S3
+struct s3studiohdr_t // season 3 studiohdr
 {
 	uint32_t Magic;
 	uint32_t Version;
@@ -621,7 +621,7 @@ struct RMdlSkeletonHeader_S3
 	uint32_t BoneRemapCount;
 };
 
-struct RMdlTitanfallSkeletonHeader
+struct r2studiohdr_t // titanfall 2 studiohdr
 {
 	uint32_t Magic;
 	uint32_t Version;
@@ -685,12 +685,12 @@ struct RMdlTitanfallSkeletonHeader
 	uint32_t MeshOffset;
 };
 
-struct RMdlBone
+struct mstudiobone_t
 {
 	uint32_t NameOffset;		// Relative to current position
 	int32_t ParentIndex;
 
-	uint8_t UnknownNegativeOne[0x18];
+	int BoneControllers[6]; // -1 if none
 
 	Math::Vector3 Position;		// Local
 	Math::Quaternion Rotation;	// Local
@@ -698,19 +698,19 @@ struct RMdlBone
 	uint8_t Padding[0x78];
 };
 
-struct RMdlTitanfallBone
+struct r2mstudiobone_t
 {
 	uint32_t NameOffset;		// Relative to current position
 	int32_t ParentIndex;
 
-	uint8_t UnknownNegativeOne[0x18];
+	int BoneControllers[6]; // -1 if none
 
 	Math::Vector3 Position;		// Local
 	Math::Quaternion Rotation;	// Local
+	Math::Vector3 EulerRotation;
 
-	uint8_t UnknownData[0x24];
-
-	float RotationScale[3];
+	Math::Vector3 PositionScale;
+	Math::Vector3 RotationScale;
 
 	uint8_t Padding[0x88];
 };
@@ -1469,7 +1469,7 @@ ASSERT_SIZE(ModelHeaderS68, 0x68);
 ASSERT_SIZE(ModelHeaderS80, 0x80);
 ASSERT_SIZE(AnimHeader, 0x30);
 ASSERT_SIZE(AnimRigHeader, 0x28);
-ASSERT_SIZE(RMdlBone, 0xB4);
+ASSERT_SIZE(mstudiobone_t, 0xB4);
 ASSERT_SIZE(RMdlMeshStreamHeader, 0x24);
 ASSERT_SIZE(RMdlMeshHeader, 0x40);
 ASSERT_SIZE(RMdlFixup, 0xC);

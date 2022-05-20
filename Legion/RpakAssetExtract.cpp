@@ -166,7 +166,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 		RpakStream->SetPosition(SkeletonOffset);
 
-		auto SkeletonHeader = Reader.Read<RMdlSkeletonHeader>();
+		studiohdr_t SkeletonHeader = Reader.Read<studiohdr_t>();
 
 		RpakStream->SetPosition(SkeletonOffset);
 
@@ -234,14 +234,14 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 	RpakStream->SetPosition(SkeletonOffset);
 
-	RMdlSkeletonHeader SkeletonHeader{};
+	studiohdr_t SkeletonHeader{};
 
 	if (Asset.SubHeaderSize != 120)
 	{
-		SkeletonHeader = Reader.Read<RMdlSkeletonHeader>();
+		SkeletonHeader = Reader.Read<studiohdr_t>();
 	}
 	else {
-		auto TempSkeletonHeader = Reader.Read<RMdlSkeletonHeader_S3>();
+		s3studiohdr_t TempSkeletonHeader = Reader.Read<s3studiohdr_t>();
 
 		memcpy(&SkeletonHeader, &TempSkeletonHeader, 0x110);
 
@@ -1567,16 +1567,16 @@ List<Assets::Bone> RpakLib::ExtractSkeleton(IO::BinaryReader& Reader, uint64_t S
 
 	RpakStream->SetPosition(SkeletonOffset);
 
-	RMdlSkeletonHeader SkeletonHeader = Reader.Read<RMdlSkeletonHeader>();
+	studiohdr_t SkeletonHeader = Reader.Read<studiohdr_t>();
 
 	List<Assets::Bone> Result = List<Assets::Bone>(SkeletonHeader.BoneCount);
 
 	for (uint32_t i = 0; i < SkeletonHeader.BoneCount; i++)
 	{
-		uint64_t Position = SkeletonOffset + SkeletonHeader.BoneDataOffset + (i * sizeof(RMdlBone));
+		uint64_t Position = SkeletonOffset + SkeletonHeader.BoneDataOffset + (i * sizeof(mstudiobone_t));
 
 		RpakStream->SetPosition(Position);
-		RMdlBone Bone = Reader.Read<RMdlBone>();
+		mstudiobone_t Bone = Reader.Read<mstudiobone_t>();
 		RpakStream->SetPosition(Position + Bone.NameOffset);
 
 		string TagName = Reader.ReadCString();
