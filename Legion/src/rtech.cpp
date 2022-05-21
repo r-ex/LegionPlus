@@ -2694,13 +2694,13 @@ std::unique_ptr<IO::MemoryStream> RTech::DecompressStreamedBuffer(const uint8_t*
 	{
 		rpak_decomp_state state;
 
-		uint32_t dSize = g_pRtech->DecompressPakfileInit(&state, (uint8_t*)Data, DataSize, 0, 0);
+		uint32_t dSize = RTech::DecompressPakfileInit(&state, (uint8_t*)Data, DataSize, 0, 0);
 
 		uint8_t* Result = new uint8_t[state.decompressed_size]{};
 		state.out_mask = UINT64_MAX;
 		state.out = (uint64_t)Result;
 
-		uint8_t decomp_result = g_pRtech->DecompressPakFile(&state, DataSize, dSize); // porter uses 0x400000, but using decompsize should be enough.
+		uint8_t decomp_result = RTech::DecompressPakFile(&state, DataSize, dSize); // porter uses 0x400000, but using decompsize should be enough.
 
 		DataSize = state.decompressed_size;
 
@@ -2709,7 +2709,7 @@ std::unique_ptr<IO::MemoryStream> RTech::DecompressStreamedBuffer(const uint8_t*
 	case CompressionType::SNOWFLAKE:
 	{
 		auto State = std::make_unique<uint8_t[]>(0x25000);
-		g_pRtech->DecompressSnowflakeInit((long long)&State.get()[0], (int64_t)Data, DataSize);
+		RTech::DecompressSnowflakeInit((long long)&State.get()[0], (int64_t)Data, DataSize);
 
 		__int64* EditState = (__int64*)&State.get()[0];
 		__int64 DecompressedSize = EditState[0x48D3];
@@ -2726,7 +2726,7 @@ std::unique_ptr<IO::MemoryStream> RTech::DecompressStreamedBuffer(const uint8_t*
 		EditState[0x48DA] = (__int64)Result;
 		EditState[0x48DB] = 0;
 
-		g_pRtech->DecompressSnowflake((long long)&State.get()[0], DataSize, DecompressedSize);
+		RTech::DecompressSnowflake((long long)&State.get()[0], DataSize, DecompressedSize);
 
 		DataSize = EditState[0x48db];
 
@@ -2780,4 +2780,3 @@ std::unique_ptr<IO::MemoryStream> RTech::DecompressStreamedBuffer(const uint8_t*
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-RTech* g_pRtech;

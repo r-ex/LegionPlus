@@ -197,7 +197,6 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims
 			BuildDataTableInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::Subtitles:
-			// todo: subtitle loading setting
 			BuildSubtitleInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::ShaderSet:
@@ -206,9 +205,6 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims
 			BuildShaderSetInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::UIImageAtlas:
-			// i'll implement this later
-			//if (!ExportManager::Config.GetBool("LoadUIAtlases"))
-			//	continue;
 			BuildUIImageAtlasInfo(Asset, NewAsset);
 			break;
 		default:
@@ -344,14 +340,6 @@ std::unique_ptr<IO::FileStream> RpakLib::GetStarpakStream(const RpakLoadAsset& A
 	}
 }
 
-string RpakLib::GetSubtitlesNameFromHash(uint64_t Hash)
-{
-	if (SubtitleLanguageMap.count((SubtitleLanguageHash)Hash))
-		return "subtitles_" + SubtitleLanguageMap[(SubtitleLanguageHash)Hash];
-
-	return string::Format("subt_0x%llx", Hash);
-}
-
 void RpakLib::ParseRAnimBoneTranslationTrack(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
 {
 	uint16_t* TranslationDataPtr = *BoneTrackData;
@@ -395,7 +383,7 @@ void RpakLib::ParseRAnimBoneTranslationTrack(const RAnimBoneFlag& BoneFlags, uin
 		{
 			if (_bittest((const long*)&TranslationFlags, v32))
 			{
-				g_pRtech->DecompressDynamicTrack(Frame, dataPtrs[TranslationIndex], TranslationScale, &TranslationFinal, &TimeScale);
+				RTech::DecompressDynamicTrack(Frame, dataPtrs[TranslationIndex], TranslationScale, &TranslationFinal, &TimeScale);
 
 				if (BoneFlags.bAdditiveCustom)
 					Result[TranslationIndex] = (float)((float)((float)(1.0 - Time) * TranslationFinal) + (float)(TimeScale * Time));
@@ -476,7 +464,7 @@ void RpakLib::ParseRAnimBoneRotationTrack(const RAnimBoneFlag& BoneFlags, uint16
 		{
 			if (_bittest((const long*)&RotationFlags, v32))
 			{
-				g_pRtech->DecompressDynamicTrack(Frame, dataPtrs[v31], 0.00019175345f, &TranslationFinal, &TimeScale);
+				RTech::DecompressDynamicTrack(Frame, dataPtrs[v31], 0.00019175345f, &TranslationFinal, &TimeScale);
 				EulerResult[v31] = TranslationFinal;
 			}
 
@@ -485,7 +473,7 @@ void RpakLib::ParseRAnimBoneRotationTrack(const RAnimBoneFlag& BoneFlags, uint16
 		} while (v31 < 3);
 
 		Math::Quaternion Result;
-		g_pRtech->DecompressConvertRotation((const __m128i*) & EulerResult[0], (float*)&Result);
+		RTech::DecompressConvertRotation((const __m128i*) & EulerResult[0], (float*)&Result);
 
 		Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name())[0].Keyframes.Emplace(FrameIndex, Result);
 
@@ -535,7 +523,7 @@ void RpakLib::ParseRAnimBoneScaleTrack(const RAnimBoneFlag& BoneFlags, uint16_t*
 		{
 			if (_bittest((const long*)&ScaleFlags, v32))
 			{
-				g_pRtech->DecompressDynamicTrack(Frame, dataPtrs[v31], 0.0030518509f, &TranslationFinal, &TimeScale);
+				RTech::DecompressDynamicTrack(Frame, dataPtrs[v31], 0.0030518509f, &TranslationFinal, &TimeScale);
 				Result[v31] = (float)((float)((float)(1.0 - a2) * TranslationFinal) + (float)(TimeScale * a2)) + Result[v31];
 			}
 
@@ -1084,14 +1072,14 @@ bool RpakLib::MountApexRpak(const string& Path, bool Dump)
 
 	rpak_decomp_state state;
 
-	uint32_t dSize = g_pRtech->DecompressPakfileInit(&state, CompressedBuffer.get(), Header.CompressedSize, 0, sizeof(RpakApexHeader));
+	uint32_t dSize = RTech::DecompressPakfileInit(&state, CompressedBuffer.get(), Header.CompressedSize, 0, sizeof(RpakApexHeader));
 
 	std::vector<std::uint8_t> pakbuf(dSize, 0);
 
 	state.out_mask = UINT64_MAX;
 	state.out = uint64_t(pakbuf.data());
 
-	std::uint8_t decomp_result = g_pRtech->DecompressPakFile(&state, dSize, pakbuf.size());
+	std::uint8_t decomp_result = RTech::DecompressPakFile(&state, dSize, pakbuf.size());
 
 	std::memcpy(pakbuf.data(), &Header, sizeof(RpakApexHeader));
 
@@ -1131,14 +1119,14 @@ bool RpakLib::MountTitanfallRpak(const string& Path, bool Dump)
 
 	rpak_decomp_state state;
 
-	uint32_t dSize = g_pRtech->DecompressPakfileInit(&state, CompressedBuffer.get(), Header.CompressedSize, 0, sizeof(RpakTitanfallHeader));
+	uint32_t dSize = RTech::DecompressPakfileInit(&state, CompressedBuffer.get(), Header.CompressedSize, 0, sizeof(RpakTitanfallHeader));
 
 	std::vector<std::uint8_t> pakbuf(dSize, 0);
 
 	state.out_mask = UINT64_MAX;
 	state.out = uint64_t(pakbuf.data());
 
-	std::uint8_t decomp_result = g_pRtech->DecompressPakFile(&state, dSize, pakbuf.size());
+	std::uint8_t decomp_result = RTech::DecompressPakFile(&state, dSize, pakbuf.size());
 
 	std::memcpy(pakbuf.data(), &Header, sizeof(RpakTitanfallHeader));
 

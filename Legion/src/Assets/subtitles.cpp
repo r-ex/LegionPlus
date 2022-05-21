@@ -3,6 +3,14 @@
 #include "Path.h"
 #include "Directory.h"
 
+string RpakLib::GetSubtitlesNameFromHash(uint64_t Hash)
+{
+	if (SubtitleLanguageMap.count((SubtitleLanguageHash)Hash))
+		return "subtitles_" + SubtitleLanguageMap[(SubtitleLanguageHash)Hash];
+
+	return string::Format("subt_0x%llx", Hash);
+}
+
 void RpakLib::BuildSubtitleInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 {
 	auto RpakStream = this->GetFileStream(Asset);
