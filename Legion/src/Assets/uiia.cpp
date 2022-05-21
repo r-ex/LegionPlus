@@ -29,6 +29,9 @@ void RpakLib::BuildUIIAInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	case 2:
 		CompressionType = "SNOWFLAKE"; // idk why it's called this tbh
 		break;
+	case 3: // pretty sure this isn't used by ui images rn
+		CompressionType = "OODLE";
+		break;
 	default:
 		CompressionType = "UNKNOWN";
 		break;
