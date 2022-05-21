@@ -183,6 +183,10 @@ public:
 	int64_t sub_7FF7FC23B960(int64_t param_buffer, uint32_t unk1);
 	int64_t sub_7FF7FC23C880(int64_t param_buffer, uint8_t a2, int64_t a3);
 	__int64 sub_7FF7FC23CD20(unsigned __int8* param_buffer, unsigned int a2);
+
+	// static
+	static std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, uint64_t& DataSize, uint8_t Format);
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "rtech.h"
 #include "basetypes.h"
+#include "../../cppnet/cppkore_incl/OODLE/oodle2.h"
 
 /******************************************************************************
 -------------------------------------------------------------------------------
@@ -2685,5 +2686,100 @@ void RTech::UnswizzleBlock(uint32_t x, uint32_t y, uint32_t a3, uint32_t power, 
 	+ 2 * (a3 / power) * ((x / power + y * (a3 / power)) / (2 * (a3 / power)))) / 256;
 	y1 = x % 2 + 2 * (x1 / power);
 };
+
+
+std::unique_ptr<IO::MemoryStream> RTech::DecompressStreamedBuffer(const uint8_t* Data, uint64_t& DataSize, uint8_t Format)
+{
+	switch ((CompressionType)Format)
+	{
+	case CompressionType::PAKFILE:
+	{
+		rpak_decomp_state state;
+
+		uint32_t dSize = g_pRtech->DecompressPakfileInit(&state, (uint8_t*)Data, DataSize, 0, 0);
+
+		uint8_t* Result = new uint8_t[state.decompressed_size]{};
+		state.out_mask = UINT64_MAX;
+		state.out = (uint64_t)Result;
+
+		uint8_t decomp_result = g_pRtech->DecompressPakFile(&state, DataSize, dSize); // porter uses 0x400000, but using decompsize should be enough.
+
+		DataSize = state.decompressed_size;
+
+		return std::make_unique<IO::MemoryStream>(Result, 0, state.decompressed_size);
+	}
+	case CompressionType::SNOWFLAKE:
+	{
+		auto State = std::make_unique<uint8_t[]>(0x25000);
+		g_pRtech->DecompressSnowflakeInit((long long)&State.get()[0], (int64_t)Data, DataSize);
+
+		__int64* EditState = (__int64*)&State.get()[0];
+		__int64 DecompressedSize = EditState[0x48D3];
+
+		unsigned int v15 = *((unsigned int*)EditState + 0x91A4);
+		__int64 v16 = DecompressedSize;
+		*((uint32_t*)EditState + 0x91A2) = 0;
+		if (v15 < DecompressedSize)
+			v16 = v15;
+
+		uint8_t* Result = new uint8_t[DecompressedSize]{};
+
+		EditState[0x48D4] = (__int64)v16;
+		EditState[0x48DA] = (__int64)Result;
+		EditState[0x48DB] = 0;
+
+		g_pRtech->DecompressSnowflake((long long)&State.get()[0], DataSize, DecompressedSize);
+
+		DataSize = EditState[0x48db];
+
+		return std::make_unique<IO::MemoryStream>(Result, 0, EditState[0x48db]);
+	}
+	case CompressionType::OODLE:
+	{
+		int SizeNeeded = OodleLZDecoder_MemorySizeNeeded(OodleLZ_Compressor_Invalid, -1);
+
+		uint8_t* Decoder = new uint8_t[SizeNeeded]{};
+		uint8_t* OutBuf = new uint8_t[DataSize]{};
+
+		OodleLZDecoder_Create(OodleLZ_Compressor::OodleLZ_Compressor_Invalid, DataSize, Decoder, SizeNeeded);
+
+		int DecPos = 0;
+		int DataPos = 0;
+
+		OodleLZ_DecodeSome_Out out{};
+		if (!OodleLZDecoder_DecodeSome((OodleLZDecoder*)Decoder, &out, OutBuf, DecPos, DataSize, DataSize - DecPos, Data + DataPos, DataSize - DataPos, OodleLZ_FuzzSafe_No, OodleLZ_CheckCRC_No, OodleLZ_Verbosity::OodleLZ_Verbosity_None, OodleLZ_Decode_ThreadPhaseAll))
+		{
+			// If it fails it shouldn't be compressed?
+			delete[] Decoder;
+			delete[] OutBuf;
+
+			return std::make_unique<IO::MemoryStream>(const_cast<uint8_t*>(Data), 0, DataSize, true, true);
+		}
+
+		while (true)
+		{
+			DecPos += out.decodedCount;
+			DataPos += out.compBufUsed;
+
+			if (out.compBufUsed + out.decodedCount == 0)
+				break;
+
+			if (DecPos >= DataSize)
+				break;
+
+			bool DecodeResult = OodleLZDecoder_DecodeSome((OodleLZDecoder*)Decoder, &out, OutBuf, DecPos, DataSize, DataSize - DecPos, Data + DataPos, DataSize - DataPos, OodleLZ_FuzzSafe_No, OodleLZ_CheckCRC_No, OodleLZ_Verbosity::OodleLZ_Verbosity_None, OodleLZ_Decode_ThreadPhaseAll);
+		}
+
+		delete[] Decoder;
+		return std::make_unique<IO::MemoryStream>(OutBuf, 0, DataSize);
+	}
+	default:
+	{
+		DataSize = 0;
+		return nullptr;
+	}
+	}
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 RTech* g_pRtech;
