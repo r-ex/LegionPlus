@@ -2526,10 +2526,10 @@ void __fastcall RTech::DecompressConvertRotation(const __m128i* in_rotation_buff
 	v10.m128_f32[0] = v10.m128_f32[0] * v14.m128_f32[0];
 	v14.m128_i32[0] = _mm_extract_ps(_mm_shuffle_ps(v14, v14, 170), 0);
 	v15.m128_i32[0] = _mm_extract_ps(_mm_shuffle_ps(v15, v15, 170), 0);
-	*out_rotation_buffer = (float)(v15.m128_f32[0] * v12.m128_f32[0]) - (float)(v14.m128_f32[0] * v11.m128_f32[0]);
+	out_rotation_buffer[0] = (float)(v15.m128_f32[0] * v12.m128_f32[0]) - (float)(v14.m128_f32[0] * v11.m128_f32[0]);
 	out_rotation_buffer[1] = (float)(v15.m128_f32[0] * v11.m128_f32[0]) + (float)(v14.m128_f32[0] * v12.m128_f32[0]);
-	out_rotation_buffer[3] = (float)(v15.m128_f32[0] * *(float*)v6.m128i_i8) + (float)(v14.m128_f32[0] * v10.m128_f32[0]);
 	out_rotation_buffer[2] = (float)(v14.m128_f32[0] * *(float*)v6.m128i_i8) - (float)(v15.m128_f32[0] * v10.m128_f32[0]);
+	out_rotation_buffer[3] = (float)(v15.m128_f32[0] * *(float*)v6.m128i_i8) + (float)(v14.m128_f32[0] * v10.m128_f32[0]);
 }
 
 //-----------------------------------------------------------------------------
@@ -2537,7 +2537,6 @@ void __fastcall RTech::DecompressConvertRotation(const __m128i* in_rotation_buff
 //-----------------------------------------------------------------------------
 uint64_t __fastcall RTech::StringToGuid(const char* asset_name)
 {
-	uint32_t* v1; // r8
 	uint64_t         v2; // r10
 	int              v3; // er11
 	uint32_t         v4; // er9
@@ -2550,15 +2549,14 @@ uint64_t __fastcall RTech::StringToGuid(const char* asset_name)
 	int             v12; // ecx
 	uint32_t* a1 = (uint32_t*)asset_name;
 
-	v1 = a1;
 	v2 = 0i64;
 	v3 = 0;
 	v4 = (*a1 - 45 * ((~(*a1 ^ 0x5C5C5C5Cu) >> 7) & (((*a1 ^ 0x5C5C5C5Cu) - 0x1010101) >> 7) & 0x1010101)) & 0xDFDFDFDF;
 	for (i = ~*a1 & (*a1 - 0x1010101) & 0x80808080; !i; i = v8 & 0x80808080)
 	{
 		v6 = v4;
-		v7 = v1[1];
-		++v1;
+		v7 = a1[1];
+		++a1;
 		v3 += 4;
 		v2 = ((((uint64_t)(0xFB8C4D96501i64 * v6) >> 24) + 0x633D5F1 * v2) >> 61) ^ (((uint64_t)(0xFB8C4D96501i64 * v6) >> 24)
 			+ 0x633D5F1 * v2);
