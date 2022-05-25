@@ -48,7 +48,7 @@ void RpakLib::ExportUIIA(const RpakLoadAsset& Asset, const string& Path)
 {
 	string DestinationPath = IO::Path::Combine(Path, string::Format("0x%llx%s", Asset.NameHash, (const char*)ImageExtension));
 
-	if (!Utils::ShouldWriteFile(DestinationPath))	// Ignore existing assets...
+	if (!Utils::ShouldWriteFile(DestinationPath)) // Ignore existing assets...
 		return;
 
 	std::unique_ptr<Assets::Texture> Texture = nullptr;
