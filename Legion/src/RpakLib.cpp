@@ -72,7 +72,7 @@ void RpakLib::PatchAssets()
 	// We must load this way...
 	for (uint32_t i = 0; i < this->LoadedFileIndex; i++)
 	{
-		auto& LoadedFile = this->LoadedFiles[i];
+		RpakFile& LoadedFile = this->LoadedFiles[i];
 
 		for (auto& Kvp : LoadedFile.AssetHashmap)
 		{
@@ -197,7 +197,6 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims
 			BuildDataTableInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::Subtitles:
-			// todo: subtitle loading setting
 			BuildSubtitleInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::ShaderSet:
@@ -206,9 +205,6 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims
 			BuildShaderSetInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::UIImageAtlas:
-			// i'll implement this later
-			//if (!ExportManager::Config.GetBool("LoadUIAtlases"))
-			//	continue;
 			BuildUIImageAtlasInfo(Asset, NewAsset);
 			break;
 		default:
@@ -344,14 +340,6 @@ std::unique_ptr<IO::FileStream> RpakLib::GetStarpakStream(const RpakLoadAsset& A
 	}
 }
 
-string RpakLib::GetSubtitlesNameFromHash(uint64_t Hash)
-{
-	if (SubtitleLanguageMap.count((SubtitleLanguageHash)Hash))
-		return "subtitles_" + SubtitleLanguageMap[(SubtitleLanguageHash)Hash];
-
-	return string::Format("subt_0x%llx", Hash);
-}
-
 void RpakLib::ParseRAnimBoneTranslationTrack(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
 {
 	uint16_t* TranslationDataPtr = *BoneTrackData;
@@ -389,13 +377,13 @@ void RpakLib::ParseRAnimBoneTranslationTrack(const RAnimBoneFlag& BoneFlags, uin
 
 		uint8_t* dataPtrs[] = { TranslationDataX,TranslationDataY,TranslationDataZ };
 
-		float TranslationFinal = 0, TimeScale = 0 /*Might not be 'TimeScale'*/;
+		float TranslationFinal = 0, TimeScale = 0; // might not be TimeScale
 		float Time = 0;	// time but doesn't matter
 		do
 		{
 			if (_bittest((const long*)&TranslationFlags, v32))
 			{
-				g_pRtech->DecompressDynamicTrack(Frame, dataPtrs[TranslationIndex], TranslationScale, &TranslationFinal, &TimeScale);
+				RTech::DecompressDynamicTrack(Frame, dataPtrs[TranslationIndex], TranslationScale, &TranslationFinal, &TimeScale);
 
 				if (BoneFlags.bAdditiveCustom)
 					Result[TranslationIndex] = (float)((float)((float)(1.0 - Time) * TranslationFinal) + (float)(TimeScale * Time));
@@ -436,9 +424,9 @@ void RpakLib::ParseRAnimBoneRotationTrack(const RAnimBoneFlag& BoneFlags, uint16
 
 		Math::Quaternion Quat;
 
-		Quat.X = ((int)PackedQuat.X - 1048576) * (1 / 1048576.5f);
-		Quat.Y = ((int)PackedQuat.Y - 1048576) * (1 / 1048576.5f);
-		Quat.Z = ((int)PackedQuat.Z - 1048576) * (1 / 1048576.5f);
+		Quat.X = ((int)PackedQuat.X - 0x100000) * (1 / 1048576.5f);
+		Quat.Y = ((int)PackedQuat.Y - 0x100000) * (1 / 1048576.5f);
+		Quat.Z = ((int)PackedQuat.Z - 0x100000) * (1 / 1048576.5f);
 		Quat.W = std::sqrt(1 - Quat.X * Quat.X - Quat.Y * Quat.Y - Quat.Z * Quat.Z);
 
 		if (PackedQuat.WNeg)
@@ -447,13 +435,13 @@ void RpakLib::ParseRAnimBoneRotationTrack(const RAnimBoneFlag& BoneFlags, uint16
 		// RotateQuaternion
 		Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name())[0].Keyframes.Emplace(FrameIndex, Math::Quaternion(Quat[0], Quat[1], Quat[2], Quat[3]));
 
-		*BoneTrackData += 4;	// Advance over the size of the data
+		*BoneTrackData += 4; // Advance over the size of the data
 	}
 	else
 	{
 		uint16_t RotationFlags = RotationDataPtr[0];
 
-		uint8_t* TranslationDataX = (uint8_t*)RotationDataPtr + (RotationFlags & 0x1FFF);	// Data for x
+		uint8_t* TranslationDataX = (uint8_t*)RotationDataPtr + (RotationFlags & 0x1FFF); // Data for x
 
 		uint64_t DataYOffset = *((uint8_t*)RotationDataPtr + 2);
 		uint64_t DataZOffset = *((uint8_t*)RotationDataPtr + 3);
@@ -470,13 +458,13 @@ void RpakLib::ParseRAnimBoneRotationTrack(const RAnimBoneFlag& BoneFlags, uint16
 
 		uint8_t* dataPtrs[] = { TranslationDataX,TranslationDataY,TranslationDataZ };
 
-		float TranslationFinal = 0, TimeScale = 0 /*Might not be 'TimeScale'*/;
-		float a2 = 0;	// time?
+		float TranslationFinal = 0, TimeScale = 0; // might not be TimeScale
+		float a2 = 0; // time?
 		do
 		{
 			if (_bittest((const long*)&RotationFlags, v32))
 			{
-				g_pRtech->DecompressDynamicTrack(Frame, dataPtrs[v31], 0.00019175345f, &TranslationFinal, &TimeScale);
+				RTech::DecompressDynamicTrack(Frame, dataPtrs[v31], 0.00019175345f, &TranslationFinal, &TimeScale);
 				EulerResult[v31] = TranslationFinal;
 			}
 
@@ -485,11 +473,11 @@ void RpakLib::ParseRAnimBoneRotationTrack(const RAnimBoneFlag& BoneFlags, uint16
 		} while (v31 < 3);
 
 		Math::Quaternion Result;
-		g_pRtech->DecompressConvertRotation((const __m128i*) & EulerResult[0], (float*)&Result);
+		RTech::DecompressConvertRotation((const __m128i*) & EulerResult[0], (float*)&Result);
 
 		Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name())[0].Keyframes.Emplace(FrameIndex, Result);
 
-		*BoneTrackData += 2;	// Advance over the size of the data
+		*BoneTrackData += 2; // Advance over the size of the data
 	}
 }
 
@@ -506,7 +494,7 @@ void RpakLib::ParseRAnimBoneScaleTrack(const RAnimBoneFlag& BoneFlags, uint16_t*
 		Curves[5].Keyframes.EmplaceBack(FrameIndex, Math::Half(ScaleDataPtr[1]).ToFloat());
 		Curves[6].Keyframes.EmplaceBack(FrameIndex, Math::Half(ScaleDataPtr[2]).ToFloat());
 
-		*BoneTrackData += 3;	// Advance over the size of the data
+		*BoneTrackData += 3; // Advance over the size of the data
 	}
 	else
 	{
@@ -529,13 +517,13 @@ void RpakLib::ParseRAnimBoneScaleTrack(const RAnimBoneFlag& BoneFlags, uint16_t*
 
 		uint8_t* dataPtrs[] = { TranslationDataX,TranslationDataY,TranslationDataZ };
 
-		float TranslationFinal = 0, TimeScale = 0 /*Might not be 'TimeScale'*/;
-		float a2 = 0;	// time but doesn't matter
+		float TranslationFinal = 0, TimeScale = 0; // might not be TimeScale
+		float a2 = 0; // time but doesn't matter
 		do
 		{
 			if (_bittest((const long*)&ScaleFlags, v32))
 			{
-				g_pRtech->DecompressDynamicTrack(Frame, dataPtrs[v31], 0.0030518509f, &TranslationFinal, &TimeScale);
+				RTech::DecompressDynamicTrack(Frame, dataPtrs[v31], 0.0030518509f, &TranslationFinal, &TimeScale);
 				Result[v31] = (float)((float)((float)(1.0 - a2) * TranslationFinal) + (float)(TimeScale * a2)) + Result[v31];
 			}
 
@@ -543,14 +531,14 @@ void RpakLib::ParseRAnimBoneScaleTrack(const RAnimBoneFlag& BoneFlags, uint16_t*
 			++v31;
 		} while (v31 < 3);
 
-		auto& Curves = Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name());
+		List<Assets::Curve>& Curves = Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name());
 
-		// ScaleX/Y/Z
+		// Scale X/Y/Z
 		Curves[4].Keyframes.EmplaceBack(FrameIndex, Result[0]);
 		Curves[5].Keyframes.EmplaceBack(FrameIndex, Result[1]);
 		Curves[6].Keyframes.EmplaceBack(FrameIndex, Result[2]);
 
-		*BoneTrackData += 2;	// Advance over the size of the data
+		*BoneTrackData += 2; // Advance over the size of the data
 	}
 }
 
@@ -615,23 +603,15 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 			DataTableHeader SubHeader = Reader.Read<DataTableHeader>();
 			return (SubHeader.ColumnCount != 0 && SubHeader.RowCount != 0);
 		}
-		case (uint32_t)AssetType_t::Subtitles:
-		{
-			return true;
-		}
-		case (uint32_t)AssetType_t::ShaderSet:
-		{
-			return true;
-		}
-		case (uint32_t)AssetType_t::Shader:
-		{
-			return true;
-		}
 		case (uint32_t)AssetType_t::UIImageAtlas:
 		{ // finally an actual check for this
 			UIAtlasHeader Header = Reader.Read<UIAtlasHeader>();
 			return Header.TexturesCount != 0;
 		}
+		case (uint32_t)AssetType_t::Shader:
+		case (uint32_t)AssetType_t::ShaderSet:
+		case (uint32_t)AssetType_t::Subtitles:
+			return true;
 		default:
 			return false;
 		}
@@ -669,9 +649,7 @@ bool RpakLib::MountRpak(const string& Path, bool Dump)
 	RpakBaseHeader BaseHeader = Reader.Read<RpakBaseHeader>();
 
 	if (BaseHeader.Magic != 0x6B615052)
-	{
 		return false;
-	}
 
 	switch (BaseHeader.Version)
 	{
@@ -1084,14 +1062,14 @@ bool RpakLib::MountApexRpak(const string& Path, bool Dump)
 
 	rpak_decomp_state state;
 
-	uint32_t dSize = g_pRtech->DecompressPakfileInit(&state, CompressedBuffer.get(), Header.CompressedSize, 0, sizeof(RpakApexHeader));
+	uint32_t dSize = RTech::DecompressPakfileInit(&state, CompressedBuffer.get(), Header.CompressedSize, 0, sizeof(RpakApexHeader));
 
 	std::vector<std::uint8_t> pakbuf(dSize, 0);
 
 	state.out_mask = UINT64_MAX;
 	state.out = uint64_t(pakbuf.data());
 
-	std::uint8_t decomp_result = g_pRtech->DecompressPakFile(&state, dSize, pakbuf.size());
+	std::uint8_t decomp_result = RTech::DecompressPakFile(&state, dSize, pakbuf.size());
 
 	std::memcpy(pakbuf.data(), &Header, sizeof(RpakApexHeader));
 
@@ -1131,14 +1109,14 @@ bool RpakLib::MountTitanfallRpak(const string& Path, bool Dump)
 
 	rpak_decomp_state state;
 
-	uint32_t dSize = g_pRtech->DecompressPakfileInit(&state, CompressedBuffer.get(), Header.CompressedSize, 0, sizeof(RpakTitanfallHeader));
+	uint32_t dSize = RTech::DecompressPakfileInit(&state, CompressedBuffer.get(), Header.CompressedSize, 0, sizeof(RpakTitanfallHeader));
 
 	std::vector<std::uint8_t> pakbuf(dSize, 0);
 
 	state.out_mask = UINT64_MAX;
 	state.out = uint64_t(pakbuf.data());
 
-	std::uint8_t decomp_result = g_pRtech->DecompressPakFile(&state, dSize, pakbuf.size());
+	std::uint8_t decomp_result = RTech::DecompressPakFile(&state, dSize, pakbuf.size());
 
 	std::memcpy(pakbuf.data(), &Header, sizeof(RpakTitanfallHeader));
 

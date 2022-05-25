@@ -31,79 +31,100 @@
     <Filter Include="Legion\Preview">
       <UniqueIdentifier>{72c346a6-6ed2-46f8-a4c3-489f7b11a713}</UniqueIdentifier>
     </Filter>
+    <Filter Include="RPak\Assets">
+      <UniqueIdentifier>{1d655a94-b625-497a-ac5a-d9484a7c36c4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="MilesLib.cpp">
-      <Filter>Miles</Filter>
-    </ClCompile>
-    <ClCompile Include="rtech.cpp">
-      <Filter>RPak</Filter>
-    </ClCompile>
-    <ClCompile Include="RpakLib.cpp">
-      <Filter>RPak</Filter>
-    </ClCompile>
-    <ClCompile Include="RBspLib.cpp">
-      <Filter>BSP</Filter>
-    </ClCompile>
-    <ClCompile Include="CommandLine.cpp">
-      <Filter>Legion\Main</Filter>
-    </ClCompile>
-    <ClCompile Include="LegionMain.cpp">
-      <Filter>Legion\Main</Filter>
-    </ClCompile>
-    <ClCompile Include="LegionSettings.cpp">
-      <Filter>Legion\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="LegionSplash.cpp">
-      <Filter>Legion\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="Main.cpp">
-      <Filter>Legion\Main</Filter>
-    </ClCompile>
-    <ClCompile Include="LegionProgress.cpp">
-      <Filter>Legion\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="LegionTitanfallConverter.cpp">
-      <Filter>Legion\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="ApexAsset.cpp">
+    <ClCompile Include="src\ApexAsset.cpp">
       <Filter>Legion\Core</Filter>
     </ClCompile>
-    <ClCompile Include="ExportManager.cpp">
+    <ClCompile Include="src\CommandLine.cpp">
+      <Filter>Legion\Main</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Main.cpp">
+      <Filter>Legion\Main</Filter>
+    </ClCompile>
+    <ClCompile Include="src\LegionMain.cpp">
+      <Filter>Legion\Main</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Logger.cpp">
       <Filter>Legion\Core</Filter>
     </ClCompile>
-    <ClCompile Include="RpakAssetExport.cpp">
-      <Filter>RPak</Filter>
+    <ClCompile Include="src\ExportManager.cpp">
+      <Filter>Legion\Core</Filter>
     </ClCompile>
-    <ClCompile Include="RpakAssetExtract.cpp">
-      <Filter>RPak</Filter>
+    <ClCompile Include="src\Utils.cpp">
+      <Filter>Legion\Core</Filter>
     </ClCompile>
-    <ClCompile Include="RpakAssetBuildInfo.cpp">
-      <Filter>RPak</Filter>
+    <ClCompile Include="src\pch.cpp">
+      <Filter>Legion\Core</Filter>
     </ClCompile>
-    <ClCompile Include="RpakAssetPreview.cpp">
-      <Filter>RPak</Filter>
+    <ClCompile Include="src\LegionTablePreview.cpp">
+      <Filter>Legion\Preview</Filter>
     </ClCompile>
-    <ClCompile Include="MdlLib.cpp">
+    <ClCompile Include="src\LegionPreview.cpp">
+      <Filter>Legion\Preview</Filter>
+    </ClCompile>
+    <ClCompile Include="src\LegionProgress.cpp">
+      <Filter>Legion\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\LegionSettings.cpp">
+      <Filter>Legion\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\LegionSplash.cpp">
+      <Filter>Legion\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\LegionTitanfallConverter.cpp">
+      <Filter>Legion\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MdlLib.cpp">
       <Filter>MDL</Filter>
     </ClCompile>
-    <ClCompile Include="pch.cpp">
-      <Filter>Legion\Core</Filter>
+    <ClCompile Include="src\RpakAssetPreview.cpp">
+      <Filter>RPak</Filter>
     </ClCompile>
-    <ClCompile Include="VpkLib.cpp">
+    <ClCompile Include="src\RpakLib.cpp">
+      <Filter>RPak</Filter>
+    </ClCompile>
+    <ClCompile Include="src\rtech.cpp">
+      <Filter>RPak</Filter>
+    </ClCompile>
+    <ClCompile Include="src\VpkLib.cpp">
       <Filter>VPK</Filter>
     </ClCompile>
-    <ClCompile Include="Utils.cpp">
-      <Filter>Legion\Core</Filter>
+    <ClCompile Include="src\RBspLib.cpp">
+      <Filter>BSP</Filter>
     </ClCompile>
-    <ClCompile Include="Logger.cpp">
-      <Filter>Legion\Core</Filter>
+    <ClCompile Include="src\MilesLib.cpp">
+      <Filter>Miles</Filter>
     </ClCompile>
-    <ClCompile Include="LegionPreview.cpp">
-      <Filter>Legion\Preview</Filter>
+    <ClCompile Include="src\Assets\model.cpp">
+      <Filter>RPak\Assets</Filter>
     </ClCompile>
-    <ClCompile Include="LegionTablePreview.cpp">
-      <Filter>Legion\Preview</Filter>
+    <ClCompile Include="src\Assets\material.cpp">
+      <Filter>RPak\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Assets\texture.cpp">
+      <Filter>RPak\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Assets\uiia.cpp">
+      <Filter>RPak\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Assets\animation.cpp">
+      <Filter>RPak\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Assets\datatable.cpp">
+      <Filter>RPak\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Assets\subtitles.cpp">
+      <Filter>RPak\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Assets\shader.cpp">
+      <Filter>RPak\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Assets\uimg.cpp">
+      <Filter>RPak\Assets</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -184,5 +205,9 @@
     <ResourceCompile Include="Legion.rc">
       <Filter>Legion</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\Resources\LegionIcon.ico" />
+    <Image Include="..\Resources\SplashImage.png" />
   </ItemGroup>
 </Project>

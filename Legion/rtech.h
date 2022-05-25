@@ -168,22 +168,23 @@ namespace
 class RTech
 {
 public:
-	uint64_t __fastcall DecompressPakfileInit(rpak_decomp_state* state, uint8_t* file_buffer, int64_t file_size, int64_t off_no_header, int64_t header_size);
-	uint8_t __fastcall DecompressPakFile(rpak_decomp_state* state, uint64_t file_size, uint64_t buffer_size);
-	int64_t DecompressSnowflakeInit(int64_t param_buf, int64_t data_buf, uint64_t data_size);
-	bool DecompressSnowflake(int64_t param_buffer, uint64_t data_size, uint64_t buffer_size);
-	float* __fastcall DecompressDynamicTrack(int frame_count, uint8_t* in_translation_buffer, float translation_scale, float* out_translation_buffer, float* time_scale/*'time_scale' might nit be correct*/);
-	void __fastcall DecompressConvertRotation(const __m128i* rotation_buffer, float* result_buffer);
-	uint64_t __fastcall StringToGuid(const char* asset_name);
-	float __fastcall FrameToEulerTranslation(uint8_t* translation_buffer, int frame_count, float translation_scale);
-	void UnswizzleBlock(uint32_t x, uint32_t y, uint32_t a3, uint32_t a4, uint32_t& x1, uint32_t& y2);
+	static uint64_t __fastcall DecompressPakfileInit(rpak_decomp_state* state, uint8_t* file_buffer, int64_t file_size, int64_t off_no_header, int64_t header_size);
+	static uint8_t __fastcall DecompressPakFile(rpak_decomp_state* state, uint64_t file_size, uint64_t buffer_size);
+	static int64_t DecompressSnowflakeInit(int64_t param_buf, int64_t data_buf, uint64_t data_size);
+	static bool DecompressSnowflake(int64_t param_buffer, uint64_t data_size, uint64_t buffer_size);
+	static float* __fastcall DecompressDynamicTrack(int frame_count, uint8_t* in_translation_buffer, float translation_scale, float* out_translation_buffer, float* time_scale/*'time_scale' might nit be correct*/);
+	static void __fastcall DecompressConvertRotation(const __m128i* rotation_buffer, float* result_buffer);
+	static std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, uint64_t& DataSize, uint8_t Format);
 
+	static uint64_t __fastcall StringToGuid(const char* asset_name);
+	static float __fastcall FrameToEulerTranslation(uint8_t* translation_buffer, int frame_count, float translation_scale);
+	static void UnswizzleBlock(uint32_t x, uint32_t y, uint32_t a3, uint32_t a4, uint32_t& x1, uint32_t& y2);
+	
 	// UNK functions
-	__int64 sub_7FF7FC23C680(__int64 a1, unsigned __int64* a2, unsigned __int8 a3, unsigned int a4, void* a5);
-	int64_t sub_7FF7FC23B960(int64_t param_buffer, uint32_t unk1);
-	int64_t sub_7FF7FC23C880(int64_t param_buffer, uint8_t a2, int64_t a3);
-	__int64 sub_7FF7FC23CD20(unsigned __int8* param_buffer, unsigned int a2);
+	static __int64 sub_7FF7FC23C680(__int64 a1, unsigned __int64* a2, unsigned __int8 a3, unsigned int a4, void* a5);
+	static int64_t sub_7FF7FC23B960(int64_t param_buffer, uint32_t unk1);
+	static int64_t sub_7FF7FC23C880(int64_t param_buffer, uint8_t a2, int64_t a3);
+	static __int64 sub_7FF7FC23CD20(unsigned __int8* param_buffer, unsigned int a2);
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-extern RTech* g_pRtech;

@@ -31,3 +31,13 @@ string Utils::GetDate()
     strftime(buf, sizeof buf, "%Y-%m-%d", &t);
     return string(buf);
 }
+
+
+string Utils::Vector3ToHexColor(Math::Vector3 vec)
+{
+    std::stringstream stream;
+
+    stream << std::hex << (uint16_t)vec.X << (uint16_t)vec.Y << (uint16_t)vec.Z;
+
+    return stream.str().c_str();
+}

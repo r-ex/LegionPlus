@@ -515,7 +515,7 @@ void MdlLib::ParseRAnimBoneRotationTrack(const RAnimBoneHeader& BoneFlags, const
 	}
 
 	Math::Quaternion Result;
-	g_pRtech->DecompressConvertRotation((const __m128i*) & EulerResult[0], (float*)&Result);
+	RTech::DecompressConvertRotation((const __m128i*) & EulerResult[0], (float*)&Result);
 
 	Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name())[0].Keyframes.Emplace(FrameIndex, Result);
 }
