@@ -103,6 +103,14 @@ void LegionSettings::InitializeComponent()
 	this->ToggleUseTxtrGuids->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->groupBox4->AddControl(this->ToggleUseTxtrGuids);
 
+	this->ToggleCategorizeUIAtlases = new UIX::UIXCheckBox();
+	this->ToggleCategorizeUIAtlases->SetSize({ 150, 18 });
+	this->ToggleCategorizeUIAtlases->SetLocation({ 150, 43 });
+	this->ToggleCategorizeUIAtlases->SetTabIndex(2);
+	this->ToggleCategorizeUIAtlases->SetText("Categorize Atlas Exports");
+	this->ToggleCategorizeUIAtlases->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox4->AddControl(this->ToggleCategorizeUIAtlases);
+
 
 	//
 	//	About Box
@@ -496,6 +504,7 @@ void LegionSettings::LoadSettings()
 	this->ToggleAudioLanguageFolders->SetChecked(ExportManager::Config.GetBool("AudioLanguageFolders"));
 	this->ToggleUseFullPaths->SetChecked(ExportManager::Config.GetBool("UseFullPaths"));
 	this->ToggleUseTxtrGuids->SetChecked(ExportManager::Config.GetBool("UseTxtrGuids"));
+	this->ToggleCategorizeUIAtlases->SetChecked(ExportManager::Config.GetBool("CategorizeUIAtlases"));
 
 
 	if (ExportManager::Config.Has<System::SettingType::String>("ExportDirectory"))
@@ -642,6 +651,8 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	ExportManager::Config.SetBool("AudioLanguageFolders", ThisPtr->ToggleAudioLanguageFolders->Checked());
 	ExportManager::Config.SetBool("UseFullPaths", ThisPtr->ToggleUseFullPaths->Checked());
 	ExportManager::Config.SetBool("UseTxtrGuids", ThisPtr->ToggleUseTxtrGuids->Checked());
+	ExportManager::Config.SetBool("CategorizeUIAtlases", ThisPtr->ToggleCategorizeUIAtlases->Checked());
+	
 	ExportManager::Config.SetInt("ModelFormat", (uint32_t)ModelExportFormat);
 	ExportManager::Config.SetInt("AnimFormat", (uint32_t)AnimExportFormat);
 	ExportManager::Config.SetInt("ImageFormat", (uint32_t)ImageExportFormat);
