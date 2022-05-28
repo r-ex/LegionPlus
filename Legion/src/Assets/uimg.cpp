@@ -117,13 +117,13 @@ void RpakLib::ExtractUIImageAtlas(const RpakLoadAsset& Asset, const string& Path
 		if (img.Path.Length() > 0)
 		{
 			if (ExportManager::Config.GetBool("CategorizeUIAtlases"))
-				ImageName = string::Format("%s%s", img.Path.ToCString(), (const char*)ImageExtension);
+				ImageName = string::Format("%s%s", img.Path.Replace("/", "\\").ToCString(), (const char*)ImageExtension);
 			else
 				ImageName = string::Format("%s%s", IO::Path::GetFileNameWithoutExtension(img.Path).ToCString(), (const char*)ImageExtension);
 		}
 
-		IO::Directory::CreateDirectory(IO::Path::Combine(Path, IO::Path::GetDirectoryName(ImageName.Replace("/", "\\"))));
+		IO::Directory::CreateDirectory(IO::Path::Combine(Path, IO::Path::GetDirectoryName(ImageName)));
 
-		tmp->Save(IO::Path::Combine(Path, ImageName.Replace("/", "\\")), ImageSaveType);
+		tmp->Save(IO::Path::Combine(Path, ImageName), ImageSaveType);
 	}
 }
