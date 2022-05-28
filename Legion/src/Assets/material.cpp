@@ -64,7 +64,15 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, MatHeader.NameIndex, MatHeader.NameOffset));
 
-	Result.MaterialName = IO::Path::GetFileNameWithoutExtension(Reader.ReadCString());
+	string MaterialPath = Reader.ReadCString();
+
+	Result.MaterialName = IO::Path::GetFileNameWithoutExtension(MaterialPath);
+
+	const size_t last_slash_idx = MaterialPath.LastIndexOf('\\');
+	if (std::string::npos != last_slash_idx)
+	{
+		Result.MaterialPath = MaterialPath.Substring(0, last_slash_idx);
+	}
 
 	List<ShaderResBinding> PixelShaderResBindings;
 

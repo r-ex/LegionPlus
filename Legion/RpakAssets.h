@@ -1501,6 +1501,7 @@ struct RMdlFixupPatches
 struct RMdlMaterial
 {
 	string MaterialName;
+	string MaterialPath;
 
 	string AlbedoMapName;
 	string NormalMapName;
