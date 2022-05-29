@@ -87,7 +87,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)cppnet\cppkore;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)cppnet\cppkore;$(IncludePath);$(ProjectDir)</IncludePath>
     <LibraryPath>$(SolutionDir)bin\x64\Release;$(SolutionDir)cppnet\cppkore_libs;$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>

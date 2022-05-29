@@ -320,7 +320,7 @@ void LegionMain::SearchForAssets()
 	if (this->LoadedAssets == nullptr)
 		return;
 
-	auto SearchText = this->SearchBox->Text().ToLower();
+	string SearchText = this->SearchBox->Text().ToLower();
 
 	if (string::IsNullOrEmpty(SearchText))
 	{
@@ -332,7 +332,7 @@ void LegionMain::SearchForAssets()
 	if (isBlackList)
 		SearchText = SearchText.Substring(1);
 
-	auto SearchMap = SearchText.Split(",");
+	List<string> SearchMap = SearchText.Split(",");
 
 	for (auto& Search : SearchMap)
 		Search = Search.Trim();
@@ -342,12 +342,12 @@ void LegionMain::SearchForAssets()
 
 	for (auto& Asset : *LoadedAssets)
 	{
-		auto AssetNameLowercase = Asset.Name.ToLower();
+		string AssetNameLowercase = Asset.Name.ToLower();
 		bool IsMatch = isBlackList;
 
 		for (auto& Search : SearchMap)
 		{
-			auto Result = AssetNameLowercase.Contains(Search);
+			bool Result = AssetNameLowercase.Contains(Search);
 
 			if (!isBlackList && Result)
 			{
@@ -391,15 +391,15 @@ void LegionMain::ExportSingleAsset()
 	if (this->LoadedAssets == nullptr)
 		return;
 
-	auto SelectedIndices = this->AssetsListView->SelectedIndices();
+	List<uint32_t> SelectedIndices = this->AssetsListView->SelectedIndices();
 
 	if (SelectedIndices.Count() == 0)
 		return;
 
 	List<ExportAsset> AssetsToExport(1, true);
 
-	auto& DisplayIndex = this->DisplayIndices[SelectedIndices[0]];
-	auto& Asset = (*this->LoadedAssets.get())[DisplayIndex];
+	uint32_t& DisplayIndex = this->DisplayIndices[SelectedIndices[0]];
+	ApexAsset& Asset = (*this->LoadedAssets.get())[DisplayIndex];
 
 	Asset.Status = ApexAssetStatus::Exporting;
 	this->AssetsListView->Refresh();
@@ -457,12 +457,12 @@ void LegionMain::DoPreviewSwap()
 	if (!this->RpakFileSystem || !this->PreviewWindow || this->PreviewWindow->GetHandle() == nullptr)
 		return;
 
-	auto Selected = this->AssetsListView->SelectedIndices();
+	List<uint32_t> Selected = this->AssetsListView->SelectedIndices();
 
 	if (Selected.Count() <= 0)
 		return;
 
-	auto& Asset = (*this->LoadedAssets.get())[this->DisplayIndices[Selected[0]]];
+	ApexAsset& Asset = (*this->LoadedAssets.get())[this->DisplayIndices[Selected[0]]];
 
 	switch (Asset.Type)
 	{
@@ -503,7 +503,7 @@ std::unique_ptr<Assets::Texture> LegionMain::MaterialStreamCallback(string Sourc
 
 void LegionMain::RefreshView()
 {
-	auto SearchText = this->SearchBox->Text();
+	string SearchText = this->SearchBox->Text();
 
 	if (this->RpakFileSystem != nullptr)
 	{
@@ -557,7 +557,7 @@ void LegionMain::ResetDisplayIndices()
 	this->AssetsListView->SetVirtualListSize(this->DisplayIndices.Count());
 	this->AssetsListView->Refresh();
 
-	auto PathParts = LoadPath[0].Split("\\");
+	List<string> PathParts = LoadPath[0].Split("\\");
 
 	if (this->LoadPath.Count() == 1)
 		this->StatusLabel->SetText(string::Format("%s Loaded %d assets", (PathParts[PathParts.Count()-1] + ": ").ToCString(), this->DisplayIndices.Count()));
@@ -567,7 +567,7 @@ void LegionMain::ResetDisplayIndices()
 
 void LegionMain::OnLoadClick(Forms::Control* Sender)
 {
-	auto ThisPtr = (LegionMain*)Sender->FindForm();
+	LegionMain* ThisPtr = (LegionMain*)Sender->FindForm();
 
 	List<string> OpenFileD = OpenFileDialog::ShowMultiFileDialog("Legion+: Select file(s) to load", "", "Apex Legends Files (MBnk, RPak, Bsp)|*.mbnk;*.rpak;*.bsp", Sender->FindForm());
 
@@ -623,7 +623,7 @@ void LegionMain::OnTitanfallClick(Forms::Control* Sender)
 
 void LegionMain::OnRefreshClick(Forms::Control* Sender)
 {
-	auto ThisPtr = (LegionMain*)Sender->FindForm();
+	LegionMain* ThisPtr = (LegionMain*)Sender->FindForm();
 
 	ThisPtr->RefreshView();
 }
@@ -633,17 +633,17 @@ void LegionMain::OnListRightClick(const std::unique_ptr<MouseEventArgs>& EventAr
 	if (EventArgs->Button != Forms::MouseButtons::Right)
 		return;
 
-	auto ThisPtr = ((LegionMain*)Sender->FindForm());
-	auto AssetsListView = ThisPtr->AssetsListView;
+	LegionMain* ThisPtr = ((LegionMain*)Sender->FindForm());
+	UIX::UIXListView* AssetsListView = ThisPtr->AssetsListView;
 
-	auto SelectedIndices = AssetsListView->SelectedIndices();
+	List<uint32_t> SelectedIndices = AssetsListView->SelectedIndices();
 	string endString = "";
 
 	g_Logger.Info("selected asset names:\n");
 	for (uint32_t i = 0; i < SelectedIndices.Count(); i++)
 	{
-		auto& DisplayIndex = ThisPtr->DisplayIndices[SelectedIndices[i]];
-		auto& Asset = (*ThisPtr->LoadedAssets.get())[DisplayIndex];
+		uint32_t& DisplayIndex = ThisPtr->DisplayIndices[SelectedIndices[i]];
+		ApexAsset& Asset = (*ThisPtr->LoadedAssets.get())[DisplayIndex];
 
 		g_Logger.Info(Asset.Name + "\n");
 
@@ -680,12 +680,12 @@ void LegionMain::OnListKeyUp(const std::unique_ptr<KeyEventArgs>& EventArgs, For
 		if (!Form->RpakFileSystem)
 			return;
 
-		auto Selected = Form->AssetsListView->SelectedIndices();
+		List<uint32_t> Selected = Form->AssetsListView->SelectedIndices();
 
 		if (Selected.Count() <= 0)
 			return;
 
-		auto& Asset = (*Form->LoadedAssets.get())[Form->DisplayIndices[Selected[0]]];
+		ApexAsset& Asset = (*Form->LoadedAssets.get())[Form->DisplayIndices[Selected[0]]];
 
 		switch (Asset.Type) {
 		case ApexAssetType::DataTable:
@@ -742,14 +742,14 @@ void LegionMain::OnSelectedIndicesChanged(const std::unique_ptr<Forms::ListViewV
 
 void LegionMain::GetVirtualItem(const std::unique_ptr<Forms::RetrieveVirtualItemEventArgs>& EventArgs, Forms::Control* Sender)
 {
-	auto ThisPtr = (LegionMain*)Sender->FindForm();
+	LegionMain* ThisPtr = (LegionMain*)Sender->FindForm();
 
 	if (ThisPtr->LoadedAssets == nullptr)
 		return;
 	if (EventArgs->ItemIndex > (int32_t)ThisPtr->DisplayIndices.Count())
 		return;
 
-	auto RemappedDisplayIndex = ThisPtr->DisplayIndices[EventArgs->ItemIndex];
+	uint32_t RemappedDisplayIndex = ThisPtr->DisplayIndices[EventArgs->ItemIndex];
 
 	static const char* AssetTypes[] = { "Model", "AnimationSet", "Image", "Material", "DataTable", "Sound", "Subtitles", "ShaderSet", "UI Image", "UI Image Atlas"};
 	static const Drawing::Color AssetTypesColors[] = 
@@ -776,7 +776,7 @@ void LegionMain::GetVirtualItem(const std::unique_ptr<Forms::RetrieveVirtualItem
 	};
 
 	auto AssetList = ThisPtr->LoadedAssets.get();
-	auto& Asset = (*AssetList)[RemappedDisplayIndex];
+	ApexAsset& Asset = (*AssetList)[RemappedDisplayIndex];
 
 	EventArgs->Style.ForeColor = Drawing::Color::White;
 	EventArgs->Style.BackColor = Sender->BackColor();
