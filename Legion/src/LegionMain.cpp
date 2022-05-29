@@ -149,89 +149,87 @@ void LegionMain::LoadApexFile(const List<string>& File)
 	this->LoadPath = File;
 
 	this->LoadRPakButton->SetEnabled(false);
-	this->StatusLabel->SetText("Loading package...");
+	this->StatusLabel->SetText("Processing file...");
 
 	Threading::Thread Th([](void* Data)
 	{
-		auto ThisPtr = (LegionMain*)Data;
+		LegionMain* Main = (LegionMain*)Data;
 
-		if (ThisPtr->LoadPath[0].EndsWith(".rpak"))
+		if (Main->LoadPath[0].EndsWith(".rpak"))
 		{
-			ThisPtr->AssetsListView->SetVirtualListSize(0);
-			ThisPtr->RpakFileSystem = nullptr;
-			ThisPtr->MilesFileSystem = nullptr;
+			Main->AssetsListView->SetVirtualListSize(0);
+			Main->RpakFileSystem = nullptr;
+			Main->MilesFileSystem = nullptr;
 
 			try
 			{
-				ThisPtr->RpakFileSystem = std::make_unique<RpakLib>();
-				ThisPtr->RpakFileSystem->LoadRpaks(ThisPtr->LoadPath);
-				ThisPtr->RpakFileSystem->PatchAssets();
+				Main->RpakFileSystem = std::make_unique<RpakLib>();
+				Main->RpakFileSystem->LoadRpaks(Main->LoadPath);
+				Main->RpakFileSystem->PatchAssets();
 
-				ThisPtr->RefreshView();
+				Main->RefreshView();
 			}
 			catch (...)
 			{
-				ThisPtr->Invoke([]()
+				Main->Invoke([]()
 				{
 					Forms::MessageBox::Show("An error occured while loading the RPak.", "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
 				});
-				ThisPtr->StatusLabel->SetText("Idle");
+				Main->StatusLabel->SetText("Idle");
 			}
 		}
-		else if (ThisPtr->LoadPath[0].EndsWith(".bsp"))
+		else if (Main->LoadPath[0].EndsWith(".bsp"))
 		{
-			ThisPtr->StatusLabel->SetText("Loading bsp...");
+			Main->StatusLabel->SetText("Loading bsp...");
 
-			auto BspLibrary = std::make_unique<RBspLib>();
+			auto BspLib = std::make_unique<RBspLib>();
 
 			try
 			{
-				if (ThisPtr->RpakFileSystem != nullptr)
+				if (Main->RpakFileSystem != nullptr)
 				{
-					ThisPtr->RpakFileSystem->InitializeImageExporter((ImageExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat"));
-					ThisPtr->RpakFileSystem->InitializeModelExporter((ModelExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"));
+					Main->RpakFileSystem->InitializeImageExporter((ImageExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat"));
+					Main->RpakFileSystem->InitializeModelExporter((ModelExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"));
 				}
-				BspLibrary->InitializeModelExporter((ModelExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"));
-				BspLibrary->ExportBsp(ThisPtr->RpakFileSystem, ThisPtr->LoadPath[0], ExportManager::GetMapExportPath());
 
-				ThisPtr->Invoke([]()
+				BspLib->InitializeModelExporter((ModelExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"));
+				BspLib->ExportBsp(Main->RpakFileSystem, Main->LoadPath[0], ExportManager::GetMapExportPath());
+
+				Main->Invoke([]()
 				{
 					Forms::MessageBox::Show("Successfully exported the bsp map file.", "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Information);
 				});
-				ThisPtr->StatusLabel->SetText("Idle");
-			}
-			catch (...)
-			{
-				ThisPtr->Invoke([]()
-				{
-					Forms::MessageBox::Show("An error occurred while exporting the bsp file.", "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
-				});
-			}
-
-			ThisPtr->RefreshView();
-		}
-		else
-		{
-			ThisPtr->AssetsListView->SetVirtualListSize(0);
-			ThisPtr->RpakFileSystem = nullptr;
-			ThisPtr->MilesFileSystem = nullptr;
-
-			try
-			{
-				ThisPtr->MilesFileSystem = std::make_unique<MilesLib>();
-				ThisPtr->MilesFileSystem->Initialize();
-				ThisPtr->MilesFileSystem->MountBank(ThisPtr->LoadPath[0]);
-
-				ThisPtr->RefreshView();
+				Main->StatusLabel->SetText("Idle");
 			}
 			catch (const std::exception& e)
 			{
-				Forms::MessageBox::Show("An error occurred while loading the MBNK:\n" + string(e.what()), "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
-				ThisPtr->StatusLabel->SetText("Idle");
+				Forms::MessageBox::Show("An error occurred while exporting the bsp file:\n\n" + string(e.what()), "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
+			}
+
+			Main->RefreshView();
+		}
+		else
+		{
+			Main->AssetsListView->SetVirtualListSize(0);
+			Main->RpakFileSystem = nullptr;
+			Main->MilesFileSystem = nullptr;
+
+			try
+			{
+				Main->MilesFileSystem = std::make_unique<MilesLib>();
+				Main->MilesFileSystem->Initialize();
+				Main->MilesFileSystem->MountBank(Main->LoadPath[0]);
+
+				Main->RefreshView();
+			}
+			catch (const std::exception& e)
+			{
+				Forms::MessageBox::Show("An error occurred while loading the MBNK:\n\n" + string(e.what()), "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
+				Main->StatusLabel->SetText("Idle");
 			}
 		}
 
-		ThisPtr->LoadRPakButton->SetEnabled(true);
+		Main->LoadRPakButton->SetEnabled(true);
 	});
 
 	Th.Start(this);
@@ -242,7 +240,7 @@ void LegionMain::ExportSelectedAssets()
 	if (!this->LoadRPakButton->Enabled())
 		return;
 
-	auto SelectedIndices = this->AssetsListView->SelectedIndices();
+	List<uint32_t> SelectedIndices = this->AssetsListView->SelectedIndices();
 
 	if (SelectedIndices.Count() == 0)
 	{
@@ -254,8 +252,8 @@ void LegionMain::ExportSelectedAssets()
 
 	for (uint32_t i = 0; i < AssetsToExport.Count(); i++)
 	{
-		auto& DisplayIndex = this->DisplayIndices[SelectedIndices[i]];
-		auto& Asset = (*this->LoadedAssets.get())[DisplayIndex];
+		uint32_t& DisplayIndex = this->DisplayIndices[SelectedIndices[i]];
+		ApexAsset& Asset = (*this->LoadedAssets.get())[DisplayIndex];
 
 		AssetsToExport[i].AssetHash = Asset.Hash;
 		AssetsToExport[i].AssetIndex = SelectedIndices[i];

@@ -241,27 +241,39 @@ void RBspLib::ExportPropContainer(std::unique_ptr<IO::MemoryStream>& Stream, con
 template<typename T>
 static void ReadExternalLumpFile(const string& BasePath, uint32_t Lump, uint32_t DataSize, List<T>& Data)
 {
-	auto Path = string::Format("%s.bsp.%04x.bsp_lump", BasePath.ToCString(), Lump);
+	string Path = string::Format("%s.bsp.%04x.bsp_lump", BasePath.ToCString(), Lump);
 
 	if (IO::File::Exists(Path))
-	{
 		IO::File::OpenRead(Path)->Read((uint8_t*)&Data[0], 0, DataSize);
+	else
+	{
+		string ex = "Couldn't find file " + IO::Path::GetFileName(Path) + "\nMake sure you have exported all .bsp_lump files for this map";
+		throw std::exception(ex.ToCString());
 	}
 }
 
 static void ReadExternalLumpArrayFile(const string& BasePath, uint32_t Lump, uint32_t DataSize, uint8_t* Data)
 {
-	IO::File::OpenRead(string::Format("%s.bsp.%04x.bsp_lump", BasePath.ToCString(), Lump))->Read(Data, 0, DataSize);
+	string Path = string::Format("%s.bsp.%04x.bsp_lump", BasePath.ToCString(), Lump);
+
+	if(IO::File::Exists(Path))
+		IO::File::OpenRead(Path)->Read(Data, 0, DataSize);
+	else
+	{
+		string ex = "Couldn't find file " + IO::Path::GetFileName(Path) + "\nMake sure you have exported all .bsp_lump files for this map";
+		throw std::exception(ex.ToCString());
+	}
+	
 }
 
 void RBspLib::ExportBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, const string& Asset, const string& Path)
 {
-	auto Stream = IO::File::OpenRead(Asset);
-	auto Reader = IO::BinaryReader(Stream.get(), true);
-	auto Header = Reader.Read<RBspHeader>();
+	std::unique_ptr<IO::FileStream> Stream = IO::File::OpenRead(Asset);
+	IO::BinaryReader Reader = IO::BinaryReader(Stream.get(), true);
+	RBspHeader Header = Reader.Read<RBspHeader>();
 
-	if (Header.Magic != 0x50534272)
-		return;
+	if (Header.Magic != 0x50534272) // rBSP
+		throw std::exception("Invalid bsp file magic. Expected 'rBSP'");
 
 	switch (Header.Version)
 	{
@@ -269,6 +281,9 @@ void RBspLib::ExportBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, const st
 		ExportTitanfall2Bsp(RpakFileSystem, Stream, Header, Asset, Path);
 		break;
 	default:
+		if (Header.Version < 0x2F)
+			throw std::exception(string::Format("Unsupported bsp version: %i", Header.Version));
+
 		ExportApexBsp(RpakFileSystem, Stream, Header, Asset, Path);
 		break;
 	}
