@@ -74,9 +74,9 @@ void RpakLib::ExtractUIImageAtlas(const RpakLoadAsset& Asset, const string& Path
 		UIAtlasImages[i].Height = Reader.Read<uint16_t>();
 
 		// ya
-		if (offsets.endX < 1)
+		if (offsets.endX < 1 && uvs.uv1x != 0)
 			UIAtlasImages[i].Width = Header.Width * uvs.uv1x;
-		if (offsets.endY < 1)
+		if (offsets.endY < 1 && uvs.uv1y != 0)
 			UIAtlasImages[i].Height = Header.Height * uvs.uv1y;
 	}
 
@@ -85,7 +85,7 @@ void RpakLib::ExtractUIImageAtlas(const RpakLoadAsset& Asset, const string& Path
 	for (int i = 0; i < Header.TexturesCount; ++i)
 	{
 		UIAtlasImages[i].Hash = Reader.Read<uint32_t>();
-		UIAtlasImages[i].PathTableOffset = Reader.Read<uint64_t>();
+		UIAtlasImages[i].PathTableOffset = Reader.Read<uint32_t>(); // this got changed to uint64_t at some point after s3
 	}
 
 	if (Header.TextureNamesIndex != 0 || Header.TextureNamesOffset != 0)

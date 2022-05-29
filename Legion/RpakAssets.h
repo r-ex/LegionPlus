@@ -1440,7 +1440,7 @@ struct UIAtlasImage // uiai wen
 {
 	string Path;
 	uint32_t Hash;
-	uint64_t PathTableOffset;
+	uint32_t PathTableOffset;
 
 	UIAtlasOffset offsets; // idk anymore
 	UIAtlasUV uvs;
