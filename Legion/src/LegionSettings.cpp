@@ -105,7 +105,7 @@ void LegionSettings::InitializeComponent()
 
 	this->ToggleCategorizeUIAtlases = new UIX::UIXCheckBox();
 	this->ToggleCategorizeUIAtlases->SetSize({ 150, 18 });
-	this->ToggleCategorizeUIAtlases->SetLocation({ 150, 43 });
+	this->ToggleCategorizeUIAtlases->SetLocation({ 130, 43 });
 	this->ToggleCategorizeUIAtlases->SetTabIndex(2);
 	this->ToggleCategorizeUIAtlases->SetText("Categorize Atlas Exports");
 	this->ToggleCategorizeUIAtlases->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
