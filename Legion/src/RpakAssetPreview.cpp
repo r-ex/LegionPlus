@@ -19,6 +19,21 @@ std::unique_ptr<Assets::Texture> RpakLib::BuildPreviewTexture(uint64_t Hash)
 	case (uint32_t)AssetType_t::UIIA:
 		this->ExtractUIIA(Asset, Result);
 		return Result;
+	case (uint32_t)AssetType_t::UIImageAtlas:
+	{
+		auto RpakStream = this->GetFileStream(Asset);
+		IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
+
+		RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
+
+		UIAtlasHeader AtlasHdr = Reader.Read<UIAtlasHeader>();
+
+		if (!this->Assets.ContainsKey(AtlasHdr.TextureGuid))
+			return nullptr;
+
+		this->ExtractTexture(this->Assets[AtlasHdr.TextureGuid], Result, Name);
+		return Result;
+	}
 	default:
 		return nullptr;
 	}

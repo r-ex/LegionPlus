@@ -476,6 +476,7 @@ void LegionMain::DoPreviewSwap()
 	break;
 	case ApexAssetType::Image:
 	case ApexAssetType::UIImage:
+	case ApexAssetType::UIImageAtlas:
 	{
 		auto Texture = this->RpakFileSystem->BuildPreviewTexture(Asset.Hash);
 		if (Texture == nullptr)
