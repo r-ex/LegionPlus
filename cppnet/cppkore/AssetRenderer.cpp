@@ -670,6 +670,8 @@ namespace Assets
 		{
 		case DXGI_FORMAT::DXGI_FORMAT_BC6H_UF16:
 			Texture.ConvertToFormat(DXGI_FORMAT_BC1_UNORM);
+
+			[[fallthrough]];
 		case DXGI_FORMAT::DXGI_FORMAT_BC1_UNORM:
 		case DXGI_FORMAT::DXGI_FORMAT_BC1_UNORM_SRGB:
 			glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, Texture.Width(), Texture.Height(), 0, Texture.BlockSize(), Texture.GetPixels());
