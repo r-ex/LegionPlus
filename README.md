@@ -73,7 +73,7 @@ Audio Language: --audiolanguage <english, french, german, spanish, italian, japa
 --audiolanguagefolder - Enables Audio Language Folder
 --usetxtrguids - Enables the renaming of Guid names for Textures (e.g. adding _albedoTexture, etc.)
 ```
-
+---
 ### Controls
 Asset List
 ```
@@ -91,7 +91,7 @@ Alt + Left Click - move mouse to pivot camera around target
 Alt + Right Click - move mouse to zoom in and out of the target
 Alt + Middle Click - move mouse to pan camera
 ```
-
+---
 
 ## Support
 If you encounter any issues or errors during your usage of Legion+, please let us know by opening a new Issue and providing as much detail as possible.
