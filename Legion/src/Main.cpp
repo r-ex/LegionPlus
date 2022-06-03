@@ -66,39 +66,29 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		}
 	}
 
-	if (cmdline.HasParam(L"--export") || cmdline.HasParam(L"--exportaudio") || cmdline.HasParam(L"--list") || cmdline.HasParam(L"--listaudio"))
+	if (cmdline.HasParam(L"--export") || cmdline.HasParam(L"--list"))
 	{
-		string rpakPath;
+		string filePath;
 
 		bool bExportRpak = cmdline.HasParam(L"--export");
-		bool bExportAudio = cmdline.HasParam(L"--exportaudio");
 		bool bListRpak = cmdline.HasParam(L"--list");
-		bool bListAudio = cmdline.HasParam(L"--listaudio");
 
 		if (bExportRpak)
 		{
-			rpakPath = wstring(cmdline.GetParamValue(L"--export")).ToString();
-		}
-		else if (bExportAudio)
-		{
-			rpakPath = wstring(cmdline.GetParamValue(L"--exportaudio")).ToString();
+			filePath = wstring(cmdline.GetParamValue(L"--export")).ToString();
 		}
 		else if (bListRpak)
 		{
-			rpakPath = wstring(cmdline.GetParamValue(L"--list")).ToString();
-		}
-		else if (bListAudio)
-		{
-			rpakPath = wstring(cmdline.GetParamValue(L"--listaudio")).ToString();
+			filePath = wstring(cmdline.GetParamValue(L"--list")).ToString();
 		}
 
 		// handle cli stuff
-		if (!string::IsNullOrEmpty(rpakPath))
+		if (!string::IsNullOrEmpty(filePath))
 		{
 			auto Rpak = std::make_unique<RpakLib>();
 			auto ExportAssets = List<ExportAsset>();
 
-			Rpak->LoadRpak(rpakPath);
+			Rpak->LoadRpak(filePath);
 			Rpak->PatchAssets();
 
 			// load rpak flags
@@ -276,45 +266,50 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 			if (bExportRpak)
 			{
-				for (auto& Asset : *AssetList.get())
-				{
-					ExportAsset EAsset;
-					EAsset.AssetHash = Asset.Hash;
-					EAsset.AssetIndex = 0;
-					ExportAssets.EmplaceBack(EAsset);
+				if (filePath.EndsWith(".rpak")) {
+					for (auto& Asset : *AssetList.get())
+					{
+						ExportAsset EAsset;
+						EAsset.AssetHash = Asset.Hash;
+						EAsset.AssetIndex = 0;
+						ExportAssets.EmplaceBack(EAsset);
+					}
+					ExportManager::ExportRpakAssets(Rpak, ExportAssets, [](uint32_t i, Forms::Form*, bool) {}, [](int32_t i, Forms::Form*) -> bool { return false; }, nullptr);
 				}
-				ExportManager::ExportRpakAssets(Rpak, ExportAssets, [](uint32_t i, Forms::Form*, bool) {}, [](int32_t i, Forms::Form*) -> bool { return false; }, nullptr);
-			}
-			else if (bExportAudio)
-			{
-				auto Audio = std::make_unique<MilesLib>();
+				else if (filePath.EndsWith(".mbnk")) {
 
-				Audio->MountBank(rpakPath); // not actually an rpak path?
-				Audio->Initialize();
+					auto Audio = std::make_unique<MilesLib>();
 
-				AssetList = Audio->BuildAssetList();
-				for (auto& Asset : *AssetList.get())
-				{
-					ExportAsset EAsset;
-					EAsset.AssetHash = Asset.Hash;
-					EAsset.AssetIndex = 0;
-					ExportAssets.EmplaceBack(EAsset);
+					Audio->MountBank(filePath);
+					Audio->Initialize();
+
+					AssetList = Audio->BuildAssetList();
+					for (auto& Asset : *AssetList.get())
+					{
+						ExportAsset EAsset;
+						EAsset.AssetHash = Asset.Hash;
+						EAsset.AssetIndex = 0;
+						ExportAssets.EmplaceBack(EAsset);
+					}
+					ExportManager::ExportMilesAssets(Audio, ExportAssets, [](uint32_t i, Forms::Form*, bool) {}, [](int32_t i, Forms::Form*) -> bool { return false; }, nullptr);
 				}
-				ExportManager::ExportMilesAssets(Audio, ExportAssets, [](uint32_t i, Forms::Form*, bool) {}, [](int32_t i, Forms::Form*) -> bool { return false; }, nullptr);
 			}
 			else if (bListRpak)
 			{
-				string filename = IO::Path::GetFileNameWithoutExtension(rpakPath);
-				ExportManager::ExportRpakAssetList(AssetList, filename);
-			}
-			else if (bListAudio)
-			{
-				auto Audio = std::make_unique<MilesLib>();
-				Audio->MountBank(rpakPath); // not actually an rpak path?
-				AssetList = Audio->BuildAssetList();
 
-				string filename = IO::Path::GetFileNameWithoutExtension(rpakPath);
-				ExportManager::ExportAudioAssetList(AssetList);
+				if (filePath.EndsWith(".rpak")) {
+
+					string filename = IO::Path::GetFileNameWithoutExtension(filePath);
+					ExportManager::ExportRpakAssetList(AssetList, filename);
+				}
+				else if (filePath.EndsWith(".mbnk")) {
+
+					auto Audio = std::make_unique<MilesLib>();
+					Audio->MountBank(filePath);
+					AssetList = Audio->BuildAssetList();
+
+					ExportManager::ExportAudioAssetList(AssetList);
+				}
 			}
 
 			ShowGUI = false;

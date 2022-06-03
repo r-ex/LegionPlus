@@ -30,18 +30,12 @@ Compilation is currently only supported on Windows due to some platform-specific
 
 #### Modes
 ```
---export <path to rpak>
-Exports the specified rpak according to your saved configuration, unless load flags are provided
+--export <path to .rpak or .mbnk>
+Exports the specified rpak or Audio file according to your saved configuration, unless load flags are provided
 
---exportaudio <path to general.mbnk>
-Exports the Audio files
+--list <path to .rpak or .mbnk>
+Produces a list of all exportable assets within the specified .rpak or .mbnk file
 
---list <path to rpak>
-Produces a list of all exportable assets within the specified rpak
-
---listaudio <path to the general.mbnk file>
-Produces a list of all exportable audio files
-```
 
 #### Export Load Flags
 When any load flag is used, your saved configuration is ignored and only the specified flags are used
