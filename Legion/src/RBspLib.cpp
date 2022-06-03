@@ -245,11 +245,11 @@ static void ReadExternalLumpFile(const string& BasePath, uint32_t Lump, uint32_t
 
 	if (IO::File::Exists(Path))
 		IO::File::OpenRead(Path)->Read((uint8_t*)&Data[0], 0, DataSize);
-	else
-	{
-		string ex = "Couldn't find file " + IO::Path::GetFileName(Path) + "\nMake sure you have exported all .bsp_lump files for this map";
-		throw std::exception(ex.ToCString());
-	}
+	//else
+	//{
+	//	string ex = "Couldn't find file " + IO::Path::GetFileName(Path) + "\nMake sure you have exported all .bsp_lump files for this map";
+	//	throw std::exception(ex.ToCString());
+	//}
 }
 
 static void ReadExternalLumpArrayFile(const string& BasePath, uint32_t Lump, uint32_t DataSize, uint8_t* Data)
