@@ -16,6 +16,7 @@ Originally created by DTZxPorter in 2019.
       - [Export Load Flags](#export-load-flags)
       - [Export Format Flags](#export-format-flags)
       - [Other Flags](#other-flags)
+    - [Controls](#controls)
   - [Support](#support)
   - [Known Issues](#known-issues)
 
@@ -72,6 +73,25 @@ Audio Language: --audiolanguage <english, french, german, spanish, italian, japa
 --audiolanguagefolder - Enables Audio Language Folder
 --usetxtrguids - Enables the renaming of Guid names for Textures (e.g. adding _albedoTexture, etc.)
 ```
+
+### Controls
+Asset List
+```
+Keyboard
+P - open preview window for currently selected asset
+E - extract currently selected assets
+
+Mouse
+Right Click - copies the names of the currently selected assets to clipboard
+```
+
+Preview
+```
+Alt + Left Click - move mouse to pivot camera around target
+Alt + Right Click - move mouse to zoom in and out of the target
+Alt + Middle Click - move mouse to pan camera
+```
+
 
 ## Support
 If you encounter any issues or errors during your usage of Legion+, please let us know by opening a new Issue and providing as much detail as possible.
