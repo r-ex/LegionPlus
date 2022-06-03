@@ -53,11 +53,11 @@ namespace Assets
 	{
 		this->_MatrixDirty = true;
 
-		auto Look = (_Target - this->GetCameraPosition()).GetNormalized();
-		auto WorldUp = Vector3(0, _Up, 0);
+		Vector3 Look = (_Target - this->GetCameraPosition()).GetNormalized();
+		Vector3 WorldUp = Vector3(0, _Up, 0);
 
-		auto Right = Look.Cross(WorldUp);
-		auto Up = Look.Cross(Right);
+		Vector3 Right = Look.Cross(WorldUp);
+		Vector3 Up = Look.Cross(Right);
 
 		_Target = (_Target + ((Right * X) + (Up * Y)));
 	}
