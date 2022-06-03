@@ -35,7 +35,7 @@ Exports the specified rpak or Audio file according to your saved configuration, 
 
 --list <path to .rpak or .mbnk>
 Produces a list of all exportable assets within the specified .rpak or .mbnk file
-
+```
 
 #### Export Load Flags
 When any load flag is used, your saved configuration is ignored and only the specified flags are used
