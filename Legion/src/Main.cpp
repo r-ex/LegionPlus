@@ -293,6 +293,11 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 					}
 					ExportManager::ExportMilesAssets(Audio, ExportAssets, [](uint32_t i, Forms::Form*, bool) {}, [](int32_t i, Forms::Form*) -> bool { return false; }, nullptr);
 				}
+				else if (!filePath.EndsWith(".rpak" || ".mbnk")) {
+
+					g_Logger.Info("You loaded a file extension that isn't supported, the --export flag only supports .rpak and .mbnk file extensions");
+
+				}
 			}
 			else if (bListRpak)
 			{
@@ -309,6 +314,10 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 					AssetList = Audio->BuildAssetList();
 
 					ExportManager::ExportAudioAssetList(AssetList);
+				}
+				else if (!filePath.EndsWith(".rpak" || ".mbnk")) {
+				
+					g_Logger.Info("You loaded a file extension that isn't supported, the --list flag only supports .rpak and .mbnk file extensions");
 				}
 			}
 
