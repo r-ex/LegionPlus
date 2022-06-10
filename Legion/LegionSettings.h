@@ -46,13 +46,13 @@ private:
 	UIX::UIXGroupBox* groupBox4;
 	UIX::UIXGroupBox* groupBox5;
 	// Load Types
-	UIX::UIXCheckBox* LoadMaterials;
+	UIX::UIXCheckBox* LoadModels;
+	UIX::UIXCheckBox* LoadAnimations;
 	UIX::UIXCheckBox* LoadImages;
 	UIX::UIXCheckBox* LoadUIImages;
+	UIX::UIXCheckBox* LoadMaterials;
 	UIX::UIXCheckBox* LoadDataTables;
 	UIX::UIXCheckBox* LoadShaderSets;
-	UIX::UIXCheckBox* LoadAnimations;
-	UIX::UIXCheckBox* LoadModels;
 	// Toggles
 	UIX::UIXCheckBox* ToggleOverwriting;
 	UIX::UIXCheckBox* ToggleAudioLanguageFolders;
@@ -63,8 +63,8 @@ private:
 	UIX::UIXComboBox* AnimExportFormat;
 	UIX::UIXComboBox* ImageExportFormat;
 	UIX::UIXComboBox* TextExportFormat;
-	UIX::UIXComboBox* NormalRecalcType;
 	UIX::UIXComboBox* AudioLanguage;
+	UIX::UIXComboBox* NormalRecalcType;
 	// Export Formats
 	UIX::UIXRadioButton* ExportCastAnim;
 	UIX::UIXRadioButton* ExportSEAnim;
