@@ -1071,6 +1071,7 @@ bool RpakLib::MountApexRpak(const string& Path, bool Dump)
 
 	std::uint8_t decomp_result = RTech::DecompressPakFile(&state, dSize, pakbuf.size());
 
+	Header.CompressedSize = Header.DecompressedSize;
 	std::memcpy(pakbuf.data(), &Header, sizeof(RpakApexHeader));
 
 	auto ResultStream = std::make_unique<IO::MemoryStream>(pakbuf.data(), 0, Header.DecompressedSize, true, false, true);
@@ -1118,6 +1119,7 @@ bool RpakLib::MountTitanfallRpak(const string& Path, bool Dump)
 
 	std::uint8_t decomp_result = RTech::DecompressPakFile(&state, dSize, pakbuf.size());
 
+	Header.CompressedSize = Header.DecompressedSize;
 	std::memcpy(pakbuf.data(), &Header, sizeof(RpakTitanfallHeader));
 
 	auto ResultStream = std::make_unique<IO::MemoryStream>(pakbuf.data(), 0, Header.DecompressedSize, true, false, true);
