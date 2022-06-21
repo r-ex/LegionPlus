@@ -553,9 +553,14 @@ struct studiohdr_t // latest studiohdr
 	uint32_t NahhhO;
 	uint32_t SubmeshLodsOffset;
 
-	uint8_t Unknown3[0x44];
+	uint32_t Unk;
+	uint32_t SubmeshLodsOffset_V14;
+
+	uint8_t Unknown3[0x3C];
 	uint32_t OffsetToBoneRemapInfo;
 	uint32_t BoneRemapCount;
+	uint32_t OffsetToBoneRemapInfo_V14;
+	uint32_t BoneRemapCount_V14;
 };
 
 struct s3studiohdr_t // season 3 studiohdr
@@ -839,6 +844,32 @@ struct RMdlVGSubmesh
 
 	uint64_t StripsOffset;
 	uint64_t StripsCount;			// 0x23 each
+};
+
+struct RMdlVGSubmesh_V14
+{
+	uint32_t Flags1;					// Flags that pertain to this submesh
+	uint32_t Flags2;					// Also flags that pertain to this submesh
+	uint32_t VertexBufferStride;		// Stride in bytes of the vertex buffer
+	uint32_t VertexCount;				// Count of vertices used
+
+	uint64_t IndexOffset;
+	RMdlVGIndexCountPacked IndexPacked;	// 0x2 each (uint16_t)
+
+	uint64_t VertexOffset;
+	uint64_t VertexCountBytes;		// 0x1 each aka, in bytes
+
+	uint64_t ExtendedWeightsOffset;
+	uint64_t ExtendedWeightsCount; // idk if these are actually unused but it looks like they are
+
+	uint64_t ExternalWeightsOffset;
+	uint64_t ExternalWeightsCount;	// 0x10 each
+
+	uint64_t StripsOffset;
+	uint64_t StripsCount;			// 0x23 each
+
+	uint64_t UnkOffset;
+	uint64_t UnkCount;		// Only 1 byte per count
 };
 
 struct RMdlVGSubmeshOld
