@@ -441,9 +441,9 @@ void RBspLib::ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std:
 					auto& V2 = VertexLitBumps[Faces[v + 1] + Material.VertexOffset];
 					auto& V3 = VertexLitBumps[Faces[v + 2] + Material.VertexOffset];
 
-					Mesh.Vertices.EmplaceBack(Vertices[V1.PositionIndex], VertexNormals[V1.NormalIndex], Assets::VertexColor(), V1.UVs);
-					Mesh.Vertices.EmplaceBack(Vertices[V2.PositionIndex], VertexNormals[V2.NormalIndex], Assets::VertexColor(), V2.UVs);
-					Mesh.Vertices.EmplaceBack(Vertices[V3.PositionIndex], VertexNormals[V3.NormalIndex], Assets::VertexColor(), V3.UVs);
+					Mesh.Vertices.EmplaceBack(Vertices[V1.PositionIndex], VertexNormals[V1.NormalIndex], Assets::VertexColor(V1.RGBA), V1.UVs);
+					Mesh.Vertices.EmplaceBack(Vertices[V2.PositionIndex], VertexNormals[V2.NormalIndex], Assets::VertexColor(V2.RGBA), V2.UVs);
+					Mesh.Vertices.EmplaceBack(Vertices[V3.PositionIndex], VertexNormals[V3.NormalIndex], Assets::VertexColor(V3.RGBA), V3.UVs);
 
 					Mesh.Faces.EmplaceBack(FaceIndex, FaceIndex + 1, FaceIndex + 2);
 					FaceIndex += 3;

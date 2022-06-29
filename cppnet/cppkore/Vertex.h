@@ -32,6 +32,7 @@ namespace Assets
 		VertexColor();
 		// Initialize a vertex color with the given information.
 		VertexColor(uint8_t R, uint8_t G, uint8_t B, uint8_t A);
+		VertexColor(uint8_t* RGBA);
 
 		// Array index operators
 		uint8_t& operator[](uint8_t Index);

@@ -142,6 +142,11 @@ namespace Assets
 	{
 	}
 
+	VertexColor::VertexColor(uint8_t* RGBA)
+	{
+		memcpy(&_Colors, &RGBA, sizeof(uint8_t) * 4);
+	}
+
 	uint8_t& VertexColor::operator[](uint8_t Index)
 	{
 		return this->_Colors[Index];
