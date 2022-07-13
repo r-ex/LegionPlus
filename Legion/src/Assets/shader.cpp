@@ -57,8 +57,6 @@ void RpakLib::ExtractShader(const RpakLoadAsset& Asset, const string& Path)
 	auto RpakStream = this->GetFileStream(Asset);
 	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
-
-
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset));
 
 	ShaderDataHeader DataHeader = Reader.Read<ShaderDataHeader>();
