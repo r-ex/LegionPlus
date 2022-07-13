@@ -51,8 +51,13 @@ void RpakLib::ExtractShader(const RpakLoadAsset& Asset, const string& Path)
 	if (!Utils::ShouldWriteFile(Path))
 		return;
 
+	if (Asset.RawDataIndex == -1 || Asset.RawDataOffset == -1)
+		return;
+
 	auto RpakStream = this->GetFileStream(Asset);
 	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
+
+
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset));
 
