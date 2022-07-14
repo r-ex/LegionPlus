@@ -118,10 +118,11 @@ List<List<DataTableColumnData>> RpakLib::ExtractDataTable(const RpakLoadAsset& A
 
 		col.Unk0Seek = this->GetFileOffset(Asset, id, offset);
 
-		// todo: season 3 and earlier will not have "Unk8", but all later builds do,
-		// in order to maintain compatibility, something must be used to determine which version of dtbl this is
-		if (Asset.Version == RpakGameVersion::Apex)
-			col.Unk8 = Reader.Read<uint64_t>(); // old apex datatables do not have this
+		// titanfall 2 uses version 0 and does not have this member
+		// all of apex uses version 1, but only later game versions have this member
+		// in order to make sure that the struct reads correctly, we must check the pak's creation time
+		if (Asset.AssetVersion != 0 && this->LoadedFiles[Asset.FileIndex].CreatedTime > 0x1d5d89aed97a800) // feb 1 2020
+			col.Unk8 = Reader.Read<uint64_t>();
 
 		col.Type = Reader.Read<uint32_t>();
 		col.RowOffset = Reader.Read<uint32_t>();
@@ -158,8 +159,16 @@ List<List<DataTableColumnData>> RpakLib::ExtractDataTable(const RpakLoadAsset& A
 		{
 			DataTableColumn col = Columns[c];
 
-			uint64_t base_pos = rows_seek + (DtblHeader.RowStride * i);
-			RpakStream->SetPosition(base_pos + col.RowOffset);
+			// this part is the same across all versions
+			uint64_t seek_pos = rows_seek + col.RowOffset;
+
+			// titanfall 2
+			if (Asset.AssetVersion == 0)
+				seek_pos += (i * DtblHeader.UnkHash);
+			else
+				seek_pos += (i * DtblHeader.RowStride);
+
+			RpakStream->SetPosition(seek_pos);
 
 			DataTableColumnData d;
 
@@ -183,8 +192,10 @@ List<List<DataTableColumnData>> RpakLib::ExtractDataTable(const RpakLoadAsset& A
 			{
 				uint32_t id = Reader.Read<uint32_t>();
 				uint32_t off = Reader.Read<uint32_t>();
+
 				uint64_t pos = this->GetFileOffset(Asset, id, off);
 				RpakStream->SetPosition(pos);
+
 				d.assetValue = Reader.ReadCString();
 				break;
 			}
@@ -192,6 +203,7 @@ List<List<DataTableColumnData>> RpakLib::ExtractDataTable(const RpakLoadAsset& A
 			{
 				uint32_t id = Reader.Read<uint32_t>();
 				uint32_t off = Reader.Read<uint32_t>();
+
 				uint64_t pos = this->GetFileOffset(Asset, id, off);
 				RpakStream->SetPosition(pos);
 
@@ -202,6 +214,7 @@ List<List<DataTableColumnData>> RpakLib::ExtractDataTable(const RpakLoadAsset& A
 			{
 				uint32_t id = Reader.Read<uint32_t>();
 				uint32_t off = Reader.Read<uint32_t>();
+
 				uint64_t pos = this->GetFileOffset(Asset, id, off);
 				RpakStream->SetPosition(pos);
 

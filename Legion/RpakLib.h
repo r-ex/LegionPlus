@@ -233,6 +233,8 @@ public:
 
 	RpakGameVersion Version;
 
+	uint64_t CreatedTime; // actually FILETIME but uint64_t is easier to compare
+
 	uint32_t StartSegmentIndex;
 	List<RpakSegmentBlock> SegmentBlocks;
 

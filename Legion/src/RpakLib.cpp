@@ -671,6 +671,8 @@ bool RpakLib::ParseApexRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 	RpakApexHeader Header = Reader.Read<RpakApexHeader>();
 	RpakFile* File = &this->LoadedFiles[this->LoadedFileIndex++];
 
+	File->CreatedTime = Header.CreatedFileTime;
+
 	RpakPatchHeader PatchHeader{};
 	RpakPatchCompressPair PatchCompressPairs[16]{};
 	uint16_t PatchIndicesToFile[16]{};
@@ -793,6 +795,8 @@ bool RpakLib::ParseTitanfallRpak(const string& RpakPath, std::unique_ptr<IO::Mem
 	string RpakRoot = IO::Path::GetDirectoryName(RpakPath);
 	RpakTitanfallHeader Header = Reader.Read<RpakTitanfallHeader>();
 	RpakFile* File = &this->LoadedFiles[this->LoadedFileIndex++];
+
+	File->CreatedTime = Header.CreatedFileTime;
 
 	// Default version is apex, 0x8, must make sure this is set.
 	File->Version = RpakGameVersion::Titanfall;
@@ -917,6 +921,8 @@ bool RpakLib::ParseR2TTRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 	string RpakRoot = IO::Path::GetDirectoryName(RpakPath);
 	RpakHeaderV6 Header = Reader.Read<RpakHeaderV6>();
 	RpakFile* File = &this->LoadedFiles[this->LoadedFileIndex++];
+
+	File->CreatedTime = Header.CreatedFileTime;
 
 	// Default version is apex, 0x8, must make sure this is set.
 	File->Version = RpakGameVersion::R2TT;
