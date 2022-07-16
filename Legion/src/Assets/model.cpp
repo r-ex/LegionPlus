@@ -337,7 +337,6 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 	return std::move(Model);
 }
 
-
 void RpakLib::ExtractModelLod_V14(IO::BinaryReader& Reader, const std::unique_ptr<IO::MemoryStream>& RpakStream, string Name, uint64_t Offset, const std::unique_ptr<Assets::Model>& Model, RMdlFixupPatches& Fixup, uint32_t Version, bool IncludeMaterials)
 {
 	IO::Stream* BaseStream = Reader.GetBaseStream();
@@ -552,28 +551,37 @@ void RpakLib::ExtractModelLod_V14(IO::BinaryReader& Reader, const std::unique_pt
 						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[1]], 1.0f - CurrentWeightTotal }, WeightsIndex);
 					}
 				}
-				else if (Version < 14 || ExternalWeightsBuffer.Count() > v)
+				else
 				{
-					//
-					// These models have 3 or less weights
-					//
+					auto externalWeightsBufferCount = ExternalWeightsBuffer.Count();
 
-					if (ExternalWeights.NumWeights == 0x1)
+					if (externalWeightsBufferCount > v)// || Version < 14) already checked in ExportModel()
+					{
+						//
+						// These models have 3 or less weights
+						//
+
+						if (ExternalWeights.NumWeights == 0x1)
+						{
+							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], 1.0f }, 0);
+						}
+						else if (ExternalWeights.NumWeights == 0x2)
+						{
+							float CurrentWeightTotal = (float)(Weights.BlendWeights[0] + 1) / (float)0x8000;
+
+							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], CurrentWeightTotal }, 0);
+							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[1]], 1.0f - CurrentWeightTotal }, 1);
+						}
+						else if (ExternalWeights.NumWeights == 0x3)
+						{
+							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], ExternalWeights.SimpleWeights[0] }, 0);
+							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[1]], ExternalWeights.SimpleWeights[1] }, 1);
+							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[2]], ExternalWeights.SimpleWeights[2] }, 2);
+						}
+					}
+					else if (externalWeightsBufferCount == 0) // simple 'else' could be enough?
 					{
 						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], 1.0f }, 0);
-					}
-					else if (ExternalWeights.NumWeights == 0x2)
-					{
-						float CurrentWeightTotal = (float)(Weights.BlendWeights[0] + 1) / (float)0x8000;
-
-						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], CurrentWeightTotal }, 0);
-						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[1]], 1.0f - CurrentWeightTotal }, 1);
-					}
-					else if (ExternalWeights.NumWeights == 0x3)
-					{
-						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], ExternalWeights.SimpleWeights[0] }, 0);
-						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[1]], ExternalWeights.SimpleWeights[1] }, 1);
-						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[2]], ExternalWeights.SimpleWeights[2] }, 2);
 					}
 				}
 			}
