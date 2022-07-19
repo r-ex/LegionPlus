@@ -5,7 +5,22 @@
 
 void RpakLib::BuildShaderSetInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 {
-	Info.Name = string::Format("shaderset_0x%llx", Asset.NameHash);
+	auto RpakStream = this->GetFileStream(Asset);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
+	ShaderSetHeader ShdsHeader = Reader.Read<ShaderSetHeader>();
+
+	string Name = string::Format("shaderset_0x%llx", Asset.NameHash);
+
+	if (ShdsHeader.NameIndex || ShdsHeader.NameOffset)
+	{
+		RpakStream->SetPosition(this->GetFileOffset(Asset, ShdsHeader.NameIndex, ShdsHeader.NameOffset));
+
+		Name = Reader.ReadCString();
+	}
+
+	Info.Name = Name;
 	Info.Type = ApexAssetType::ShaderSet;
 	Info.Status = ApexAssetStatus::Loaded;
 	Info.Info = "N/A";
@@ -22,31 +37,44 @@ void RpakLib::ExportShaderSet(const RpakLoadAsset& Asset, const string& Path)
 
 	ShaderSetHeader Header = Reader.Read<ShaderSetHeader>();
 
+	if (Header.NameIndex || Header.NameOffset)
+	{
+		RpakStream->SetPosition(this->GetFileOffset(Asset, Header.NameIndex, Header.NameOffset));
+
+		ShaderSetPath = IO::Path::Combine(Path, Reader.ReadCString());
+	}
+
 	uint64_t PixelShaderGuid = Header.PixelShaderHash;
 	uint64_t VertexShaderGuid = Header.VertexShaderHash;
 
-	if (Asset.AssetVersion <= 11)
+	if (Asset.AssetVersion == 8)
+	{
+		PixelShaderGuid = Header.PixelShaderHashTF;
+		VertexShaderGuid = Header.PixelShaderHash;
+	}
+	else if (Asset.AssetVersion <= 11)
 	{
 		PixelShaderGuid = Header.OldPixelShaderHash;
 		VertexShaderGuid = Header.OldVertexShaderHash;
 	}
+
 	if (!IO::Directory::Exists(ShaderSetPath))
 		IO::Directory::CreateDirectory(ShaderSetPath);
 
 	if (Assets.ContainsKey(PixelShaderGuid))
 	{
 		string PixelShaderPath = IO::Path::Combine(ShaderSetPath, string::Format("0x%llx_ps.fxc", PixelShaderGuid));
-		this->ExtractShader(Assets[PixelShaderGuid], PixelShaderPath);
+		this->ExtractShader(Assets[PixelShaderGuid], ShaderSetPath, PixelShaderPath);
 	}
 
 	if (Assets.ContainsKey(VertexShaderGuid))
 	{
 		string VertexShaderPath = IO::Path::Combine(ShaderSetPath, string::Format("0x%llx_vs.fxc", VertexShaderGuid));
-		this->ExtractShader(Assets[VertexShaderGuid], VertexShaderPath);
+		this->ExtractShader(Assets[VertexShaderGuid], ShaderSetPath, VertexShaderPath);
 	}
 }
 
-void RpakLib::ExtractShader(const RpakLoadAsset& Asset, const string& Path)
+void RpakLib::ExtractShader(const RpakLoadAsset& Asset, const string& OutputDirPath, const string& Path)
 {
 	if (!Utils::ShouldWriteFile(Path))
 		return;
@@ -54,8 +82,20 @@ void RpakLib::ExtractShader(const RpakLoadAsset& Asset, const string& Path)
 	if (Asset.RawDataIndex == -1 || Asset.RawDataOffset == -1)
 		return;
 
+	string Name = Path;
+
 	auto RpakStream = this->GetFileStream(Asset);
 	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
+	ShaderHeader ShdrHeader = Reader.Read<ShaderHeader>();
+
+	if (ShdrHeader.NameIndex || ShdrHeader.NameOffset)
+	{
+		RpakStream->SetPosition(this->GetFileOffset(Asset, ShdrHeader.NameIndex, ShdrHeader.NameOffset));
+
+		Name = IO::Path::Combine(OutputDirPath, Reader.ReadCString() + ".fxc");
+	}
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset));
 
@@ -67,7 +107,7 @@ void RpakLib::ExtractShader(const RpakLoadAsset& Asset, const string& Path)
 
 	Reader.Read(bcBuf, 0, DataHeader.DataSize);
 
-	std::ofstream shaderOut(Path.ToCString(), std::ios::binary | std::ios::out);
+	std::ofstream shaderOut(Name.ToCString(), std::ios::binary | std::ios::out);
 	shaderOut.write(bcBuf, DataHeader.DataSize);
 	shaderOut.close();
 }

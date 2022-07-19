@@ -1278,7 +1278,8 @@ struct StarpakStreamEntry
 // --- shdr ---
 struct ShaderHeader
 {
-	uint64_t Padding;
+	uint32_t NameIndex;
+	uint32_t NameOffset;
 	uint64_t DataSize;
 	uint64_t Padding2;
 
@@ -1301,7 +1302,10 @@ struct RShaderImage
 
 // --- shds ---
 struct ShaderSetHeader {
-	uint8_t Unknown1[0x18];
+	uint64_t VTablePadding;
+	uint32_t NameIndex;
+	uint32_t NameOffset;
+	uint8_t Unknown1[0x8];
 	uint16_t Count1;
 	uint16_t TextureInputCount;
 	uint16_t Count3;
@@ -1316,7 +1320,28 @@ struct ShaderSetHeader {
 	// only used for version 12+
 	uint64_t VertexShaderHash;
 	uint64_t PixelShaderHash;
+	uint64_t PixelShaderHashTF;
+
 };
+
+struct ShaderSetHeaderTF {
+	uint64_t VTablePadding;
+	uint32_t NameIndex;
+	uint32_t NameOffset;
+	uint8_t Unknown1[0x8];
+	uint16_t Count1;
+	uint16_t TextureInputCount;
+	uint16_t Count3;
+	uint8_t Byte1;
+	uint8_t Byte2;
+
+	uint8_t Unknown2[0x28];
+
+	// only used for version 12+
+	uint64_t VertexShaderHash;
+	uint64_t PixelShaderHash;
+};
+
 
 struct ShaderDataHeader
 {

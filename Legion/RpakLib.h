@@ -474,7 +474,7 @@ private:
 	List<Assets::Bone> ExtractSkeleton(IO::BinaryReader& Reader, uint64_t SkeletonOffset);
 	//List<List<DataTableColumnData>> ExtractDataTable(const RpakLoadAsset& Asset);
 	List<SubtitleEntry> ExtractSubtitles(const RpakLoadAsset& Asset);
-	void ExtractShader(const RpakLoadAsset& Asset, const string& Path);
+	void ExtractShader(const RpakLoadAsset& Asset, const string& OutputDirPath, const string& Path);
 	ShaderSetHeader ExtractShaderSet(const RpakLoadAsset& Asset);
 	void ExtractUIImageAtlas(const RpakLoadAsset& Asset, const string& Path);
 
