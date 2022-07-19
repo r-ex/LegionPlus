@@ -28,7 +28,7 @@ void RpakLib::BuildMaterialInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	switch (Asset.Version) {
 	case RpakGameVersion::Apex:
-		TexturesCount = (MatHeader.UnknownOffset - MatHeader.TexturesOffset) / 8;
+		TexturesCount = (MatHeader.StreamableTexturesOffset - MatHeader.TexturesOffset) / 8;
 		break;
 	case RpakGameVersion::Titanfall:
 	case RpakGameVersion::R2TT: // unverified but should work
@@ -100,7 +100,7 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 	// we're actually gonna ignore the hardcoded value for apex materials
 	if (Asset.Version == RpakGameVersion::Apex)
 	{
-		TexturesCount = (MatHeader.UnknownOffset - MatHeader.TexturesOffset) / 8;
+		TexturesCount = (MatHeader.StreamableTexturesOffset - MatHeader.TexturesOffset) / 8;
 		g_Logger.Info("> %i textures:\n", TexturesCount);
 	}
 

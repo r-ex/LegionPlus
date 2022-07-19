@@ -1250,10 +1250,10 @@ struct MaterialHeader
 	uint32_t TexturesIndex;
 	uint32_t TexturesOffset;
 	// Also Texture pointer, but less relevant for now.
-	uint32_t UnknownIndex;
-	uint32_t UnknownOffset;
+	uint32_t StreamableTexturesIndex;
+	uint32_t StreamableTexturesOffset;
 
-	int16_t UnknownSignature; // This seems to be the start of a modified VTF Header, I have no clue what this member does.
+	int16_t StreamableTextureCount;
 	int16_t Width;
 	int16_t Height;
 	int16_t Unused;
@@ -1303,7 +1303,7 @@ struct RShaderImage
 struct ShaderSetHeader {
 	uint8_t Unknown1[0x18];
 	uint16_t Count1;
-	uint16_t Count2;
+	uint16_t TextureInputCount;
 	uint16_t Count3;
 	uint8_t Byte1;
 	uint8_t Byte2;
