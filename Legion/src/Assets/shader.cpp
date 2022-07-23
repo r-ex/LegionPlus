@@ -209,6 +209,9 @@ List<ShaderResBinding> RpakLib::ExtractShaderResourceBindings(const RpakLoadAsse
 
 	List<ShaderResBinding> ResBindings;
 
+	if (Asset.RawDataIndex >= this->LoadedFiles[Asset.FileIndex].SegmentBlocks.Count())
+		return ResBindings;
+
 	if (Asset.RawDataIndex == -1)
 		return ResBindings;
 
