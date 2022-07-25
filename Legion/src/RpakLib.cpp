@@ -163,6 +163,7 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims
 
 		ApexAsset NewAsset;
 		NewAsset.Hash = AssetKvp.first;
+		NewAsset.FileCreatedTime = this->LoadedFiles[Asset.RpakFileIndex].CreatedTime;
 
 		switch (Asset.AssetType)
 		{

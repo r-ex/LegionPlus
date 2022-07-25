@@ -35,5 +35,7 @@ struct ApexAsset
 	string Info;
 	string DebugInfo = ""; // advanced info i suppose
 
+	uint64_t FileCreatedTime = 0;
+
 	ApexAsset();
 };

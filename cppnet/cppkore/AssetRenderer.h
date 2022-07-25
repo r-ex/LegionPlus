@@ -81,6 +81,8 @@ namespace Assets
 		// Enable or disable material rendering
 		void SetShowMaterials(bool Value);
 
+		void SetDebugVersion(uint64_t Version);
+
 		// Changes the up axis
 		void SetZUpAxis(bool ZUp);
 
@@ -124,6 +126,8 @@ namespace Assets
 			string AssetName;
 
 			uint32_t BoneCount;
+
+			uint64_t DebugVersion;
 		} _DrawInformation;
 
 		DrawMode _DrawingMode;

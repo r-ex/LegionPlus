@@ -16,6 +16,8 @@ public:
 	// Sets the material preview loading routine
 	void SetMaterialStreamer(Assets::AssetRenderer::MaterialStreamCallback Callback);
 
+	Assets::AssetRenderer* GetRenderer();
+
 private:
 	// Internal routine to setup the component
 	void InitializeComponent();

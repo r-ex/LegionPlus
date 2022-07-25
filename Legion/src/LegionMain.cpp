@@ -493,6 +493,9 @@ void LegionMain::DoPreviewSwap()
 	}
 	break;
 	}
+
+	uint64_t fct = (Asset.FileCreatedTime / 10000000) - 0x2b6109100;
+	this->PreviewWindow->GetRenderer()->SetDebugVersion(fct);
 }
 
 std::unique_ptr<Assets::Texture> LegionMain::MaterialStreamCallback(string Source, uint64_t Hash)

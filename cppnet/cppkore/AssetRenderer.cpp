@@ -234,6 +234,11 @@ namespace Assets
 		}
 	}
 
+	void AssetRenderer::SetDebugVersion(uint64_t Version)
+	{
+		this->_DrawInformation.DebugVersion = Version;
+	}
+
 	void AssetRenderer::SetZUpAxis(bool ZUp)
 	{
 		if (ZUp)
@@ -626,6 +631,8 @@ namespace Assets
 			_RenderFont.RenderString("Verts", 22, 54, FontScale); _RenderFont.RenderString(":", 80, 54, FontScale);
 			_RenderFont.RenderString("Tris", 22, 70, FontScale); _RenderFont.RenderString(":", 80, 70, FontScale);
 			_RenderFont.RenderString("Bones", 22, 86, FontScale); _RenderFont.RenderString(":", 80, 86, FontScale);
+			_RenderFont.RenderString("Version", 22, 102, FontScale); _RenderFont.RenderString(":", 80, 102, FontScale);
+
 
 			glColor4f(35 / 255.f, 206 / 255.f, 107 / 255.f, 1);
 
@@ -638,6 +645,7 @@ namespace Assets
 			_RenderFont.RenderString(string::Format("%d", this->_DrawInformation.VertexCount), 96, 54, FontScale);
 			_RenderFont.RenderString(string::Format("%d", this->_DrawInformation.TriangleCount), 96, 70, FontScale);
 			_RenderFont.RenderString(string::Format("%d", this->_DrawInformation.BoneCount), 96, 86, FontScale);
+			_RenderFont.RenderString(string::Format("%llx", this->_DrawInformation.DebugVersion), 96, 102, FontScale);
 			break;
 		case DrawMode::Texture:
 			glColor4f(3 / 255.f, 169 / 255.f, 244 / 255.f, 1);
@@ -646,6 +654,7 @@ namespace Assets
 			_RenderFont.RenderString("Width", 22, 38, FontScale); _RenderFont.RenderString(":", 80, 38, FontScale);
 			_RenderFont.RenderString("Height", 22, 54, FontScale); _RenderFont.RenderString(":", 80, 54, FontScale);
 			_RenderFont.RenderString("Scale", 22, 70, FontScale); _RenderFont.RenderString(":", 80, 70, FontScale);
+			_RenderFont.RenderString("Version", 22, 86, FontScale); _RenderFont.RenderString(":", 80, 86, FontScale);
 
 			glColor4f(0.9f, 0.9f, 0.9f, 1);
 
@@ -653,6 +662,7 @@ namespace Assets
 			_RenderFont.RenderString(string::Format("%d", this->_DrawInformation.Width), 96, 38, FontScale);
 			_RenderFont.RenderString(string::Format("%d", this->_DrawInformation.Height), 96, 54, FontScale);
 			_RenderFont.RenderString(string::Format("%d%%", this->_DrawInformation.Scale), 96, 70, FontScale);
+			_RenderFont.RenderString(string::Format("%llx", this->_DrawInformation.DebugVersion), 96, 86, FontScale);
 			break;
 		}
 	}

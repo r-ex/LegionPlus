@@ -24,6 +24,11 @@ void LegionPreview::SetMaterialStreamer(Assets::AssetRenderer::MaterialStreamCal
 	this->ModelPreview->SetMaterialStreamer(Callback);
 }
 
+Assets::AssetRenderer* LegionPreview::GetRenderer()
+{
+	return this->ModelPreview;
+}
+
 void LegionPreview::InitializeComponent()
 {
 	this->SuspendLayout();
