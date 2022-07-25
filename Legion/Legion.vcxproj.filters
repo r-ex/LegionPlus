@@ -200,6 +200,9 @@
     <ClInclude Include="LegionTablePreview.h">
       <Filter>Legion\Preview</Filter>
     </ClInclude>
+    <ClInclude Include="version.h">
+      <Filter>Legion\Main</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Legion.rc">

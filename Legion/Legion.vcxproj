@@ -217,6 +217,7 @@
     <ClInclude Include="rtech.h" />
     <ClInclude Include="MdlLib.h" />
     <ClInclude Include="Utils.h" />
+    <ClInclude Include="version.h" />
     <ClInclude Include="VpkLib.h" />
   </ItemGroup>
   <ItemGroup>

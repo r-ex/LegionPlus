@@ -4,6 +4,7 @@
 #include "Process.h"
 #include "LegionMain.h"
 #include "MilesLib.h"
+#include <version.h>
 
 LegionSettings::LegionSettings()
 	: Forms::Form()
@@ -118,9 +119,18 @@ void LegionSettings::InitializeComponent()
 	//
 	//	About Text Label
 	//
+	this->label8 = new UIX::UIXLabel();
+	this->label8->SetSize({ 200, 12 });
+	this->label8->SetLocation({ 12, 20 });
+	this->label8->SetTabIndex(0);
+	this->label8->SetText("Version " UI_VER_STR);
+	this->label8->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->label8->SetTextAlign(Drawing::ContentAlignment::TopLeft);
+	this->groupBox3->AddControl(this->label8);
+
 	this->label1 = new UIX::UIXLabel();
 	this->label1->SetSize({ 200, 60 });
-	this->label1->SetLocation({ 12, 27 });
+	this->label1->SetLocation({ 12, 40 });
 	this->label1->SetTabIndex(0);
 	this->label1->SetText("Legion is the Apex Legends asset extraction tool. Originally created by DTZxPorter in 2019. Currently maintained by various contributors on GitHub.");
 	this->label1->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
@@ -131,16 +141,16 @@ void LegionSettings::InitializeComponent()
 	//
 	this->GithubButton = new UIX::UIXButton();
 	this->GithubButton->SetSize({ 95, 25 });
-	this->GithubButton->SetLocation({ 13, 93 });
+	this->GithubButton->SetLocation({ 13, 105 });
 	this->GithubButton->SetTabIndex(1);
-	this->GithubButton->SetText("Github Repository");
+	this->GithubButton->SetText("Github");
 	this->groupBox3->AddControl(this->GithubButton);
 	//
 	//	Discord Link Button
 	//
 	this->DiscordButton = new UIX::UIXButton();
 	this->DiscordButton->SetSize({ 95, 25 });
-	this->DiscordButton->SetLocation({ 112, 93 });
+	this->DiscordButton->SetLocation({ 112, 105 });
 	this->DiscordButton->SetTabIndex(1);
 	this->DiscordButton->SetText("Discord");
 	this->groupBox3->AddControl(this->DiscordButton);
