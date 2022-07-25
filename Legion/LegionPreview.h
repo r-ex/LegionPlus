@@ -9,9 +9,9 @@ public:
 	virtual ~LegionPreview() = default;
 
 	// Assign the preview model
-	void AssignPreviewModel(const Assets::Model& Model, const string& Name);
+	void AssignPreviewModel(const Assets::Model& Model, const string& Name, uint64_t DebugVersion);
 	// Assign the preview image
-	void AssignPreviewImage(const Assets::Texture& Texture, const string& Name);
+	void AssignPreviewImage(const Assets::Texture& Texture, const string& Name, uint64_t DebugVersion);
 
 	// Sets the material preview loading routine
 	void SetMaterialStreamer(Assets::AssetRenderer::MaterialStreamCallback Callback);

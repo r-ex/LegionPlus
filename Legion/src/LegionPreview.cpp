@@ -7,16 +7,18 @@ LegionPreview::LegionPreview()
 	this->InitializeComponent();
 }
 
-void LegionPreview::AssignPreviewModel(const Assets::Model& Model, const string& Name)
+void LegionPreview::AssignPreviewModel(const Assets::Model& Model, const string& Name, uint64_t DebugVersion)
 {
 	this->ModelPreview->SetViewModel(Model);
 	this->ModelPreview->SetAssetName(Name);
+	this->ModelPreview->SetDebugVersion(DebugVersion);
 }
 
-void LegionPreview::AssignPreviewImage(const Assets::Texture& Texture, const string& Name)
+void LegionPreview::AssignPreviewImage(const Assets::Texture& Texture, const string& Name, uint64_t DebugVersion)
 {
 	this->ModelPreview->SetViewTexture(Texture);
 	this->ModelPreview->SetAssetName(Name);
+	this->ModelPreview->SetDebugVersion(DebugVersion);
 }
 
 void LegionPreview::SetMaterialStreamer(Assets::AssetRenderer::MaterialStreamCallback Callback)

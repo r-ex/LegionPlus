@@ -464,6 +464,8 @@ void LegionMain::DoPreviewSwap()
 
 	ApexAsset& Asset = (*this->LoadedAssets.get())[this->DisplayIndices[Selected[0]]];
 
+	uint64_t fct = (Asset.FileCreatedTime / 10000000) - 0x2b6109100;
+
 	switch (Asset.Type)
 	{
 	case ApexAssetType::Model:
@@ -471,7 +473,7 @@ void LegionMain::DoPreviewSwap()
 		auto Mdl = this->RpakFileSystem->BuildPreviewModel(Asset.Hash);
 		if (Mdl == nullptr)
 			return;
-		this->PreviewWindow->AssignPreviewModel(*Mdl.get(), Asset.Name);
+		this->PreviewWindow->AssignPreviewModel(*Mdl.get(), Asset.Name, fct);
 	}
 	break;
 	case ApexAssetType::Image:
@@ -481,7 +483,7 @@ void LegionMain::DoPreviewSwap()
 		auto Texture = this->RpakFileSystem->BuildPreviewTexture(Asset.Hash);
 		if (Texture == nullptr)
 			return;
-		this->PreviewWindow->AssignPreviewImage(*Texture.get(), Asset.Name);
+		this->PreviewWindow->AssignPreviewImage(*Texture.get(), Asset.Name, fct);
 	}
 	break;
 	case ApexAssetType::Material:
@@ -489,13 +491,11 @@ void LegionMain::DoPreviewSwap()
 		auto Material = this->RpakFileSystem->BuildPreviewMaterial(Asset.Hash);
 		if (Material == nullptr)
 			return;
-		this->PreviewWindow->AssignPreviewImage(*Material.get(), Asset.Name);
+		this->PreviewWindow->AssignPreviewImage(*Material.get(), Asset.Name, fct);
 	}
 	break;
 	}
 
-	uint64_t fct = (Asset.FileCreatedTime / 10000000) - 0x2b6109100;
-	this->PreviewWindow->GetRenderer()->SetDebugVersion(fct);
 }
 
 std::unique_ptr<Assets::Texture> LegionMain::MaterialStreamCallback(string Source, uint64_t Hash)

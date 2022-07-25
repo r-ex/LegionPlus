@@ -237,6 +237,7 @@ namespace Assets
 	void AssetRenderer::SetDebugVersion(uint64_t Version)
 	{
 		this->_DrawInformation.DebugVersion = Version;
+		this->Redraw();
 	}
 
 	void AssetRenderer::SetZUpAxis(bool ZUp)
