@@ -234,7 +234,7 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 			else if (Asset.AssetVersion != 9 && Asset.Version == RpakGameVersion::R2TT) 
 			{
 				// hehe I am lazy :)
-				if (Name.Contains("_col"))
+				if (Name.EndsWith("_col"))
 				{
 					Offset += (this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset]);
 				}
@@ -243,14 +243,8 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 					// this is very janky
 					int BlockSizeMips = 0;
 					for (int sM = 0; sM < TexHeader.MipLevelsStreamed; sM++)
-					{
-						if (sM == 0) {
-							BlockSizeMips += BlockSize;
-						}
-						else {
-							BlockSizeMips += (BlockSize / std::pow(4, sM));
-						}
-
+					{							
+						BlockSizeMips += (BlockSize / std::pow(4, sM));
 					}
 
 					Offset += (this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset] - BlockSizeMips);
