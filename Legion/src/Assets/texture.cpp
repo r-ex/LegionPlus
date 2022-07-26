@@ -167,9 +167,15 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 
 		if (this->LoadedFiles[Asset.FileIndex].OptimalStarpakMap.ContainsKey(Asset.OptimalStarpakOffset))
 		{
-			if (Asset.AssetVersion != 9)
+			if (Asset.AssetVersion != 9 && Asset.Version != RpakGameVersion::R2TT)
 			{
+				// I'm not putting a funny loop here, techtest, and r2 for that matter don't have, and likely never will have optional starpaks.
 				Offset += (this->LoadedFiles[Asset.FileIndex].OptimalStarpakMap[Asset.OptimalStarpakOffset] - BlockSize);
+				bStreamed = true;
+			}
+			else if (Asset.AssetVersion != 9 && Asset.Version == RpakGameVersion::R2TT)
+			{
+				Offset += (this->LoadedFiles[Asset.FileIndex].OptimalStarpakMap[Asset.OptimalStarpakOffset]);
 				bStreamed = true;
 			}
 			else
@@ -205,8 +211,10 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 			// ???: why didnt this originally just check if it also had non-opt starpak offsets and use that for the image?
 			//      then at least the image would be higher quality than the highest permanent mip
 			///
-			if (Asset.AssetVersion != 9)
+			if (Asset.AssetVersion != 9 && Asset.Version != RpakGameVersion::R2TT)
 				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.DataSize - BlockSize);
+			else if (Asset.AssetVersion != 9 && Asset.Version == RpakGameVersion::R2TT)
+				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
 			else
 				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
 		}
@@ -218,9 +226,45 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 
 		if (this->LoadedFiles[Asset.FileIndex].StarpakMap.ContainsKey(Asset.StarpakOffset))
 		{
-			if (Asset.AssetVersion != 9)
+			if (Asset.AssetVersion != 9 && Asset.Version != RpakGameVersion::R2TT)
 			{
 				Offset += (this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset] - BlockSize);
+				bStreamed = true;
+			}
+			else if (Asset.AssetVersion != 9 && Asset.Version == RpakGameVersion::R2TT) 
+			{
+				// hehe I am lazy :)
+				if (Name.Contains("_col"))
+				{
+					Offset += (this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset]);
+				}
+				else
+				{
+					// this is very janky
+					int BlockSizeMips = 0;
+					for (int sM = 0; sM < TexHeader.MipLevelsStreamed; sM++)
+					{
+						if (sM == 0) {
+							BlockSizeMips += BlockSize;
+						}
+						else {
+							BlockSizeMips += (BlockSize / std::pow(4, sM));
+						}
+						
+						//printf((std::to_string(sM) + " mip level number\n").c_str());
+						//printf((std::to_string(BlockSizeMips) + " size of block size after divsion...\n").c_str());
+						//printf((std::to_string(std::pow(4, sM)) + " divsion amount\n").c_str());
+
+					}
+
+					//printf((std::to_string(TexHeader.MipLevelsStreamed) + " streamed mips \n").c_str());
+					//printf((std::to_string(BlockSizeMips) + " size of streamed mip block \n").c_str());
+
+					//printf(std::to_string(BlockSize).c_str());
+
+					Offset += (this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset] - BlockSizeMips);
+				}
+
 				bStreamed = true;
 			}
 			else
@@ -245,8 +289,12 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		{
 			g_Logger.Warning("Starpak for asset 0x%llx is not loaded. Output may be incorrect/weird\n", Asset.NameHash);
 
-			if (Asset.AssetVersion != 9)
+			if (Asset.AssetVersion != 9 && Asset.Version != RpakGameVersion::R2TT)
 				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.DataSize - BlockSize);
+			else if (Asset.AssetVersion != 9 && Asset.Version == RpakGameVersion::R2TT)
+			{
+				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
+			}
 			else
 				this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
 		}
@@ -257,8 +305,10 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		// All texture data is inline in rpak, we can calculate without anything else
 		//
 
-		if (Asset.AssetVersion != 9)
+		if (Asset.AssetVersion != 9 && Asset.Version != RpakGameVersion::R2TT)
 			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.DataSize - BlockSize);
+		else if (Asset.AssetVersion != 9 && Asset.Version == RpakGameVersion::R2TT)
+			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
 		else
 			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
 	}
