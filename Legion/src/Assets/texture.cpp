@@ -250,17 +250,8 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 						else {
 							BlockSizeMips += (BlockSize / std::pow(4, sM));
 						}
-						
-						//printf((std::to_string(sM) + " mip level number\n").c_str());
-						//printf((std::to_string(BlockSizeMips) + " size of block size after divsion...\n").c_str());
-						//printf((std::to_string(std::pow(4, sM)) + " divsion amount\n").c_str());
 
 					}
-
-					//printf((std::to_string(TexHeader.MipLevelsStreamed) + " streamed mips \n").c_str());
-					//printf((std::to_string(BlockSizeMips) + " size of streamed mip block \n").c_str());
-
-					//printf(std::to_string(BlockSize).c_str());
 
 					Offset += (this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset] - BlockSizeMips);
 				}
@@ -292,9 +283,7 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 			if (Asset.AssetVersion != 9 && Asset.Version != RpakGameVersion::R2TT)
 				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.DataSize - BlockSize);
 			else if (Asset.AssetVersion != 9 && Asset.Version == RpakGameVersion::R2TT)
-			{
 				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
-			}
 			else
 				this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
 		}
