@@ -174,7 +174,7 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 			}
 			else if (Asset.Version == RpakGameVersion::R2TT)
 			{
-				// I'm not putting a funny loop here, techtest, and r2 for that matter don't have, and likely never will have optional starpaks.
+				// I'm not putting a funny loop here, r2tt, and r2 for that matter don't have, and likely never will have optional starpaks.
 				Offset += (this->LoadedFiles[Asset.FileIndex].OptimalStarpakMap[Asset.OptimalStarpakOffset]);
 				bStreamed = true;
 			}
@@ -233,21 +233,21 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 			}
 			else if (Asset.Version == RpakGameVersion::R2TT) 
 			{
-				// hehe I am lazy :)
-				if (Name.EndsWith("_col"))
+				// this covers most of the "backwards" textures, a few are still broken. no idea what actually flags them to be in the starpak like this.
+				if (Name.EndsWith("_col") || Name.EndsWith("_alpha"))
 				{
 					Offset += (this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset]);
 				}
 				else
 				{
 					// this is very janky
-					int BlockSizeMips = 0;
+					int StreamedBlockSize = 0;
 					for (int sM = 0; sM < TexHeader.MipLevelsStreamed; sM++)
 					{							
-						BlockSizeMips += (BlockSize / std::pow(4, sM));
+						StreamedBlockSize += (BlockSize / std::pow(4, sM));
 					}
 
-					Offset += (this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset] - BlockSizeMips);
+					Offset += (this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset] - StreamedBlockSize);
 				}
 
 				bStreamed = true;
