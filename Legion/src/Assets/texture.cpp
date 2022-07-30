@@ -167,15 +167,9 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 
 		if (this->LoadedFiles[Asset.FileIndex].OptimalStarpakMap.ContainsKey(Asset.OptimalStarpakOffset))
 		{
-			if (Asset.AssetVersion != 9 && Asset.Version != RpakGameVersion::R2TT)
+			if (Asset.AssetVersion != 9)
 			{
 				Offset += (this->LoadedFiles[Asset.FileIndex].OptimalStarpakMap[Asset.OptimalStarpakOffset] - BlockSize);
-				bStreamed = true;
-			}
-			else if (Asset.Version == RpakGameVersion::R2TT)
-			{
-				// I'm not putting a funny loop here, r2tt, and r2 for that matter don't have, and likely never will have optional starpaks.
-				Offset += (this->LoadedFiles[Asset.FileIndex].OptimalStarpakMap[Asset.OptimalStarpakOffset]);
 				bStreamed = true;
 			}
 			else
