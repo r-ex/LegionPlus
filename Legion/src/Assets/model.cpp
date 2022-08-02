@@ -982,6 +982,9 @@ List<Assets::Bone> RpakLib::ExtractSkeleton(IO::BinaryReader& Reader, uint64_t S
 		Result.EmplaceBack(TagName, Bone.ParentIndex, Bone.Position, Bone.Rotation);
 	}
 
+	if (SkeletonHeader.BoneCount == 1)
+		Result[0].SetParent(-1);
+
 	return Result;
 }
 
