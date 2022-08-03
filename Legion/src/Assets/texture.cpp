@@ -227,23 +227,6 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 			}
 			else if (Asset.Version == RpakGameVersion::R2TT) 
 			{
-				// this covers most of the "backwards" textures, a few are still broken. no idea what actually flags them to be in the starpak like this.
-				if (Name.EndsWith("_col") || Name.EndsWith("_alpha"))
-				{
-					Offset += (this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset]);
-				}
-				else
-				{
-					// this is very janky
-					int StreamedBlockSize = 0;
-					for (int sM = 0; sM < TexHeader.MipLevelsStreamed; sM++)
-					{							
-						StreamedBlockSize += (BlockSize / std::pow(4, sM));
-					}
-
-					Offset += (this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset] - StreamedBlockSize);
-				}
-
 				bStreamed = true;
 			}
 			else
