@@ -103,6 +103,10 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 		TexturesCount = (MatHeader.StreamableTexturesOffset - MatHeader.TexturesOffset) / 8;
 		g_Logger.Info("> %i textures:\n", TexturesCount);
 	}
+	else {
+		TexturesCount = (MatHeader.UnknownTFOffset - MatHeader.TexturesTFOffset) / 8;
+		g_Logger.Info("> %i textures:\n", TexturesCount);
+	}
 
 	// These textures have named slots
 	for (uint32_t i = 0; i < TexturesCount; i++)
