@@ -6,35 +6,8 @@
 
 namespace Themes
 {
-	// Constants for brushes
-	/*const static auto BorderBrush = Drawing::Color(219, 56, 80);
-	const static auto DisabledBorderBrush = Drawing::Color(30, 32, 55);
 
-
-	const static auto BackgroundBrush = Drawing::Color(30, 32, 55);
-	const static auto BackgroundLightBrush = Drawing::Color(31, 37, 62);
-
-
-	const static auto BackgroundGrad1 = Drawing::Color(30, 32, 55);
-	const static auto BackgroundGrad2 = Drawing::Color(30, 32, 55);
-
-
-	const static auto BackgroundOverGrad1 = Drawing::Color(30, 32, 55);
-	const static auto BackgroundOverGrad2 = Drawing::Color(30, 32, 55);
-
-
-	const static auto TextEnabledBrush = Drawing::Color(Drawing::Color::White);
-	const static auto TextDisabledBrush = Drawing::Color(Drawing::Color::Gray);
-
-
-	const static auto ProgressGrad1 = Drawing::Color(219, 56, 80);
-	const static auto ProgressGrad2 = Drawing::Color(219, 56, 80);
-
-	const static auto HeaderBrush = Drawing::Color(46, 53, 84);*/
-
-	// New Theme, saving for anyone else who wants to help.
-	const static auto BorderBrush = Drawing::Color(113, 156, 235);
-	const static auto DarkBorderBrush = Drawing::Color(113, 156, 235);
+	// All the General Theme settings, don't edit these
 	const static auto DisabledBorderBrush = Drawing::Color(160, 160, 160);
 
 	const static auto BackgroundBrush = Drawing::Color(33, 33, 33);
@@ -49,10 +22,53 @@ namespace Themes
 	const static auto TextEnabledBrush = Drawing::Color(Drawing::Color::White);
 	const static auto TextDisabledBrush = Drawing::Color(Drawing::Color::Gray);
 
+	const static auto HeaderBrush = Drawing::Color(54, 54, 54);
+
+	// Original Theme
+	/*
+	const static auto BorderBrush = Drawing::Color(246, 68, 92);
+	const static auto DisabledBorderBrush = Drawing::Color(160, 160, 160);
+
+	const static auto BackgroundBrush = Drawing::Color(30, 32, 55);
+	const static auto BackgroundLightBrush = Drawing::Color(32, 38, 64);
+
+	const static auto BackgroundGrad1 = Drawing::Color(38, 44, 70);
+	const static auto BackgroundGrad2 = Drawing::Color(30, 35, 56);
+
+	const static auto BackgroundOverGrad1 = Drawing::Color(42, 48, 74);
+	const static auto BackgroundOverGrad2 = Drawing::Color(34, 39, 60);
+
+	const static auto TextEnabledBrush = Drawing::Color(Drawing::Color::White);
+	const static auto TextDisabledBrush = Drawing::Color(Drawing::Color::Gray);
+
+	const static auto ProgressGrad1 = Drawing::Color(246, 68, 92);
+	const static auto ProgressGrad2 = Drawing::Color(210, 52, 76);
+
+	const static auto HeaderBrush = Drawing::Color(46, 53, 84);
+	*/
+
+	// S12 Theme
+	/*
+	const static auto DarkBorderBrush = Drawing::Color(215, 106, 12);
+	const static auto DisabledBorderBrush = Drawing::Color(215, 106, 12);
+	const static auto ProgressGrad1 = Drawing::Color(215, 106, 12);
+	const static auto ProgressGrad2 = Drawing::Color(215, 106, 12);
+	*/
+
+	// S13 Theme
+	/*
+	const static auto DarkBorderBrush = Drawing::Color(113, 156, 235);
+	const static auto DisabledBorderBrush = Drawing::Color(160, 160, 160);
 	const static auto ProgressGrad1 = Drawing::Color(113, 156, 235);
 	const static auto ProgressGrad2 = Drawing::Color(113, 156, 235);
+	*/
 
-	const static auto HeaderBrush = Drawing::Color(54, 54, 54);
+	// S14 Theme
+	const static auto BorderBrush = Drawing::Color(85, 140, 98);
+	const static auto DarkBorderBrush = Drawing::Color(85, 140, 98);
+	const static auto ProgressGrad1 = Drawing::Color(85, 140, 98);
+	const static auto ProgressGrad2 = Drawing::Color(85, 140, 98);
+
 	
 	// Constants for images
 	static Drawing::Image* CheckBoxImage = nullptr;
@@ -69,44 +85,6 @@ namespace Themes
 	KoreTheme::~KoreTheme()
 	{
 		delete CheckBoxImage;
-	}
-
-	void KoreTheme::RenderControlBorder(const std::unique_ptr<Forms::PaintEventArgs>& EventArgs, Forms::Control* Ctrl, UIX::UIXRenderState State) const
-	{
-		Drawing::Rectangle Rect(Ctrl->ClientRectangle());
-
-		//
-		// Override for textbox rendering due to a bug in the layout rect
-		//
-
-		if (Ctrl->GetType() == Forms::ControlTypes::TextBox)
-		{
-			Rect.Width = Ctrl->Size().Width;
-			Rect.Height = Ctrl->Size().Height;
-		}
-
-		Rect.Width--;
-		Rect.Height--;
-
-		Drawing::SolidBrush Brush((State == UIX::UIXRenderState::Disabled) ? DisabledBorderBrush : BorderBrush);
-		Drawing::Pen Pen(&Brush);
-		
-		// Check again for textbox due to size issues
-		if (Ctrl->GetType() == Forms::ControlTypes::TextBox)
-		{
-			auto brush = Drawing::SolidBrush(BackgroundBrush);
-			auto pen = Drawing::Pen(&brush);
-			EventArgs->Graphics->DrawRectangle(&pen, Rect);
-		}
-		
-		// Now render smooth border
-		auto SmMode = EventArgs->Graphics->GetSmoothingMode();
-		{
-
-			EventArgs->Graphics->SetSmoothingMode(Gdiplus::SmoothingMode::SmoothingModeAntiAlias);
-			Drawing::DrawRoundRectangle(EventArgs->Graphics.get(), &Pen, Rect, 2);
-		}
-		EventArgs->Graphics->SetSmoothingMode(SmMode);
 	}
 
 	void KoreTheme::RenderControlBackground(const std::unique_ptr<Forms::PaintEventArgs>& EventArgs, Forms::Control* Ctrl, UIX::UIXRenderState State) const
@@ -165,27 +143,6 @@ namespace Themes
 
 		// Render to surface
 		Drawing::TextRenderer::DrawText(EventArgs->Graphics, Ctrl->Text(), *Ctrl->GetFont(), LayoutRect, (State == UIX::UIXRenderState::Disabled) ? TextDisabledBrush : TextEnabledBrush, FormatFlags);
-	}
-
-	void KoreTheme::RenderControlProgressFill(const std::unique_ptr<Forms::PaintEventArgs>& EventArgs, Forms::Control* Ctrl, UIX::UIXRenderState State, uint32_t Progress) const
-	{
-		// Bring client rect to stack
-		Drawing::Rectangle Rect(Ctrl->ClientRectangle());
-
-		// Generate the proper gradient if enabled/disabled
-		Drawing::LinearGradientBrush FillBrush(Rect, ProgressGrad1, ProgressGrad2, 90.f);
-
-		// Render the fill to surface
-
-		auto SmMode = EventArgs->Graphics->GetSmoothingMode();
-		{
-			EventArgs->Graphics->SetSmoothingMode(Gdiplus::SmoothingMode::SmoothingModeAntiAlias);
-			Gdiplus::RectF FillBounds(0, 0, (Rect.Width - 1.f) * (Progress / 100.0f), Rect.Height - 1.f);
-			Drawing::FillRoundRectangle(EventArgs->Graphics.get(), &FillBrush, FillBounds, 2);
-		}
-		EventArgs->Graphics->SetSmoothingMode(SmMode);
-
-		//EventArgs->Graphics->FillRectangle(&FillBrush, Gdiplus::RectF(2, 2, (Rect.Width - 4.f) * (Progress / 100.0f), Rect.Height - 4.f));
 	}
 
 	void KoreTheme::RenderControlGlyph(const std::unique_ptr<Forms::PaintEventArgs>& EventArgs, Forms::Control* Ctrl, UIX::UIXRenderState State) const
@@ -365,6 +322,44 @@ namespace Themes
 		EventArgs->Graphics->DrawLines(&pen, &Lines[0], _countof(Lines));
 	}
 
+	void KoreTheme::RenderControlBorder(const std::unique_ptr<Forms::PaintEventArgs>& EventArgs, Forms::Control* Ctrl, UIX::UIXRenderState State) const
+	{
+		Drawing::Rectangle Rect(Ctrl->ClientRectangle());
+
+		//
+		// Override for textbox rendering due to a bug in the layout rect
+		//
+
+		if (Ctrl->GetType() == Forms::ControlTypes::TextBox)
+		{
+			Rect.Width = Ctrl->Size().Width;
+			Rect.Height = Ctrl->Size().Height;
+		}
+
+		Rect.Width--;
+		Rect.Height--;
+
+		Drawing::SolidBrush Brush((State == UIX::UIXRenderState::Disabled) ? DisabledBorderBrush : BorderBrush);
+		Drawing::Pen Pen(&Brush);
+
+		// Check again for textbox due to size issues
+		if (Ctrl->GetType() == Forms::ControlTypes::TextBox)
+		{
+			auto brush = Drawing::SolidBrush(BackgroundBrush);
+			auto pen = Drawing::Pen(&brush);
+			EventArgs->Graphics->DrawRectangle(&pen, Rect);
+		}
+
+		// Now render smooth border
+		auto SmMode = EventArgs->Graphics->GetSmoothingMode();
+		{
+
+			EventArgs->Graphics->SetSmoothingMode(Gdiplus::SmoothingMode::SmoothingModeAntiAlias);
+			Drawing::DrawRoundRectangle(EventArgs->Graphics.get(), &Pen, Rect, 2);
+		}
+		EventArgs->Graphics->SetSmoothingMode(SmMode);
+	}
+
 	void KoreTheme::RenderControlListColumnHeader(const std::unique_ptr<Forms::DrawListViewColumnHeaderEventArgs>& EventArgs, Forms::Control* Ctrl) const
 	{
 		// Fetch color from foreground
@@ -388,6 +383,27 @@ namespace Themes
 		NewBounds.Width -= 5;
 
 		Drawing::TextRenderer::DrawText(EventArgs->Graphics, EventArgs->Header->Text(), *Ctrl->GetFont(), NewBounds,  Drawing::Color::White, Drawing::TextFormatFlags::Left | Drawing::TextFormatFlags::VerticalCenter | Drawing::TextFormatFlags::SingleLine | Drawing::TextFormatFlags::EndEllipsis);
+	}
+
+	void KoreTheme::RenderControlProgressFill(const std::unique_ptr<Forms::PaintEventArgs>& EventArgs, Forms::Control* Ctrl, UIX::UIXRenderState State, uint32_t Progress) const
+	{
+		// Bring client rect to stack
+		Drawing::Rectangle Rect(Ctrl->ClientRectangle());
+
+		// Generate the proper gradient if enabled/disabled
+		Drawing::LinearGradientBrush FillBrush(Rect, ProgressGrad1, ProgressGrad2, 90.f);
+
+		// Render the fill to surface
+
+		auto SmMode = EventArgs->Graphics->GetSmoothingMode();
+		{
+			EventArgs->Graphics->SetSmoothingMode(Gdiplus::SmoothingMode::SmoothingModeAntiAlias);
+			Gdiplus::RectF FillBounds(0, 0, (Rect.Width - 1.f) * (Progress / 100.0f), Rect.Height - 1.f);
+			Drawing::FillRoundRectangle(EventArgs->Graphics.get(), &FillBrush, FillBounds, 2);
+		}
+		EventArgs->Graphics->SetSmoothingMode(SmMode);
+
+		//EventArgs->Graphics->FillRectangle(&FillBrush, Gdiplus::RectF(2, 2, (Rect.Width - 4.f) * (Progress / 100.0f), Rect.Height - 4.f));
 	}
 
 	void KoreTheme::RenderControlListHeader(const std::unique_ptr<Drawing::BufferedGraphics>& EventArgs) const
@@ -455,7 +471,7 @@ namespace Themes
 
 		Drawing::SolidBrush TextBrush(TextEnabledBrush);
 		Gdiplus::RectF BoundsF((float)EventArgs->Bounds.X, (float)EventArgs->Bounds.Y, (float)EventArgs->Bounds.Width, (float)EventArgs->Bounds.Height);
-		
+
 		Gdiplus::StringFormat Fmt;
 		Fmt.SetAlignment(Gdiplus::StringAlignment::StringAlignmentCenter);
 		Fmt.SetLineAlignment(Gdiplus::StringAlignment::StringAlignmentCenter);
