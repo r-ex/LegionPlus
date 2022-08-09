@@ -443,10 +443,10 @@ void RpakLib::ExtractModelLod_V14(IO::BinaryReader& Reader, const std::unique_pt
 
 		// Ignore a submesh that has no strips, otherwise there is no mesh.
 		// This is likely also determined by flags == 0x0, but this is a good check.
-		if (Submesh.StripsCount == 0)
+		/*if (Submesh.StripsCount == 0)
 		{
 			continue;
-		}
+		}*/
 
 		List<uint8_t>& BoneRemapBuffer = *Fixup.BoneRemaps;
 
@@ -594,7 +594,7 @@ void RpakLib::ExtractModelLod_V14(IO::BinaryReader& Reader, const std::unique_pt
 			VertexBufferPtr += Submesh.VertexBufferStride;
 		}
 
-		for (uint32_t f = 0; f < (Strip.IndexCount / 3); f++)
+		for (uint32_t f = 0; f < (IndexBuffer.Count() / 3); f++)
 		{
 			uint16_t i1 = *(uint16_t*)FaceBufferPtr;
 			uint16_t i2 = *(uint16_t*)(FaceBufferPtr + 1);
