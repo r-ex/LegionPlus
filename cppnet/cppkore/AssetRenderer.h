@@ -121,6 +121,8 @@ namespace Assets
 			uint32_t Width;
 			uint32_t Height;
 
+			Vector2 Position;
+
 			int32_t Scale;
 
 			string AssetName;

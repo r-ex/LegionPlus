@@ -199,6 +199,12 @@ namespace Assets
 		// Determine best fit scale to fit the image
 		float Scale = min((float)this->_ClientWidth / (float)Texture.Width(), (float)this->_ClientHeight / (float)Texture.Height());
 		this->_DrawInformation.Scale = min(100, (int)(Scale * 100));
+
+		float ImageWidth = this->_DrawInformation.Width * (float)this->_DrawInformation.Scale / 100.f;
+		float ImageHeight = this->_DrawInformation.Height * (float)this->_DrawInformation.Scale / 100.f;
+
+		this->_DrawInformation.Position.X = (this->_ClientWidth - (float)ImageWidth) / 2.0f;
+		this->_DrawInformation.Position.Y = (this->_ClientHeight - (float)ImageHeight) / 2.0f;
 	}
 
 	void AssetRenderer::ClearViewTexture()
@@ -365,6 +371,9 @@ namespace Assets
 		{
 			float dx = ((float)(this->_TargetMousePosition.X - EventArgs->X));
 			float dy = ((float)(this->_TargetMousePosition.Y - EventArgs->Y));
+
+			this->_DrawInformation.Position.X += dx * .5f;
+			this->_DrawInformation.Position.Y += dy * .5f;
 
 			this->_Camera.Pan(dx * .1f, dy * .1f);
 			this->Redraw();
@@ -589,13 +598,11 @@ namespace Assets
 
 		float Scale = (float)this->_DrawInformation.Scale / 100.f;
 
-		float ImageWidth = this->_DrawInformation.Width * Scale;
-		float ImageHeight = this->_DrawInformation.Height * Scale;
+		float Width = this->_DrawInformation.Width * ((float)this->_DrawInformation.Scale / 100.f);
+		float Height = this->_DrawInformation.Height * ((float)this->_DrawInformation.Scale / 100.f);
 
-		float Width = (ImageWidth);
-		float Height = (ImageHeight);
-		float X = (this->_ClientWidth - (float)Width) / 2.0f;
-		float Y = (this->_ClientHeight - (float)Height) / 2.0f;
+		float X = this->_DrawInformation.Position.X;
+		float Y = this->_DrawInformation.Position.Y;
 
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, this->_DrawTexture);
