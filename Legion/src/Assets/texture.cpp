@@ -5,6 +5,27 @@
 #include <DDS.h>
 #include <rtech.h>
 
+void RpakLib::ExtractTextureName(const RpakLoadAsset& Asset, string& Name)
+{
+	// anything above v8 definitely doesn't have a name, so no point trying
+	if (Asset.AssetVersion > 8)
+		return;
+
+	auto RpakStream = this->GetFileStream(Asset);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
+
+	TextureHeader TexHeader = Reader.Read<TextureHeader>();
+
+	if (TexHeader.NameIndex || TexHeader.NameOffset)
+	{
+		RpakStream->SetPosition(this->GetFileOffset(Asset, TexHeader.NameIndex, TexHeader.NameOffset));
+
+		Name = Reader.ReadCString();
+	}
+}
+
 void RpakLib::BuildTextureInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 {
 	auto RpakStream = this->GetFileStream(Asset);

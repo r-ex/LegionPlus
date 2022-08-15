@@ -2,6 +2,7 @@
 #include "RpakLib.h"
 #include "Path.h"
 #include "Directory.h"
+#include <rtech.h>
 
 void RpakLib::BuildUIImageAtlasInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 {
@@ -12,7 +13,18 @@ void RpakLib::BuildUIImageAtlasInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	UIAtlasHeader Header = Reader.Read<UIAtlasHeader>();
 
-	Info.Name = string::Format("atlas_0x%llx", Asset.NameHash);
+	string AssetName = string::Format("atlas_0x%llx", Asset.NameHash);
+	string TextureName = "";
+	this->ExtractTextureName(Assets[Header.TextureGuid], TextureName);
+
+	if (TextureName.Length() > 0)
+	{
+		string OriginalAtlasPath = "ui_image_atlas/" + TextureName + ".rpak";
+		if (Asset.NameHash == RTech::StringToGuid(OriginalAtlasPath.ToCString()))
+			AssetName = OriginalAtlasPath;
+	}
+
+	Info.Name = ExportManager::Config.GetBool("UseFullPaths") ? AssetName : IO::Path::GetFileNameWithoutExtension(AssetName);;
 	Info.Type = ApexAssetType::UIImageAtlas;
 	Info.Status = ApexAssetStatus::Loaded;
 	Info.Info = string::Format("Textures: %i", Header.TexturesCount);
@@ -20,7 +32,27 @@ void RpakLib::BuildUIImageAtlasInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 void RpakLib::ExportUIImageAtlas(const RpakLoadAsset& Asset, const string& Path)
 {
+	auto RpakStream = this->GetFileStream(Asset);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
+
+	UIAtlasHeader Header = Reader.Read<UIAtlasHeader>();
+
+	if (!Assets.ContainsKey(Header.TextureGuid)) // can't get the images without texture data so let's head out
+		return;
+
 	string AtlasPath = IO::Path::Combine(Path, string::Format("0x%llx", Asset.NameHash));
+
+	string TextureName = "";
+	this->ExtractTextureName(Assets[Header.TextureGuid], TextureName);
+
+	if (TextureName.Length() > 0)
+	{
+		string OriginalAtlasPath = "ui_image_atlas/" + TextureName + ".rpak";
+		if (Asset.NameHash == RTech::StringToGuid(OriginalAtlasPath.ToCString()))
+			AtlasPath = IO::Path::Combine(Path, IO::Path::GetFileName(TextureName));
+	}
 
 	if (!IO::Directory::Exists(AtlasPath))
 		IO::Directory::CreateDirectory(AtlasPath);
@@ -39,9 +71,6 @@ void RpakLib::ExtractUIImageAtlas(const RpakLoadAsset& Asset, const string& Path
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
 	UIAtlasHeader Header = Reader.Read<UIAtlasHeader>();
-
-	if (!Assets.ContainsKey(Header.TextureGuid)) // can't get the images without texture data so let's head out
-		return;
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset));
 

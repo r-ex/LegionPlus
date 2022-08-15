@@ -478,6 +478,8 @@ private:
 	ShaderSetHeader ExtractShaderSet(const RpakLoadAsset& Asset);
 	void ExtractUIImageAtlas(const RpakLoadAsset& Asset, const string& Path);
 
+	void ExtractTextureName(const RpakLoadAsset& Asset, string& Name);
+
 	string GetSubtitlesNameFromHash(uint64_t Hash);
 	void ParseRAnimBoneTranslationTrack(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex);
 	void ParseRAnimBoneRotationTrack(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex);
