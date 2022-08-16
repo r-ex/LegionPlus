@@ -300,6 +300,7 @@ enum class AssetType_t : uint32_t
 	UIIA = 0x61696975, // uiia
 	DataTable = 0x6C627464, // dtbl
 	Settings = 0x73677473, // stgs
+	SettingsLayout = 0x746c7473, // stlt
 	Material = 0x6C74616D, // matl
 	AnimationRig = 0x67697261, // arig
 	Animation = 0x71657361, // aseq
@@ -426,6 +427,7 @@ public:
 	void ExportSubtitles(const RpakLoadAsset& Asset, const string& Path);
 	void ExportShaderSet(const RpakLoadAsset& Asset, const string& Path);
 	void ExportUIImageAtlas(const RpakLoadAsset& Asset, const string& Path);
+	void ExportSettings(const RpakLoadAsset& Asset, const string& Path);
 	List<List<DataTableColumnData>> ExtractDataTable(const RpakLoadAsset& Asset);
 	List<ShaderVar> ExtractShaderVars(const RpakLoadAsset& Asset, D3D_SHADER_VARIABLE_TYPE Type = D3D_SVT_FORCE_DWORD); // default value as a type that should never be used
 	List<ShaderResBinding> ExtractShaderResourceBindings(const RpakLoadAsset& Asset, D3D_SHADER_INPUT_TYPE InputType);
@@ -464,6 +466,7 @@ private:
 	void BuildSubtitleInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildShaderSetInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildUIImageAtlasInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
+	void BuildSettingsInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 
 	std::unique_ptr<Assets::Model> ExtractModel(const RpakLoadAsset& Asset, const string& Path, const string& AnimPath, bool IncludeMaterials, bool IncludeAnimations);
 	void ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO::MemoryStream>& RpakStream, string Name, uint64_t Offset, const std::unique_ptr<Assets::Model>& Model, RMdlFixupPatches& Fixup, uint32_t Version, bool IncludeMaterials);
@@ -477,8 +480,12 @@ private:
 	void ExtractShader(const RpakLoadAsset& Asset, const string& OutputDirPath, const string& Path);
 	ShaderSetHeader ExtractShaderSet(const RpakLoadAsset& Asset);
 	void ExtractUIImageAtlas(const RpakLoadAsset& Asset, const string& Path);
+	void ExtractSettings(const RpakLoadAsset& Asset, const string& Path, const string& Name, const SettingsHeader& Header);
+	SettingsLayout ExtractSettingsLayout(const RpakLoadAsset& Asset);
 
 	void ExtractTextureName(const RpakLoadAsset& Asset, string& Name);
+	string ReadStringFromPointer(const RpakLoadAsset& Asset, const RPakPtr& ptr);
+	string ReadStringFromPointer(const RpakLoadAsset& Asset, uint32_t index, uint32_t offset);
 
 	string GetSubtitlesNameFromHash(uint64_t Hash);
 	void ParseRAnimBoneTranslationTrack(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex);

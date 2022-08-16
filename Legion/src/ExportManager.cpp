@@ -211,6 +211,9 @@ void ExportManager::ExportRpakAssets(const std::unique_ptr<RpakLib>& RpakFileSys
 			case (uint32_t)AssetType_t::UIImageAtlas:
 				RpakFileSystem->ExportUIImageAtlas(AssetToExport, IO::Path::Combine(ExportDirectory, "atlases"));
 				break;
+			case (uint32_t)AssetType_t::Settings:
+				RpakFileSystem->ExportSettings(AssetToExport, IO::Path::Combine(ExportDirectory, "settings"));
+				break;
 			}
 
 			IsCancel = StatusCallback(Asset.AssetIndex, MainForm);

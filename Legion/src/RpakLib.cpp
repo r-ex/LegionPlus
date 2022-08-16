@@ -208,6 +208,9 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims
 		case (uint32_t)AssetType_t::UIImageAtlas:
 			BuildUIImageAtlasInfo(Asset, NewAsset);
 			break;
+		case (uint32_t)AssetType_t::Settings:
+			BuildSettingsInfo(Asset, NewAsset);
+			break;
 		default:
 			continue;
 		}
@@ -612,6 +615,8 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 		case (uint32_t)AssetType_t::Shader:
 		case (uint32_t)AssetType_t::ShaderSet:
 		case (uint32_t)AssetType_t::Subtitles:
+		case (uint32_t)AssetType_t::Settings:
+		case (uint32_t)AssetType_t::SettingsLayout:
 			return true;
 		default:
 			return false;
@@ -1157,6 +1162,38 @@ bool RpakLib::MountR2TTRpak(const string& Path, bool Dump)
 	Stream.get()->SetPosition(0);
 
 	return ParseR2TTRpak(Path, Stream);
+}
+
+string RpakLib::ReadStringFromPointer(const RpakLoadAsset& Asset, const RPakPtr& ptr)
+{
+	// this might be bad but it works for now
+	if (!ptr.index && !ptr.offset)
+		return "";
+
+	auto RpakStream = this->GetFileStream(Asset);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, ptr.index, ptr.offset));
+
+	string result = Reader.ReadCString();
+
+	return result;
+}
+
+string RpakLib::ReadStringFromPointer(const RpakLoadAsset& Asset, uint32_t index, uint32_t offset)
+{
+	// this might be bad but it works for now
+	if (!index && !offset)
+		return "";
+
+	auto RpakStream = this->GetFileStream(Asset);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, index, offset));
+
+	string result = Reader.ReadCString();
+
+	return result;
 }
 
 RpakLoadAsset::RpakLoadAsset(uint64_t NameHash, uint32_t FileIndex, uint32_t AssetType, uint32_t SubHeaderIndex, uint32_t SubHeaderOffset, uint32_t SubHeaderSize, uint32_t RawDataIndex, uint32_t RawDataOffset, uint64_t StarpakOffset, uint64_t OptimalStarpakOffset, RpakGameVersion Version, uint32_t AssetVersion)

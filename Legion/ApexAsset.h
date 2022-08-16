@@ -14,6 +14,7 @@ enum class ApexAssetType
 	ShaderSet,
 	UIImage,
 	UIImageAtlas,
+	Settings,
 };
 
 enum class ApexAssetStatus

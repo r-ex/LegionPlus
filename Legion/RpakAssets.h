@@ -10,6 +10,11 @@
 // Game structures
 // APEX
 #pragma pack(push, 1)
+struct RPakPtr
+{
+	uint32_t index;
+	uint32_t offset;
+};
 
 enum class CompressionType : uint8_t
 {
@@ -190,26 +195,43 @@ struct SubtitleEntry
 	string SubtitleText;
 };
 
+// settings structs are only tested on season 3 for now
+enum SettingsFieldType : uint16_t
+{
+	ST_Bool,
+	ST_Int,
+	ST_Float,
+	ST_Float2,
+	ST_Float3,
+	ST_String,
+	ST_Asset,
+	ST_Asset_2,
+	ST_Array,
+	ST_Array_2,
+};
+
 // --- stgs ---
 struct SettingsHeader
 {
-	uint64_t Hash;
-	
-	uint32_t KvpIndex;
-	uint32_t KvpOffset;
+	uint64_t LayoutGUID;
 
-	uint32_t NameIndex;
-	uint32_t NameOffset;
+	RPakPtr Values;
 
-	uint32_t StringBufferIndex;
-	uint32_t StringBufferOffset;
+	RPakPtr Name;
 
-	uint8_t Unk1[0x18];
+	RPakPtr StringBuf;
+
+	uint64_t Unk1;
+
+	RPakPtr ModNames;
+
+	RPakPtr Unk2;
 
 	uint32_t KvpBufferSize;
 
-	uint8_t Unk2[0xC];
+	uint8_t Unk3[0xC];
 };
+ASSERT_SIZE(SettingsHeader, 0x48);
 
 struct SettingsKeyValue
 {
@@ -221,6 +243,37 @@ struct SettingsKeyValuePair
 {
 	SettingsKeyValue Key;
 	SettingsKeyValue Value;
+};
+
+struct SettingsLayoutHeader
+{
+	RPakPtr pName;
+	RPakPtr pItems;
+	RPakPtr unk2;
+	uint32_t unk3;
+	uint32_t itemsCount;
+	uint32_t unk4;
+	uint32_t unk5;
+	uint32_t unk6;
+	uint32_t unk7;
+	uint32_t unk8;
+	uint32_t unk9;
+	RPakPtr pStringBuf;
+	RPakPtr unk11;
+};
+
+struct SettingsLayoutItem
+{
+	SettingsFieldType type = ST_String;
+	string name;
+	uint32_t valueOffset; // offset from start of stgs value buffer
+};
+
+struct SettingsLayout
+{
+	string name;
+	unsigned int itemsCount;
+	List<SettingsLayoutItem> items;
 };
 
 // --- Ptch ---
