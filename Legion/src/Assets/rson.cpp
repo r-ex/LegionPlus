@@ -37,6 +37,7 @@ std::string GetIndentation(int level)
 
 void RpakLib::R_WriteRSONFile(const RpakLoadAsset& Asset, std::ofstream& out, IO::BinaryReader& Reader, RSONNode node, int level)
 {
+	auto RpakStream = Reader.GetBaseStream();
 	string name = this->ReadStringFromPointer(Asset, node.pName);
 	out << GetIndentation(level) << name.ToString() << ":";
 
@@ -53,20 +54,37 @@ void RpakLib::R_WriteRSONFile(const RpakLoadAsset& Asset, std::ofstream& out, IO
 		for (int i = 0; i < node.valueCount; ++i)
 		{
 			// i hate this so much
-			Reader.GetBaseStream()->SetPosition(this->GetFileOffset(Asset, node.pValues.Index, node.pValues.Offset + (i*sizeof(RSONNode))));
-
-			RSONNode newNode = Reader.Read<RSONNode>();
+			RpakStream->SetPosition(this->GetFileOffset(Asset, node.pValues.Index, node.pValues.Offset + (i*sizeof(RSONNode))));
 
 			out << "\n" << GetIndentation(level) << "{\n";
 
-			this->R_WriteRSONFile(Asset, out, Reader, newNode, level + 1);
+			while (true)
+			{
+				RSONNode newNode = Reader.Read<RSONNode>();
+
+				uint64_t startPos = RpakStream->GetPosition();
+
+				this->R_WriteRSONFile(Asset, out, Reader, newNode, level + 1);
+
+				RpakStream->SetPosition(startPos);
+
+				// after the node, there is a slot for a pointer to another node, check if it is present
+				RPakPtr nextPtr = Reader.Read<RPakPtr>();
+
+				// check if the pointer is actually a pointer
+				if (nextPtr.Index == 0 && nextPtr.Offset == 0)
+					break;
+
+				RpakStream->SetPosition(this->GetFileOffset(Asset, nextPtr.Index, nextPtr.Offset));
+			}
+
 			out << GetIndentation(level) << "}\n";
 		}
 		break;
 	}
 	case 4098: // list of strings
 	{
-		Reader.GetBaseStream()->SetPosition(this->GetFileOffset(Asset, node.pValues.Index, node.pValues.Offset));
+		RpakStream->SetPosition(this->GetFileOffset(Asset, node.pValues.Index, node.pValues.Offset));
 		out << "\n" << GetIndentation(level) << "[\n";
 		for (int i = 0; i < node.valueCount; ++i)
 		{
