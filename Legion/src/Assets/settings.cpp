@@ -141,6 +141,40 @@ void RpakLib::ExtractSettings(const RpakLoadAsset& Asset, const string& Path, co
 			out << "$\"" << sValue.ToString() << "\"";
 			break;
 		}
+		case SettingsFieldType::ST_Array_2:
+		{
+			out << "\n\t{";
+			RpakStream->SetPosition(this->GetFileOffset(Asset, Header.Values.Index, Header.Values.Offset + (it.valueOffset & 0xFFFFFF)));
+
+			// First read the array size and offset..
+			int nArraySize = Reader.Read<int>(); // YOU ARE WRONG BUT ALSO RIGHT, EITHER YOU ARE TOO SMALL SO I HAVE TO TAKE YOU * 2 OR TOO SMALL SO YOU MAKE ME CRASH.
+			int nArrayPtrOffset = Reader.Read<int>();
+
+			if (nArraySize != 0)
+			{
+				// Now we the the pointer that points at the start of the array.
+				RpakStream->SetPosition(this->GetFileOffset(Asset, Header.Values.Index, Header.Values.Offset + (nArrayPtrOffset)));
+
+				for (int i = 1; i < nArraySize; i++)
+				{
+					int nEntryOffset = nArrayPtrOffset + ((i - 1) * sizeof(RPakPtr));
+					RpakStream->SetPosition(this->GetFileOffset(Asset, Header.Values.Index, Header.Values.Offset + nEntryOffset));
+
+					RPakPtr pValue = Reader.Read<RPakPtr>();
+					if (pValue.Index && pValue.Offset)
+					{
+						RpakStream->SetPosition(this->GetFileOffset(Asset, pValue.Index, pValue.Offset));
+						string sEntry = Reader.ReadCString();
+
+						out << "\n\t\t\"" << sEntry.ToString() << "\" ";
+					}
+				}
+			}
+
+			out << "\n\t}";
+
+			break;
+		}
 		default:
 			printf("NOT IMPLEMENTED: SettingType %i\n", it.type);
 			break;
