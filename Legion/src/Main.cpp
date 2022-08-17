@@ -91,16 +91,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			Rpak->LoadRpak(filePath);
 			Rpak->PatchAssets();
 
-			// load rpak flags
-			bool bLoadModels = cmdline.HasParam(L"--loadmodels");
-			bool bLoadAnims = cmdline.HasParam(L"--loadanimations");
-			bool bLoadImages = cmdline.HasParam(L"--loadimages");
-			bool bLoadMaterials = cmdline.HasParam(L"--loadmaterials");
-			bool bLoadUIImages = cmdline.HasParam(L"--loaduiimages");
-			bool bLoadDataTables = cmdline.HasParam(L"--loaddatatables");
-			bool bLoadShaderSets = cmdline.HasParam(L"--loadshadersets");
-			bool bLoadSettingsSets = cmdline.HasParam(L"--loadsettingssets");
-
 			// other rpak flags
 			ExportManager::Config.SetBool("UseFullPaths", cmdline.HasParam(L"--fullpath"));
 			ExportManager::Config.SetBool("AudioLanguageFolders", cmdline.HasParam(L"--audiolanguagefolder"));
@@ -246,24 +236,47 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 			std::unique_ptr<List<ApexAsset>> AssetList;
 
+			// load rpak flags
+			bool bLoadModels = cmdline.HasParam(L"--loadmodels");
+			bool bLoadAnims = cmdline.HasParam(L"--loadanimations");
+			bool bLoadImages = cmdline.HasParam(L"--loadimages");
+			bool bLoadMaterials = cmdline.HasParam(L"--loadmaterials");
+			bool bLoadUIImages = cmdline.HasParam(L"--loaduiimages");
+			bool bLoadDataTables = cmdline.HasParam(L"--loaddatatables");
+			bool bLoadShaderSets = cmdline.HasParam(L"--loadshadersets");
+			bool bLoadSettingsSets = cmdline.HasParam(L"--loadsettingssets");
+
 			bool bNoFlagsSpecified = !bLoadModels && !bLoadAnims && !bLoadImages && !bLoadMaterials && !bLoadUIImages && !bLoadDataTables && !bLoadShaderSets && !bLoadSettingsSets;
 
 			if (bNoFlagsSpecified)
 			{
-				const bool ShowModels = ExportManager::Config.Get<System::SettingType::Boolean>("LoadModels");
-				const bool ShowAnimations = ExportManager::Config.Get<System::SettingType::Boolean>("LoadAnimations");
-				const bool ShowImages = ExportManager::Config.Get<System::SettingType::Boolean>("LoadImages");
-				const bool ShowMaterials = ExportManager::Config.Get<System::SettingType::Boolean>("LoadMaterials");
-				const bool ShowUIImages = ExportManager::Config.Get<System::SettingType::Boolean>("LoadUIImages");
-				const bool ShowDataTables = ExportManager::Config.Get<System::SettingType::Boolean>("LoadDataTables");
-				// I hate this, I hate this, I hate this
-				AssetList = Rpak->BuildAssetList(ShowModels, ShowAnimations, ShowImages, ShowMaterials, ShowUIImages, ShowDataTables);
+				std::array<bool, 8> bAssets = {
+					ExportManager::Config.GetBool("LoadModels"),
+					ExportManager::Config.GetBool("LoadAnimations"),
+					ExportManager::Config.GetBool("LoadImages"),
+					ExportManager::Config.GetBool("LoadMaterials"),
+					ExportManager::Config.GetBool("LoadUIImages"),
+					ExportManager::Config.GetBool("LoadDataTables"),
+					ExportManager::Config.GetBool("LoadShaderSets"),
+					ExportManager::Config.GetBool("LoadSettingsSets")
+				};
+
+				AssetList = Rpak->BuildAssetList(bAssets);
 			}
 			else
 			{
-				ExportManager::Config.Set<System::SettingType::Boolean>("LoadShaderSets", bLoadShaderSets);
-				ExportManager::Config.Set<System::SettingType::Boolean>("LoadSettingsSet", bLoadSettingsSets);
-				AssetList = Rpak->BuildAssetList(bLoadModels, bLoadAnims, bLoadImages, bLoadMaterials, bLoadUIImages, bLoadDataTables);
+				std::array<bool, 8> bAssets = {
+					bLoadModels,
+					bLoadAnims,
+					bLoadImages,
+					bLoadMaterials,
+					bLoadUIImages,
+					bLoadDataTables,
+					bLoadShaderSets,
+					bLoadSettingsSets,
+				};
+
+				AssetList = Rpak->BuildAssetList(bAssets);
 			}
 
 			if (bExportRpak)

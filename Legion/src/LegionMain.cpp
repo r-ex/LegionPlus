@@ -513,14 +513,18 @@ void LegionMain::RefreshView()
 	{
 		this->AssetsListView->SetVirtualListSize(0);
 
-		const bool ShowModels = ExportManager::Config.GetBool("LoadModels");
-		const bool ShowAnimations = ExportManager::Config.GetBool("LoadAnimations");
-		const bool ShowImages = ExportManager::Config.GetBool("LoadImages");
-		const bool ShowMaterials = ExportManager::Config.GetBool("LoadMaterials");
-		const bool ShowUIImages = ExportManager::Config.GetBool("LoadUIImages");
-		const bool ShowDataTables = ExportManager::Config.GetBool("LoadDataTables");
+		std::array<bool, 8> bAssets = {
+			ExportManager::Config.GetBool("LoadModels"),
+			ExportManager::Config.GetBool("LoadAnimations"),
+			ExportManager::Config.GetBool("LoadImages"),
+			ExportManager::Config.GetBool("LoadMaterials"),
+			ExportManager::Config.GetBool("LoadUIImages"),
+			ExportManager::Config.GetBool("LoadDataTables"),
+			ExportManager::Config.GetBool("LoadShaderSets"),
+			ExportManager::Config.GetBool("LoadSettingsSets")
+		};
 
-		this->LoadedAssets = this->RpakFileSystem->BuildAssetList(ShowModels, ShowAnimations, ShowImages, ShowMaterials, ShowUIImages, ShowDataTables);
+		this->LoadedAssets = this->RpakFileSystem->BuildAssetList(bAssets);
 		this->LoadedAssets->Sort([](const ApexAsset& lhs, const ApexAsset& rhs) { return lhs.Name.Compare(rhs.Name) < 0; });
 
 		this->ResetDisplayIndices();

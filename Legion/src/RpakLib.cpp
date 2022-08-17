@@ -153,7 +153,8 @@ void RpakLib::PatchAssets()
 	}
 }
 
-std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims, bool Images, bool Materials, bool UIImages, bool DataTables) // This is such a bad way of handling this, it actually pains me.
+//std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims, bool Images, bool Materials, bool UIImages, bool DataTables)
+std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(const std::array<bool, 8> &arrAssets)
 {
 	auto Result = std::make_unique<List<ApexAsset>>();
 
@@ -168,50 +169,50 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims
 		switch (Asset.AssetType)
 		{
 		case (uint32_t)AssetType_t::Model:
-			if (!Models)
+			if (!arrAssets[0])
 				continue;
 			BuildModelInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::AnimationRig:
-			if (!Anims)
+			if (!arrAssets[1])
 				continue;
 			BuildAnimInfo(Asset, NewAsset);
 			break;
-		case (uint32_t)AssetType_t::Material:
-			if (!Materials)
-				continue;
-			BuildMaterialInfo(Asset, NewAsset);
-			break;
 		case (uint32_t)AssetType_t::Texture:
-			if (!Images)
+			if (!arrAssets[2])
 				continue;
 			BuildTextureInfo(Asset, NewAsset);
 			break;
+		case (uint32_t)AssetType_t::Material:
+			if (!arrAssets[3])
+				continue;
+			BuildMaterialInfo(Asset, NewAsset);
+			break;
 		case (uint32_t)AssetType_t::UIIA:
-			if (!UIImages)
+			if (!arrAssets[4])
 				continue;
 			BuildUIIAInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::DataTable:
-			if (!DataTables)
+			if (!arrAssets[5])
 				continue;
 			BuildDataTableInfo(Asset, NewAsset);
 			break;
-		case (uint32_t)AssetType_t::Subtitles:
-			BuildSubtitleInfo(Asset, NewAsset);
-			break;
 		case (uint32_t)AssetType_t::ShaderSet:
-			if (!ExportManager::Config.GetBool("LoadShaderSets"))
+			if (!arrAssets[6])
 				continue;
 			BuildShaderSetInfo(Asset, NewAsset);
 			break;
-		case (uint32_t)AssetType_t::UIImageAtlas:
-			BuildUIImageAtlasInfo(Asset, NewAsset);
-			break;
 		case (uint32_t)AssetType_t::Settings:
-			if (!ExportManager::Config.GetBool("LoadSettingsSets"))
+			if (!arrAssets[7])
 				continue;
 			BuildSettingsInfo(Asset, NewAsset);
+			break;
+		case (uint32_t)AssetType_t::Subtitles: // TODO ARRAY
+			BuildSubtitleInfo(Asset, NewAsset);
+			break;
+		case (uint32_t)AssetType_t::UIImageAtlas: // TODO ARRAY
+			BuildUIImageAtlasInfo(Asset, NewAsset);
 			break;
 		default:
 			continue;

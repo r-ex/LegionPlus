@@ -403,7 +403,7 @@ public:
 	bool m_bImageExporterInitialized = false;
 
 	// Builds the viewer list of assets
-	std::unique_ptr<List<ApexAsset>> BuildAssetList(bool Models, bool Anims, bool Images, bool Materials, bool UIImages, bool DataTables);
+	std::unique_ptr<List<ApexAsset>> BuildAssetList(const std::array<bool, 8>& arrAssets);
 	// Builds the preview model mesh
 	std::unique_ptr<Assets::Model> BuildPreviewModel(uint64_t Hash);
 	// Builds the preview texture

@@ -357,7 +357,18 @@ void RBspLib::ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std:
 	// make sure that RpakFileSystem actually exists (i.e. an rpak is loaded)
 	if (RpakFileSystem)
 	{
-		RpakMaterials = RpakFileSystem->BuildAssetList(false, false, false, true, false, false);
+		std::array<bool, 8> bAssets = {
+			false,  // Model
+			false, // Animation
+			false, // Texture/Images
+			true, // Material
+			false, // UIIA
+			false, // Datatables
+			false, // ShaderSets
+			false, // SettingsSets
+		};
+
+		RpakMaterials = RpakFileSystem->BuildAssetList(bAssets);
 
 		for (auto& Mat : *RpakMaterials)
 		{
@@ -507,7 +518,18 @@ void RBspLib::ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std:
 	if (!RpakFileSystem)
 		return;
 
-	auto RpakModels = RpakFileSystem->BuildAssetList(true, false, false, false, false, false);
+	std::array<bool, 8> bAssets = {
+		true,  // Model
+		false, // Animation
+		false, // Texture/Images
+		false, // Material
+		false, // UIIA
+		false, // Datatables
+		false, // ShaderSets
+		false, // SettingsSets
+	};
+
+	auto RpakModels = RpakFileSystem->BuildAssetList(bAssets);
 	Dictionary<string, RpakLoadAsset> RpakModelLookup;
 
 	for (auto& tm : *RpakModels)
@@ -607,7 +629,18 @@ void RBspLib::ExportTitanfall2Bsp(const std::unique_ptr<RpakLib>& RpakFileSystem
 	// make sure that RpakFileSystem actually exists (i.e. an rpak is loaded)
 	if (RpakFileSystem)
 	{
-		RpakMaterials = RpakFileSystem->BuildAssetList(false, false, false, true, false, false);
+		std::array<bool, 8> bAssets = {
+			false, // Model
+			false, // Animation
+			false, // Texture/Images
+			true,  // Material
+			false, // UIIA
+			false, // Datatables
+			false, // ShaderSets
+			false, // SettingsSets
+		};
+
+		RpakMaterials = RpakFileSystem->BuildAssetList(bAssets);
 
 		for (auto& Mat : *RpakMaterials)
 		{
@@ -757,7 +790,18 @@ void RBspLib::ExportTitanfall2Bsp(const std::unique_ptr<RpakLib>& RpakFileSystem
 	auto ExportedModelsPath = IO::Path::Combine(ModelPath, "_models");
 	auto ExportedModelAnimsPath = IO::Path::Combine(ExportedModelsPath, "_animations");
 
-	auto RpakModels = RpakFileSystem->BuildAssetList(true, false, false, false, false, false);
+	std::array<bool, 8> bAssets = {
+		true,  // Model
+		false, // Animation
+		false, // Texture/Images
+		false, // Material
+		false, // UIIA
+		false, // Datatables
+		false, // ShaderSets
+		false, // SettingsSets
+	};
+
+	auto RpakModels = RpakFileSystem->BuildAssetList(bAssets);
 	Dictionary<string, RpakLoadAsset> RpakModelLookup;
 
 	for (auto& tm : *RpakModels)
