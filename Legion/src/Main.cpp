@@ -99,6 +99,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			bool bLoadUIImages = cmdline.HasParam(L"--loaduiimages");
 			bool bLoadDataTables = cmdline.HasParam(L"--loaddatatables");
 			bool bLoadShaderSets = cmdline.HasParam(L"--loadshadersets");
+			bool bloadSettings = cmdline.HasParam(L"--LoadSettings");
 
 			// other rpak flags
 			ExportManager::Config.SetBool("UseFullPaths", cmdline.HasParam(L"--fullpath"));
@@ -245,7 +246,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 			std::unique_ptr<List<ApexAsset>> AssetList;
 
-			bool bNoFlagsSpecified = !bLoadModels && !bLoadAnims && !bLoadImages && !bLoadMaterials && !bLoadUIImages && !bLoadDataTables && !bLoadShaderSets;
+			bool bNoFlagsSpecified = !bLoadModels && !bLoadAnims && !bLoadImages && !bLoadMaterials && !bLoadUIImages && !bLoadDataTables && !bLoadShaderSets && !bloadSettings;
 
 			if (bNoFlagsSpecified)
 			{
@@ -255,13 +256,14 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				const bool ShowMaterials = ExportManager::Config.Get<System::SettingType::Boolean>("LoadMaterials");
 				const bool ShowUIImages = ExportManager::Config.Get<System::SettingType::Boolean>("LoadUIImages");
 				const bool ShowDataTables = ExportManager::Config.Get<System::SettingType::Boolean>("LoadDataTables");
+				const bool ShowSettings = ExportManager::Config.Get<System::SettingType::Boolean>("LoadSettings");
 
-				AssetList = Rpak->BuildAssetList(ShowModels, ShowAnimations, ShowImages, ShowMaterials, ShowUIImages, ShowDataTables);
+				AssetList = Rpak->BuildAssetList(ShowModels, ShowAnimations, ShowImages, ShowMaterials, ShowUIImages, ShowDataTables, ShowSettings);
 			}
 			else
 			{
 				ExportManager::Config.Set<System::SettingType::Boolean>("LoadShaderSets", bLoadShaderSets);
-				AssetList = Rpak->BuildAssetList(bLoadModels, bLoadAnims, bLoadImages, bLoadMaterials, bLoadUIImages, bLoadDataTables);
+				AssetList = Rpak->BuildAssetList(bLoadModels, bLoadAnims, bLoadImages, bLoadMaterials, bLoadUIImages, bLoadDataTables, bloadSettings);
 			}
 
 			if (bExportRpak)

@@ -153,7 +153,7 @@ void RpakLib::PatchAssets()
 	}
 }
 
-std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims, bool Images, bool Materials, bool UIImages, bool DataTables)
+std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims, bool Images, bool Materials, bool UIImages, bool DataTables, bool Settings)
 {
 	auto Result = std::make_unique<List<ApexAsset>>();
 
@@ -209,6 +209,8 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims
 			BuildUIImageAtlasInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::Settings:
+			if (!ExportManager::Config.GetBool("LoadSettings"))
+				continue;
 			BuildSettingsInfo(Asset, NewAsset);
 			break;
 		default:

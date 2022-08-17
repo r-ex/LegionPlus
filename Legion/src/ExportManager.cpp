@@ -59,6 +59,7 @@ void ExportManager::InitializeExporter()
 	INIT_SETTING(Boolean, "LoadUIImages", true);
 	INIT_SETTING(Boolean, "LoadDataTables", true);
 	INIT_SETTING(Boolean, "LoadShaderSets", true);
+	INIT_SETTING(Boolean, "LoadSettings", true);
 	INIT_SETTING(Boolean, "OverwriteExistingFiles", false);
 
 	Config.Save(ConfigPath);
@@ -161,6 +162,7 @@ void ExportManager::ExportRpakAssets(const std::unique_ptr<RpakLib>& RpakFileSys
 	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "subtitles"));
 	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "datatables"));
 	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "shadersets"));
+	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "settings"));
 
 	RpakFileSystem->InitializeModelExporter((ModelExportFormat_t)Config.Get<System::SettingType::Integer>("ModelFormat"));
 	RpakFileSystem->InitializeAnimExporter((AnimExportFormat_t)Config.Get<System::SettingType::Integer>("AnimFormat"));

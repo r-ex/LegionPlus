@@ -230,6 +230,14 @@ void LegionSettings::InitializeComponent()
 	this->LoadShaderSets->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->groupBox4->AddControl(this->LoadShaderSets);
 
+	this->LoadSettings = new UIX::UIXCheckBox();
+	this->LoadSettings->SetSize({ 105, 18 });
+	this->LoadSettings->SetLocation({ 130, 91 });
+	this->LoadSettings->SetTabIndex(2);
+	this->LoadSettings->SetText("Load Settings");
+	this->LoadSettings->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox4->AddControl(this->LoadSettings);
+
 	//
 	//	Assets Export Settings Box
 	//
@@ -400,7 +408,7 @@ void LegionSettings::InitializeComponent()
 	this->ExportBrowseButton->Click += &OnBrowseClick;
 }
 
-void LegionSettings::LoadSettings()
+void LegionSettings::LoadSetting()
 {
 	ModelExportFormat_t ModelFormat = (ModelExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat");
 	AnimExportFormat_t AnimFormat = (AnimExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat");
@@ -507,6 +515,7 @@ void LegionSettings::LoadSettings()
 	this->LoadUIImages->SetChecked(ExportManager::Config.GetBool("LoadUIImages"));
 	this->LoadDataTables->SetChecked(ExportManager::Config.GetBool("LoadDataTables"));
 	this->LoadShaderSets->SetChecked(ExportManager::Config.GetBool("LoadShaderSets"));
+	this->LoadSettings->SetChecked(ExportManager::Config.GetBool("LoadSettings"));
 	this->ToggleOverwriting->SetChecked(ExportManager::Config.GetBool("OverwriteExistingFiles"));
 	this->ToggleAudioLanguageFolders->SetChecked(ExportManager::Config.GetBool("AudioLanguageFolders"));
 	this->ToggleUseFullPaths->SetChecked(ExportManager::Config.GetBool("UseFullPaths"));
@@ -521,7 +530,7 @@ void LegionSettings::LoadSettings()
 
 void LegionSettings::OnLoad(Forms::Control* Sender)
 {
-	((LegionSettings*)Sender->FindForm())->LoadSettings();
+	((LegionSettings*)Sender->FindForm())->LoadSetting();
 }
 
 void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventArgs, Forms::Control* Sender)
@@ -643,6 +652,8 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		bRefreshView = true;
 	if (ThisPtr->LoadShaderSets->Checked() != ExportManager::Config.GetBool("LoadShaderSets"))
 		bRefreshView = true;
+	if (ThisPtr->LoadSettings->Checked() != ExportManager::Config.GetBool("LoadSettings"))
+		bRefreshView = true;
 	if (ThisPtr->ToggleUseFullPaths->Checked() != ExportManager::Config.GetBool("UseFullPaths"))
 		bRefreshView = true;
 
@@ -653,6 +664,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	ExportManager::Config.SetBool("LoadUIImages", ThisPtr->LoadUIImages->Checked());
 	ExportManager::Config.SetBool("LoadDataTables", ThisPtr->LoadDataTables->Checked());
 	ExportManager::Config.SetBool("LoadShaderSets", ThisPtr->LoadShaderSets->Checked());
+	ExportManager::Config.SetBool("LoadSettings", ThisPtr->LoadSettings->Checked());
 	ExportManager::Config.SetBool("OverwriteExistingFiles", ThisPtr->ToggleOverwriting->Checked());
 	ExportManager::Config.SetBool("AudioLanguageFolders", ThisPtr->ToggleAudioLanguageFolders->Checked());
 	ExportManager::Config.SetBool("UseFullPaths", ThisPtr->ToggleUseFullPaths->Checked());

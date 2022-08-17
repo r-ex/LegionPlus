@@ -519,8 +519,9 @@ void LegionMain::RefreshView()
 		const bool ShowMaterials = ExportManager::Config.GetBool("LoadMaterials");
 		const bool ShowUIImages = ExportManager::Config.GetBool("LoadUIImages");
 		const bool ShowDataTables = ExportManager::Config.GetBool("LoadDataTables");
+		const bool ShowSettings = ExportManager::Config.GetBool("LoadSettings");
 
-		this->LoadedAssets = this->RpakFileSystem->BuildAssetList(ShowModels, ShowAnimations, ShowImages, ShowMaterials, ShowUIImages, ShowDataTables);
+		this->LoadedAssets = this->RpakFileSystem->BuildAssetList(ShowModels, ShowAnimations, ShowImages, ShowMaterials, ShowUIImages, ShowDataTables, ShowSettings);
 		this->LoadedAssets->Sort([](const ApexAsset& lhs, const ApexAsset& rhs) { return lhs.Name.Compare(rhs.Name) < 0; });
 
 		this->ResetDisplayIndices();

@@ -357,7 +357,7 @@ void RBspLib::ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std:
 	// make sure that RpakFileSystem actually exists (i.e. an rpak is loaded)
 	if (RpakFileSystem)
 	{
-		RpakMaterials = RpakFileSystem->BuildAssetList(false, false, false, true, false, false);
+		RpakMaterials = RpakFileSystem->BuildAssetList(false, false, false, true, false, false, false);
 
 		for (auto& Mat : *RpakMaterials)
 		{
@@ -507,7 +507,7 @@ void RBspLib::ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std:
 	if (!RpakFileSystem)
 		return;
 
-	auto RpakModels = RpakFileSystem->BuildAssetList(true, false, false, false, false, false);
+	auto RpakModels = RpakFileSystem->BuildAssetList(true, false, false, false, false, false, false);
 	Dictionary<string, RpakLoadAsset> RpakModelLookup;
 
 	for (auto& tm : *RpakModels)
@@ -607,7 +607,7 @@ void RBspLib::ExportTitanfall2Bsp(const std::unique_ptr<RpakLib>& RpakFileSystem
 	// make sure that RpakFileSystem actually exists (i.e. an rpak is loaded)
 	if (RpakFileSystem)
 	{
-		RpakMaterials = RpakFileSystem->BuildAssetList(false, false, false, true, false, false);
+		RpakMaterials = RpakFileSystem->BuildAssetList(false, false, false, true, false, false, false);
 
 		for (auto& Mat : *RpakMaterials)
 		{
@@ -757,7 +757,7 @@ void RBspLib::ExportTitanfall2Bsp(const std::unique_ptr<RpakLib>& RpakFileSystem
 	auto ExportedModelsPath = IO::Path::Combine(ModelPath, "_models");
 	auto ExportedModelAnimsPath = IO::Path::Combine(ExportedModelsPath, "_animations");
 
-	auto RpakModels = RpakFileSystem->BuildAssetList(true, false, false, false, false, false);
+	auto RpakModels = RpakFileSystem->BuildAssetList(true, false, false, false, false, false, false);
 	Dictionary<string, RpakLoadAsset> RpakModelLookup;
 
 	for (auto& tm : *RpakModels)

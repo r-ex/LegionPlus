@@ -20,7 +20,7 @@ private:
 	void InitializeComponent();
 
 	// Loads settings from the application config
-	void LoadSettings();
+	void LoadSetting();
 
 	static void OnLoad(Forms::Control* Sender);
 	static void OnClose(const std::unique_ptr<FormClosingEventArgs>& EventArgs, Forms::Control* Sender);
@@ -54,6 +54,7 @@ private:
 	UIX::UIXCheckBox* LoadMaterials;
 	UIX::UIXCheckBox* LoadDataTables;
 	UIX::UIXCheckBox* LoadShaderSets;
+	UIX::UIXCheckBox* LoadSettings;
 	// Toggles
 	UIX::UIXCheckBox* ToggleOverwriting;
 	UIX::UIXCheckBox* ToggleAudioLanguageFolders;
