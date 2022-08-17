@@ -170,7 +170,7 @@ void LegionSettings::InitializeComponent()
 	//	Load Settings
 	//
 	this->LoadModels = new UIX::UIXCheckBox();
-	this->LoadModels->SetSize({ 105, 18 });
+	this->LoadModels->SetSize({ 108, 18 });
 	this->LoadModels->SetLocation({ 15, 22 });
 	this->LoadModels->SetTabIndex(0);
 	this->LoadModels->SetText("Load Models");
@@ -179,7 +179,7 @@ void LegionSettings::InitializeComponent()
 
 
 	this->LoadAnimations = new UIX::UIXCheckBox();
-	this->LoadAnimations->SetSize({ 105, 18 });
+	this->LoadAnimations->SetSize({ 108, 18 });
 	this->LoadAnimations->SetLocation({ 130, 22 });
 	this->LoadAnimations->SetTabIndex(1);
 	this->LoadAnimations->SetText("Load Animations");
@@ -188,7 +188,7 @@ void LegionSettings::InitializeComponent()
 
 
 	this->LoadImages = new UIX::UIXCheckBox();
-	this->LoadImages->SetSize({ 105, 18 });
+	this->LoadImages->SetSize({ 108, 18 });
 	this->LoadImages->SetLocation({ 15, 45 });
 	this->LoadImages->SetTabIndex(2);
 	this->LoadImages->SetText("Load Images");
@@ -197,7 +197,7 @@ void LegionSettings::InitializeComponent()
 
 
 	this->LoadUIImages = new UIX::UIXCheckBox();
-	this->LoadUIImages->SetSize({ 105, 18 });
+	this->LoadUIImages->SetSize({ 108, 18 });
 	this->LoadUIImages->SetLocation({ 130, 45 });
 	this->LoadUIImages->SetTabIndex(2);
 	this->LoadUIImages->SetText("Load UI Images");
@@ -206,7 +206,7 @@ void LegionSettings::InitializeComponent()
 
 
 	this->LoadMaterials = new UIX::UIXCheckBox();
-	this->LoadMaterials->SetSize({ 105, 18 });
+	this->LoadMaterials->SetSize({ 108, 18 });
 	this->LoadMaterials->SetLocation({ 15, 68 });
 	this->LoadMaterials->SetTabIndex(3);
 	this->LoadMaterials->SetText("Load Materials");
@@ -215,7 +215,7 @@ void LegionSettings::InitializeComponent()
 
 
 	this->LoadDataTables = new UIX::UIXCheckBox();
-	this->LoadDataTables->SetSize({ 105, 18 });
+	this->LoadDataTables->SetSize({ 108, 18 });
 	this->LoadDataTables->SetLocation({ 130, 68 });
 	this->LoadDataTables->SetTabIndex(2);
 	this->LoadDataTables->SetText("Load DataTables");
@@ -223,12 +223,20 @@ void LegionSettings::InitializeComponent()
 	this->groupBox4->AddControl(this->LoadDataTables);
 
 	this->LoadShaderSets = new UIX::UIXCheckBox();
-	this->LoadShaderSets->SetSize({ 105, 18 });
+	this->LoadShaderSets->SetSize({ 108, 18 });
 	this->LoadShaderSets->SetLocation({ 15, 91 });
 	this->LoadShaderSets->SetTabIndex(2);
 	this->LoadShaderSets->SetText("Load ShaderSets");
 	this->LoadShaderSets->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->groupBox4->AddControl(this->LoadShaderSets);
+
+	this->LoadSettingsSets = new UIX::UIXCheckBox();
+	this->LoadSettingsSets->SetSize({ 108, 18 });
+	this->LoadSettingsSets->SetLocation({ 130, 91 });
+	this->LoadSettingsSets->SetTabIndex(2);
+	this->LoadSettingsSets->SetText("Load SettingsSets");
+	this->LoadSettingsSets->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox4->AddControl(this->LoadSettingsSets);
 
 	//
 	//	Assets Export Settings Box
@@ -507,6 +515,7 @@ void LegionSettings::LoadSettings()
 	this->LoadUIImages->SetChecked(ExportManager::Config.GetBool("LoadUIImages"));
 	this->LoadDataTables->SetChecked(ExportManager::Config.GetBool("LoadDataTables"));
 	this->LoadShaderSets->SetChecked(ExportManager::Config.GetBool("LoadShaderSets"));
+	this->LoadSettingsSets->SetChecked(ExportManager::Config.GetBool("LoadSettingsSets"));
 	this->ToggleOverwriting->SetChecked(ExportManager::Config.GetBool("OverwriteExistingFiles"));
 	this->ToggleAudioLanguageFolders->SetChecked(ExportManager::Config.GetBool("AudioLanguageFolders"));
 	this->ToggleUseFullPaths->SetChecked(ExportManager::Config.GetBool("UseFullPaths"));
@@ -653,6 +662,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	ExportManager::Config.SetBool("LoadUIImages", ThisPtr->LoadUIImages->Checked());
 	ExportManager::Config.SetBool("LoadDataTables", ThisPtr->LoadDataTables->Checked());
 	ExportManager::Config.SetBool("LoadShaderSets", ThisPtr->LoadShaderSets->Checked());
+	ExportManager::Config.SetBool("LoadSettingsSets", ThisPtr->LoadSettingsSets->Checked());
 	ExportManager::Config.SetBool("OverwriteExistingFiles", ThisPtr->ToggleOverwriting->Checked());
 	ExportManager::Config.SetBool("AudioLanguageFolders", ThisPtr->ToggleAudioLanguageFolders->Checked());
 	ExportManager::Config.SetBool("UseFullPaths", ThisPtr->ToggleUseFullPaths->Checked());

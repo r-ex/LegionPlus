@@ -153,7 +153,7 @@ void RpakLib::PatchAssets()
 	}
 }
 
-std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims, bool Images, bool Materials, bool UIImages, bool DataTables)
+std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims, bool Images, bool Materials, bool UIImages, bool DataTables) // This is such a bad way of handling this, it actually pains me.
 {
 	auto Result = std::make_unique<List<ApexAsset>>();
 
@@ -209,6 +209,8 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims
 			BuildUIImageAtlasInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::Settings:
+			if (!ExportManager::Config.GetBool("LoadSettingsSets"))
+				continue;
 			BuildSettingsInfo(Asset, NewAsset);
 			break;
 		default:
@@ -1167,13 +1169,13 @@ bool RpakLib::MountR2TTRpak(const string& Path, bool Dump)
 string RpakLib::ReadStringFromPointer(const RpakLoadAsset& Asset, const RPakPtr& ptr)
 {
 	// this might be bad but it works for now
-	if (!ptr.index && !ptr.offset)
+	if (!ptr.Index && !ptr.Offset)
 		return "";
 
 	auto RpakStream = this->GetFileStream(Asset);
 	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
-	RpakStream->SetPosition(this->GetFileOffset(Asset, ptr.index, ptr.offset));
+	RpakStream->SetPosition(this->GetFileOffset(Asset, ptr.Index, ptr.Offset));
 
 	string result = Reader.ReadCString();
 

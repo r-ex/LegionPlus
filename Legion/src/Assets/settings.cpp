@@ -3,6 +3,11 @@
 #include <Path.h>
 #include <Directory.h>
 
+bool operator<(const SettingsLayoutItem& lhs, const SettingsLayoutItem& rhs)
+{
+	return lhs.valueOffset < rhs.valueOffset;
+}
+
 void RpakLib::BuildSettingsInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 {
 	auto RpakStream = this->GetFileStream(Asset);
@@ -13,9 +18,9 @@ void RpakLib::BuildSettingsInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	string Name = string::Format("stgs_%llx", Asset.NameHash);
 
-	if (Header.Name.index || Header.Name.offset)
+	if (Header.Name.Index || Header.Name.Offset)
 	{
-		RpakStream->SetPosition(this->GetFileOffset(Asset, Header.Name.index, Header.Name.offset));
+		RpakStream->SetPosition(this->GetFileOffset(Asset, Header.Name.Index, Header.Name.Offset));
 
 		Name = Reader.ReadCString();
 	}
@@ -40,10 +45,9 @@ void RpakLib::ExportSettings(const RpakLoadAsset& Asset, const string& Path)
 
 	string Name = string::Format("stgs_%llx", Asset.NameHash);
 
-	if (Header.Name.index || Header.Name.offset)
+	if (Header.Name.Index || Header.Name.Offset)
 	{
-		RpakStream->SetPosition(this->GetFileOffset(Asset, Header.Name.index, Header.Name.offset));
-
+		RpakStream->SetPosition(this->GetFileOffset(Asset, Header.Name.Index, Header.Name.Offset));
 		Name = Reader.ReadCString();
 	}
 
@@ -57,12 +61,6 @@ void RpakLib::ExportSettings(const RpakLoadAsset& Asset, const string& Path)
 		return;
 
 	this->ExtractSettings(Asset, DestinationPath, Name, Header);
-}
-
-// why is this here
-bool operator<(const SettingsLayoutItem& lhs, const SettingsLayoutItem& rhs)
-{
-	return lhs.valueOffset < rhs.valueOffset;
 }
 
 void RpakLib::ExtractSettings(const RpakLoadAsset& Asset, const string& Path, const string& Name, const SettingsHeader& Header)
@@ -88,55 +86,55 @@ void RpakLib::ExtractSettings(const RpakLoadAsset& Asset, const string& Path, co
 	{
 		out << "\n\t" << it.name << " ";
 
-		RpakStream->SetPosition(this->GetFileOffset(Asset, Header.Values.index, Header.Values.offset + it.valueOffset));
+		RpakStream->SetPosition(this->GetFileOffset(Asset, Header.Values.Index, Header.Values.Offset + it.valueOffset));
 		
 		switch (it.type)
 		{
-		case ST_Bool:
+		case SettingsFieldType::ST_Bool:
 		{
 			bool bValue = Reader.Read<bool>();
 			out << std::boolalpha << bValue;
 			break;
 		}
-		case ST_Int:
+		case SettingsFieldType::ST_Int:
 		{
 			int nValue = Reader.Read<int>();
 			out << nValue;
 			break;
 		}
-		case ST_Float:
+		case SettingsFieldType::ST_Float:
 		{
 			float fValue = Reader.Read<float>();
 			out << fValue;
 			break;
 		}
-		case ST_Float2:
+		case SettingsFieldType::ST_Float2:
 		{
 			Math::Vector2 vec = Reader.Read<Math::Vector2>();
 			out << "\"" << vec.X << " " << vec.Y << "\"";
 			break;
 		}
-		case ST_Float3:
+		case SettingsFieldType::ST_Float3:
 		{
 			Math::Vector3 vec = Reader.Read<Math::Vector3>();
 			out << "\"" << vec.X << " " << vec.Y << " " << vec.Z << "\"";
 			break;
 		}
-		case ST_String:
+		case SettingsFieldType::ST_String:
 		{
 			RPakPtr pValue = Reader.Read<RPakPtr>();
 			string sValue = this->ReadStringFromPointer(Asset, pValue);
 			out << "\"" << sValue.ToString() << "\"";
 			break;
 		}
-		case ST_Asset:
+		case SettingsFieldType::ST_Asset:
 		{
 			RPakPtr pValue = Reader.Read<RPakPtr>();
 			string sValue = this->ReadStringFromPointer(Asset, pValue);
 			out << "$\"" << sValue.ToString() << "\"";
 			break;
 		}
-		case ST_Asset_2:
+		case SettingsFieldType::ST_Asset_2:
 		{
 			RPakPtr pValue = Reader.Read<RPakPtr>();
 			string sValue = this->ReadStringFromPointer(Asset, pValue);
@@ -166,7 +164,7 @@ SettingsLayout RpakLib::ExtractSettingsLayout(const RpakLoadAsset& Asset)
 	layout.name = this->ReadStringFromPointer(Asset, header.pName);
 	layout.itemsCount = header.itemsCount;
 
-	RpakStream->SetPosition(this->GetFileOffset(Asset, header.pItems.index, header.pItems.offset));
+	RpakStream->SetPosition(this->GetFileOffset(Asset, header.pItems.Index, header.pItems.Offset));
 	for (uint32_t i = 0; i < layout.itemsCount; ++i)
 	{
 		SettingsFieldType itemType = Reader.Read<SettingsFieldType>();
@@ -174,10 +172,10 @@ SettingsLayout RpakLib::ExtractSettingsLayout(const RpakLoadAsset& Asset)
 		uint32_t unk = Reader.Read<uint32_t>();
 
 		// ignore null items
-		if (itemType == 0 && unk == 0 && nameOffset == 0)
+		if (static_cast<int>(itemType) == 0 && unk == 0 && nameOffset == 0)
 			continue;
 
-		string itemName = this->ReadStringFromPointer(Asset, header.pStringBuf.index, header.pStringBuf.offset + nameOffset);
+		string itemName = this->ReadStringFromPointer(Asset, header.pStringBuf.Index, header.pStringBuf.Offset + nameOffset);
 
 		SettingsLayoutItem item{ itemType, itemName, unk };
 		layout.items.EmplaceBack(item);

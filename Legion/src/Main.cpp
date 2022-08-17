@@ -99,6 +99,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			bool bLoadUIImages = cmdline.HasParam(L"--loaduiimages");
 			bool bLoadDataTables = cmdline.HasParam(L"--loaddatatables");
 			bool bLoadShaderSets = cmdline.HasParam(L"--loadshadersets");
+			bool bLoadSettingsSets = cmdline.HasParam(L"--loadsettingssets");
 
 			// other rpak flags
 			ExportManager::Config.SetBool("UseFullPaths", cmdline.HasParam(L"--fullpath"));
@@ -245,7 +246,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 			std::unique_ptr<List<ApexAsset>> AssetList;
 
-			bool bNoFlagsSpecified = !bLoadModels && !bLoadAnims && !bLoadImages && !bLoadMaterials && !bLoadUIImages && !bLoadDataTables && !bLoadShaderSets;
+			bool bNoFlagsSpecified = !bLoadModels && !bLoadAnims && !bLoadImages && !bLoadMaterials && !bLoadUIImages && !bLoadDataTables && !bLoadShaderSets && !bLoadSettingsSets;
 
 			if (bNoFlagsSpecified)
 			{
@@ -255,12 +256,13 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				const bool ShowMaterials = ExportManager::Config.Get<System::SettingType::Boolean>("LoadMaterials");
 				const bool ShowUIImages = ExportManager::Config.Get<System::SettingType::Boolean>("LoadUIImages");
 				const bool ShowDataTables = ExportManager::Config.Get<System::SettingType::Boolean>("LoadDataTables");
-
+				// I hate this, I hate this, I hate this
 				AssetList = Rpak->BuildAssetList(ShowModels, ShowAnimations, ShowImages, ShowMaterials, ShowUIImages, ShowDataTables);
 			}
 			else
 			{
 				ExportManager::Config.Set<System::SettingType::Boolean>("LoadShaderSets", bLoadShaderSets);
+				ExportManager::Config.Set<System::SettingType::Boolean>("LoadSettingsSet", bLoadSettingsSets);
 				AssetList = Rpak->BuildAssetList(bLoadModels, bLoadAnims, bLoadImages, bLoadMaterials, bLoadUIImages, bLoadDataTables);
 			}
 

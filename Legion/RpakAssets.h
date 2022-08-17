@@ -12,8 +12,8 @@
 #pragma pack(push, 1)
 struct RPakPtr
 {
-	uint32_t index;
-	uint32_t offset;
+	uint32_t Index;
+	uint32_t Offset;
 };
 
 enum class CompressionType : uint8_t
@@ -196,7 +196,7 @@ struct SubtitleEntry
 };
 
 // settings structs are only tested on season 3 for now
-enum SettingsFieldType : uint16_t
+enum class SettingsFieldType : uint16_t
 {
 	ST_Bool,
 	ST_Int,
@@ -264,7 +264,7 @@ struct SettingsLayoutHeader
 
 struct SettingsLayoutItem
 {
-	SettingsFieldType type = ST_String;
+	SettingsFieldType type = SettingsFieldType::ST_String;
 	string name;
 	uint32_t valueOffset; // offset from start of stgs value buffer
 };
