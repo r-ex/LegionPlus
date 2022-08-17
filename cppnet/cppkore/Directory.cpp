@@ -27,7 +27,7 @@ namespace IO
 			{
 				DirectoryStack.EmplaceBack(std::move(Path.Substring(0, i + 1)));
 
-				while (i > rLength && Path[i] != Path::DirectorySeparatorChar && Path[1] != Path::AltDirectorySeparatorChar)
+				while (i > rLength && Path[i] != Path::DirectorySeparatorChar && Path[i] != Path::AltDirectorySeparatorChar)
 					i--;
 
 				i--;

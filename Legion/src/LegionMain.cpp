@@ -513,14 +513,18 @@ void LegionMain::RefreshView()
 	{
 		this->AssetsListView->SetVirtualListSize(0);
 
-		const bool ShowModels = ExportManager::Config.GetBool("LoadModels");
-		const bool ShowAnimations = ExportManager::Config.GetBool("LoadAnimations");
-		const bool ShowImages = ExportManager::Config.GetBool("LoadImages");
-		const bool ShowMaterials = ExportManager::Config.GetBool("LoadMaterials");
-		const bool ShowUIImages = ExportManager::Config.GetBool("LoadUIImages");
-		const bool ShowDataTables = ExportManager::Config.GetBool("LoadDataTables");
+		std::array<bool, 8> bAssets = {
+			ExportManager::Config.GetBool("LoadModels"),
+			ExportManager::Config.GetBool("LoadAnimations"),
+			ExportManager::Config.GetBool("LoadImages"),
+			ExportManager::Config.GetBool("LoadMaterials"),
+			ExportManager::Config.GetBool("LoadUIImages"),
+			ExportManager::Config.GetBool("LoadDataTables"),
+			ExportManager::Config.GetBool("LoadShaderSets"),
+			ExportManager::Config.GetBool("LoadSettingsSets")
+		};
 
-		this->LoadedAssets = this->RpakFileSystem->BuildAssetList(ShowModels, ShowAnimations, ShowImages, ShowMaterials, ShowUIImages, ShowDataTables);
+		this->LoadedAssets = this->RpakFileSystem->BuildAssetList(bAssets);
 		this->LoadedAssets->Sort([](const ApexAsset& lhs, const ApexAsset& rhs) { return lhs.Name.Compare(rhs.Name) < 0; });
 
 		this->ResetDisplayIndices();
@@ -755,7 +759,7 @@ void LegionMain::GetVirtualItem(const std::unique_ptr<Forms::RetrieveVirtualItem
 
 	uint32_t RemappedDisplayIndex = ThisPtr->DisplayIndices[EventArgs->ItemIndex];
 
-	static const char* AssetTypes[] = { "Model", "AnimationSet", "Image", "Material", "DataTable", "Sound", "Subtitles", "ShaderSet", "UI Image", "UI Image Atlas"};
+	static const char* AssetTypes[] = { "Model", "AnimationSet", "Image", "Material", "DataTable", "Sound", "Subtitles", "ShaderSet", "UI Image", "UI Image Atlas", "Settings"};
 	static const Drawing::Color AssetTypesColors[] = 
 	{
 		Drawing::Color(0, 157, 220),  // Model
@@ -768,6 +772,7 @@ void LegionMain::GetVirtualItem(const std::unique_ptr<Forms::RetrieveVirtualItem
 		Drawing::Color(255, 246, 138),// ShaderSet
 		Drawing::Color(114, 142, 230),// UI Image
 		Drawing::Color(114, 142, 230),// UI Image Atlas
+		Drawing::Color(255, 196, 0),// Settings
 	};
 
 	static const char* AssetStatus[] = { "Loaded", "Exporting", "Exported", "Error" };

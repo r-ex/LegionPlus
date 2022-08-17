@@ -153,7 +153,8 @@ void RpakLib::PatchAssets()
 	}
 }
 
-std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims, bool Images, bool Materials, bool UIImages, bool DataTables)
+//std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims, bool Images, bool Materials, bool UIImages, bool DataTables)
+std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(const std::array<bool, 8> &arrAssets)
 {
 	auto Result = std::make_unique<List<ApexAsset>>();
 
@@ -168,45 +169,50 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims
 		switch (Asset.AssetType)
 		{
 		case (uint32_t)AssetType_t::Model:
-			if (!Models)
+			if (!arrAssets[0])
 				continue;
 			BuildModelInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::AnimationRig:
-			if (!Anims)
+			if (!arrAssets[1])
 				continue;
 			BuildAnimInfo(Asset, NewAsset);
 			break;
-		case (uint32_t)AssetType_t::Material:
-			if (!Materials)
-				continue;
-			BuildMaterialInfo(Asset, NewAsset);
-			break;
 		case (uint32_t)AssetType_t::Texture:
-			if (!Images)
+			if (!arrAssets[2])
 				continue;
 			BuildTextureInfo(Asset, NewAsset);
 			break;
+		case (uint32_t)AssetType_t::Material:
+			if (!arrAssets[3])
+				continue;
+			BuildMaterialInfo(Asset, NewAsset);
+			break;
 		case (uint32_t)AssetType_t::UIIA:
-			if (!UIImages)
+			if (!arrAssets[4])
 				continue;
 			BuildUIIAInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::DataTable:
-			if (!DataTables)
+			if (!arrAssets[5])
 				continue;
 			BuildDataTableInfo(Asset, NewAsset);
 			break;
-		case (uint32_t)AssetType_t::Subtitles:
-			BuildSubtitleInfo(Asset, NewAsset);
-			break;
 		case (uint32_t)AssetType_t::ShaderSet:
-			if (!ExportManager::Config.GetBool("LoadShaderSets"))
+			if (!arrAssets[6])
 				continue;
 			BuildShaderSetInfo(Asset, NewAsset);
 			break;
-		case (uint32_t)AssetType_t::UIImageAtlas:
+		case (uint32_t)AssetType_t::Settings:
+			if (!arrAssets[7])
+				continue;
+			BuildSettingsInfo(Asset, NewAsset);
+			break;
+		case (uint32_t)AssetType_t::UIImageAtlas: // TODO ARRAY
 			BuildUIImageAtlasInfo(Asset, NewAsset);
+			break;
+		case (uint32_t)AssetType_t::Subtitles:
+			BuildSubtitleInfo(Asset, NewAsset);
 			break;
 		default:
 			continue;
@@ -612,6 +618,8 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 		case (uint32_t)AssetType_t::Shader:
 		case (uint32_t)AssetType_t::ShaderSet:
 		case (uint32_t)AssetType_t::Subtitles:
+		case (uint32_t)AssetType_t::Settings:
+		case (uint32_t)AssetType_t::SettingsLayout:
 			return true;
 		default:
 			return false;
@@ -1157,6 +1165,38 @@ bool RpakLib::MountR2TTRpak(const string& Path, bool Dump)
 	Stream.get()->SetPosition(0);
 
 	return ParseR2TTRpak(Path, Stream);
+}
+
+string RpakLib::ReadStringFromPointer(const RpakLoadAsset& Asset, const RPakPtr& ptr)
+{
+	// this might be bad but it works for now
+	if (!ptr.Index && !ptr.Offset)
+		return "";
+
+	auto RpakStream = this->GetFileStream(Asset);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, ptr.Index, ptr.Offset));
+
+	string result = Reader.ReadCString();
+
+	return result;
+}
+
+string RpakLib::ReadStringFromPointer(const RpakLoadAsset& Asset, uint32_t index, uint32_t offset)
+{
+	// this might be bad but it works for now
+	if (!index && !offset)
+		return "";
+
+	auto RpakStream = this->GetFileStream(Asset);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, index, offset));
+
+	string result = Reader.ReadCString();
+
+	return result;
 }
 
 RpakLoadAsset::RpakLoadAsset(uint64_t NameHash, uint32_t FileIndex, uint32_t AssetType, uint32_t SubHeaderIndex, uint32_t SubHeaderOffset, uint32_t SubHeaderSize, uint32_t RawDataIndex, uint32_t RawDataOffset, uint64_t StarpakOffset, uint64_t OptimalStarpakOffset, RpakGameVersion Version, uint32_t AssetVersion)
