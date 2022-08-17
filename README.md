@@ -50,6 +50,7 @@ When multiple load flags are used together, all specified types will be loaded
 --loaduiimages
 --loaddatatables
 --loadshadersets
+--loadsettingssets
 ```
 
 #### Export Format Flags
