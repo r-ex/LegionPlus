@@ -358,10 +358,10 @@ void RBspLib::ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std:
 	if (RpakFileSystem)
 	{
 		std::array<bool, 8> bAssets = {
-			false,  // Model
+			false, // Model
 			false, // Animation
 			false, // Texture/Images
-			true, // Material
+			true,  // Material
 			false, // UIIA
 			false, // Datatables
 			false, // ShaderSets

@@ -208,11 +208,11 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(const std::array<bool, 
 				continue;
 			BuildSettingsInfo(Asset, NewAsset);
 			break;
-		case (uint32_t)AssetType_t::Subtitles: // TODO ARRAY
-			BuildSubtitleInfo(Asset, NewAsset);
-			break;
 		case (uint32_t)AssetType_t::UIImageAtlas: // TODO ARRAY
 			BuildUIImageAtlasInfo(Asset, NewAsset);
+			break;
+		case (uint32_t)AssetType_t::Subtitles:
+			BuildSubtitleInfo(Asset, NewAsset);
 			break;
 		default:
 			continue;

@@ -652,6 +652,8 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		bRefreshView = true;
 	if (ThisPtr->LoadShaderSets->Checked() != ExportManager::Config.GetBool("LoadShaderSets"))
 		bRefreshView = true;
+	if (ThisPtr->LoadSettingsSets->Checked() != ExportManager::Config.GetBool("LoadSettingsSets"))
+		bRefreshView = true;
 	if (ThisPtr->ToggleUseFullPaths->Checked() != ExportManager::Config.GetBool("UseFullPaths"))
 		bRefreshView = true;
 
