@@ -208,6 +208,9 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(const std::array<bool, 
 				continue;
 			BuildSettingsInfo(Asset, NewAsset);
 			break;
+		case (uint32_t)AssetType_t::RSON:
+			BuildRSONInfo(Asset, NewAsset);
+			break;
 		case (uint32_t)AssetType_t::UIImageAtlas: // TODO ARRAY
 			BuildUIImageAtlasInfo(Asset, NewAsset);
 			break;
@@ -620,6 +623,7 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 		case (uint32_t)AssetType_t::Subtitles:
 		case (uint32_t)AssetType_t::Settings:
 		case (uint32_t)AssetType_t::SettingsLayout:
+		case (uint32_t)AssetType_t::RSON:
 			return true;
 		default:
 			return false;

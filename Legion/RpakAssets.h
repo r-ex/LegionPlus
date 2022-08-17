@@ -1561,7 +1561,28 @@ struct UIAtlasImage // uiai wen
 	uint16_t PosY;
 };
 
+// --- rson ---
+enum class RSONFileType
+{
+	StringList = 0x1002,
+	Complex = 0x1008,
+};
+struct RSONHeader
+{
+	int type;
+	int nodeCount;
+	RPakPtr pNodes;
+};
+
+struct RSONNode
+{
+	RPakPtr pName;
+	int type;
+	int valueCount;
+	RPakPtr pValues;
+};
 #pragma pack(pop)
+
 
 // Validate all game structures
 // APEX
