@@ -182,9 +182,10 @@ void LegionMain::LoadApexFile(const List<string>& File)
 		{
 			Main->StatusLabel->SetText("Loading bsp...");
 
+			auto UseFullPathsConfig = false;
 			if (ExportManager::Config.Get<System::SettingType::Integer>("UseFullPaths"), true)
 			{
-				auto UseFullPathsConfig = true;
+				UseFullPathsConfig = true;
 				ExportManager::Config.SetBool("UseFullPaths", false);
 			}
 
@@ -212,7 +213,7 @@ void LegionMain::LoadApexFile(const List<string>& File)
 				Forms::MessageBox::Show("An error occurred while exporting the bsp file:\n\n" + string(e.what()), "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
 			}
 
-			if (auto UseFullPathsConfig = true);
+			if (UseFullPathsConfig = true);
 			{
 				ExportManager::Config.SetBool("UseFullPaths", true);
 			}
