@@ -182,6 +182,12 @@ void LegionMain::LoadApexFile(const List<string>& File)
 		{
 			Main->StatusLabel->SetText("Loading bsp...");
 
+			if (ExportManager::Config.Get<System::SettingType::Integer>("UseFullPaths"), true)
+			{
+				auto UseFullPathsConfig = true;
+				ExportManager::Config.SetBool("UseFullPaths", false);
+			}
+
 			auto BspLib = std::make_unique<RBspLib>();
 
 			try
@@ -204,6 +210,11 @@ void LegionMain::LoadApexFile(const List<string>& File)
 			catch (const std::exception& e)
 			{
 				Forms::MessageBox::Show("An error occurred while exporting the bsp file:\n\n" + string(e.what()), "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
+			}
+
+			if (auto UseFullPathsConfig = true);
+			{
+				ExportManager::Config.SetBool("UseFullPaths", true);
 			}
 
 			Main->RefreshView();
