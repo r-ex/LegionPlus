@@ -1,7 +1,7 @@
 #pragma once
 
 constexpr const char* ModelFragmentShader_Src =
-"#version 430 core\n"
+"#version 330 compatibility\n"
 "layout(location = 0) out vec3 color;\n"
 "\n"
 "in vec3 vertColorFrag;\n"
@@ -78,6 +78,6 @@ constexpr const char* ModelFragmentShader_Src =
 "  if (diffuseLoaded == 1) {\n"
 "    color = (ambient + diffuse + specular);\n"
 "  } else {\n"
-"    color = diff.xxx;\n"
+"    color = vec3(diff);\n"
 "  }\n"
 "}";

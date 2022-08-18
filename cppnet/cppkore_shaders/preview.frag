@@ -1,4 +1,4 @@
-#version 430 core
+#version 330 compatibility
 layout(location = 0) out vec3 color;
 
 in vec3 vertColorFrag;
@@ -75,6 +75,6 @@ void main()
   if (diffuseLoaded == 1) {
     color = (ambient + diffuse + specular);
   } else {
-    color = diff.xxx;
+    color = vec3(diff);
   }
 }
