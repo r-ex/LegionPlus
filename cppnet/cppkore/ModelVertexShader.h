@@ -1,7 +1,7 @@
 #pragma once
 
 constexpr const char* ModelVertexShader_Src =
-"#version 430 core\n"
+"#version 330 compatibility\n"
 "layout(location=0)in vec3 vertPos;"
 "layout(location=1)in vec3 vertNorm;"
 "layout(location=2)in uvec4 vertColor;"
