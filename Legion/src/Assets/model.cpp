@@ -306,9 +306,8 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 			vvOut.write(vvBuf, ModHeader.StreamedDataSize);
 			vvOut.close();
 		}
-		else if (Asset.AssetVersion >= 9 && Asset.AssetVersion <= 12) // s2/3
+		else if (Asset.AssetVersion >= 9 && Asset.AssetVersion <= 11) // s2/3
 		{
-
 			StarpakStream->SetPosition(Offset);
 			auto VGHeader = StarpakReader.Read<RMdlVGHeaderOld>();
 
@@ -320,6 +319,31 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 			std::ofstream vgOut(BaseFileName + ".vg", std::ios::out | std::ios::binary);
 
 			vgOut.write(vgBuf, VGHeader.DataSize);
+			vgOut.close();
+		}
+		else if (Asset.AssetVersion >= 12)
+		{
+			StarpakStream->SetPosition(Offset);
+			auto VGHeader = StarpakReader.Read<RMdlVGHeaderOld>();
+
+			uint64_t dataSize = VGHeader.DataSize;
+
+			if (dataSize < 32)
+			{
+				// here we go again
+				StarpakStream->SetPosition(Offset);
+				auto VGHeaderNew = StarpakReader.Read<RMdlVGHeader>();
+				dataSize = VGHeaderNew.DataSize;
+			}
+
+			StarpakStream->SetPosition(Offset);
+			char* vgBuf = new char[dataSize];
+
+			StarpakReader.Read(vgBuf, 0, dataSize);
+
+			std::ofstream vgOut(BaseFileName + ".vg", std::ios::out | std::ios::binary);
+
+			vgOut.write(vgBuf, dataSize);
 			vgOut.close();
 		}
 		else if (Asset.AssetVersion == 13)
