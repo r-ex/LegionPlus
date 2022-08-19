@@ -824,8 +824,8 @@ struct RMdlVGHeaderOld
 	uint64_t IndexOffset;
 	uint64_t IndexCount;		// 0x2 each (uint16_t)
 
-	uint64_t VertexOffset;
-	uint64_t VertexCount;		// 0x1 each aka, in bytes
+	uint64_t VertexBufferOffset;
+	uint64_t VertexBufferSize; // 1 byte each
 
 	uint64_t ExtendedWeightsOffset;
 	uint64_t ExtendedWeightsCount;		// Only 1 byte per count
@@ -939,8 +939,8 @@ struct RMdlVGSubmeshOld
 	uint32_t IndexCount;				// Some form of index count
 	uint32_t VertexOffset2;				// Some form of vertex offset (Not always used??)
 	uint32_t VertexCount2;				// some form of vertex count
-	uint32_t StripIndex;				// Index into the strips structs
-	uint32_t Int14;
+	uint32_t StripsIndex;				// Index into the strips structs
+	uint32_t StripsCount;
 	uint32_t Int15;
 	uint32_t Int16;
 	uint32_t Int17;

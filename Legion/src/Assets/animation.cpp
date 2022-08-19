@@ -93,7 +93,8 @@ void RpakLib::ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path)
 		return;
 	}
 
-	const List<Assets::Bone> Skeleton = this->ExtractSkeleton(Reader, this->GetFileOffset(Asset, RigHeader.SkeletonIndex, RigHeader.SkeletonOffset));
+	// version is 99 because it's supposed to only check model version, not arig version
+	const List<Assets::Bone> Skeleton = this->ExtractSkeleton(Reader, this->GetFileOffset(Asset, RigHeader.SkeletonIndex, RigHeader.SkeletonOffset), 99);
 
 	const uint64_t ReferenceOffset = this->GetFileOffset(Asset, RigHeader.AnimationReferenceIndex, RigHeader.AnimationReferenceOffset);
 

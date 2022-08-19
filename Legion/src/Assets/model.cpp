@@ -181,7 +181,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 		rmdlOut.close();
 	}
 
-	Model->Bones = std::move(ExtractSkeleton(Reader, SkeletonOffset));
+	Model->Bones = std::move(ExtractSkeleton(Reader, SkeletonOffset, Asset.AssetVersion));
 
 	if (!bExportingRawRMdl)
 		Model->GenerateGlobalTransforms(true, true); // We need global transforms
@@ -353,8 +353,11 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 		return nullptr;
 	}
 
-	if(Asset.AssetVersion >= 14)
+	
+	if (Asset.AssetVersion >= 14)
 		this->ExtractModelLod_V14(StarpakReader, RpakStream, ModelName, Offset, Model, Fixups, Asset.AssetVersion, IncludeMaterials);
+	else if (Asset.AssetVersion < 12)
+		this->ExtractModelLodOld(StarpakReader, RpakStream, ModelName, Offset, Model, Fixups, Asset.AssetVersion, IncludeMaterials);
 	else
 		this->ExtractModelLod(StarpakReader, RpakStream, ModelName, Offset, Model, Fixups, Asset.AssetVersion, IncludeMaterials);
 
@@ -983,7 +986,254 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 	}
 }
 
-List<Assets::Bone> RpakLib::ExtractSkeleton(IO::BinaryReader& Reader, uint64_t SkeletonOffset)
+void RpakLib::ExtractModelLodOld(IO::BinaryReader& Reader, const std::unique_ptr<IO::MemoryStream>& RpakStream, string Name, uint64_t Offset, const std::unique_ptr<Assets::Model>& Model, RMdlFixupPatches& Fixup, uint32_t Version, bool IncludeMaterials)
+{
+	auto BaseStream = Reader.GetBaseStream();
+
+	if (!BaseStream)
+	{
+		g_Logger.Warning("!!! - Failed to extract Model LOD for %s. BaseStream was NULL (you probably don't have the required starpak)\n", Name.ToCString());
+		return;
+	}
+
+	BaseStream->SetPosition(Offset);
+
+	auto VGHeader = Reader.Read<RMdlVGHeaderOld>();
+
+	// Offsets in submesh are relative to the submesh we're reading...
+	const auto SubmeshPointer = Offset + VGHeader.SubmeshOffset;
+
+	BaseStream->SetPosition(SubmeshPointer);
+	// We need to read the submeshes
+	List<RMdlVGSubmeshOld> SubmeshBuffer(VGHeader.SubmeshCount, true);
+	Reader.Read((uint8_t*)&SubmeshBuffer[0], 0, VGHeader.SubmeshCount * sizeof(RMdlVGSubmeshOld));
+
+	List<uint8_t> VertexBuffer(VGHeader.VertexBufferSize, true);
+	BaseStream->SetPosition(Offset + VGHeader.VertexBufferOffset);
+	Reader.Read((uint8_t*)&VertexBuffer[0], 0, VGHeader.VertexBufferSize);
+
+	List<uint16_t> IndexBuffer(VGHeader.IndexCount, true);
+	BaseStream->SetPosition(Offset + VGHeader.IndexOffset);
+	Reader.Read((uint8_t*)&IndexBuffer[0], 0, VGHeader.IndexCount * sizeof(uint16_t));
+
+	List<RMdlExtendedWeight> ExtendedWeights(VGHeader.ExtendedWeightsCount / sizeof(RMdlExtendedWeight), true);
+	BaseStream->SetPosition(Offset + VGHeader.ExtendedWeightsOffset);
+	Reader.Read((uint8_t*)&ExtendedWeights[0], 0, VGHeader.ExtendedWeightsCount);
+
+	List<RMdlVGExternalWeights> ExternalWeightsBuffer(VGHeader.ExternalWeightsCount, true);
+	BaseStream->SetPosition(Offset + VGHeader.ExternalWeightsOffset);
+	Reader.Read((uint8_t*)&ExternalWeightsBuffer[0], 0, VGHeader.ExternalWeightsCount * sizeof(RMdlVGExternalWeights));
+
+	List<RMdlVGStrip> StripBuffer(VGHeader.StripsCount, true);
+	BaseStream->SetPosition(Offset + VGHeader.StripsOffset);
+	Reader.Read((uint8_t*)&StripBuffer[0], 0, VGHeader.StripsCount * sizeof(RMdlVGStrip));
+
+	// Loop and read submeshes
+	for (uint32_t s = 0; s < VGHeader.SubmeshCount; s++)
+	{
+		auto& Submesh = SubmeshBuffer[s];
+
+		// Ignore a submesh that has no strips, otherwise there is no mesh.
+		// This is likely also determined by flags == 0x0, but this is a good check.
+		if (Submesh.StripsCount == 0)
+		{
+			continue;
+		}
+
+		auto& BoneRemapBuffer = *Fixup.BoneRemaps;
+
+		auto& Mesh = Model->Meshes.Emplace(0x10, (((Submesh.Flags2 & 0x2) == 0x2) ? 2 : 1));	// max weights / max uvs
+		auto& Strip = StripBuffer[Submesh.StripsIndex];
+
+		auto VertexBufferPtr = (uint8_t*)&VertexBuffer[Submesh.VertexOffsetBytes];
+		auto FaceBufferPtr = (uint16_t*)&IndexBuffer[Submesh.IndexOffset];
+
+		// Cache these here, flags in the submesh dictate what to use
+		Math::Vector3 Position{};
+		Math::Vector3 Normal{};
+		Math::Vector2 UVs{};
+		Assets::VertexColor Color{};
+
+		for (uint32_t v = 0; v < Submesh.VertexCount; v++)
+		{
+			uint32_t Shift = 0;
+
+			if ((Submesh.Flags1 & 0x1) == 0x1)
+			{
+				Position = *(Math::Vector3*)(VertexBufferPtr + Shift);
+				Shift += sizeof(Math::Vector3);
+			}
+			else if ((Submesh.Flags1 & 0x2) == 0x2)
+			{
+				Position = (*(RMdlPackedVertexPosition*)(VertexBufferPtr + Shift)).Unpack();
+				Shift += sizeof(RMdlPackedVertexPosition);
+			}
+
+			RMdlPackedVertexWeights Weights{};
+
+			if ((Submesh.Flags1 & 0x5000) == 0x5000)
+			{
+				Weights = *(RMdlPackedVertexWeights*)(VertexBufferPtr + Shift);
+				Shift += sizeof(RMdlPackedVertexWeights);
+			}
+
+			Normal = (*(RMdlPackedVertexNormal*)(VertexBufferPtr + Shift)).Unpack();
+			Shift += sizeof(RMdlPackedVertexNormal);
+
+			if ((Submesh.Flags1 & 0x10) == 0x10)
+			{
+				Color = *(Assets::VertexColor*)(VertexBufferPtr + Shift);
+				Shift += sizeof(Assets::VertexColor);
+			}
+
+			UVs = *(Math::Vector2*)(VertexBufferPtr + Shift);
+			Shift += sizeof(Math::Vector2);
+
+			auto Vertex = Mesh.Vertices.Emplace(Position, Normal, Color, UVs);
+
+			if ((Submesh.Flags2 & 0x2) == 0x2)
+			{
+				Vertex.SetUVLayer(*(Math::Vector2*)(VertexBufferPtr + Shift), 1);
+				Shift += sizeof(Math::Vector2);
+			}
+
+			if ((Submesh.Flags1 & 0x5000) == 0x5000)
+			{
+				auto& ExternalWeights = ExternalWeightsBuffer[v];
+
+				if (ExtendedWeights.Count() > 0)
+				{
+					//
+					// These models have complex extended weights
+					//
+
+					uint32_t ExtendedWeightsIndex = (uint32_t)Weights.BlendIds[2] << 16;
+					ExtendedWeightsIndex |= (uint32_t)Weights.BlendWeights[1];
+
+					float CurrentWeightTotal = (float)(Weights.BlendWeights[0] + 1) / (float)0x8000;
+					uint32_t WeightsIndex = 0;
+
+					Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], CurrentWeightTotal }, WeightsIndex++);
+
+					uint32_t ExtendedCounter = 1;
+					uint32_t ExtendedComparer = 0;
+					uint32_t ExtendedIndexShift = 0;
+					while (true)
+					{
+						ExtendedComparer = (ExtendedCounter >= Weights.BlendIds[3]);
+						if (ExtendedComparer != 0)
+							break;
+
+						ExtendedIndexShift = ExtendedWeightsIndex + ExtendedCounter;
+						ExtendedIndexShift = ExtendedIndexShift + -1;
+
+						auto& ExtendedWeight = ExtendedWeights[ExtendedIndexShift];
+
+						float ExtendedValue = (float)(ExtendedWeight.Weight + 1) / (float)0x8000;
+						uint32_t ExtendedIndex = BoneRemapBuffer[ExtendedWeight.BoneId];
+
+						Vertex.SetWeight({ ExtendedIndex, ExtendedValue }, WeightsIndex++);
+
+						CurrentWeightTotal += ExtendedValue;
+						ExtendedCounter = ExtendedCounter + 1;
+					}
+
+					if (Weights.BlendIds[0] != Weights.BlendIds[1] && CurrentWeightTotal < 1.0f)
+					{
+						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[1]], 1.0f - CurrentWeightTotal }, WeightsIndex);
+					}
+				}
+				else
+				{
+					//
+					// These models have 3 or less weights
+					//
+
+					if (ExternalWeights.NumWeights == 0x1)
+					{
+						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], 1.0f }, 0);
+					}
+					else if (ExternalWeights.NumWeights == 0x2)
+					{
+						float CurrentWeightTotal = (float)(Weights.BlendWeights[0] + 1) / (float)0x8000;
+
+						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], CurrentWeightTotal }, 0);
+						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[1]], 1.0f - CurrentWeightTotal }, 1);
+					}
+					else if (ExternalWeights.NumWeights == 0x3)
+					{
+						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], ExternalWeights.SimpleWeights[0] }, 0);
+						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[1]], ExternalWeights.SimpleWeights[1] }, 1);
+						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[2]], ExternalWeights.SimpleWeights[2] }, 2);
+					}
+				}
+			}
+			else if (Model->Bones.Count() > 0)
+			{
+				// Only a default weight is needed
+				Vertex.SetWeight({ 0, 1.f }, 0);
+			}
+
+			VertexBufferPtr += Submesh.VertexBufferStride;
+		}
+
+		for (uint32_t f = 0; f < (Strip.IndexCount / 3); f++)
+		{
+			auto i1 = *(uint16_t*)FaceBufferPtr;
+			auto i2 = *(uint16_t*)(FaceBufferPtr + 1);
+			auto i3 = *(uint16_t*)(FaceBufferPtr + 2);
+
+			Mesh.Faces.EmplaceBack(i1, i2, i3);
+
+			FaceBufferPtr += 3;
+		}
+
+		RpakStream->SetPosition(Fixup.FixupTableOffset);
+
+		auto SubmeshLodReader = IO::BinaryReader(RpakStream.get(), true);
+		auto SubmeshLod = SubmeshLodReader.Read<RMdlLodSubmesh>();
+		auto& Material = (*Fixup.Materials)[SubmeshLod.Index];
+
+		if (SubmeshLod.Index < Fixup.Materials->Count() && Assets.ContainsKey(Material.MaterialHash))
+		{
+			auto& MaterialAsset = Assets[Material.MaterialHash];
+
+			auto ParsedMaterial = this->ExtractMaterial(MaterialAsset, Fixup.MaterialPath, IncludeMaterials, false);
+			auto MaterialIndex = Model->AddMaterial(ParsedMaterial.MaterialName, ParsedMaterial.AlbedoHash);
+
+			auto& MaterialInstance = Model->Materials[MaterialIndex];
+
+			if (ParsedMaterial.AlbedoMapName != "")
+				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Albedo, { "_images\\" + ParsedMaterial.AlbedoMapName, ParsedMaterial.AlbedoHash });
+			if (ParsedMaterial.NormalMapName != "")
+				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Normal, { "_images\\" + ParsedMaterial.NormalMapName, ParsedMaterial.NormalHash });
+			if (ParsedMaterial.GlossMapName != "")
+				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Gloss, { "_images\\" + ParsedMaterial.GlossMapName, ParsedMaterial.GlossHash });
+			if (ParsedMaterial.SpecularMapName != "")
+				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Specular, { "_images\\" + ParsedMaterial.SpecularMapName, ParsedMaterial.SpecularHash });
+			if (ParsedMaterial.EmissiveMapName != "")
+				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Emissive, { "_images\\" + ParsedMaterial.EmissiveMapName, ParsedMaterial.EmissiveHash });
+			if (ParsedMaterial.AmbientOcclusionMapName != "")
+				MaterialInstance.Slots.Add(Assets::MaterialSlotType::AmbientOcclusion, { "_images\\" + ParsedMaterial.AmbientOcclusionMapName, ParsedMaterial.AmbientOcclusionHash });
+			if (ParsedMaterial.CavityMapName != "")
+				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Cavity, { "_images\\" + ParsedMaterial.CavityMapName, ParsedMaterial.CavityHash });
+
+			Mesh.MaterialIndices.EmplaceBack(MaterialIndex);
+		}
+		else
+		{
+			Mesh.MaterialIndices.EmplaceBack(-1);
+		}
+
+		// Add an extra slot for the extra UV Layer if present
+		if ((Submesh.Flags2 & 0x2) == 0x2)
+			Mesh.MaterialIndices.EmplaceBack(-1);
+
+		Fixup.FixupTableOffset += sizeof(RMdlLodSubmesh);
+	}
+}
+
+List<Assets::Bone> RpakLib::ExtractSkeleton(IO::BinaryReader& Reader, uint64_t SkeletonOffset, uint32_t Version)
 {
 	IO::Stream* RpakStream = Reader.GetBaseStream();
 
@@ -995,7 +1245,7 @@ List<Assets::Bone> RpakLib::ExtractSkeleton(IO::BinaryReader& Reader, uint64_t S
 
 	for (uint32_t i = 0; i < SkeletonHeader.BoneCount; i++)
 	{
-		uint64_t Position = SkeletonOffset + SkeletonHeader.BoneDataOffset + (i * sizeof(mstudiobone_t));
+		uint64_t Position = SkeletonOffset + SkeletonHeader.BoneDataOffset + (i * (sizeof(mstudiobone_t) + (Version >= 9 && Version < 12 ? 4 : 0)));
 
 		RpakStream->SetPosition(Position);
 		mstudiobone_t Bone = Reader.Read<mstudiobone_t>();
