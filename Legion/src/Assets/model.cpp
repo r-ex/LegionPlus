@@ -306,7 +306,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 			vvOut.write(vvBuf, ModHeader.StreamedDataSize);
 			vvOut.close();
 		}
-		else if (Asset.AssetVersion >= 9 && Asset.AssetVersion <= 11) // s2/3
+		else if (Asset.AssetVersion >= 9 && Asset.AssetVersion <= 12) // s2/3
 		{
 
 			StarpakStream->SetPosition(Offset);
