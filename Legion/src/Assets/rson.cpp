@@ -43,13 +43,13 @@ void RpakLib::R_WriteRSONFile(const RpakLoadAsset& Asset, std::ofstream& out, IO
 
 	switch (node.type)
 	{
-	case 2: // single string value
+	case RSON_STRING: // single string value
 	{
 		string value = this->ReadStringFromPointer(Asset, node.pValues);
 		out << " \"" + value.ToString() + "\"\n";
 		break;
 	}
-	case 8: // object
+	case RSON_OBJECT: // object
 	{
 		for (int i = 0; i < node.valueCount; ++i)
 		{
@@ -82,7 +82,7 @@ void RpakLib::R_WriteRSONFile(const RpakLoadAsset& Asset, std::ofstream& out, IO
 		}
 		break;
 	}
-	case 4098: // list of strings
+	case RSON_ARRAY | RSON_STRING: // list of strings
 	{
 		RpakStream->SetPosition(this->GetFileOffset(Asset, node.pValues.Index, node.pValues.Offset));
 		out << "\n" << GetIndentation(level) << "[\n";
@@ -95,6 +95,9 @@ void RpakLib::R_WriteRSONFile(const RpakLoadAsset& Asset, std::ofstream& out, IO
 		out << GetIndentation(level) << "]\n";
 		break;
 	}
+	case RSON_BOOLEAN:
+		out << std::boolalpha << (node.pValues.Value > 0) << "\n";
+		break;
 	default:
 		out << "!!! NOT IMPLEMENTED !!! nodeType " << node.type << "\n";
 		g_Logger.Info("!!! rson nodeType %i not implemented !!!\n", node.type);
@@ -117,7 +120,7 @@ void RpakLib::ExtractRSON(const RpakLoadAsset& Asset, const string& Path)
 
 	switch (header.type)
 	{
-	case 0x1002:
+	case RSON_ARRAY | RSON_STRING:
 	{
 		RpakStream->SetPosition(this->GetFileOffset(Asset, header.pNodes.Index, header.pNodes.Offset));
 		
@@ -131,7 +134,7 @@ void RpakLib::ExtractRSON(const RpakLoadAsset& Asset, const string& Path)
 		out_stream << "]";
 		break;
 	}
-	case 0x1008:
+	case RSON_ARRAY | RSON_OBJECT:
 	{
 		for (int i = 0; i < header.nodeCount; ++i)
 		{
