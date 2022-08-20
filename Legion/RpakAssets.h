@@ -1030,23 +1030,9 @@ struct RMdlPackedVertexNormal
 		float v89 = (float)v88;
 		float v90 = ((_Value << 13) >> 23) + -256.0;
 		float v91 = ((16 * _Value) >> 23) + -256.0;
-		float v92 = ((v91 * v91) + 65025.0) + (v90 * v90);
+		float v92 = ((v91 * v91) + (255.0*255.0)) + (v90 * v90);
 
-		float v93;
-
-		v93 = sqrtf(v92);
-
-		//if (v92 < 0.0)
-		//{
-		//	v93 = sqrtf(v92);
-		//}
-		//else
-		//{
-		//	v93 = sqrtf(v92); // fsqrt
-		//}
-
-		// file offset: 0x23771
-
+		float v93 = sqrtf(v92);
 		int v97 = 0;
 
 		float v1, v2, v3;
