@@ -149,7 +149,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 		uint64_t PhyOffset = 0;
 
 		if (ModHeader.PhyIndex != 0 || ModHeader.PhyOffset != 0)
-			this->GetFileOffset(Asset, ModHeader.PhyIndex, ModHeader.PhyOffset);
+			PhyOffset = this->GetFileOffset(Asset, ModHeader.PhyIndex, ModHeader.PhyOffset);
 
 		// check if this model has a phy segment
 		if (PhyOffset)
