@@ -1034,14 +1034,16 @@ struct RMdlPackedVertexNormal
 
 		float v93;
 
-		if (v92 < 0.0)
-		{
-			v93 = sqrtf(v92);
-		}
-		else
-		{
-			v93 = sqrtf(v92); // fsqrt
-		}
+		v93 = sqrtf(v92);
+
+		//if (v92 < 0.0)
+		//{
+		//	v93 = sqrtf(v92);
+		//}
+		//else
+		//{
+		//	v93 = sqrtf(v92); // fsqrt
+		//}
 
 		// file offset: 0x23771
 
