@@ -265,6 +265,16 @@ namespace Assets
 				break;
 			case SaveFileType::Png:
 				Wc = DirectX::GetWICCodec(DirectX::WICCodecs::WIC_CODEC_PNG);
+				PropertyWriter = [](IPropertyBag2* props)
+				{
+					PROPBAG2 options{};
+					VARIANT varValues{};
+					options.pstrName = (LPOLESTR)L"FilterOption";
+					varValues.vt = VT_UI1;
+					varValues.bVal = WICPngFilterOption::WICPngFilterUp;
+
+					(void)props->Write(1, &options, &varValues);
+				};
 				break;
 			case SaveFileType::Tiff:
 				Wc = DirectX::GetWICCodec(DirectX::WICCodecs::WIC_CODEC_TIFF);
