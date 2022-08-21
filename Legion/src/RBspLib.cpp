@@ -218,7 +218,7 @@ void RBspLib::ExportPropContainer(std::unique_ptr<IO::MemoryStream>& Stream, con
 	for (uint32_t i = 0; i < PropCount; i++)
 	{
 		auto Prop = Reader.Read<RBspProp>();
-		auto Name = IO::Path::GetFileNameWithoutExtension(Names[Prop.NameIndex]);
+		auto Name = IO::Path::GetFileNameWithoutExtension(Names[Prop.NameIndex]).ToLower();
 
 		if (!this->PropModelNames.Contains(Name))
 			this->PropModelNames.EmplaceBack(Name);
