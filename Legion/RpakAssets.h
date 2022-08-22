@@ -934,7 +934,7 @@ struct RMdlVGSubmeshOld
 	uint32_t VertexCount;				// Count of vertices used
 	uint32_t Int6;
 	uint32_t ExtendedWeightsOffset;		// Offset into the extended weights buffer
-	uint32_t Int8;
+	uint32_t ExtendedWeightsSize;		// Size or count of extended weights used by this submesh
 	uint32_t IndexOffset;				// Some form of index offset
 	uint32_t IndexCount;				// Some form of index count
 	uint32_t VertexOffset2;				// Some form of vertex offset (Not always used??)

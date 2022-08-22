@@ -1028,8 +1028,21 @@ void RpakLib::ExtractModelLodOld(IO::BinaryReader& Reader, const std::unique_ptr
 	BaseStream->SetPosition(Offset + VGHeader.StripsOffset);
 	Reader.Read((uint8_t*)&StripBuffer[0], 0, VGHeader.StripsCount * sizeof(RMdlVGStrip));
 
+	List<RMdlVGLod> LodBuffer(VGHeader.LodCount, true);
+	BaseStream->SetPosition(Offset + VGHeader.LodOffset);
+	Reader.Read((uint8_t*)&LodBuffer[0], 0, VGHeader.LodCount * sizeof(RMdlVGLod));
+
+	if (VGHeader.LodCount == 0)
+		return;
+
+	size_t LodSubmeshCount = LodBuffer[0].SubmeshCount;
+	size_t LodSubmeshStart = LodBuffer[0].SubmeshIndex;
+
+	if (LodSubmeshCount == 0)
+		return;
+
 	// Loop and read submeshes
-	for (uint32_t s = 0; s < VGHeader.SubmeshCount; s++)
+	for (uint32_t s = LodSubmeshStart; s < LodSubmeshCount; s++)
 	{
 		auto& Submesh = SubmeshBuffer[s];
 
