@@ -331,9 +331,10 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 			if (dataSize < 32)
 			{
 				// here we go again
+				/*
 				StarpakStream->SetPosition(Offset);
 				auto VGHeaderNew = StarpakReader.Read<RMdlVGHeader>();
-				dataSize = VGHeaderNew.DataSize;
+				dataSize = VGHeaderNew.DataSize;*/
 			}
 
 			StarpakStream->SetPosition(Offset);
@@ -376,74 +377,25 @@ void RpakLib::ExtractModelLod_V14(IO::BinaryReader& Reader, const std::unique_pt
 
 	BaseStream->SetPosition(Offset);
 
-	RMdlVGHeader VGHeader{};
-	if (Version >= 12)
-		VGHeader = Reader.Read<RMdlVGHeader>();
-	else {
-		RMdlVGHeaderOld TempVGHeader = Reader.Read<RMdlVGHeaderOld>();
+	RMdlVGHeader vg = Reader.Read<RMdlVGHeader>();
 
-		memcpy(&VGHeader, &TempVGHeader, 0xc);
+	if (!vg.lodCount)
+		return;
 
-		VGHeader.LodCount = TempVGHeader.LodCount;
-		VGHeader.DataSize = TempVGHeader.DataSize;
-		VGHeader.SubmeshCount = TempVGHeader.SubmeshCount;
-		VGHeader.StreamFlags = 0x10;
-	}
+	size_t thisLodOffset = Offset + offsetof(RMdlVGHeader, lodOffset) + vg.lodOffset;
 
-	uint32_t MainStreamFlags = VGHeader.StreamFlags;
-	switch (VGHeader.StreamFlags)
-	{
-	case 0x10:	// submeshes follow direct
-		break;
-	case 0x60:	// vg header
-	case 0x80:	// vg header
-	case 0x90:	// vg header
-	case 0xa0:
-	case 0xb0:	// vg header
-	case 0xc0:	// vg header
-	{
-		uint32_t skip = 0;
-		while (true)
-		{
-			BaseStream->SetPosition(Offset + 0x10 * skip + sizeof(RMdlVGHeader));
-			if (Reader.Read<uint32_t>() == 0x47567430)
-			{
-				break;
-			}
-			skip++;
-		}
-		BaseStream->SetPosition(Offset + 0x10 * skip + sizeof(RMdlVGHeader));
-		VGHeader = Reader.Read<RMdlVGHeader>();
+	BaseStream->SetPosition(thisLodOffset);
 
-		if (MainStreamFlags == 0xa0) // idk
-		{
-			BaseStream->SetPosition(BaseStream->GetPosition() + 0x10);
-		}
-	}
-	break;
-	case 0x40:	// skip 0x10 * lodcount
-	case 0x50:	// skip 0x10 * lodcount
-		BaseStream->SetPosition(Offset + (0x10 * VGHeader.LodCount) + sizeof(RMdlVGHeader));
-		break;
-	case 0x20:	// skip 0x10
-		BaseStream->SetPosition(Offset + 0x10 + sizeof(RMdlVGHeader));
-		break;
-	default:
-#if _DEBUG
-		printf("Unknown mesh command: 0x%x\n", VGHeader.StreamFlags);
-#endif
-		break;
-	}
+	VGLod lod = Reader.Read<VGLod>();
 
-	// Offsets in submesh are relative to the submesh we're reading...
-	const uint64_t SubmeshPointer = BaseStream->GetPosition();
+	size_t SubmeshPointer = thisLodOffset + offsetof(VGLod, submeshOffset) + lod.submeshOffset;
 
 	// We need to read the submeshes
-	List<RMdlVGSubmesh_V14> SubmeshBuffer(VGHeader.SubmeshCount, true);
-	Reader.Read((uint8_t*)&SubmeshBuffer[0], 0, VGHeader.SubmeshCount * sizeof(RMdlVGSubmesh_V14));
+	List<RMdlVGSubmesh_V14> SubmeshBuffer(lod.submeshCount, true);
+	Reader.Read((uint8_t*)&SubmeshBuffer[0], 0, lod.submeshCount * sizeof(RMdlVGSubmesh_V14));
 
 	// Loop and read submeshes
-	for (uint32_t s = 0; s < VGHeader.SubmeshCount; s++)
+	for (uint32_t s = 0; s < lod.submeshCount; s++)
 	{
 		RMdlVGSubmesh_V14& Submesh = SubmeshBuffer[s];
 
@@ -694,74 +646,25 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 
 	BaseStream->SetPosition(Offset);
 
-	RMdlVGHeader VGHeader{};
-	if (Version >= 12)
-		VGHeader = Reader.Read<RMdlVGHeader>();
-	else {
-		RMdlVGHeaderOld TempVGHeader = Reader.Read<RMdlVGHeaderOld>();
+	RMdlVGHeader vg = Reader.Read<RMdlVGHeader>();
 
-		memcpy(&VGHeader, &TempVGHeader, 0xc);
+	if (!vg.lodCount)
+		return;
 
-		VGHeader.LodCount = TempVGHeader.LodCount;
-		VGHeader.DataSize = TempVGHeader.DataSize;
-		VGHeader.SubmeshCount = TempVGHeader.SubmeshCount;
-		VGHeader.StreamFlags = 0x10;
-	}
+	size_t thisLodOffset = Offset + offsetof(RMdlVGHeader, lodOffset) + vg.lodOffset;
 
-	uint32_t MainStreamFlags = VGHeader.StreamFlags;
-	switch (VGHeader.StreamFlags)
-	{
-	case 0x10:	// submeshes follow direct
-		break;
-	case 0x60:	// vg header
-	case 0x80:	// vg header
-	case 0x90:	// vg header
-	case 0xa0:
-	case 0xb0:	// vg header
-	case 0xc0:	// vg header
-	{
-		uint32_t skip = 0;
-		while (true)
-		{
-			BaseStream->SetPosition(Offset + 0x10 * skip + sizeof(RMdlVGHeader));
-			if (Reader.Read<uint32_t>() == 0x47567430)
-			{
-				break;
-			}
-			skip++;
-		}
-		BaseStream->SetPosition(Offset + 0x10 * skip + sizeof(RMdlVGHeader));
-		VGHeader = Reader.Read<RMdlVGHeader>();
+	BaseStream->SetPosition(thisLodOffset);
 
-		if (MainStreamFlags == 0xa0) // idk
-		{
-			BaseStream->SetPosition(BaseStream->GetPosition() + 0x10);
-		}
-	}
-	break;
-	case 0x40:	// skip 0x10 * lodcount
-	case 0x50:	// skip 0x10 * lodcount
-		BaseStream->SetPosition(Offset + (0x10 * VGHeader.LodCount) + sizeof(RMdlVGHeader));
-		break;
-	case 0x20:	// skip 0x10
-		BaseStream->SetPosition(Offset + 0x10 + sizeof(RMdlVGHeader));
-		break;
-	default:
-#if _DEBUG
-		printf("Unknown mesh command: 0x%x\n", VGHeader.StreamFlags);
-#endif
-		break;
-	}
+	VGLod lod = Reader.Read<VGLod>();
 
-	// Offsets in submesh are relative to the submesh we're reading...
-	const uint64_t SubmeshPointer = BaseStream->GetPosition();
+	size_t SubmeshPointer = thisLodOffset + offsetof(VGLod, submeshOffset) + lod.submeshOffset;
 
 	// We need to read the submeshes
-	List<RMdlVGSubmesh> SubmeshBuffer(VGHeader.SubmeshCount, true);
-	Reader.Read((uint8_t*)&SubmeshBuffer[0], 0, VGHeader.SubmeshCount * sizeof(RMdlVGSubmesh));
+	List<RMdlVGSubmesh> SubmeshBuffer(lod.submeshCount, true);
+	Reader.Read((uint8_t*)&SubmeshBuffer[0], 0, lod.submeshCount * sizeof(RMdlVGSubmesh));
 
 	// Loop and read submeshes
-	for (uint32_t s = 0; s < VGHeader.SubmeshCount; s++)
+	for (uint32_t s = 0; s < lod.submeshCount; s++)
 	{
 		RMdlVGSubmesh& Submesh = SubmeshBuffer[s];
 
