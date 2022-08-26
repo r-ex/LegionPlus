@@ -390,6 +390,8 @@ void RpakLib::ExtractModelLod_V14(IO::BinaryReader& Reader, const std::unique_pt
 
 	size_t SubmeshPointer = thisLodOffset + offsetof(VGLod, submeshOffset) + lod.submeshOffset;
 
+	BaseStream->SetPosition(SubmeshPointer);
+
 	// We need to read the submeshes
 	List<RMdlVGSubmesh_V14> SubmeshBuffer(lod.submeshCount, true);
 	Reader.Read((uint8_t*)&SubmeshBuffer[0], 0, lod.submeshCount * sizeof(RMdlVGSubmesh_V14));
@@ -658,6 +660,8 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 	VGLod lod = Reader.Read<VGLod>();
 
 	size_t SubmeshPointer = thisLodOffset + offsetof(VGLod, submeshOffset) + lod.submeshOffset;
+
+	BaseStream->SetPosition(SubmeshPointer);
 
 	// We need to read the submeshes
 	List<RMdlVGSubmesh> SubmeshBuffer(lod.submeshCount, true);
