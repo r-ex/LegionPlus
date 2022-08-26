@@ -857,17 +857,25 @@ enum class RMdlVGStreamFlags : uint32_t
 
 struct RMdlVGHeader
 {
-	uint32_t Magic;		// 0x47567430	'0tVG'
-	uint32_t Version;	// 0x1
-	uint32_t Padding;
-	uint32_t LodCount;	// If 0x1, this IS the first and only lod, if > 0x1, MORE 0tVG headers follow PER lod count
+	int id;		// 0x47567430	'0tVG'
+	int version;	// 0x1
+	int padding;
+	uint32_t lodCount;	// If 0x1, this IS the first and only lod, if > 0x1, MORE 0tVG headers follow PER lod count
+	uint32_t unk;
+	uint32_t unk1;
+	uint32_t lodOffset;
+	char unk3[8];
+};
 
-	uint8_t Unknown[0x14];
-	uint32_t DataSize;	// Total size of data + header in starpak
-	uint32_t SubmeshCount;
-	uint32_t Padding2;
-	uint32_t StreamFlags;
-	uint8_t Unknown2[0xC];	// We're either at 
+struct VGLod
+{
+	char unk[4];
+	uint32_t dataSize;
+	short submeshCount;
+	char unk1; // both of these bytes line up with the LOD index
+	char unk2;
+	float distance;
+	uint64_t submeshOffset;
 };
 
 struct RMdlVGIndexCountPacked
