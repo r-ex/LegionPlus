@@ -228,6 +228,8 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 			///
 			if (Asset.AssetVersion != 9)
 				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.DataSize - BlockSize);
+			else if (Asset.Version == RpakGameVersion::R2TT)
+				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
 			else
 				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
 		}
@@ -242,6 +244,10 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 			if (Asset.AssetVersion != 9)
 			{
 				Offset += (this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset] - BlockSize);
+				bStreamed = true;
+			}
+			else if (Asset.Version == RpakGameVersion::R2TT) 
+			{
 				bStreamed = true;
 			}
 			else
@@ -268,6 +274,8 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 
 			if (Asset.AssetVersion != 9)
 				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.DataSize - BlockSize);
+			else if (Asset.Version == RpakGameVersion::R2TT)
+				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
 			else
 				this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
 		}
@@ -280,6 +288,8 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 
 		if (Asset.AssetVersion != 9)
 			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.DataSize - BlockSize);
+		else if (Asset.Version == RpakGameVersion::R2TT)
+			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
 		else
 			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
 	}
