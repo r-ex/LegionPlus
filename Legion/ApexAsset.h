@@ -15,6 +15,7 @@ enum class ApexAssetType
 	UIImage,
 	UIImageAtlas,
 	Settings,
+	RSON,
 };
 
 enum class ApexAssetStatus

@@ -163,6 +163,7 @@ void ExportManager::ExportRpakAssets(const std::unique_ptr<RpakLib>& RpakFileSys
 	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "datatables"));
 	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "shadersets"));
 	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "settings"));
+	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "rson"));
 
 	RpakFileSystem->InitializeModelExporter((ModelExportFormat_t)Config.Get<System::SettingType::Integer>("ModelFormat"));
 	RpakFileSystem->InitializeAnimExporter((AnimExportFormat_t)Config.Get<System::SettingType::Integer>("AnimFormat"));
@@ -215,6 +216,9 @@ void ExportManager::ExportRpakAssets(const std::unique_ptr<RpakLib>& RpakFileSys
 				break;
 			case (uint32_t)AssetType_t::Settings:
 				RpakFileSystem->ExportSettings(AssetToExport, IO::Path::Combine(ExportDirectory, "settings"));
+				break;
+			case (uint32_t)AssetType_t::RSON:
+				RpakFileSystem->ExportRSON(AssetToExport, IO::Path::Combine(ExportDirectory, "rson"));
 				break;
 			}
 

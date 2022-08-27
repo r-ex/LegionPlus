@@ -129,6 +129,9 @@
     <ClCompile Include="src\assets\settings.cpp">
       <Filter>RPak\Assets</Filter>
     </ClCompile>
+    <ClCompile Include="src\assets\rson.cpp">
+      <Filter>RPak\Assets</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MilesLib.h">

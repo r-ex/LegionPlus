@@ -10,10 +10,13 @@
 // Game structures
 // APEX
 #pragma pack(push, 1)
-struct RPakPtr
+union RPakPtr
 {
-	uint32_t Index;
-	uint32_t Offset;
+	struct {
+		uint32_t Index;
+		uint32_t Offset;
+	};
+	uint64_t Value;
 };
 
 enum class CompressionType : uint8_t
@@ -1557,7 +1560,29 @@ struct UIAtlasImage // uiai wen
 	uint16_t PosY;
 };
 
+// --- rson ---
+#define RSON_STRING 0x2
+#define RSON_OBJECT 0x8
+#define RSON_BOOLEAN 0x10
+#define RSON_INTEGER 0x20
+#define RSON_ARRAY 0x1000
+
+struct RSONHeader
+{
+	int type;
+	int nodeCount;
+	RPakPtr pNodes;
+};
+
+struct RSONNode
+{
+	RPakPtr pName;
+	int type;
+	int valueCount;
+	RPakPtr pValues;
+};
 #pragma pack(pop)
+
 
 // Validate all game structures
 // APEX
