@@ -98,6 +98,9 @@ void RpakLib::R_WriteRSONFile(const RpakLoadAsset& Asset, std::ofstream& out, IO
 	case RSON_BOOLEAN:
 		out << std::boolalpha << (node.pValues.Value > 0) << "\n";
 		break;
+	case RSON_INTEGER:
+		out << " " << node.pValues.Value << "\n";
+		break;
 	default:
 		out << "!!! NOT IMPLEMENTED !!! nodeType " << node.type << "\n";
 		g_Logger.Info("!!! rson nodeType %i not implemented !!!\n", node.type);
