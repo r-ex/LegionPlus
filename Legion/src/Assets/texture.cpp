@@ -239,12 +239,12 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 
 		if (this->LoadedFiles[Asset.FileIndex].StarpakMap.ContainsKey(Asset.StarpakOffset))
 		{
-			if (Asset.AssetVersion != 9)
+			if (Asset.AssetVersion != 9 && Asset.Version != RpakGameVersion::R2TT)
 			{
 				Offset += (this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset] - BlockSize);
 				bStreamed = true;
 			}
-			else if (Asset.Version == RpakGameVersion::R2TT) 
+			else if (Asset.Version == RpakGameVersion::R2TT)
 			{
 				bStreamed = true;
 			}
