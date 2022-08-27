@@ -226,10 +226,8 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 			// ???: why didnt this originally just check if it also had non-opt starpak offsets and use that for the image?
 			//      then at least the image would be higher quality than the highest permanent mip
 			///
-			if (Asset.AssetVersion != 9)
+			if (Asset.AssetVersion != 9 && Asset.Version != RpakGameVersion::R2TT)
 				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.DataSize - BlockSize);
-			else if (Asset.Version == RpakGameVersion::R2TT)
-				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
 			else
 				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
 		}
@@ -272,12 +270,10 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		{
 			g_Logger.Warning("Starpak for asset 0x%llx is not loaded. Output may be incorrect/weird\n", Asset.NameHash);
 
-			if (Asset.AssetVersion != 9)
+			if (Asset.AssetVersion != 9 && Asset.Version != RpakGameVersion::R2TT)
 				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.DataSize - BlockSize);
-			else if (Asset.Version == RpakGameVersion::R2TT)
-				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
 			else
-				this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
+				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
 		}
 	}
 	else if (Asset.RawDataIndex != -1 && Asset.RawDataIndex >= this->LoadedFiles[Asset.FileIndex].StartSegmentIndex)
@@ -286,10 +282,8 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		// All texture data is inline in rpak, we can calculate without anything else
 		//
 
-		if (Asset.AssetVersion != 9)
+		if (Asset.AssetVersion != 9 && Asset.Version != RpakGameVersion::R2TT)
 			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.DataSize - BlockSize);
-		else if (Asset.Version == RpakGameVersion::R2TT)
-			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
 		else
 			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
 	}
