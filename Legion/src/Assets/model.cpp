@@ -217,7 +217,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 		memcpy(&SkeletonHeader, &TempSkeletonHeader, 0x110);
 
-		SkeletonHeader.SubmeshLodsOffset = TempSkeletonHeader.SubmeshLodsOffset;
+		SkeletonHeader.SubmeshLodsOffset = TempSkeletonHeader.meshindex;
 		SkeletonHeader.BoneRemapCount = TempSkeletonHeader.BoneRemapCount;
 	}
 
@@ -297,14 +297,37 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 		if (Asset.AssetVersion <= 8) // s1
 		{
 			StarpakStream->SetPosition(Offset);
-			char* vvBuf = new char[ModHeader.StreamedDataSize];
+			char* streamBuf = new char[ModHeader.StreamedDataSize];
 
-			StarpakReader.Read(vvBuf, 0, ModHeader.StreamedDataSize);
+			StarpakReader.Read(streamBuf, 0, ModHeader.StreamedDataSize);
 
-			std::ofstream vvOut(BaseFileName + ".vv", std::ios::out | std::ios::binary);
+			RpakStream->SetPosition(SkeletonOffset);
 
-			vvOut.write(vvBuf, ModHeader.StreamedDataSize);
-			vvOut.close();
+			s3studiohdr_t hdr = Reader.Read<s3studiohdr_t>();
+
+			if (hdr.vtxsize != 0)
+			{
+				std::ofstream vtxOut(BaseFileName + ".vtx", std::ios::out | std::ios::binary);
+
+				vtxOut.write(streamBuf, hdr.vtxsize);
+				vtxOut.close();
+			}
+
+			if (hdr.vvdsize != 0 && hdr.vvdindex > 0)
+			{
+				std::ofstream vvdOut(BaseFileName + ".vvd", std::ios::out | std::ios::binary);
+
+				vvdOut.write(streamBuf + hdr.vvdindex, hdr.vvdsize);
+				vvdOut.close();
+			}
+
+			if (hdr.vvcsize != 0 && hdr.vvcindex > 0)
+			{
+				std::ofstream vvcOut(BaseFileName + ".vvc", std::ios::out | std::ios::binary);
+
+				vvcOut.write(streamBuf + hdr.vvcindex, hdr.vvcsize);
+				vvcOut.close();
+			}
 		}
 		else if (Asset.AssetVersion >= 9 && Asset.AssetVersion <= 11) // s2/3
 		{

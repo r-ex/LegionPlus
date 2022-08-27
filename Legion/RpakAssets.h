@@ -675,11 +675,23 @@ struct s3studiohdr_t // season 3 studiohdr
 
 	uint8_t Unknown2[0x14];
 
-	uint32_t SubmeshLodsOffset;
+	uint32_t meshindex;
 
 	uint8_t Unknown3[0x64];
 	uint32_t OffsetToBoneRemapInfo;
 	uint32_t BoneRemapCount;
+	char unk[0x40];
+
+	// index relative to the start of streamed data
+	int vtxindex;
+	int vvdindex;
+	int vvcindex;
+	int vphyindex;
+
+	int vtxsize;
+	int vvdsize;
+	int vvcsize;
+	int vphysize;
 };
 
 struct r2studiohdr_t // titanfall 2 studiohdr
