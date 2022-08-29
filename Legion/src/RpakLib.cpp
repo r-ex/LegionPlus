@@ -9,6 +9,7 @@
 #include "Texture.h"
 #include "Model.h"
 #include "BinaryReader.h"
+#include "ParallelTask.h"
 
 // Asset export formats
 #include "CoDXAssetExport.h"
@@ -158,73 +159,90 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(const std::array<bool, 
 {
 	auto Result = std::make_unique<List<ApexAsset>>();
 
-	for (auto& AssetKvp : Assets)
+	std::atomic<uint32_t> AssetIndex = 0;
+	std::mutex EmplaceMutex;
+
+	Threading::ParallelTask([&]
 	{
-		RpakLoadAsset& Asset = AssetKvp.Value();
+		(void)CoInitializeEx(0, COINIT_MULTITHREADED);
 
-		ApexAsset NewAsset;
-		NewAsset.Hash = AssetKvp.first;
-		NewAsset.FileCreatedTime = this->LoadedFiles[Asset.RpakFileIndex].CreatedTime;
-
-		switch (Asset.AssetType)
+		while (AssetIndex < Assets.Count())
 		{
-		case (uint32_t)AssetType_t::Model:
-			if (!arrAssets[0])
+			uint32_t AssetToBuild = AssetIndex++;
+
+			if (AssetToBuild >= Assets.Count())
 				continue;
-			BuildModelInfo(Asset, NewAsset);
-			break;
-		case (uint32_t)AssetType_t::AnimationRig:
-			if (!arrAssets[1])
+
+			const auto& AssetKVP = Assets.GetKVP(AssetToBuild);
+			RpakLoadAsset Asset = AssetKVP.second;
+
+			ApexAsset NewAsset;
+			NewAsset.Hash = AssetKVP.first;
+			NewAsset.FileCreatedTime = this->LoadedFiles[Asset.RpakFileIndex].CreatedTime;
+
+			switch (Asset.AssetType)
+			{
+			case (uint32_t)AssetType_t::Model:
+				if (!arrAssets[0])
+					continue;
+				BuildModelInfo(Asset, NewAsset);
+				break;
+			case (uint32_t)AssetType_t::AnimationRig:
+				if (!arrAssets[1])
+					continue;
+				BuildAnimInfo(Asset, NewAsset);
+				break;
+			case (uint32_t)AssetType_t::Texture:
+				if (!arrAssets[2])
+					continue;
+				BuildTextureInfo(Asset, NewAsset);
+				break;
+			case (uint32_t)AssetType_t::Material:
+				if (!arrAssets[3])
+					continue;
+				BuildMaterialInfo(Asset, NewAsset);
+				break;
+			case (uint32_t)AssetType_t::UIIA:
+				if (!arrAssets[4])
+					continue;
+				BuildUIIAInfo(Asset, NewAsset);
+				break;
+			case (uint32_t)AssetType_t::DataTable:
+				if (!arrAssets[5])
+					continue;
+				BuildDataTableInfo(Asset, NewAsset);
+				break;
+			case (uint32_t)AssetType_t::ShaderSet:
+				if (!arrAssets[6])
+					continue;
+				BuildShaderSetInfo(Asset, NewAsset);
+				break;
+			case (uint32_t)AssetType_t::Settings:
+				if (!arrAssets[7])
+					continue;
+				BuildSettingsInfo(Asset, NewAsset);
+				break;
+			case (uint32_t)AssetType_t::RSON:
+				BuildRSONInfo(Asset, NewAsset);
+				break;
+			case (uint32_t)AssetType_t::UIImageAtlas: // TODO ARRAY
+				BuildUIImageAtlasInfo(Asset, NewAsset);
+				break;
+			case (uint32_t)AssetType_t::Subtitles:
+				BuildSubtitleInfo(Asset, NewAsset);
+				break;
+			default:
 				continue;
-			BuildAnimInfo(Asset, NewAsset);
-			break;
-		case (uint32_t)AssetType_t::Texture:
-			if (!arrAssets[2])
-				continue;
-			BuildTextureInfo(Asset, NewAsset);
-			break;
-		case (uint32_t)AssetType_t::Material:
-			if (!arrAssets[3])
-				continue;
-			BuildMaterialInfo(Asset, NewAsset);
-			break;
-		case (uint32_t)AssetType_t::UIIA:
-			if (!arrAssets[4])
-				continue;
-			BuildUIIAInfo(Asset, NewAsset);
-			break;
-		case (uint32_t)AssetType_t::DataTable:
-			if (!arrAssets[5])
-				continue;
-			BuildDataTableInfo(Asset, NewAsset);
-			break;
-		case (uint32_t)AssetType_t::ShaderSet:
-			if (!arrAssets[6])
-				continue;
-			BuildShaderSetInfo(Asset, NewAsset);
-			break;
-		case (uint32_t)AssetType_t::Settings:
-			if (!arrAssets[7])
-				continue;
-			BuildSettingsInfo(Asset, NewAsset);
-			break;
-		case (uint32_t)AssetType_t::RSON:
-			BuildRSONInfo(Asset, NewAsset);
-			break;
-		case (uint32_t)AssetType_t::UIImageAtlas: // TODO ARRAY
-			BuildUIImageAtlasInfo(Asset, NewAsset);
-			break;
-		case (uint32_t)AssetType_t::Subtitles:
-			BuildSubtitleInfo(Asset, NewAsset);
-			break;
-		default:
-			continue;
+			}
+
+			NewAsset.Version = Asset.AssetVersion;
+
+			std::lock_guard<std::mutex> EmplaceLock(EmplaceMutex);
+			Result->EmplaceBack(std::move(NewAsset));
 		}
 
-		NewAsset.Version = Asset.AssetVersion;
-
-		Result->EmplaceBack(std::move(NewAsset));
-	}
+		CoUninitialize();
+	});
 
 	return std::move(Result);
 }

@@ -84,6 +84,9 @@ public:
 	// Attempts to get the value from the specified key
 	constexpr bool TryGetValue(TKey Key, TValue& Value);
 
+	// Get KVP at idx.
+	constexpr PairType GetKVP(const uint32_t& idx);
+
 	// TODO: Keys collection
 	// TODO: Values collection
 
@@ -343,6 +346,12 @@ inline constexpr bool Dictionary<TKey, TValue, THasher>::TryGetValue(TKey Key, T
 
 	Value = {};
 	return false;
+}
+
+template<class TKey, class TValue, class THasher>
+constexpr KeyValuePair<TKey, TValue> Dictionary<TKey, TValue, THasher>::GetKVP(const uint32_t& idx)
+{
+	return this->_Entries[idx].Kvp;
 }
 
 template<class TKey, class TValue, class THasher>
