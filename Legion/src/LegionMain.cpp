@@ -182,15 +182,8 @@ void LegionMain::LoadApexFile(const List<string>& File)
 		{
 			Main->StatusLabel->SetText("Loading bsp...");
 
-			auto UseFullPathsConfig = false;
-			if (ExportManager::Config.GetBool("UseFullPaths") == true)
-			{
-				UseFullPathsConfig = true;
-				ExportManager::Config.SetBool("UseFullPaths", false);
-			}
 
 			auto BspLib = std::make_unique<RBspLib>();
-
 			try
 			{
 				if (Main->RpakFileSystem != nullptr)
@@ -198,9 +191,16 @@ void LegionMain::LoadApexFile(const List<string>& File)
 					Main->RpakFileSystem->InitializeImageExporter((ImageExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat"));
 					Main->RpakFileSystem->InitializeModelExporter((ModelExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"));
 				}
+				
+				// force short paths when exporting bsp
+				bool useFullPaths = ExportManager::Config.GetBool("UseFullPaths");
+				ExportManager::Config.SetBool("UseFullPaths", false);
 
 				BspLib->InitializeModelExporter((ModelExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"));
 				BspLib->ExportBsp(Main->RpakFileSystem, Main->LoadPath[0], ExportManager::GetMapExportPath());
+
+				// restore original setting
+				ExportManager::Config.SetBool("UseFullPaths", useFullPaths);
 
 				Main->Invoke([]()
 				{
@@ -211,11 +211,6 @@ void LegionMain::LoadApexFile(const List<string>& File)
 			catch (const std::exception& e)
 			{
 				Forms::MessageBox::Show("An error occurred while exporting the bsp file:\n\n" + string(e.what()), "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
-			}
-
-			if (UseFullPathsConfig == true);
-			{
-				ExportManager::Config.SetBool("UseFullPaths", true);
 			}
 
 			Main->RefreshView();
