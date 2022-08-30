@@ -182,8 +182,8 @@ void LegionMain::LoadApexFile(const List<string>& File)
 		{
 			Main->StatusLabel->SetText("Loading bsp...");
 
-			auto BspLib = std::make_unique<RBspLib>();
 
+			auto BspLib = std::make_unique<RBspLib>();
 			try
 			{
 				if (Main->RpakFileSystem != nullptr)
@@ -191,9 +191,16 @@ void LegionMain::LoadApexFile(const List<string>& File)
 					Main->RpakFileSystem->InitializeImageExporter((ImageExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat"));
 					Main->RpakFileSystem->InitializeModelExporter((ModelExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"));
 				}
+				
+				// force short paths when exporting bsp
+				bool useFullPaths = ExportManager::Config.GetBool("UseFullPaths");
+				ExportManager::Config.SetBool("UseFullPaths", false);
 
 				BspLib->InitializeModelExporter((ModelExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"));
 				BspLib->ExportBsp(Main->RpakFileSystem, Main->LoadPath[0], ExportManager::GetMapExportPath());
+
+				// restore original setting
+				ExportManager::Config.SetBool("UseFullPaths", useFullPaths);
 
 				Main->Invoke([]()
 				{
