@@ -154,7 +154,7 @@ void RpakLib::PatchAssets()
 }
 
 //std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims, bool Images, bool Materials, bool UIImages, bool DataTables)
-std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(const std::array<bool, 8> &arrAssets)
+std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(const std::array<bool, 9> &arrAssets)
 {
 	auto Result = std::make_unique<List<ApexAsset>>();
 
@@ -209,6 +209,8 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(const std::array<bool, 
 			BuildSettingsInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::RSON:
+		if (!arrAssets[8])
+				continue;
 			BuildRSONInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::UIImageAtlas: // TODO ARRAY

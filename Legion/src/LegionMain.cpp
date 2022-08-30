@@ -513,7 +513,7 @@ void LegionMain::RefreshView()
 	{
 		this->AssetsListView->SetVirtualListSize(0);
 
-		std::array<bool, 8> bAssets = {
+		std::array<bool, 9> bAssets = {
 			ExportManager::Config.GetBool("LoadModels"),
 			ExportManager::Config.GetBool("LoadAnimations"),
 			ExportManager::Config.GetBool("LoadImages"),
@@ -521,7 +521,8 @@ void LegionMain::RefreshView()
 			ExportManager::Config.GetBool("LoadUIImages"),
 			ExportManager::Config.GetBool("LoadDataTables"),
 			ExportManager::Config.GetBool("LoadShaderSets"),
-			ExportManager::Config.GetBool("LoadSettingsSets")
+			ExportManager::Config.GetBool("LoadSettingsSets"),
+			ExportManager::Config.GetBool("LoadRSONs")
 		};
 
 		this->LoadedAssets = this->RpakFileSystem->BuildAssetList(bAssets);

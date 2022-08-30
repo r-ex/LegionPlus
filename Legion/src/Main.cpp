@@ -245,12 +245,13 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			bool bLoadDataTables = cmdline.HasParam(L"--loaddatatables");
 			bool bLoadShaderSets = cmdline.HasParam(L"--loadshadersets");
 			bool bLoadSettingsSets = cmdline.HasParam(L"--loadsettingssets");
+			bool bLoadRSONs = cmdline.HasParam(L"--loadrsons");
 
-			bool bNoFlagsSpecified = !bLoadModels && !bLoadAnims && !bLoadImages && !bLoadMaterials && !bLoadUIImages && !bLoadDataTables && !bLoadShaderSets && !bLoadSettingsSets;
+			bool bNoFlagsSpecified = !bLoadModels && !bLoadAnims && !bLoadImages && !bLoadMaterials && !bLoadUIImages && !bLoadDataTables && !bLoadShaderSets && !bLoadSettingsSets&& !bLoadRSONs;
 
 			if (bNoFlagsSpecified)
 			{
-				std::array<bool, 8> bAssets = {
+				std::array<bool, 9> bAssets = {
 					ExportManager::Config.GetBool("LoadModels"),
 					ExportManager::Config.GetBool("LoadAnimations"),
 					ExportManager::Config.GetBool("LoadImages"),
@@ -258,14 +259,15 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 					ExportManager::Config.GetBool("LoadUIImages"),
 					ExportManager::Config.GetBool("LoadDataTables"),
 					ExportManager::Config.GetBool("LoadShaderSets"),
-					ExportManager::Config.GetBool("LoadSettingsSets")
+					ExportManager::Config.GetBool("LoadSettingsSets"),
+					ExportManager::Config.GetBool("LoadRSONs")
 				};
 
 				AssetList = Rpak->BuildAssetList(bAssets);
 			}
 			else
 			{
-				std::array<bool, 8> bAssets = {
+				std::array<bool, 9> bAssets = {
 					bLoadModels,
 					bLoadAnims,
 					bLoadImages,
@@ -274,6 +276,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 					bLoadDataTables,
 					bLoadShaderSets,
 					bLoadSettingsSets,
+					bLoadRSONs,
 				};
 
 				AssetList = Rpak->BuildAssetList(bAssets);
