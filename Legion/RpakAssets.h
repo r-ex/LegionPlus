@@ -694,68 +694,192 @@ struct s3studiohdr_t // season 3 studiohdr
 	int vphysize;
 };
 
-struct r2studiohdr_t // titanfall 2 studiohdr
+struct r2studiohdr_t // titanfall 2 studiohdr (MDL v53)
 {
-	uint32_t Magic;
-	uint32_t Version;
-	uint32_t Hash;
-	uint32_t NameTableOffset;
-
-	char SkeletonName[0x40];
-
-	uint32_t DataSize;
-
-	float EyePosition[3];
-	float IllumPosition[3];
-	float HullMin[3];
-	float HullMax[3];
-	float ViewBBMin[3];
-	float ViewBBMax[3];
-
-	uint32_t Flags;
-
-	uint32_t BoneCount;
-	uint32_t BoneDataOffset;
-
-	uint32_t BoneControllerCount;
-	uint32_t BoneControllerOffset;
-
-	uint32_t HitboxCount;
-	uint32_t HitboxOffset;
-
-	uint32_t LocalAnimCount;
-	uint32_t LocalAnimOffset;
-
-	uint32_t LocalSeqCount;
-	uint32_t LocalSeqOffset;
-
-	uint32_t ActivityListVersion;
-	uint32_t EventsIndexed;
-
-	uint32_t TextureCount;
-	uint32_t TextureOffset;
-
-	uint32_t TextureDirCount;
-	uint32_t TextureDirOffset;
-
-	uint32_t SkinReferenceCount;	// Total number of references (submeshes)
-	uint32_t SkinFamilyCount;		// Total skins per reference
-	uint32_t SkinReferenceOffset;	// Offset to data
-
-	uint32_t BodyPartCount;
-	uint32_t BodyPartOffset;
-
-	uint32_t AttachmentCount;
-	uint32_t AttachmentOffset;
-
-	uint8_t Unknown2[0x14];
-
-	uint32_t SubmeshLodsOffsetOg;
-
-	uint8_t Unknown3[0x98];
-
-	uint32_t SubmeshLodsOffset;
-	uint32_t MeshOffset;
+	int id; // Model format ID, such as "IDST" (0x49 0x44 0x53 0x54)
+	int version; // Format version number, such as 48 (0x30,0x00,0x00,0x00)
+	int checksum; // This has to be the same in the phy and vtx files to load!
+	int sznameindex; // This has been moved from studiohdr2 to the front of the main header.
+	char name[64]; // The internal name of the model, padding with null bytes.
+	                // Typically "my_model.mdl" will have an internal name of "my_model"
+	int length; // Data size of MDL file in bytes.
+	
+	Vector3 eyeposition;	// ideal eye position
+	
+	Vector3 illumposition;	// illumination center
+	
+	Vector3 hull_min;		// ideal movement hull size
+	Vector3 hull_max;			
+	
+	Vector3 view_bbmin;		// clipping bounding box
+	Vector3 view_bbmax;		
+	
+	int flags;
+	
+	int numbones; // bones
+	int boneindex;
+	
+	int numbonecontrollers; // bone controllers
+	int bonecontrollerindex;
+	
+	int numhitboxsets;
+	int hitboxsetindex;
+	
+	int numlocalanim; // animations/poses
+	int localanimindex; // animation descriptions
+	
+	int numlocalseq; // sequences
+	int localseqindex;
+	
+	int activitylistversion; // initialization flag - have the sequences been indexed?
+	int eventsindexed;
+	
+	// mstudiotexture_t
+	// short rpak path
+	// raw textures
+	int numtextures; // the material limit exceeds 128, probably 256.
+	int textureindex;
+	
+	// this should always only be one, unless using vmts.
+	// raw textures search paths
+	int numcdtextures;
+	int cdtextureindex;
+	
+	// replaceable textures tables
+	int numskinref;
+	int numskinfamilies;
+	int skinindex;
+	
+	int numbodyparts;		
+	int bodypartindex;
+	
+	int numlocalattachments;
+	int localattachmentindex;
+	
+	int numlocalnodes;
+	int localnodeindex;
+	int localnodenameindex;
+	
+	int numflexdesc;
+	int flexdescindex;
+	
+	int numflexcontrollers;
+	int flexcontrollerindex;
+	
+	int numflexrules;
+	int flexruleindex;
+	
+	int numikchains;
+	int ikchainindex;
+	
+	// this is rui meshes, todo refind mouth count.
+	int numruimeshes;
+	int ruimeshindex;
+	
+	int numlocalposeparameters;
+	int localposeparamindex;
+	
+	int surfacepropindex;
+	
+	int keyvalueindex;
+	int keyvaluesize;
+	
+	int numlocalikautoplaylocks;
+	int localikautoplaylockindex;
+	
+	float mass;
+	int contents;
+	
+	// external animations, models, etc.
+	int numincludemodels;
+	int includemodelindex;
+	
+	uint32_t virtualModel;
+	
+	// animblock is either completely cut, this is because they no longer use .ani files.
+	
+	int bonetablebynameindex;
+	
+	// if STUDIOHDR_FLAGS_CONSTANT_DIRECTIONAL_LIGHT_DOT is set,
+	// this value is used to calculate directional components of lighting 
+	// on static props
+	byte constdirectionallightdot;
+	
+	// set during load of mdl data to track *desired* lod configuration (not actual)
+	// the *actual* clamped root lod is found in studiohwdata
+	// this is stored here as a global store to ensure the staged loading matches the rendering
+	byte rootLOD;
+	
+	// set in the mdl data to specify that lod configuration should only allow first numAllowRootLODs
+	// to be set as root LOD:
+	//	numAllowedRootLODs = 0	means no restriction, any lod can be set as root lod.
+	//	numAllowedRootLODs = N	means that lod0 - lod(N-1) can be set as root lod, but not lodN or lower.
+	byte numAllowedRootLODs;
+	
+	byte unused;
+	
+	float fadedistance; // set to -1 to never fade. set above 0 if you want it to fade out, distance is in feet.
+	                    // player/titan models seem to inherit this value from the first model loaded in menus.
+	                    // works oddly on entities, probably only meant for static props
+	
+	int numflexcontrollerui;
+	int flexcontrolleruiindex;
+	
+	// used by tools only that don't cache, but persist mdl's peer data
+	// engine uses virtualModel to back link to cache pointers
+	// might not be correct
+	uint32_t pVertexBase; // float flVertAnimFixedPointScale;
+	uint32_t pIndexBase; // int surfacepropLookup;
+	
+	// this is in all shipped models, probably part of their asset bakery. it should be 0x2CC.
+	// doesn't actually need to be written pretty sure, only four bytes when not present.
+	// this is not completely true as some models simply have nothing, such as animation models.
+	int mayaindex;
+	
+	int numsrcbonetransform;
+	int srcbonetransformindex;
+	
+	int illumpositionattachmentindex;
+	
+	int linearboneindex;
+	
+	int m_nBoneFlexDriverCount;
+	int m_nBoneFlexDriverIndex;
+	
+	// for static props (and maybe others)
+	// Per Triangle AABB
+	int aabbindex;
+	int numaabb;
+	int numaabb1;
+	int numaabb2;
+	
+	int stringtableindex;
+	
+	// start of model combination stuff.
+	// anis are no longer used from what I can tell, v52s that had them don't in v53.
+	int vtxindex; // VTX
+	int vvdindex; // VVD / IDSV
+	int vvcindex; // VVC / IDCV 
+	int vphyindex; // VPHY / IVPS
+	
+	int vtxsize;
+	int vvdsize;
+	int vvcsize;
+	int vphysize;
+	
+	// the following 'unks' could actually be indexs.
+	// one of these is probably the ANI/IDAG index
+	// vertAnimFixedPointScale might be in here but I doubt it.
+	
+	// this data block is related to the vphy, if it's not present the data will not be written
+	int unkmemberindex1; // section between vphy and vtx.?
+	int numunkmember1; // only seems to be used when phy has one solid
+	
+	int unk;
+	
+	int unkindex3; // goes to the same spot as vtx normally.
+	
+	int unused1[60]; // god I hope
 };
 
 struct mstudiobone_t
@@ -807,20 +931,20 @@ struct RMdlMeshStreamHeader
 	uint32_t BodyPartOffset;
 };
 
-struct RMdlMeshHeader
+struct vertexFileHeader_t
 {
-	uint32_t Magic;
-	uint32_t Version;
-	uint32_t Hash;
+	int id;
+	int version;
+	uint32_t checksum;
 
-	uint32_t NumLods;
-	uint32_t NumLodVertCounts[8];
+	int numLODs;
+	int numLODVertexes[8];
 
-	uint32_t NumFixups;
-	uint32_t FixupOffset;
+	int numFixups;
+	int fixupTableStart;
 
-	uint32_t VertexOffset;
-	uint32_t TangentOffset;
+	int vertexDataStart;
+	int tangentDataStart;
 };
 
 struct RMdlVGHeaderOld
@@ -1143,16 +1267,16 @@ struct RMdlVertex
 
 struct mstudiobodyparts_t
 {
-	uint32_t NumModels;
-	uint32_t ModelOffset;
+	uint32_t nummodels;
+	uint32_t modelindex;
 };
 
 struct r2mstudiobodyparts_t
 {
-	uint32_t NameOffset;
-	uint32_t NumModels;
-	uint32_t BaseIndex;
-	uint32_t ModelOffset;
+	uint32_t sznameindex;
+	uint32_t nummodels;
+	uint32_t base;
+	uint32_t modelindex;
 };
 
 struct RMdlModel
@@ -1165,16 +1289,30 @@ struct RMdlTitanfallModel
 {
 	char Name[0x40];
 
-	uint32_t ModelType;
-	float BoundingRadius;
+	int type;
+	float boundingradius;
 
-	uint32_t NumMeshes;
-	uint32_t MeshOffset;
-	uint32_t NumVertices;
-	uint32_t VertexIndex;
-	uint32_t TangentsIndex;
+	int nummeshes;
+	int meshindex;
+	int numvertices;
+	int vertexindex;
+	int tangentsindex;
 
-	uint8_t Unk1[0x38];
+	int numattachments;
+	int attachmentindex;
+
+	// might be cut
+	int numeyeballs;
+	int eyeballindex;
+
+	//mstudio_modelvertexdata_t vertexdata;
+
+	int unk[4];
+
+	int unkindex;
+	int unkindex1;
+
+	int unused[4];
 };
 
 struct RMdlLod
@@ -1204,6 +1342,9 @@ struct RMdlStripGroup
 	uint32_t StripOffset;
 
 	uint8_t Flags;
+
+	int numTopologyIndices;
+	uint32_t topologyOffset;
 };
 
 struct RMdlStrip
@@ -1613,14 +1754,14 @@ ASSERT_SIZE(AnimHeader, 0x30);
 ASSERT_SIZE(AnimRigHeader, 0x28);
 ASSERT_SIZE(mstudiobone_t, 0xB4);
 ASSERT_SIZE(RMdlMeshStreamHeader, 0x24);
-ASSERT_SIZE(RMdlMeshHeader, 0x40);
+ASSERT_SIZE(vertexFileHeader_t, 0x40);
 ASSERT_SIZE(RMdlFixup, 0xC);
 ASSERT_SIZE(RMdlVertex, 0x30);
 ASSERT_SIZE(mstudiobodyparts_t, 0x8);
 ASSERT_SIZE(RMdlModel, 0x8);
 ASSERT_SIZE(RMdlLod, 0xC);
 ASSERT_SIZE(RMdlSubmesh, 0x9);
-ASSERT_SIZE(RMdlStripGroup, 0x19);
+//ASSERT_SIZE(RMdlStripGroup, 0x19);
 ASSERT_SIZE(RMdlStripVert, 0x9);
 ASSERT_SIZE(RMdlStrip, 0x1B);
 ASSERT_SIZE(RMdlExtendedWeight, 0x4);

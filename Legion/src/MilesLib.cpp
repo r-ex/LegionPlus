@@ -225,8 +225,6 @@ LanguageName(MilesLanguageID lang) {
 	return LanguageNames[(int32_t)MilesLanguageID::UNKNOWN];
 }
 
-
-
 static uint32_t MilesReadFileStream(char* Buffer, uint64_t Length, void* UserData)
 {
 	auto Reader = (BinkASIReader*)UserData;
