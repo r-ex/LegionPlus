@@ -124,7 +124,7 @@ ShaderSetHeader RpakLib::ExtractShaderSet(const RpakLoadAsset& Asset)
 	return Header;
 }
 
-List<ShaderVar> RpakLib::ExtractShaderVars(const RpakLoadAsset& Asset, D3D_SHADER_VARIABLE_TYPE VarsType)
+List<ShaderVar> RpakLib::ExtractShaderVars(const RpakLoadAsset& Asset, const std::string& CBufName, D3D_SHADER_VARIABLE_TYPE VarsType)
 {
 	auto RpakStream = this->GetFileStream(Asset);
 	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
@@ -171,29 +171,38 @@ List<ShaderVar> RpakLib::ExtractShaderVars(const RpakLoadAsset& Asset, D3D_SHADE
 				RpakStream->SetPosition(ConstBufferPos + (i * sizeof(RDefConstBuffer)));
 				RDefConstBuffer ConstBuffer = Reader.Read<RDefConstBuffer>();
 
-				for (uint32_t j = 0; j < ConstBuffer.VariableCount; ++j)
+				RpakStream->SetPosition(ChunkOffset + 8 + ConstBuffer.NameOffset);
+				string bufname = Reader.ReadCString();
+
+				if (CBufName != "" && bufname == CBufName)
 				{
-					RpakStream->SetPosition((ChunkOffset + 8) + ConstBuffer.VariableOffset + (j * sizeof(RDefCBufVar)));
+					for (uint32_t j = 0; j < ConstBuffer.VariableCount; ++j)
+					{
+						RpakStream->SetPosition((ChunkOffset + 8) + ConstBuffer.VariableOffset + (j * sizeof(RDefCBufVar)));
 
-					RDefCBufVar CBufVar = Reader.Read<RDefCBufVar>();
+						RDefCBufVar CBufVar = Reader.Read<RDefCBufVar>();
 
-					uint64_t NameOffset = ChunkOffset + 8 + CBufVar.NameOffset;
-					uint64_t TypeOffset = ChunkOffset + 8 + CBufVar.TypeOffset;
+						uint64_t NameOffset = ChunkOffset + 8 + CBufVar.NameOffset;
+						uint64_t TypeOffset = ChunkOffset + 8 + CBufVar.TypeOffset;
 
-					RpakStream->SetPosition(NameOffset);
-					string Name = Reader.ReadCString();
+						RpakStream->SetPosition(NameOffset);
+						string Name = Reader.ReadCString();
 
-					RpakStream->SetPosition(TypeOffset);
-					RDefCBufVarType Type = Reader.Read<RDefCBufVarType>();
+						RpakStream->SetPosition(TypeOffset);
+						RDefCBufVarType Type = Reader.Read<RDefCBufVarType>();
 
-					ShaderVar Var;
+						ShaderVar Var;
 
-					Var.Name = Name;
-					Var.Type = (D3D_SHADER_VARIABLE_TYPE)Type.Type;
+						Var.Name = Name;
+						Var.Type = (D3D_SHADER_VARIABLE_TYPE)Type.Type;
+						Var.Size = CBufVar.Size;
 
-					// make sure that the VarsType arg is actually specified and then check if this var matches that type
-					if (Var.Type != D3D_SVT_FORCE_DWORD && Var.Type == VarsType)
-						Vars.EmplaceBack(Var);
+						// make sure that the VarsType arg is actually specified and then check if this var matches that type
+						if (VarsType != D3D_SVT_FORCE_DWORD && Var.Type == VarsType)
+							Vars.EmplaceBack(Var);
+						else if (VarsType == D3D_SVT_FORCE_DWORD)
+							Vars.EmplaceBack(Var);
+					}
 				}
 			}
 			break;

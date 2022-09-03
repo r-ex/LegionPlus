@@ -47,195 +47,105 @@ void RpakLib::ExportMaterialCPU(const RpakLoadAsset& Asset, const string& Path)
 	auto RpakStream = this->GetFileStream(Asset);
 	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
+	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
+
+	MaterialHeader MatHeader = Reader.Read<MaterialHeader>();
+
+	if (!Assets.ContainsKey(MatHeader.ShaderSetHash)) // no shaderset loaded
+		return;
+
+	RpakLoadAsset ShaderSetAsset = Assets[MatHeader.ShaderSetHash];
+	ShaderSetHeader ShaderSetHeader = ExtractShaderSet(ShaderSetAsset);
+
+	uint64_t PixelShaderGuid = ShaderSetHeader.PixelShaderHash;
+
+	if (ShaderSetAsset.AssetVersion <= 11)
+		PixelShaderGuid = ShaderSetHeader.OldPixelShaderHash;
+
+	if (!Assets.ContainsKey(PixelShaderGuid)) // no pixel shader
+		return;
+
+	List<ShaderVar> ShaderVars = ExtractShaderVars(Assets[PixelShaderGuid], "CBufUberStatic");
+
+	if (!ShaderVars.Count()) // no shader vars matching our buffer
+		return;
+
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset));
 
 	MaterialCPUHeader MatCPUHdr = Reader.Read<MaterialCPUHeader>();
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, MatCPUHdr.m_nData.Index, MatCPUHdr.m_nData.Offset));
 
-	MaterialCPUData MatCPUData = Reader.Read<MaterialCPUData>();
+	std::unique_ptr<char[]> buffer(new char[MatCPUHdr.m_nDataSize]);
 
-	enum class Types : int
-	{
-		UINT32,
-		FLOAT,
-		UVMATRIX,
-		VECTOR2,
-		VECTOR3
-	};
-
-	std::function<void(std::ostringstream&, const string&, void*, Types)> fnAddToStream = [](std::ostringstream& ss, const string& member, void* ptr, Types type)
-	{
-		ss << "\t";
-
-		switch (type)
-		{
-		case Types::UINT32:
-		{
-			string str = string::Format("uint32_t %s = %u;", member.ToCString(), *reinterpret_cast<uint32_t*>(ptr));
-			ss << str.ToCString();
-			break;
-		}
-		case Types::FLOAT:
-		{
-			string str = string::Format("float %s = %f;", member.ToCString(), *reinterpret_cast<float*>(ptr));
-			ss << str.ToCString();
-			break;
-		}
-		case Types::UVMATRIX:
-		{
-			UVTransformMatrix uvMatr = *reinterpret_cast<UVTransformMatrix*>(ptr);
-			string str = string::Format("struct %s\n\t{\n\t\tfloat uvScaleX = %f;\n\t\tfloat uvRotationX = %f;\n\t\tfloat uvRotationY = %f;\n\t\tfloat uvScaleY = %f;\n\t\tfloat uvTranslateX = %f;\n\t\tfloat uvTranslateY = %f;\n\t}\n", member.ToCString(), uvMatr.uvScaleX, uvMatr.uvRotationX, uvMatr.uvRotationY, uvMatr.uvScaleY, uvMatr.uvTranslateX, uvMatr.uvTranslateY);
-			ss << str.ToCString();
-			break;
-		}
-		case Types::VECTOR2:
-		{
-			Vector2 vec = *reinterpret_cast<Vector2*>(ptr);
-			string str = string::Format("Vector2 %s = { %f, %f };", member.ToCString(), vec.X, vec.Y);
-			ss << str.ToCString();
-			break;
-		}
-		case Types::VECTOR3:
-		{
-			Vector3 vec = *reinterpret_cast<Vector3*>(ptr);
-			string str = string::Format("Vector3 %s = { %f, %f, %f };", member.ToCString(), vec.X, vec.Y, vec.Z);
-			ss << str.ToCString();
-			break;
-		}
-		}
-
-		ss << "\n";
-	};
+	RpakStream->Read((uint8_t*)buffer.get(), 0, MatCPUHdr.m_nDataSize);
 
 	std::ostringstream ss;
 	ss << "struct " << "CBufUberStatic\n{\n";
 
-#define GET_STRUCT_MEMBER_NAME(name) [](string str) { str = str.Substring(str.IndexOf(".") + 1); return str; } (string(#name))
-#define ADDSTREAM(ss, mem, type) fnAddToStream(ss, GET_STRUCT_MEMBER_NAME(mem), &mem, type);
+	char* ptr = buffer.get();
+	for (auto& it : ShaderVars)
+	{
+		ss << "\t";
 
-	ADDSTREAM(ss, MatCPUData.c_uv1, Types::UVMATRIX);
-	ADDSTREAM(ss, MatCPUData.c_uv2, Types::UVMATRIX);
-	ADDSTREAM(ss, MatCPUData.c_uv3, Types::UVMATRIX);
-	ADDSTREAM(ss, MatCPUData.c_uv4, Types::UVMATRIX);
-	ADDSTREAM(ss, MatCPUData.c_uv5, Types::UVMATRIX);
+		switch (it.Type)
+		{
+		case D3D_SVT_INT:
+		{
+			string str = string::Format("uint32_t %s = %u;", it.Name.ToCString(), *reinterpret_cast<uint32_t*>(ptr));
+			ss << str.ToCString();
+			break;
+		}
+		case D3D_SVT_FLOAT:
+		{
+			int elementCount = it.Size / sizeof(float);
 
-	ADDSTREAM(ss, MatCPUData.c_uvDistortionIntensity, Types::VECTOR2);
-	ADDSTREAM(ss, MatCPUData.c_uvDistortion2Intensity, Types::VECTOR2);
+			string str = "";
+			switch (elementCount)
+			{
+			case 1:
+				str = string::Format("float %s = %f;", it.Name.ToCString(), *reinterpret_cast<float*>(ptr));
+				break;
+			case 2:
+			{
+				Vector2 vec = *reinterpret_cast<Vector2*>(ptr);
+				str = string::Format("Vector2 %s = { %f, %f };", it.Name.ToCString(), vec.X, vec.Y);
+				break;
+			}
+			case 3:
+			{
+				Vector3 vec = *reinterpret_cast<Vector3*>(ptr);
+				str = string::Format("Vector3 %s = { %f, %f, %f };", it.Name.ToCString(), vec.X, vec.Y, vec.Z);
+				break;
+			}
+			default:
+			{
+				string valStr = "";
+				for (int i = 0; i < elementCount; ++i)
+				{
+					valStr += string::Format("%f", *reinterpret_cast<float*>(ptr + (i * sizeof(float))));
 
-	ADDSTREAM(ss, MatCPUData.c_L0_scatterDistanceScale, Types::FLOAT);
-	ADDSTREAM(ss, MatCPUData.c_layerBlendRamp, Types::FLOAT);
+					if (i != elementCount - 1)
+						valStr += ", ";
+				}
 
-	ADDSTREAM(ss, MatCPUData.c_opacity, Types::FLOAT);
+				str = string::Format("float %s[%u] = { %s };", it.Name.ToCString(), elementCount, valStr.ToCString());
+				break;
+			}
+			}
+			ss << str.ToCString();
+			break;
+		}
+		default:
+			string str = string::Format("char UNIMPLEMENTED_%s[%u];", it.Name.ToCString(), it.Size);
+			ss << str.ToCString();
+			break;
+		}
+		ptr += it.Size;
 
-	ADDSTREAM(ss, MatCPUData.c_useAlphaModulateSpecular, Types::FLOAT);
-	ADDSTREAM(ss, MatCPUData.c_alphaEdgeFadeExponent, Types::FLOAT);
-	ADDSTREAM(ss, MatCPUData.c_alphaEdgeFadeInner, Types::FLOAT);
-	ADDSTREAM(ss, MatCPUData.c_alphaEdgeFadeOuter, Types::FLOAT);
-
-	ADDSTREAM(ss, MatCPUData.c_useAlphaModulateEmissive, Types::FLOAT);
-	ADDSTREAM(ss, MatCPUData.c_emissiveEdgeFadeExponent, Types::FLOAT);
-	ADDSTREAM(ss, MatCPUData.c_emissiveEdgeFadeInner, Types::FLOAT);
-	ADDSTREAM(ss, MatCPUData.c_emissiveEdgeFadeOuter, Types::FLOAT);
-
-	ADDSTREAM(ss, MatCPUData.c_alphaDistanceFadeScale, Types::FLOAT);
-	ADDSTREAM(ss, MatCPUData.c_alphaDistanceFadeBias, Types::FLOAT);
-	ADDSTREAM(ss, MatCPUData.c_alphaTestReference, Types::FLOAT);
-
-	ADDSTREAM(ss, MatCPUData.c_aspectRatioMulV, Types::FLOAT);
-
-	ADDSTREAM(ss, MatCPUData.c_shadowBias, Types::FLOAT);
-	ADDSTREAM(ss, MatCPUData.c_shadowBiasStatic, Types::FLOAT);
-
-	ADDSTREAM(ss, MatCPUData.c_dofOpacityLuminanceScale, Types::FLOAT);
-
-	ADDSTREAM(ss, MatCPUData.c_tsaaDepthAlphaThreshold, Types::FLOAT);
-	ADDSTREAM(ss, MatCPUData.c_tsaaMotionAlphaThreshold, Types::FLOAT);
-	ADDSTREAM(ss, MatCPUData.c_tsaaMotionAlphaRamp, Types::FLOAT);
-	ADDSTREAM(ss, MatCPUData.c_tsaaResponsiveFlag, Types::UINT32);
-
-	ADDSTREAM(ss, MatCPUData.c_outlineColorSDF, Types::VECTOR3);
-	ADDSTREAM(ss, MatCPUData.c_outlineWidthSDF, Types::FLOAT);
-
-	ADDSTREAM(ss, MatCPUData.c_shadowColorSDF, Types::VECTOR3);
-	ADDSTREAM(ss, MatCPUData.c_shadowWidthSDF, Types::FLOAT);
-
-	ADDSTREAM(ss, MatCPUData.c_insideColorSDF, Types::VECTOR3);
-
-	ADDSTREAM(ss, MatCPUData.c_outsideAlphaScalarSDF, Types::FLOAT);
-
-	ADDSTREAM(ss, MatCPUData.c_glitchStrength, Types::FLOAT);
-
-	ADDSTREAM(ss, MatCPUData.c_vertexDisplacementScale, Types::FLOAT);
-
-	ADDSTREAM(ss, MatCPUData.c_innerFalloffWidthSDF, Types::FLOAT);
-	ADDSTREAM(ss, MatCPUData.c_innerEdgeOffsetSDF, Types::FLOAT);
-
-	ADDSTREAM(ss, MatCPUData.c_dropShadowOffsetSDF, Types::VECTOR2);
-
-	ADDSTREAM(ss, MatCPUData.c_normalMapEdgeWidthSDF, Types::FLOAT);
-
-	ADDSTREAM(ss, MatCPUData.c_shadowFalloffSDF, Types::FLOAT);
-
-	ADDSTREAM(ss, MatCPUData.c_L0_scatterAmount, Types::VECTOR2);
-	ADDSTREAM(ss, MatCPUData.c_L0_scatterRatio, Types::FLOAT);
-
-	ADDSTREAM(ss, MatCPUData.c_L0_transmittanceIntensityScale, Types::FLOAT);
-
-	ADDSTREAM(ss, MatCPUData.c_vertexDisplacementDirection, Types::VECTOR2);
-
-	ADDSTREAM(ss, MatCPUData.c_L0_transmittanceAmount, Types::FLOAT);
-	ADDSTREAM(ss, MatCPUData.c_L0_transmittanceDistortionAmount, Types::FLOAT);
-
-	ADDSTREAM(ss, MatCPUData.c_zUpBlendingMinAngleCos, Types::FLOAT);
-	ADDSTREAM(ss, MatCPUData.c_zUpBlendingMaxAngleCos, Types::FLOAT);
-	ADDSTREAM(ss, MatCPUData.c_zUpBlendingVertexAlpha, Types::FLOAT);
-
-	ADDSTREAM(ss, MatCPUData.c_L0_albedoTint, Types::VECTOR3);
-
-	ADDSTREAM(ss, MatCPUData.c_depthBlendScalar, Types::FLOAT);
-
-	ADDSTREAM(ss, MatCPUData.c_L0_emissiveTint, Types::VECTOR3);
-
-	ADDSTREAM(ss, MatCPUData.c_subsurfaceMaterialID, Types::FLOAT);
-
-	ADDSTREAM(ss, MatCPUData.c_L0_perfSpecColor, Types::VECTOR3);
-
-	ADDSTREAM(ss, MatCPUData.c_L0_perfGloss, Types::FLOAT);
-
-	ADDSTREAM(ss, MatCPUData.c_L1_albedoTint, Types::VECTOR3);
-
-	ADDSTREAM(ss, MatCPUData.c_L1_perfGloss, Types::FLOAT);
-
-	ADDSTREAM(ss, MatCPUData.c_L1_emissiveTint, Types::VECTOR3);
-	ADDSTREAM(ss, MatCPUData.c_L1_perfSpecColor, Types::VECTOR3);
-
-	ADDSTREAM(ss, MatCPUData.c_splineMinPixelPercent, Types::FLOAT);
-
-	ADDSTREAM(ss, MatCPUData.c_L0_anisoSpecCosSinTheta, Types::VECTOR2);
-	ADDSTREAM(ss, MatCPUData.c_L1_anisoSpecCosSinTheta, Types::VECTOR2);
-
-	ADDSTREAM(ss, MatCPUData.c_L0_anisoSpecStretchAmount, Types::FLOAT);
-	ADDSTREAM(ss, MatCPUData.c_L1_anisoSpecStretchAmount, Types::FLOAT);
-
-	ADDSTREAM(ss, MatCPUData.c_L0_emissiveHeightFalloff, Types::FLOAT);
-	ADDSTREAM(ss, MatCPUData.c_L1_emissiveHeightFalloff, Types::FLOAT);
-
-	ADDSTREAM(ss, MatCPUData.c_L1_transmittanceIntensityScale, Types::FLOAT);
-	ADDSTREAM(ss, MatCPUData.c_L1_transmittanceAmount, Types::FLOAT);
-	ADDSTREAM(ss, MatCPUData.c_L1_transmittanceDistortionAmount, Types::FLOAT);
-
-	ADDSTREAM(ss, MatCPUData.c_L1_scatterDistanceScale, Types::FLOAT);
-	ADDSTREAM(ss, MatCPUData.c_L1_scatterAmount, Types::VECTOR3);
-	ADDSTREAM(ss, MatCPUData.c_L1_scatterRatio, Types::FLOAT);
-#undef GET_STRUCT_MEMBER_NAME
-#undef ADDSTREAM
-
+		ss << "\n";
+	};
 	ss << "}";
-
-	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
-
-	MaterialHeader MatHeader = Reader.Read<MaterialHeader>();
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, MatHeader.NameIndex, MatHeader.NameOffset));
 

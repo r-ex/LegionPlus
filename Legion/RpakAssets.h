@@ -1793,6 +1793,7 @@ struct ShaderVar
 {
 	string Name;
 	D3D_SHADER_VARIABLE_TYPE Type;
+	int Size;
 };
 
 struct ShaderResBinding
