@@ -51,6 +51,7 @@ When multiple load flags are used together, all specified types will be loaded
 --loaddatatables
 --loadshadersets
 --loadsettingssets
+--loadrsons
 ```
 
 #### Export Format Flags

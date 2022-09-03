@@ -357,7 +357,7 @@ void RBspLib::ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std:
 	// make sure that RpakFileSystem actually exists (i.e. an rpak is loaded)
 	if (RpakFileSystem)
 	{
-		std::array<bool, 8> bAssets = {
+		std::array<bool, 9> bAssets = {
 			false, // Model
 			false, // Animation
 			false, // Texture/Images
@@ -366,6 +366,7 @@ void RBspLib::ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std:
 			false, // Datatables
 			false, // ShaderSets
 			false, // SettingsSets
+			false, // RSONs
 		};
 
 		RpakMaterials = RpakFileSystem->BuildAssetList(bAssets);
@@ -518,7 +519,7 @@ void RBspLib::ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std:
 	if (!RpakFileSystem)
 		return;
 
-	std::array<bool, 8> bAssets = {
+	std::array<bool, 9> bAssets = {
 		true,  // Model
 		false, // Animation
 		false, // Texture/Images
@@ -527,6 +528,7 @@ void RBspLib::ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std:
 		false, // Datatables
 		false, // ShaderSets
 		false, // SettingsSets
+		false, // RSONs
 	};
 
 	auto RpakModels = RpakFileSystem->BuildAssetList(bAssets);
@@ -629,7 +631,7 @@ void RBspLib::ExportTitanfall2Bsp(const std::unique_ptr<RpakLib>& RpakFileSystem
 	// make sure that RpakFileSystem actually exists (i.e. an rpak is loaded)
 	if (RpakFileSystem)
 	{
-		std::array<bool, 8> bAssets = {
+		std::array<bool, 9> bAssets = {
 			false, // Model
 			false, // Animation
 			false, // Texture/Images
@@ -638,6 +640,7 @@ void RBspLib::ExportTitanfall2Bsp(const std::unique_ptr<RpakLib>& RpakFileSystem
 			false, // Datatables
 			false, // ShaderSets
 			false, // SettingsSets
+			false, // RSONs
 		};
 
 		RpakMaterials = RpakFileSystem->BuildAssetList(bAssets);
@@ -790,7 +793,7 @@ void RBspLib::ExportTitanfall2Bsp(const std::unique_ptr<RpakLib>& RpakFileSystem
 	auto ExportedModelsPath = IO::Path::Combine(ModelPath, "_models");
 	auto ExportedModelAnimsPath = IO::Path::Combine(ExportedModelsPath, "_animations");
 
-	std::array<bool, 8> bAssets = {
+	std::array<bool, 9> bAssets = {
 		true,  // Model
 		false, // Animation
 		false, // Texture/Images
@@ -799,6 +802,7 @@ void RBspLib::ExportTitanfall2Bsp(const std::unique_ptr<RpakLib>& RpakFileSystem
 		false, // Datatables
 		false, // ShaderSets
 		false, // SettingsSets
+		false, // RSONs
 	};
 
 	auto RpakModels = RpakFileSystem->BuildAssetList(bAssets);
