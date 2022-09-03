@@ -60,7 +60,7 @@ void ExportManager::InitializeExporter()
 	INIT_SETTING(Boolean, "LoadDataTables", true);
 	INIT_SETTING(Boolean, "LoadShaderSets", true);
 	INIT_SETTING(Boolean, "LoadSettingsSets", true);
-	INIT_SETTING(Boolean, "LoadRSONss", true);
+	INIT_SETTING(Boolean, "LoadRSONs", true);
 	INIT_SETTING(Boolean, "OverwriteExistingFiles", false);
 
 	Config.Save(ConfigPath);
