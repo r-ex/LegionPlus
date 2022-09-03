@@ -51,6 +51,14 @@ void RpakLib::ExportMaterialCPU(const RpakLoadAsset& Asset, const string& Path)
 
 	MaterialHeader MatHeader = Reader.Read<MaterialHeader>();
 
+	if (Asset.AssetVersion == 12)
+	{
+		RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
+		MaterialHeaderV12 mathdr = Reader.Read<MaterialHeaderV12>();
+
+		MatHeader.ShaderSetHash = mathdr.m_pShaderSet;
+	}
+
 	if (!Assets.ContainsKey(MatHeader.ShaderSetHash)) // no shaderset loaded
 		return;
 

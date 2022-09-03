@@ -1472,6 +1472,77 @@ struct MaterialHeader
 	uint32_t UnknownTFOffset;
 };
 
+// structs taken from repak - thanks Rika
+struct UnknownMaterialSectionV12
+{
+	// not sure how these work but 0xF0 -> 0x00 toggles them off and vice versa.
+	// they seem to affect various rendering filters, said filters might actually be the used shaders.
+	// the duplicate one is likely for the second set of textures which (probably) never gets used.
+	uint32_t UnkRenderLighting;
+	uint32_t UnkRenderAliasing;
+	uint32_t UnkRenderDoF;
+	uint32_t UnkRenderUnknown;
+
+	uint32_t UnkRenderFlags; // this changes sometimes.
+	uint16_t VisibilityFlags; // different render settings, such as opacity and transparency.
+	uint16_t FaceDrawingFlags; // how the face is drawn, culling, wireframe, etc.
+
+	uint64_t Padding;
+};
+
+struct MaterialHeaderV12
+{
+	uint64_t m_VtblReserved; // Gets set to CMaterialGlue vtbl ptr
+	uint8_t m_Padding[0x8]; // unused
+
+	uint64_t m_nGUID; // guid of this material asset
+
+	RPakPtr m_pszName; // pointer to partial asset path
+	RPakPtr m_pszSurfaceProp; // pointer to surfaceprop (as defined in surfaceproperties.txt)
+	RPakPtr m_pszSurfaceProp2; // pointer to surfaceprop2 
+
+	// IDX 1: DepthShadow
+	// IDX 2: DepthPrepass
+	// IDX 3: DepthVSM
+	// IDX 4: ColPass
+	// Titanfall is does not have 'DepthShadowTight'
+
+	uint64_t m_GUIDRefs[4]; // Required to have proper textures.
+
+	// these blocks dont seem to change often but are the same?
+	// these blocks relate to different render filters and flags. still not well understood.
+	UnknownMaterialSectionV12 m_UnknownSections[2];
+
+	uint64_t m_pShaderSet; // guid of the shaderset asset that this material uses
+
+	RPakPtr m_pTextureHandles; // TextureGUID Map 1
+
+	// should be reserved - used to store the handles for any textures that have streaming mip levels
+	RPakPtr m_pStreamingTextureHandles;
+
+	int16_t m_nStreamingTextureHandleCount; // Number of textures with streamed mip levels.
+	uint32_t m_Flags; // see ImageFlags in the apex struct.
+	int16_t m_Unk1; // might be "m_Unknown2"
+
+	uint64_t m_Padding1; // haven't observed anything here, however I really doubt this is actually padding.
+
+	// seems to be 0xFBA63181 for loadscreens
+	uint32_t m_Unknown3; // name carried over from apex struct.
+
+	uint32_t m_Unk2; // this might actually be "m_Unknown4"
+
+	uint32_t m_Flags2;
+	uint32_t something2; // seems mostly unchanged between all materials, including apex, however there are some edge cases where this is 0x0.
+
+	int16_t m_nWidth;
+	int16_t m_nHeight;
+	uint32_t m_Unk3; // might be padding but could also be something else such as "m_Unknown1"?.
+
+	/* ImageFlags
+	0x050300 for loadscreens, 0x1D0300 for normal materials.
+	0x1D has been observed, seems to invert lighting? used on some exceptionally weird materials.*/
+};
+
 // Credits to IJARika
 // the following two structs are found in the ""cpu data"", they are very much alike to what you would use in normal source materials.
 // apex probably has these and more stuff.
