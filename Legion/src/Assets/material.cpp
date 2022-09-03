@@ -156,7 +156,7 @@ void RpakLib::ExportMaterialCPU(const RpakLoadAsset& Asset, const string& Path)
 
 		ss << "\n";
 	};
-	ss << "}";
+	ss << "};";
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, MatHeader.NameIndex, MatHeader.NameOffset));
 
