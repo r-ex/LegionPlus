@@ -62,6 +62,9 @@ void RpakLib::ExportMaterialCPU(const RpakLoadAsset& Asset, const string& Path)
 	if (ShaderSetAsset.AssetVersion <= 11)
 		PixelShaderGuid = ShaderSetHeader.OldPixelShaderHash;
 
+	if (ShaderSetAsset.AssetVersion == 8)
+		PixelShaderGuid = ShaderSetHeader.PixelShaderHashTF;
+
 	if (!Assets.ContainsKey(PixelShaderGuid)) // no pixel shader
 		return;
 
