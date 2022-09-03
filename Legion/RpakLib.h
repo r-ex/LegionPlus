@@ -111,7 +111,6 @@ struct RpakHeaderV6
 	uint32_t what;
 };
 
-
 struct RpakDescriptor
 {
 	uint32_t PageIdx;
@@ -421,6 +420,7 @@ public:
 
 	void ExportModel(const RpakLoadAsset& Asset, const string& Path, const string& AnimPath);
 	void ExportMaterial(const RpakLoadAsset& Asset, const string& Path);
+	void ExportMaterialCPU(const RpakLoadAsset& Asset, const string& Path);
 	void ExportTexture(const RpakLoadAsset& Asset, const string& Path, bool IncludeImageNames, string NameOverride = "", bool NormalRecalculate = false);
 	void ExportUIIA(const RpakLoadAsset& Asset, const string& Path);
 	void ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path);

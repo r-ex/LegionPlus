@@ -60,6 +60,7 @@ private:
 	UIX::UIXCheckBox* ToggleAudioLanguageFolders;
 	UIX::UIXCheckBox* ToggleUseFullPaths;
 	UIX::UIXCheckBox* ToggleUseTxtrGuids;
+	UIX::UIXCheckBox* ToggleExportMatCPU;
 	// Export Types
 	UIX::UIXComboBox* ModelExportFormat;
 	UIX::UIXComboBox* AnimExportFormat;

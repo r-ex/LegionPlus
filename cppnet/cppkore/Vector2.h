@@ -76,3 +76,5 @@ namespace Math
 		static Vector2 One();
 	};
 }
+
+using Vector2 = Math::Vector2;

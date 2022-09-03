@@ -1472,12 +1472,165 @@ struct MaterialHeader
 	uint32_t UnknownTFOffset;
 };
 
+// Credits to IJARika
+// the following two structs are found in the ""cpu data"", they are very much alike to what you would use in normal source materials.
+// apex probably has these and more stuff.
+struct UVTransformMatrix
+{
+	// this section is actually broken up into three parts.
+	// c_uvRotScaleX
+	float uvScaleX = 1.0;
+	float uvRotationX = 0.0; // rotation, but w e i r d.
+	// c_uvRotScaleY
+	float uvRotationY = -0.0; //counter clockwise, 0-1, exceeding one causes Weird Stuff to happen.
+	float uvScaleY = 1.0;
+	// c_uvTranslate
+	float uvTranslateX = 0.0;
+	float uvTranslateY = 0.0;
+};
+
+// Credits to IJARika
+struct MaterialCPUData
+{
+	UVTransformMatrix c_uv1; // detail
+	UVTransformMatrix c_uv2; // 1st texture (unconfirmed)
+	UVTransformMatrix c_uv3; // 2nd texture (unconfirmed)
+	UVTransformMatrix c_uv4;
+	UVTransformMatrix c_uv5;
+
+	Vector2 c_uvDistortionIntensity;
+	Vector2 c_uvDistortion2Intensity;
+
+	float c_L0_scatterDistanceScale = 0.166667;
+
+	float c_layerBlendRamp = 0.0;
+
+	float c_opacity = 0.0;
+
+	float c_useAlphaModulateSpecular = 0.0;
+	float c_alphaEdgeFadeExponent = 0.0;
+	float c_alphaEdgeFadeInner = 0.0;
+	float c_alphaEdgeFadeOuter = 0.0;
+
+	float c_useAlphaModulateEmissive = 1.0;
+	float c_emissiveEdgeFadeExponent = 0.0;
+	float c_emissiveEdgeFadeInner = 0.0;
+	float c_emissiveEdgeFadeOuter = 0.0;
+
+	float c_alphaDistanceFadeScale = 10000.0;
+	float c_alphaDistanceFadeBias = -0.0;
+	float c_alphaTestReference = 0.0;
+
+	float c_aspectRatioMulV = 1.778;
+
+	float c_shadowBias = 0.0;
+	float c_shadowBiasStatic = 0.0;
+
+	float c_dofOpacityLuminanceScale = 1.0;
+
+	float c_tsaaDepthAlphaThreshold = 0.0;
+	float c_tsaaMotionAlphaThreshold = 0.9;
+	float c_tsaaMotionAlphaRamp = 10.0;
+	uint32_t c_tsaaResponsiveFlag = 0x0; // this is 0 or 1 I think.
+
+	Vector3 c_outlineColorSDF = { 0.0, 0.0, 0.0 };
+	float c_outlineWidthSDF = 0.0;
+
+	Vector3 c_shadowColorSDF = { 0.0, 0.0, 0.0 };
+	float c_shadowWidthSDF = 0.0;
+
+	Vector3 c_insideColorSDF = { 0.0, 0.0, 0.0 };
+
+	float c_outsideAlphaScalarSDF = 0.0;
+
+	float c_glitchStrength = 0.0;
+
+	float c_vertexDisplacementScale = 0.0;
+
+	float c_innerFalloffWidthSDF = 0.0;
+	float c_innerEdgeOffsetSDF = 0.0;
+
+	Vector2 c_dropShadowOffsetSDF = { 0.0, 0.0 };
+
+	float c_normalMapEdgeWidthSDF = 0.0;
+
+	float c_shadowFalloffSDF = 0.0;
+
+	Vector2 c_L0_scatterAmount = { 0.0, 0.0 };
+	float c_L0_scatterRatio = 0.0;
+
+	float c_L0_transmittanceIntensityScale = 1.0;
+
+	Vector2 c_vertexDisplacementDirection = { 0.0, 0.0 };
+
+	float c_L0_transmittanceAmount = 0.0;
+	float c_L0_transmittanceDistortionAmount = 0.5;
+
+	float c_zUpBlendingMinAngleCos = 1.0;
+	float c_zUpBlendingMaxAngleCos = 1.0;
+	float c_zUpBlendingVertexAlpha = 0.0;
+
+	Vector3 c_L0_albedoTint = { 1.0, 1.0, 1.0 };
+
+	float c_depthBlendScalar = 1.0;
+
+	Vector3 c_L0_emissiveTint = { 0.0, 0.0, 0.0 };
+
+	float c_subsurfaceMaterialID = 0.0;
+
+	Vector3 c_L0_perfSpecColor = { 0.0379723, 0.0379723, 0.0379723 };
+
+	float c_L0_perfGloss = 1.0;
+
+	Vector3 c_L1_albedoTint = { 0.0, 0.0, 0.0 };
+
+	float c_L1_perfGloss = 0.0;
+
+	Vector3 c_L1_emissiveTint = { 0.0, 0.0, 0.0 };
+	Vector3 c_L1_perfSpecColor = { 0.0, 0.0, 0.0 };
+
+	float c_splineMinPixelPercent = 0.0;
+
+	Vector2 c_L0_anisoSpecCosSinTheta = { 1.0, 0.0 };
+	Vector2 c_L1_anisoSpecCosSinTheta = { 1.0, 0.0 };
+
+	float c_L0_anisoSpecStretchAmount = 0.0;
+	float c_L1_anisoSpecStretchAmount = 0.0;
+
+	float c_L0_emissiveHeightFalloff = 0.0;
+	float c_L1_emissiveHeightFalloff = 0.0;
+
+	float c_L1_transmittanceIntensityScale = 0.0;
+	float c_L1_transmittanceAmount = 0.0;
+	float c_L1_transmittanceDistortionAmount = 0.0;
+
+	float c_L1_scatterDistanceScale = 0.0;
+	Vector3 c_L1_scatterAmount = { 0.0, 0.0, 0.0 };
+	float c_L1_scatterRatio = 0.0;
+
+	float ScatterAmountAndRatio1[4];
+	float CharacterBoostTintAndFogScale[4];
+	float EdgeDetectOutlineColorAndAlpha[4];
+	float EdgeDetectOutlineWidth;
+	float EdgeDetectOutlineFalloffExp;
+	float CharacterBoostScale;
+	float CharacterBoostBias;
+	float AlphaErosionHardnessAndc_iridescentViewFacingColor[4];
+	float IridescentViewFacingFalloffAndBufferPadding[4];
+};
+
+struct MaterialCPUHeader
+{
+	RPakPtr  m_nData;
+	uint32_t m_nDataSize;
+	uint32_t m_nVersionMaybe;
+};
+
 struct StarpakStreamEntry
 {
 	uint64_t Offset;
 	uint64_t Size;
 };
-
 
 // SHADERS
 // --- shdr ---
