@@ -72,35 +72,35 @@ void RpakLib::ExportMaterialCPU(const RpakLoadAsset& Asset, const string& Path)
 		{
 		case Types::UINT32:
 		{
-			string string = string.Format("uint32_t %s = %u;", member.ToCString(), *reinterpret_cast<uint32_t*>(ptr));
-			ss << string.ToCString();
+			string str = string::Format("uint32_t %s = %u;", member.ToCString(), *reinterpret_cast<uint32_t*>(ptr));
+			ss << str.ToCString();
 			break;
 		}
 		case Types::FLOAT:
 		{
-			string string = string.Format("float %s = %f;", member.ToCString(), *reinterpret_cast<float*>(ptr));
-			ss << string.ToCString();
+			string str = string::Format("float %s = %f;", member.ToCString(), *reinterpret_cast<float*>(ptr));
+			ss << str.ToCString();
 			break;
 		}
 		case Types::UVMATRIX:
 		{
 			UVTransformMatrix uvMatr = *reinterpret_cast<UVTransformMatrix*>(ptr);
-			string string = string.Format("struct %s\n\t{\n\t\tfloat uvScaleX = %f;\n\t\tfloat uvRotationX = %f;\n\t\tfloat uvRotationY = %f;\n\t\tfloat uvScaleY = %f;\n\t\tfloat uvTranslateX = %f;\n\t\tfloat uvTranslateY = %f;\n\t}\n", member.ToCString(), uvMatr.uvScaleX, uvMatr.uvRotationX, uvMatr.uvRotationY, uvMatr.uvScaleY, uvMatr.uvTranslateX, uvMatr.uvTranslateY);
-			ss << string.ToCString();
+			string str = string::Format("struct %s\n\t{\n\t\tfloat uvScaleX = %f;\n\t\tfloat uvRotationX = %f;\n\t\tfloat uvRotationY = %f;\n\t\tfloat uvScaleY = %f;\n\t\tfloat uvTranslateX = %f;\n\t\tfloat uvTranslateY = %f;\n\t}\n", member.ToCString(), uvMatr.uvScaleX, uvMatr.uvRotationX, uvMatr.uvRotationY, uvMatr.uvScaleY, uvMatr.uvTranslateX, uvMatr.uvTranslateY);
+			ss << str.ToCString();
 			break;
 		}
 		case Types::VECTOR2:
 		{
 			Vector2 vec = *reinterpret_cast<Vector2*>(ptr);
-			string string = string.Format("Vector2 %s = { %f, %f };", member.ToCString(), vec.X, vec.Y);
-			ss << string.ToCString();
+			string str = string::Format("Vector2 %s = { %f, %f };", member.ToCString(), vec.X, vec.Y);
+			ss << str.ToCString();
 			break;
 		}
 		case Types::VECTOR3:
 		{
 			Vector3 vec = *reinterpret_cast<Vector3*>(ptr);
-			string string = string.Format("Vector3 %s = { %f, %f, %f };", member.ToCString(), vec.X, vec.Y, vec.Z);
-			ss << string.ToCString();
+			string str = string::Format("Vector3 %s = { %f, %f, %f };", member.ToCString(), vec.X, vec.Y, vec.Z);
+			ss << str.ToCString();
 			break;
 		}
 		}
@@ -109,7 +109,7 @@ void RpakLib::ExportMaterialCPU(const RpakLoadAsset& Asset, const string& Path)
 	};
 
 	std::ostringstream ss;
-	ss << "struct " << "CBufUberStatic" << "\n{\n";
+	ss << "struct " << "CBufUberStatic\n{\n";
 
 #define GET_STRUCT_MEMBER_NAME(name) [](string str) { str = str.Substring(str.IndexOf(".") + 1); return str; } (string(#name))
 #define ADDSTREAM(ss, mem, type) fnAddToStream(ss, GET_STRUCT_MEMBER_NAME(mem), &mem, type);
