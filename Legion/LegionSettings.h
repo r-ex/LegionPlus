@@ -60,6 +60,7 @@ private:
 	UIX::UIXCheckBox* ToggleOverwriting;
 	UIX::UIXCheckBox* ToggleAudioLanguageFolders;
 	UIX::UIXCheckBox* ToggleUseFullPaths;
+	UIX::UIXCheckBox* ToggleExportFullPaths;
 	UIX::UIXCheckBox* ToggleUseTxtrGuids;
 	UIX::UIXCheckBox* ToggleExportMatCPU;
 	// Export Types

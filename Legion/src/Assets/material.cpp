@@ -196,7 +196,9 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, MatHeader.NameIndex, MatHeader.NameOffset));
 
-	Result.MaterialName = IO::Path::GetFileNameWithoutExtension(Reader.ReadCString());
+	string MaterialRawStream = Reader.ReadCString();
+
+	Result.MaterialName = ExportManager::Config.GetBool("ExportFullPaths") ? MaterialRawStream : IO::Path::GetFileNameWithoutExtension(MaterialRawStream);
 
 	List<ShaderResBinding> PixelShaderResBindings;
 
