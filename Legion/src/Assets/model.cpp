@@ -67,7 +67,7 @@ void RpakLib::ExportModel(const RpakLoadAsset& Asset, const string& Path, const 
 	if (Model && this->ModelExporter)
 	{
 		string DestinationPath{};
-		if (ExportManager::Config.GetBool("ExportFullPaths"))
+		if (ExportManager::Config.GetBool("UseFullPaths"))
 			DestinationPath = IO::Path::Combine(IO::Path::Combine(Path, IO::Path::Combine(Model->EnginePath, Model->Name)), Model->Name + "_LOD0" + (const char*)ModelExporter->ModelExtension());
 		else
 			DestinationPath = IO::Path::Combine(IO::Path::Combine(Path, Model->Name), Model->Name + "_LOD0" + (const char*)ModelExporter->ModelExtension());
@@ -115,7 +115,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 	RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.NameIndex, ModHeader.NameOffset));
 
 	string ModelRawStream = Reader.ReadCString();
-	bool ExportFullPaths = ExportManager::Config.GetBool("ExportFullPaths");
+	bool ExportFullPaths = ExportManager::Config.GetBool("UseFullPaths");
 
 	string ModelName = IO::Path::GetFileNameWithoutExtension(ModelRawStream);
 	string ModelInternalPath = IO::Path::GetDirectoryName(ModelRawStream);

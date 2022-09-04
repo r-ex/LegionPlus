@@ -68,7 +68,7 @@ void RpakLib::ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path)
 	string FullAnimSetName = Reader.ReadCString();
 	string AnimSetName = IO::Path::GetFileNameWithoutExtension(FullAnimSetName);
 	string AnimSetPath{};
-	if (ExportManager::Config.GetBool("ExportFullPaths"))
+	if (ExportManager::Config.GetBool("UseFullPaths"))
 		AnimSetPath = IO::Path::Combine(Path, IO::Path::Combine(IO::Path::GetDirectoryName(FullAnimSetName), AnimSetName));
 	else
 		AnimSetPath = IO::Path::Combine(Path, AnimSetName);

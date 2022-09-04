@@ -95,7 +95,7 @@ struct MilesApexS3SourceEntry
 {
 	char pad_0000[12]; //0x0000
 
-	uint16_t EntryLocal; //0x000C
+	MilesLanguageID EntryLocal; //0x000C
 	uint16_t PatchIndex; //0x000E
 	
 	uint32_t NameOffset; //0x0010
@@ -284,12 +284,12 @@ void MilesLib::MountBank(const string& Path)
 
 	auto SelectedLanguage = (MilesLanguageID)ExportManager::Config.Get<System::SettingType::Integer>("AudioLanguage");
 
-	if (BankHeader.Version >= 0xB && BankHeader.Version <= 0xD)
+	if (BankHeader.Version == 0xB)
 	{
-		// TF|2
+		// R2TT - only english audio exists
 		ReaderStream->SetPosition(*(uint64_t*)(uintptr_t(&BankHeader) + 0x48));
-		const auto SourcesCount = *(uint32_t*)(uintptr_t(&BankHeader) + 0xA0);
 		const auto NameTableOffset = *(uint64_t*)(uintptr_t(&BankHeader) + 0x70);
+		const auto SourcesCount = *(uint32_t*)(uintptr_t(&BankHeader) + 0xA0);
 		List<MilesTitanfallSourceEntry> Sources(SourcesCount, true);
 		ReaderStream->Read((uint8_t*)&Sources[0], 0, sizeof(MilesTitanfallSourceEntry) * SourcesCount);
 
@@ -298,9 +298,35 @@ void MilesLib::MountBank(const string& Path)
 			ReaderStream->SetPosition(NameTableOffset + Entry.NameOffset);
 
 			auto Name = Reader.ReadCString();
-			
+
 			MilesAudioAsset Asset{ Name, Entry.SampleRate, Entry.ChannelCount, Entry.StreamHeaderOffset, Entry.StreamHeaderSize, Entry.StreamDataOffset, Entry.StreamDataSize, Entry.PatchIndex, (uint32_t)Entry.EntryLocal };
 			Assets.Add(Hashing::XXHash::HashString(Name), Asset);
+		}
+	}
+	else if (BankHeader.Version > 0xB && BankHeader.Version <= 0xD)
+	{
+		// TF|2
+		ReaderStream->SetPosition(*(uint64_t*)(uintptr_t(&BankHeader) + 0x48)); // SourcesOffset
+		const auto NameTableOffset = *(uint64_t*)(uintptr_t(&BankHeader) + 0x70);
+		const auto LanguageSourcesCount = *(uint32_t*)(uintptr_t(&BankHeader) + 0x9C);
+		auto SourcesCount = *(uint32_t*)(uintptr_t(&BankHeader) + 0xA0);
+
+		SourcesCount += (LanguageSourcesCount * (uint32_t)SelectedLanguage);
+
+		List<MilesTitanfallSourceEntry> Sources(SourcesCount, true);
+		ReaderStream->Read((uint8_t*)&Sources[0], 0, sizeof(MilesTitanfallSourceEntry) * SourcesCount);
+
+		for (auto& Entry : Sources)
+		{
+			ReaderStream->SetPosition(NameTableOffset + Entry.NameOffset);
+
+			auto Name = Reader.ReadCString();
+
+			if (Entry.EntryLocal == MilesLanguageID::None || Entry.EntryLocal == SelectedLanguage)
+			{
+				MilesAudioAsset Asset{ Name, Entry.SampleRate, Entry.ChannelCount, Entry.StreamHeaderOffset, Entry.StreamHeaderSize, Entry.StreamDataOffset, Entry.StreamDataSize, Entry.PatchIndex, (uint32_t)Entry.EntryLocal };
+				Assets.Add(Hashing::XXHash::HashString(Name), Asset);
+			}
 		}
 	}
 	else
@@ -339,8 +365,12 @@ void MilesLib::MountBank(const string& Path)
 		else if (BankHeader.Version >= 28 && BankHeader.Version <= 32) {
 			// S2 -> S3
 			ReaderStream->SetPosition(*(uint64_t*)(uintptr_t(&BankHeader) + 0x48));
-			const auto SourcesCount = *(uint32_t*)(uintptr_t(&BankHeader) + 0x98);
 			const auto NameTableOffset = *(uint64_t*)(uintptr_t(&BankHeader) + 0x70);
+			const auto LanguageSourcesCount = *(uint32_t*)(uintptr_t(&BankHeader) + 0x94);
+			auto SourcesCount = *(uint32_t*)(uintptr_t(&BankHeader) + 0x98);
+
+			SourcesCount += (LanguageSourcesCount * (uint32_t)SelectedLanguage);
+
 			List<MilesApexS3SourceEntry> Sources(SourcesCount, true);
 			ReaderStream->Read((uint8_t*)&Sources[0], 0, sizeof(MilesApexS3SourceEntry) * SourcesCount);
 
@@ -350,8 +380,11 @@ void MilesLib::MountBank(const string& Path)
 
 				auto Name = Reader.ReadCString();
 
-				MilesAudioAsset Asset{ Name, Entry.SampleRate, Entry.ChannelCount, Entry.StreamHeaderOffset, Entry.StreamHeaderSize, Entry.StreamDataOffset, Entry.StreamDataSize, Entry.PatchIndex, (uint32_t)Entry.EntryLocal };
-				Assets.Add(Hashing::XXHash::HashString(Name), Asset);
+				if (Entry.EntryLocal == MilesLanguageID::None || Entry.EntryLocal == SelectedLanguage)
+				{
+					MilesAudioAsset Asset{ Name, Entry.SampleRate, Entry.ChannelCount, Entry.StreamHeaderOffset, Entry.StreamHeaderSize, Entry.StreamDataOffset, Entry.StreamDataSize, Entry.PatchIndex, (uint32_t)Entry.EntryLocal };
+					Assets.Add(Hashing::XXHash::HashString(Name), Asset);
+				}
 			}
 		}
 		else {

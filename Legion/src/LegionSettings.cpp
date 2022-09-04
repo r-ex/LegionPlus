@@ -96,15 +96,6 @@ void LegionSettings::InitializeComponent()
 	this->ToggleUseFullPaths->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->groupBox2->AddControl(this->ToggleUseFullPaths);
 
-	this->ToggleExportFullPaths = new UIX::UIXCheckBox();
-	this->ToggleExportFullPaths->SetSize({ 150, 18 });
-	this->ToggleExportFullPaths->SetLocation({ 290, 43 });
-	this->ToggleExportFullPaths->SetTabIndex(2);
-	this->ToggleExportFullPaths->SetText("Export Full Asset Paths");
-	this->ToggleExportFullPaths->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox2->AddControl(this->ToggleExportFullPaths);
-
-
 	this->ToggleUseTxtrGuids = new UIX::UIXCheckBox();
 	this->ToggleUseTxtrGuids->SetSize({ 105, 18 });
 	this->ToggleUseTxtrGuids->SetLocation({ 15, 43 });
@@ -544,7 +535,6 @@ void LegionSettings::LoadSettings()
 	this->ToggleOverwriting->SetChecked(ExportManager::Config.GetBool("OverwriteExistingFiles"));
 	this->ToggleAudioLanguageFolders->SetChecked(ExportManager::Config.GetBool("AudioLanguageFolders"));
 	this->ToggleUseFullPaths->SetChecked(ExportManager::Config.GetBool("UseFullPaths"));
-	this->ToggleExportFullPaths->SetChecked(ExportManager::Config.GetBool("ExportFullPaths"));
 	this->ToggleUseTxtrGuids->SetChecked(ExportManager::Config.GetBool("UseTxtrGuids"));
 	this->ToggleExportMatCPU->SetChecked(ExportManager::Config.GetBool("ExportMatCPU"));
 
@@ -684,8 +674,6 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		bRefreshView = true;
 	if (ThisPtr->ToggleUseFullPaths->Checked() != ExportManager::Config.GetBool("UseFullPaths"))
 		bRefreshView = true;
-	if (ThisPtr->ToggleExportFullPaths->Checked() != ExportManager::Config.GetBool("ExportFullPaths"))
-		bRefreshView = true;
 
 	ExportManager::Config.SetBool("LoadModels", ThisPtr->LoadModels->Checked());
 	ExportManager::Config.SetBool("LoadAnimations", ThisPtr->LoadAnimations->Checked());
@@ -699,7 +687,6 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	ExportManager::Config.SetBool("OverwriteExistingFiles", ThisPtr->ToggleOverwriting->Checked());
 	ExportManager::Config.SetBool("AudioLanguageFolders", ThisPtr->ToggleAudioLanguageFolders->Checked());
 	ExportManager::Config.SetBool("UseFullPaths", ThisPtr->ToggleUseFullPaths->Checked());
-	ExportManager::Config.SetBool("ExportFullPaths", ThisPtr->ToggleExportFullPaths->Checked());
 	ExportManager::Config.SetBool("UseTxtrGuids", ThisPtr->ToggleUseTxtrGuids->Checked());
 	ExportManager::Config.SetBool("ExportMatCPU", ThisPtr->ToggleExportMatCPU->Checked());
 	ExportManager::Config.SetInt("ModelFormat", (uint32_t)ModelExportFormat);
