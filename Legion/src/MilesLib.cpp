@@ -367,72 +367,37 @@ void MilesLib::MountBank(const string& Path)
 		int32_t patch;
 		string filename;
 	};
-	std::vector<MStrFile> NeededFiles{
-		{MilesLanguageID::None, 0, "general_stream.mstr"},
-		{MilesLanguageID::None, 1, "general_stream_patch_1.mstr"},
-		{SelectedLanguage,      0, "general_" + Language.ToLower() + ".mstr"},
-		{SelectedLanguage,      1, "general_" + Language.ToLower() + "_patch_1.mstr"},
-	};
 
 	auto Paths = IO::Directory::GetFiles(BasePath, "*.mstr");
-	while (!NeededFiles.empty()) {
-		for (auto& Path : Paths)
-		{
-			MilesStreamBankHeader StreamHeader;
-			try {
-				auto StreamReader = IO::BinaryReader(IO::File::OpenRead(Path));
-				StreamHeader = StreamReader.Read<MilesStreamBankHeader>();
-			}
-			catch (...) { continue; }
 
-			if (StreamHeader.Magic != 0x43535452) {
-				g_Logger.Warning("File %s has .mstr extension but wrong magic number\n", Path.ToCString());
-				continue;
-			}
-			if (StreamHeader.LocalizeIndex != MilesLanguageID::None && StreamHeader.LocalizeIndex != SelectedLanguage) continue;
-			if (StreamHeader.PatchIndex != 0 && StreamHeader.PatchIndex != 1) continue;
-
-			g_Logger.Info("Loaded %s (patch %d) audio bank: %s\n", LanguageName(StreamHeader.LocalizeIndex).ToCString(), StreamHeader.PatchIndex, Path.ToCString());
-
-			uint32_t KeyIndex = ((uint32_t)StreamHeader.LocalizeIndex << 16) + StreamHeader.PatchIndex;
-			MilesStreamBank NewBank{ Path, StreamHeader.StreamDataOffset };
-			StreamBanks.Add(KeyIndex, NewBank);
-
-			NeededFiles.erase(
-				std::remove_if(NeededFiles.begin(), NeededFiles.end(), [&](const MStrFile& file) {
-					return file.languageID == StreamHeader.LocalizeIndex
-						&& file.patch == StreamHeader.PatchIndex;
-					}),
-				NeededFiles.end()
-			);
+	for (auto& Path : Paths)
+	{
+		MilesStreamBankHeader StreamHeader;
+		try {
+			auto StreamReader = IO::BinaryReader(IO::File::OpenRead(Path));
+			StreamHeader = StreamReader.Read<MilesStreamBankHeader>();
 		}
+		catch (...) { continue; }
 
-		if (NeededFiles.empty()) break;
+		if (StreamHeader.Magic != 0x43535452) {
+			g_Logger.Warning("File %s has .mstr extension but wrong magic number\n", Path.ToCString());
+			continue;
+		}
+		if (StreamHeader.LocalizeIndex != MilesLanguageID::None && StreamHeader.LocalizeIndex != SelectedLanguage) continue;
 
-		string Message = "Required audio files could not be found:\n";
-		for (auto& [Lang, Patch, Filename] : NeededFiles) {
-			Message += " - " + Filename + "\n";
-		}
-		Message += "Please click OK to browse for these files,\n"
-			"or click Cancel to stop loading";
-		auto Result = Forms::MessageBox::Show(Message, "Legion+", Forms::MessageBoxButtons::OKCancel, Forms::MessageBoxIcon::Warning);
-		if (Result == Forms::DialogResult::OK) {
-			Paths = Forms::OpenFileDialog::ShowMultiFileDialog("Select file(s) to load", BasePath, "MStr Files|*.mstr");
-		}
-		if (Result == Forms::DialogResult::Cancel || Paths.Empty()) {
-			Message = "The following file(s) are required for exporting " + Language + " language audio:\n";
-			for (auto& [Lang, Patch, Filename] : NeededFiles) {
-				Message += " - " + Filename + "\n";
-			}
-			Message += "Please acquire them or change your target language.";
-			throw std::exception(Message);
-		}
+		g_Logger.Info("Loaded %s (patch %d) audio bank: %s\n", LanguageName(StreamHeader.LocalizeIndex).ToCString(), StreamHeader.PatchIndex, Path.ToCString());
+
+		uint32_t KeyIndex = ((uint32_t)StreamHeader.LocalizeIndex << 16) + StreamHeader.PatchIndex;
+
+		MilesStreamBank NewBank{ Path, StreamHeader.StreamDataOffset };
+		StreamBanks.Add(KeyIndex, NewBank);
 	}
 }
 
 bool MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath)
 {
 	uint32_t KeyIndex = ((uint32_t)Asset.LocalizeIndex << 16) + Asset.PatchIndex;
+
 	if (!StreamBanks.ContainsKey(KeyIndex))
 		return false;
 	
