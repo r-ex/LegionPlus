@@ -234,6 +234,24 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 					ExportManager::Config.Set<System::SettingType::Integer>("AudioLanguage", (uint32_t)SubtFmt);
 			}
 
+			if (cmdline.HasParam(L"--matcpu"))
+			{
+				MatCPUExportFormat_t matcpuFmt = (MatCPUExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("MatCPUFormat");
+
+				wstring sFmt = cmdline.GetParamValue(L"--matcpu");
+				sFmt = sFmt.ToLower();
+
+				if (sFmt == L"none")
+					matcpuFmt = MatCPUExportFormat_t::None;
+				if (sFmt == L"struct")
+					matcpuFmt = MatCPUExportFormat_t::Struct;
+				if (sFmt == L"cpu")
+					matcpuFmt = MatCPUExportFormat_t::CPU;
+				
+				if (matcpuFmt != (MatCPUExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("MatCPUFormat"))
+					ExportManager::Config.Set<System::SettingType::Integer>("MatCPUFormat", (uint32_t)matcpuFmt);
+			}
+
 			std::unique_ptr<List<ApexAsset>> AssetList;
 
 			// load rpak flags
