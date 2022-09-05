@@ -41,28 +41,37 @@ void RpakLib::BuildMaterialInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	Info.Info = string::Format("Textures: %i", TexturesCount);
 }
 
-// Shaderset reference: 0x7b69f3d87cf71a2b THEY MAY DIFFER NOT SURE.
-void RpakLib::ExportMaterialCPU(const RpakLoadAsset& Asset, const string& Path)
+void RpakLib::ExportMatCPUAsRaw(const RpakLoadAsset& Asset, MaterialHeader& MatHdr, MaterialCPUHeader& MatCPUHdr, std::ofstream& oStream)
 {
 	auto RpakStream = this->GetFileStream(Asset);
 	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
-	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
+	RpakStream->SetPosition(this->GetFileOffset(Asset, MatCPUHdr.m_nData.Index, MatCPUHdr.m_nData.Offset));
 
-	MaterialHeader MatHeader = Reader.Read<MaterialHeader>();
+	std::unique_ptr<char[]> buffer(new char[MatCPUHdr.m_nDataSize]);
+
+	RpakStream->Read((uint8_t*)buffer.get(), 0, MatCPUHdr.m_nDataSize);
+
+	oStream.write((char*)buffer.get(), MatCPUHdr.m_nDataSize);
+}
+
+void RpakLib::ExportMatCPUAsStruct(const RpakLoadAsset& Asset, MaterialHeader& MatHdr, MaterialCPUHeader& MatCPUHdr, std::ofstream& oStream)
+{
+	auto RpakStream = this->GetFileStream(Asset);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
 	if (Asset.AssetVersion == 12)
 	{
 		RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 		MaterialHeaderV12 mathdr = Reader.Read<MaterialHeaderV12>();
 
-		MatHeader.ShaderSetHash = mathdr.m_pShaderSet;
+		MatHdr.ShaderSetHash = mathdr.m_pShaderSet;
 	}
 
-	if (!Assets.ContainsKey(MatHeader.ShaderSetHash)) // no shaderset loaded
+	if (!Assets.ContainsKey(MatHdr.ShaderSetHash)) // no shaderset loaded
 		return;
 
-	RpakLoadAsset ShaderSetAsset = Assets[MatHeader.ShaderSetHash];
+	RpakLoadAsset ShaderSetAsset = Assets[MatHdr.ShaderSetHash];
 	ShaderSetHeader ShaderSetHeader = ExtractShaderSet(ShaderSetAsset);
 
 	uint64_t PixelShaderGuid = ShaderSetHeader.PixelShaderHash;
@@ -80,10 +89,6 @@ void RpakLib::ExportMaterialCPU(const RpakLoadAsset& Asset, const string& Path)
 
 	if (!ShaderVars.Count()) // no shader vars matching our buffer
 		return;
-
-	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset));
-
-	MaterialCPUHeader MatCPUHdr = Reader.Read<MaterialCPUHeader>();
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, MatCPUHdr.m_nData.Index, MatCPUHdr.m_nData.Offset));
 
@@ -158,13 +163,52 @@ void RpakLib::ExportMaterialCPU(const RpakLoadAsset& Asset, const string& Path)
 	};
 	ss << "};";
 
+	oStream << ss.str();
+}
+
+// Shaderset reference: 0x7b69f3d87cf71a2b THEY MAY DIFFER NOT SURE.
+void RpakLib::ExportMaterialCPU(const RpakLoadAsset& Asset, const string& Path)
+{
+	auto RpakStream = this->GetFileStream(Asset);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset));
+
+	MaterialCPUHeader MatCPUHdr = Reader.Read<MaterialCPUHeader>();
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
+
+	MaterialHeader MatHeader = Reader.Read<MaterialHeader>();
+
 	RpakStream->SetPosition(this->GetFileOffset(Asset, MatHeader.NameIndex, MatHeader.NameOffset));
 
-	string DestinationPath = IO::Path::Combine(Path, string::Format("%s.h", IO::Path::GetFileNameWithoutExtension(Reader.ReadCString()).ToLower().ToCString()));
+	auto ExportFormat = (MatCPUExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("MatCPUFormat");
 
-	std::ofstream out(DestinationPath.ToCString(), std::ios::out);
-	out << ss.str();
-	out.close();
+	switch (ExportFormat)
+	{
+	case MatCPUExportFormat_t::None:
+	{
+		return;
+	}
+	case MatCPUExportFormat_t::Struct:
+	{
+		string DestinationPath = IO::Path::Combine(Path, string::Format("%s.h", IO::Path::GetFileNameWithoutExtension(Reader.ReadCString()).ToLower().ToCString()));
+		std::ofstream out(DestinationPath.ToCString(), std::ios::out);
+		ExportMatCPUAsStruct(Asset, MatHeader, MatCPUHdr, out);
+		out.close();
+		break;
+	}
+	case MatCPUExportFormat_t::CPU:
+	{
+		string DestinationPath = IO::Path::Combine(Path, string::Format("%s.cpu", IO::Path::GetFileNameWithoutExtension(Reader.ReadCString()).ToLower().ToCString()));
+		std::ofstream out(DestinationPath.ToCString(), std::ios::out);
+		ExportMatCPUAsRaw(Asset, MatHeader, MatCPUHdr, out);
+		out.close();
+		break;
+	}
+	default:
+		return;
+	}
 }
 
 void RpakLib::ExportMaterial(const RpakLoadAsset& Asset, const string& Path)
@@ -177,8 +221,7 @@ void RpakLib::ExportMaterial(const RpakLoadAsset& Asset, const string& Path)
 
 	IO::Directory::CreateDirectory(OutPath);
 
-	if (ExportManager::Config.GetBool("ExportMatCPU"))
-		this->ExportMaterialCPU(Asset, OutPath);
+	this->ExportMaterialCPU(Asset, OutPath);
 
 	(void)this->ExtractMaterial(Asset, OutPath, true, true);
 }

@@ -331,6 +331,13 @@ enum class AnimExportFormat_t
 	RAnim
 };
 
+enum class MatCPUExportFormat_t
+{
+	None,
+	Struct,
+	CPU
+};
+
 enum class ImageExportFormat_t
 {
 	Dds,
@@ -421,6 +428,8 @@ public:
 	void ExportModel(const RpakLoadAsset& Asset, const string& Path, const string& AnimPath);
 	void ExportMaterial(const RpakLoadAsset& Asset, const string& Path);
 	void ExportMaterialCPU(const RpakLoadAsset& Asset, const string& Path);
+	void ExportMatCPUAsStruct(const RpakLoadAsset& Asset, MaterialHeader& MatHdr, MaterialCPUHeader& MatCPUHdr, std::ofstream& oStream);
+	void ExportMatCPUAsRaw(const RpakLoadAsset& Asset, MaterialHeader& MatHdr, MaterialCPUHeader& MatCPUHdr, std::ofstream& oStream);
 	void ExportTexture(const RpakLoadAsset& Asset, const string& Path, bool IncludeImageNames, string NameOverride = "", bool NormalRecalculate = false);
 	void ExportUIIA(const RpakLoadAsset& Asset, const string& Path);
 	void ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path);
