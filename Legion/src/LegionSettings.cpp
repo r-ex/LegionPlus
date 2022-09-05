@@ -310,6 +310,29 @@ void LegionSettings::InitializeComponent()
 	this->groupBox5->AddControl(this->AnimExportFormat);
 
 	//
+	//  MaterialCPUExportFormat
+	//
+	this->label7 = new UIX::UIXLabel();
+	this->label7->SetSize({ 90, 15 });
+	this->label7->SetLocation({ 230, 20 });
+	this->label7->SetTabIndex(9);
+	this->label7->SetText("Material CPU Format");
+	this->label7->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->label7->SetTextAlign(Drawing::ContentAlignment::TopLeft);
+	this->groupBox5->AddControl(this->label7);
+
+	this->MatCPUExportFormat = new UIX::UIXComboBox();
+	this->MatCPUExportFormat->SetSize({ 90, 21 });
+	this->MatCPUExportFormat->SetLocation({ 230, 35 });
+	this->MatCPUExportFormat->SetTabIndex(0);
+	this->MatCPUExportFormat->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->MatCPUExportFormat->SetDropDownStyle(Forms::ComboBoxStyle::DropDownList);
+	this->MatCPUExportFormat->Items.Add("None");
+	this->MatCPUExportFormat->Items.Add("Struct");
+	this->MatCPUExportFormat->Items.Add("CPU");
+	this->groupBox5->AddControl(this->MatCPUExportFormat);
+
+	//
 	//	Image Export Format
 	//
 	this->label3 = new UIX::UIXLabel();
