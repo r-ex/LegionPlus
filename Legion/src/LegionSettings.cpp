@@ -118,23 +118,23 @@ void LegionSettings::InitializeComponent()
 	//
 	//	About Text Label
 	//
-	this->label8 = new UIX::UIXLabel();
-	this->label8->SetSize({ 200, 12 });
-	this->label8->SetLocation({ 12, 20 });
-	this->label8->SetTabIndex(0);
-	this->label8->SetText("Version " UI_VER_STR);
-	this->label8->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->label8->SetTextAlign(Drawing::ContentAlignment::TopLeft);
-	this->groupBox3->AddControl(this->label8);
+	this->labelVersion = new UIX::UIXLabel();
+	this->labelVersion->SetSize({ 200, 12 });
+	this->labelVersion->SetLocation({ 12, 20 });
+	this->labelVersion->SetTabIndex(0);
+	this->labelVersion->SetText("Version " UI_VER_STR);
+	this->labelVersion->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->labelVersion->SetTextAlign(Drawing::ContentAlignment::TopLeft);
+	this->groupBox3->AddControl(this->labelVersion);
 
-	this->label1 = new UIX::UIXLabel();
-	this->label1->SetSize({ 200, 60 });
-	this->label1->SetLocation({ 12, 40 });
-	this->label1->SetTabIndex(0);
-	this->label1->SetText("Legion is the Apex Legends asset extraction tool. Originally created by DTZxPorter in 2019. Currently maintained by various contributors on GitHub.");
-	this->label1->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->label1->SetTextAlign(Drawing::ContentAlignment::TopLeft);
-	this->groupBox3->AddControl(this->label1);
+	this->labelAbout = new UIX::UIXLabel();
+	this->labelAbout->SetSize({ 200, 60 });
+	this->labelAbout->SetLocation({ 12, 40 });
+	this->labelAbout->SetTabIndex(0);
+	this->labelAbout->SetText("Legion is the Apex Legends asset extraction tool. Originally created by DTZxPorter in 2019. Currently maintained by various contributors on GitHub.");
+	this->labelAbout->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->labelAbout->SetTextAlign(Drawing::ContentAlignment::TopLeft);
+	this->groupBox3->AddControl(this->labelAbout);
 	//
 	//	Github Link Button
 	//
@@ -259,14 +259,14 @@ void LegionSettings::InitializeComponent()
 	//
 	//	Model Export Format
 	//
-	this->label2 = new UIX::UIXLabel();
-	this->label2->SetSize({ 90, 15 });
-	this->label2->SetLocation({ 20, 20 });
-	this->label2->SetTabIndex(8);
-	this->label2->SetText("Model Format");
-	this->label2->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->label2->SetTextAlign(Drawing::ContentAlignment::TopLeft);
-	this->groupBox5->AddControl(this->label2);
+	this->label1 = new UIX::UIXLabel();
+	this->label1->SetSize({ 90, 15 });
+	this->label1->SetLocation({ 20, 20 });
+	this->label1->SetTabIndex(8);
+	this->label1->SetText("Model Format");
+	this->label1->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->label1->SetTextAlign(Drawing::ContentAlignment::TopLeft);
+	this->groupBox5->AddControl(this->label1);
 
 	this->ModelExportFormat = new UIX::UIXComboBox();
 	this->ModelExportFormat->SetSize({ 90, 21 });
@@ -289,14 +289,14 @@ void LegionSettings::InitializeComponent()
 	//
 	//	Animation Export Format
 	//
-	this->label3 = new UIX::UIXLabel();
-	this->label3->SetSize({ 90, 15 });
-	this->label3->SetLocation({ 125, 20 });
-	this->label3->SetTabIndex(11);
-	this->label3->SetText("Animation Format");
-	this->label3->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->label3->SetTextAlign(Drawing::ContentAlignment::TopLeft);
-	this->groupBox5->AddControl(this->label3);
+	this->label2 = new UIX::UIXLabel();
+	this->label2->SetSize({ 90, 15 });
+	this->label2->SetLocation({ 125, 20 });
+	this->label2->SetTabIndex(11);
+	this->label2->SetText("Animation Format");
+	this->label2->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->label2->SetTextAlign(Drawing::ContentAlignment::TopLeft);
+	this->groupBox5->AddControl(this->label2);
 
 	this->AnimExportFormat = new UIX::UIXComboBox();
 	this->AnimExportFormat->SetSize({ 90, 21 });
@@ -312,14 +312,14 @@ void LegionSettings::InitializeComponent()
 	//
 	//  MaterialCPUExportFormat
 	//
-	this->label9 = new UIX::UIXLabel();
-	this->label9->SetSize({ 90, 15 });
-	this->label9->SetLocation({ 230, 20 });
-	this->label9->SetTabIndex(9);
-	this->label9->SetText("Material CPU Format");
-	this->label9->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->label9->SetTextAlign(Drawing::ContentAlignment::TopLeft);
-	this->groupBox5->AddControl(this->label9);
+	this->label7 = new UIX::UIXLabel();
+	this->label7->SetSize({ 90, 15 });
+	this->label7->SetLocation({ 230, 20 });
+	this->label7->SetTabIndex(9);
+	this->label7->SetText("Material CPU Format");
+	this->label7->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->label7->SetTextAlign(Drawing::ContentAlignment::TopLeft);
+	this->groupBox5->AddControl(this->label7);
 
 	this->MatCPUExportFormat = new UIX::UIXComboBox();
 	this->MatCPUExportFormat->SetSize({ 90, 21 });
@@ -335,14 +335,14 @@ void LegionSettings::InitializeComponent()
 	//
 	//	Image Export Format
 	//
-	this->label4 = new UIX::UIXLabel();
-	this->label4->SetSize({ 90, 15 });
-	this->label4->SetLocation({ 20, 65 });
-	this->label4->SetTabIndex(9);
-	this->label4->SetText("Image Format");
-	this->label4->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->label4->SetTextAlign(Drawing::ContentAlignment::TopLeft);
-	this->groupBox5->AddControl(this->label4);
+	this->label3 = new UIX::UIXLabel();
+	this->label3->SetSize({ 90, 15 });
+	this->label3->SetLocation({ 20, 65 });
+	this->label3->SetTabIndex(9);
+	this->label3->SetText("Image Format");
+	this->label3->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->label3->SetTextAlign(Drawing::ContentAlignment::TopLeft);
+	this->groupBox5->AddControl(this->label3);
 
 	this->ImageExportFormat = new UIX::UIXComboBox();
 	this->ImageExportFormat->SetSize({ 90, 21 });
@@ -359,14 +359,14 @@ void LegionSettings::InitializeComponent()
 	//
 	//	Text/Subtitles/Datatables Export Format
 	//
-	this->label5 = new UIX::UIXLabel();
-	this->label5->SetSize({ 90, 15 });
-	this->label5->SetLocation({ 125, 65 });
-	this->label5->SetTabIndex(9);
-	this->label5->SetText("Text Format");
-	this->label5->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->label5->SetTextAlign(Drawing::ContentAlignment::TopLeft);
-	this->groupBox5->AddControl(this->label5);
+	this->label4 = new UIX::UIXLabel();
+	this->label4->SetSize({ 90, 15 });
+	this->label4->SetLocation({ 125, 65 });
+	this->label4->SetTabIndex(9);
+	this->label4->SetText("Text Format");
+	this->label4->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->label4->SetTextAlign(Drawing::ContentAlignment::TopLeft);
+	this->groupBox5->AddControl(this->label4);
 
 	this->TextExportFormat = new UIX::UIXComboBox();
 	this->TextExportFormat->SetSize({ 90, 20 });
@@ -381,14 +381,14 @@ void LegionSettings::InitializeComponent()
 	//
 	//	Audio Language
 	//
-	this->label6 = new UIX::UIXLabel();
-	this->label6->SetSize({ 90, 15 });
-	this->label6->SetLocation({ 20, 110 });
-	this->label6->SetTabIndex(9);
-	this->label6->SetText("Audio Language");
-	this->label6->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->label6->SetTextAlign(Drawing::ContentAlignment::TopLeft);
-	this->groupBox5->AddControl(this->label6);
+	this->label5 = new UIX::UIXLabel();
+	this->label5->SetSize({ 90, 15 });
+	this->label5->SetLocation({ 20, 110 });
+	this->label5->SetTabIndex(9);
+	this->label5->SetText("Audio Language");
+	this->label5->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->label5->SetTextAlign(Drawing::ContentAlignment::TopLeft);
+	this->groupBox5->AddControl(this->label5);
 
 	this->AudioLanguage = new UIX::UIXComboBox();
 	this->AudioLanguage->SetSize({ 90, 20 });
@@ -404,14 +404,14 @@ void LegionSettings::InitializeComponent()
 	//
 	//	NormalRecalcType
 	//
-	this->label7 = new UIX::UIXLabel();
-	this->label7->SetSize({ 120, 15 });
-	this->label7->SetLocation({ 125, 110 });
-	this->label7->SetTabIndex(9);
-	this->label7->SetText("Normal Recalculation");
-	this->label7->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->label7->SetTextAlign(Drawing::ContentAlignment::TopLeft);
-	this->groupBox5->AddControl(this->label7);
+	this->label6 = new UIX::UIXLabel();
+	this->label6->SetSize({ 120, 15 });
+	this->label6->SetLocation({ 125, 110 });
+	this->label6->SetTabIndex(9);
+	this->label6->SetText("Normal Recalculation");
+	this->label6->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->label6->SetTextAlign(Drawing::ContentAlignment::TopLeft);
+	this->groupBox5->AddControl(this->label6);
 
 	this->NormalRecalcType = new UIX::UIXComboBox();
 	this->NormalRecalcType->SetSize({ 90, 20 });

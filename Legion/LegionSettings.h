@@ -32,15 +32,15 @@ private:
 	UIX::UIXTextBox* ExportBrowseFolder;
 	UIX::UIXButton* ExportBrowseButton;
 	// Labels
-	UIX::UIXLabel* label1; // about
+	UIX::UIXLabel* label1;
 	UIX::UIXLabel* label2;
 	UIX::UIXLabel* label3;
 	UIX::UIXLabel* label4;
 	UIX::UIXLabel* label5;
 	UIX::UIXLabel* label6;
 	UIX::UIXLabel* label7;
-	UIX::UIXLabel* label8; // version
-	UIX::UIXLabel* label9;
+	UIX::UIXLabel* labelVersion; // version
+	UIX::UIXLabel* labelAbout; // about
 	// Boxes
 	UIX::UIXGroupBox* groupBox1;
 	UIX::UIXGroupBox* groupBox2;
