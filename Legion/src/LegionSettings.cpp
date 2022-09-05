@@ -104,14 +104,6 @@ void LegionSettings::InitializeComponent()
 	this->ToggleUseTxtrGuids->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->groupBox2->AddControl(this->ToggleUseTxtrGuids);
 
-	this->ToggleExportMatCPU = new UIX::UIXCheckBox();
-	this->ToggleExportMatCPU->SetSize({ 105, 18 });
-	this->ToggleExportMatCPU->SetLocation({ 130, 43 });
-	this->ToggleExportMatCPU->SetTabIndex(2);
-	this->ToggleExportMatCPU->SetText("Export MatCPU");
-	this->ToggleExportMatCPU->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox2->AddControl(this->ToggleExportMatCPU);
-
 	//
 	//	About Box
 	//
@@ -318,6 +310,29 @@ void LegionSettings::InitializeComponent()
 	this->groupBox5->AddControl(this->AnimExportFormat);
 
 	//
+	//  MaterialCPUExportFormat
+	//
+	this->label9 = new UIX::UIXLabel();
+	this->label9->SetSize({ 90, 15 });
+	this->label9->SetLocation({ 230, 20 });
+	this->label9->SetTabIndex(9);
+	this->label9->SetText("Material CPU Format");
+	this->label9->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->label9->SetTextAlign(Drawing::ContentAlignment::TopLeft);
+	this->groupBox5->AddControl(this->label9);
+
+	this->MatCPUExportFormat = new UIX::UIXComboBox();
+	this->MatCPUExportFormat->SetSize({ 90, 21 });
+	this->MatCPUExportFormat->SetLocation({ 230, 35 });
+	this->MatCPUExportFormat->SetTabIndex(0);
+	this->MatCPUExportFormat->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->MatCPUExportFormat->SetDropDownStyle(Forms::ComboBoxStyle::DropDownList);
+	this->MatCPUExportFormat->Items.Add("None");
+	this->MatCPUExportFormat->Items.Add("Struct");
+	this->MatCPUExportFormat->Items.Add("CPU");
+	this->groupBox5->AddControl(this->MatCPUExportFormat);
+
+	//
 	//	Image Export Format
 	//
 	this->label4 = new UIX::UIXLabel();
@@ -431,6 +446,7 @@ void LegionSettings::LoadSettings()
 	TextExportFormat_t TextFormat = (TextExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("TextFormat");
 	NormalRecalcType_t NormalRecalcType = (NormalRecalcType_t)ExportManager::Config.Get<System::SettingType::Integer>("NormalRecalcType");
 	MilesLanguageID AudioLanguage = (MilesLanguageID)ExportManager::Config.Get<System::SettingType::Integer>("AudioLanguage");
+	MatCPUExportFormat_t MatCPUFormat = (MatCPUExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("MatCPUFormat");
 
 	if (!ExportManager::Config.Has("NormalRecalcType"))
 		NormalRecalcType = NormalRecalcType_t::OpenGl;
@@ -521,6 +537,19 @@ void LegionSettings::LoadSettings()
 		break;
 	}
 
+	switch (MatCPUFormat)
+	{
+	case MatCPUExportFormat_t::None:
+		this->MatCPUExportFormat->SetSelectedIndex(0);
+		break;
+	case MatCPUExportFormat_t::Struct:
+		this->MatCPUExportFormat->SetSelectedIndex(1);
+		break;
+	case MatCPUExportFormat_t::CPU:
+		this->MatCPUExportFormat->SetSelectedIndex(2);
+		break;
+	}
+
 	this->AudioLanguage->SetSelectedIndex(static_cast<int32_t>(AudioLanguage));
 
 	this->LoadModels->SetChecked(ExportManager::Config.GetBool("LoadModels"));
@@ -536,7 +565,6 @@ void LegionSettings::LoadSettings()
 	this->ToggleAudioLanguageFolders->SetChecked(ExportManager::Config.GetBool("AudioLanguageFolders"));
 	this->ToggleUseFullPaths->SetChecked(ExportManager::Config.GetBool("UseFullPaths"));
 	this->ToggleUseTxtrGuids->SetChecked(ExportManager::Config.GetBool("UseTxtrGuids"));
-	this->ToggleExportMatCPU->SetChecked(ExportManager::Config.GetBool("ExportMatCPU"));
 
 	if (ExportManager::Config.Has<System::SettingType::String>("ExportDirectory"))
 	{
@@ -560,6 +588,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	auto TextExportFormat = TextExportFormat_t::CSV;
 	auto NormalRecalcType = NormalRecalcType_t::OpenGl;
 	auto AudioLanguage = MilesLanguageID::English;
+	auto MatCPUExportFormat = MatCPUExportFormat_t::None;
 
 	if (ThisPtr->ModelExportFormat->SelectedIndex() > -1)
 	{
@@ -651,6 +680,22 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		AudioLanguage = (MilesLanguageID)ThisPtr->AudioLanguage->SelectedIndex();
 	}
 
+	if (ThisPtr->MatCPUExportFormat->SelectedIndex() > -1)
+	{
+		switch (ThisPtr->MatCPUExportFormat->SelectedIndex())
+		{
+		case 0:
+			MatCPUExportFormat = MatCPUExportFormat_t::None;
+			break;
+		case 1:
+			MatCPUExportFormat = MatCPUExportFormat_t::Struct;
+			break;
+		case 2:
+			MatCPUExportFormat = MatCPUExportFormat_t::CPU;
+			break;
+		}
+	}
+
 	// have the settings actually changed?
 	bool bRefreshView = false;
 
@@ -688,13 +733,13 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	ExportManager::Config.SetBool("AudioLanguageFolders", ThisPtr->ToggleAudioLanguageFolders->Checked());
 	ExportManager::Config.SetBool("UseFullPaths", ThisPtr->ToggleUseFullPaths->Checked());
 	ExportManager::Config.SetBool("UseTxtrGuids", ThisPtr->ToggleUseTxtrGuids->Checked());
-	ExportManager::Config.SetBool("ExportMatCPU", ThisPtr->ToggleExportMatCPU->Checked());
 	ExportManager::Config.SetInt("ModelFormat", (uint32_t)ModelExportFormat);
 	ExportManager::Config.SetInt("AnimFormat", (uint32_t)AnimExportFormat);
 	ExportManager::Config.SetInt("ImageFormat", (uint32_t)ImageExportFormat);
 	ExportManager::Config.SetInt("TextFormat", (uint32_t)TextExportFormat);
 	ExportManager::Config.SetInt("NormalRecalcType", (uint32_t)NormalRecalcType);
 	ExportManager::Config.SetInt("AudioLanguage", (uint32_t)AudioLanguage);
+	ExportManager::Config.SetInt("MatCPUFormat", (uint32_t)MatCPUExportFormat);
 
 	auto ExportDirectory = ThisPtr->ExportBrowseFolder->Text();
 

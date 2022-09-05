@@ -40,6 +40,7 @@ private:
 	UIX::UIXLabel* label6;
 	UIX::UIXLabel* label7;
 	UIX::UIXLabel* label8; // version
+	UIX::UIXLabel* label9;
 	// Boxes
 	UIX::UIXGroupBox* groupBox1;
 	UIX::UIXGroupBox* groupBox2;
@@ -61,7 +62,6 @@ private:
 	UIX::UIXCheckBox* ToggleAudioLanguageFolders;
 	UIX::UIXCheckBox* ToggleUseFullPaths;
 	UIX::UIXCheckBox* ToggleUseTxtrGuids;
-	UIX::UIXCheckBox* ToggleExportMatCPU;
 	// Export Types
 	UIX::UIXComboBox* ModelExportFormat;
 	UIX::UIXComboBox* AnimExportFormat;
@@ -69,6 +69,7 @@ private:
 	UIX::UIXComboBox* TextExportFormat;
 	UIX::UIXComboBox* AudioLanguage;
 	UIX::UIXComboBox* NormalRecalcType;
+	UIX::UIXComboBox* MatCPUExportFormat;
 	// Export Formats
 	UIX::UIXRadioButton* ExportCastAnim;
 	UIX::UIXRadioButton* ExportSEAnim;
