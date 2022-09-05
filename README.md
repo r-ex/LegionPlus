@@ -63,6 +63,7 @@ Images: --imgfmt <dds, png, tiff>
 Text: --textfmt <csv, txt>
 Shadersets: --nmlrecalc <none, directx/dx, opengl/ogl>
 Audio Language: --audiolanguage <english, french, german, spanish, italian, japanese, polish, russian, mandarin, korean>
+MatCPU: --matcpu <none, struct, cpu>
 ```
 `Example: LegionPlus.exe --export <path to rpak> --loadmodels --loadanimations --mdlfmt obj --animfmt seanim --imgfmt png`
 
