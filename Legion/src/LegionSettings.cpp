@@ -401,7 +401,6 @@ void LegionSettings::InitializeComponent()
 	this->NormalRecalcType->Items.Add("OpenGL");
 	this->groupBox5->AddControl(this->NormalRecalcType);
 
-
 	this->ResumeLayout(false);
 	this->PerformLayout();
 	// END DESIGNER CODE
