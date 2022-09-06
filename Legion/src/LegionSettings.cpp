@@ -12,6 +12,12 @@ LegionSettings::LegionSettings()
 	this->InitializeComponent();
 }
 
+#if _DEBUG
+string BuildV = "Debug";
+#else
+string BuildV = "Release";
+#endif
+
 void LegionSettings::InitializeComponent()
 {
 	const INT WindowX = 710;
@@ -119,10 +125,10 @@ void LegionSettings::InitializeComponent()
 	//	About Text Label
 	//
 	this->labelVersion = new UIX::UIXLabel();
-	this->labelVersion->SetSize({ 200, 12 });
+	this->labelVersion->SetSize({ 200, 14 });
 	this->labelVersion->SetLocation({ 12, 20 });
 	this->labelVersion->SetTabIndex(0);
-	this->labelVersion->SetText("Version " UI_VER_STR);
+	this->labelVersion->SetText(BuildV + " Version " UI_VER_STR);
 	this->labelVersion->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->labelVersion->SetTextAlign(Drawing::ContentAlignment::TopLeft);
 	this->groupBox3->AddControl(this->labelVersion);
