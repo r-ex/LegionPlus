@@ -53,7 +53,9 @@ struct RpakApexHeader
 	uint32_t GuidDescriptorCount;
 	uint32_t RelationsCount;
 
-	uint8_t Unk[0x1c];
+	char Unk[0x10];
+	uint32_t PageOffset; // Size not verified.
+	char Unk1[0x8];
 };
 
 struct RpakTitanfallHeader

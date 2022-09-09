@@ -760,7 +760,7 @@ bool RpakLib::ParseApexRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 
 	uint64_t BufferRemaining = ParseStream->GetLength() - ParseStream->GetPosition();
 
-	uint64_t Offset = 0;
+	uint64_t Offset = Header.PageOffset;
 	for (uint32_t i = PatchHeader.PatchSegmentIndex; i < Header.MemPageCount; i++)
 	{
 		File->SegmentBlocks.EmplaceBack(Offset, MemPages[i].DataSize);
