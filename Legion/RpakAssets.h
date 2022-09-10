@@ -464,10 +464,11 @@ struct ModelHeaderS50
 	uint32_t NameIndex;
 	uint32_t NameOffset;
 
+	uint64_t Padding3;
+
 	// .phy
 	uint32_t PhyIndex;
 	uint32_t PhyOffset;
-	uint64_t Padding3;
 
 	// .vvd
 	uint32_t BlockIndex1;
