@@ -25,6 +25,9 @@ void RpakLib::BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 			ModHeader.NameIndex = ModHeaderTmp.NameIndex;
 			ModHeader.NameOffset = ModHeaderTmp.NameOffset;
+
+			ModHeader.PhyIndex = ModHeaderTmp.PhyIndex;
+			ModHeader.PhyOffset = ModHeaderTmp.PhyOffset;
 			// we don't need the rest here
 		}
 	}
