@@ -130,7 +130,10 @@ struct RUIImage
 	uint32_t BufferIndex;
 	uint32_t BufferOffset;
 
-	uint32_t Zero2[0x4];
+	uint32_t NameIndex;
+	uint32_t NameOffset;
+
+	uint32_t Zero2[0x2];
 };
 
 // --- dtbl ---

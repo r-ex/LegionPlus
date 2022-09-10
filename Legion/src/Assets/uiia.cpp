@@ -37,7 +37,16 @@ void RpakLib::BuildUIIAInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 		break;
 	}
 
-	Info.Name = string::Format("uiimage_0x%llx", Asset.NameHash);
+	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset));
+
+	RUIImage ri = Reader.Read<RUIImage>();
+
+	string name = string::Format("uiimage_0x%llx", Asset.NameHash);
+
+	if (ri.NameIndex || ri.NameOffset)
+		name = this->ReadStringFromPointer(Asset, { ri.NameIndex, ri.NameOffset });
+
+	Info.Name = name;
 	Info.Type = ApexAssetType::UIImage;
 	Info.Status = ApexAssetStatus::Loaded;
 	Info.Info = string::Format("Width: %d Height %d", TexHeader.Width, TexHeader.Height);
