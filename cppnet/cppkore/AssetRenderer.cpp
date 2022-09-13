@@ -594,7 +594,7 @@ namespace Assets
 		glLoadIdentity();
 
 		glColor3f(1.0f, 1.0f, 1.0f);
-		glDisable(GL_BLEND);
+		glEnable(GL_BLEND);
 
 		float Scale = (float)this->_DrawInformation.Scale / 100.f;
 
