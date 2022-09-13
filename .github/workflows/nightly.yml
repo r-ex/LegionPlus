@@ -1,0 +1,64 @@
+name: Nightly release
+
+on:
+  schedule:
+    - cron: '0 3 * * *' # 3am UTC
+
+jobs:
+  nightly:
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    steps:
+    - uses: actions/checkout@v3.0.2
+      with:
+        fetch-depth: 1
+    
+    - name: Check for commits within the last 24 hours
+      uses: AlexHolderDeveloper/CommitsWithinTime@v1.1.5
+      id: commitswithintime
+      with:
+        hours: 24
+
+    - name: Setup MSBuild
+      if: steps.commitswithintime.outputs.has-new-commits-within-time != 'false'
+      uses: microsoft/setup-msbuild@v1.1
+      with:
+        msbuild-architecture: x64
+    
+    - name: Get short commit SHA
+      if: steps.commitswithintime.outputs.has-new-commits-within-time != 'false'
+      run: echo SHA7=$(git rev-parse --short HEAD) >> $env:GITHUB_ENV
+
+    - name: Build Legion+
+      if: steps.commitswithintime.outputs.has-new-commits-within-time != 'false'
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: msbuild /m . /p:Configuration=Release /p:PropertyPreprocessorDefinitions=NIGHTLY#${{env.SHA7}}
+
+    - name: ZIP Executable
+      if: steps.commitswithintime.outputs.has-new-commits-within-time != 'false'
+      uses: vimtor/action-zip@v1
+      with:
+        files: bin/x64/Release/LegionPlus.exe
+        dest: Legion+Nightly.zip
+
+    - name: Upload Nightly build
+      if: steps.commitswithintime.outputs.has-new-commits-within-time != 'false'
+      uses: WebFreak001/deploy-nightly@v1.2.0
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      with:
+        upload_url: https://uploads.github.com/repos/r-ex/LegionPlus/releases/77041513/assets{?name,label}
+        release_id: 77041513
+        asset_path: Legion+Nightly.zip
+        asset_name: Legion+Nightly.zip
+        asset_content_type: application/zip
+        max_releases: 1
+
+    - name: Update 'nightly' tag
+      if: steps.commitswithintime.outputs.has-new-commits-within-time != 'false'
+      uses: richardsimko/update-tag@v1.0.5
+      with:
+        tag_name: 'nightly'
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
