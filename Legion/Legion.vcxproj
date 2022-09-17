@@ -166,6 +166,7 @@
     <ClCompile Include="src\Assets\model.cpp" />
     <ClCompile Include="src\Assets\qc.cpp" />
     <ClCompile Include="src\assets\rson.cpp" />
+    <ClCompile Include="src\Assets\rui.cpp" />
     <ClCompile Include="src\assets\settings.cpp" />
     <ClCompile Include="src\Assets\shader.cpp" />
     <ClCompile Include="src\Assets\subtitles.cpp" />

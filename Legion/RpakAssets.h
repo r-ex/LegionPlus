@@ -1078,6 +1078,80 @@ struct RSONNode
 	int valueCount;
 	RPakPtr pValues;
 };
+
+
+enum class RuiArgumentType_t : uint8_t
+{
+	TYPE_NONE = 0,
+	TYPE_STRING = 0x1,
+	TYPE_ASSET = 0x2,
+	TYPE_BOOL = 0x3,
+	TYPE_INT = 0x4,
+	TYPE_FLOAT = 0x5,
+	TYPE_FLOAT2 = 0x6,
+	TYPE_FLOAT3 = 0x7,
+	TYPE_COLOR_ALPHA = 0x8,
+	TYPE_GAMETIME = 0x9,
+	TYPE_WALLTIME = 0xA,
+	TYPE_UIHANDLE = 0xB,
+	TYPE_IMAGE = 0xC,
+	TYPE_FONT_FACE = 0xD,
+	TYPE_FONT_HASH = 0xE,
+	TYPE_ARRAY = 0xF,
+};
+
+static const char* s_RuiArgTypes[] = {
+	"none",
+	"string",
+	"asset",
+	"bool",
+	"int",
+	"float",
+	"float2",
+	"float3",
+	"color_alpha",
+	"gametime",
+	"walltime",
+	"uihandle",
+	"image",
+	"font_face",
+	"font_hash",
+	"array"
+};
+
+struct RUIHeader
+{
+	RPakPtr name;
+	RPakPtr values;
+	RPakPtr unk2;
+	float elementWidth;
+	float elementHeight;
+	float UnkFloat3; // 1 / width
+	float UnkFloat4; // 1 / height
+	RPakPtr argNames;
+	RPakPtr argClusters;
+	RPakPtr args;
+	short argCount; // number of slots for arguments. not all are used
+	short unk3;
+	uint32_t unk4;
+	uint16_t unk5;
+	uint16_t unk6;
+	uint16_t unk7;
+	uint16_t argClusterCount;
+	RPakPtr unk8;
+	RPakPtr unk9;
+	RPakPtr unk10;
+};
+
+struct RuiArg
+{
+	RuiArgumentType_t type;
+	char unk1;
+	short valueOffset;
+	short nameOffset;
+	short shortHash;
+};
+
 #pragma pack(pop)
 
 

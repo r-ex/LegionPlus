@@ -135,6 +135,9 @@
     <ClCompile Include="src\Assets\qc.cpp">
       <Filter>RPak\Assets</Filter>
     </ClCompile>
+    <ClCompile Include="src\Assets\rui.cpp">
+      <Filter>RPak\Assets</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MilesLib.h">

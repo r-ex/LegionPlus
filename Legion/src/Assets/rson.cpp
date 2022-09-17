@@ -25,21 +25,11 @@ void RpakLib::ExportRSON(const RpakLoadAsset& Asset, const string& Path)
 	this->ExtractRSON(Asset, DestinationPath);
 }
 
-std::string GetIndentation(int level)
-{
-	std::string ret = "";
-
-	for (int i = 0; i < level; ++i)
-		ret += '\t';
-	return ret;
-}
-
-
 void RpakLib::R_WriteRSONFile(const RpakLoadAsset& Asset, std::ofstream& out, IO::BinaryReader& Reader, RSONNode node, int level)
 {
 	auto RpakStream = Reader.GetBaseStream();
 	string name = this->ReadStringFromPointer(Asset, node.pName);
-	out << GetIndentation(level) << name.ToString() << ":";
+	out << Utils::GetIndentation(level) << name.ToString() << ":";
 
 	switch (node.type)
 	{
@@ -56,7 +46,7 @@ void RpakLib::R_WriteRSONFile(const RpakLoadAsset& Asset, std::ofstream& out, IO
 			// i hate this so much
 			RpakStream->SetPosition(this->GetFileOffset(Asset, node.pValues.Index, node.pValues.Offset + (i*sizeof(RSONNode))));
 
-			out << "\n" << GetIndentation(level) << "{\n";
+			out << "\n" << Utils::GetIndentation(level) << "{\n";
 
 			while (true)
 			{
@@ -78,21 +68,21 @@ void RpakLib::R_WriteRSONFile(const RpakLoadAsset& Asset, std::ofstream& out, IO
 				RpakStream->SetPosition(this->GetFileOffset(Asset, nextPtr.Index, nextPtr.Offset));
 			}
 
-			out << GetIndentation(level) << "}\n";
+			out << Utils::GetIndentation(level) << "}\n";
 		}
 		break;
 	}
 	case RSON_ARRAY | RSON_STRING: // list of strings
 	{
 		RpakStream->SetPosition(this->GetFileOffset(Asset, node.pValues.Index, node.pValues.Offset));
-		out << "\n" << GetIndentation(level) << "[\n";
+		out << "\n" << Utils::GetIndentation(level) << "[\n";
 		for (int i = 0; i < node.valueCount; ++i)
 		{
 			string value = this->ReadStringFromPointer(Asset, Reader.Read<RPakPtr>());
 
-			out << GetIndentation(level + 1) << value.ToString() << "\n";
+			out << Utils::GetIndentation(level + 1) << value.ToString() << "\n";
 		}
-		out << GetIndentation(level) << "]\n";
+		out << Utils::GetIndentation(level) << "]\n";
 		break;
 	}
 	case RSON_BOOLEAN:
@@ -132,7 +122,7 @@ void RpakLib::ExtractRSON(const RpakLoadAsset& Asset, const string& Path)
 		{
 			RPakPtr ptr = Reader.Read<RPakPtr>();
 			string value = this->ReadStringFromPointer(Asset, ptr);
-			out_stream << GetIndentation(1) << value << "\n";
+			out_stream << Utils::GetIndentation(1) << value << "\n";
 		}
 		out_stream << "]";
 		break;

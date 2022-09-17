@@ -311,6 +311,7 @@ enum class AssetType_t : uint32_t
 	Shader = 'rdhs', // shdr - 0x72646873
 	UIImageAtlas = 'gmiu', // uimg - 0x676D6975
 	RSON = 'nosr', // rson - 0x72736F6E
+	RUI = 'iu', // ui - 0x75690000
 };
 
 enum class ModelExportFormat_t
@@ -443,11 +444,11 @@ public:
 	void ExportSettings(const RpakLoadAsset& Asset, const string& Path);
 	void ExportRSON(const RpakLoadAsset& Asset, const string& Path);
 	void ExportQC(int assetVersion, const string& Path, const string& modelPath, char* rmdlBuf, char* phyBuf = nullptr);
+	void ExportRUI(const RpakLoadAsset& Asset, const string& Path);
 
 	List<List<DataTableColumnData>> ExtractDataTable(const RpakLoadAsset& Asset);
 	List<ShaderVar> ExtractShaderVars(const RpakLoadAsset& Asset, const std::string& CBufName = "", D3D_SHADER_VARIABLE_TYPE Type = D3D_SVT_FORCE_DWORD); // default value as a type that should never be used
 	List<ShaderResBinding> ExtractShaderResourceBindings(const RpakLoadAsset& Asset, D3D_SHADER_INPUT_TYPE InputType);
-
 
 	// Used by the BSP system.
 	RMdlMaterial ExtractMaterial(const RpakLoadAsset& Asset, const string& Path, bool IncludeImages, bool IncludeImageNames);
@@ -484,6 +485,7 @@ private:
 	void BuildUIImageAtlasInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildSettingsInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildRSONInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
+	void BuildRUIInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 
 	std::unique_ptr<Assets::Model> ExtractModel(const RpakLoadAsset& Asset, const string& Path, const string& AnimPath, bool IncludeMaterials, bool IncludeAnimations);
 	void ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO::MemoryStream>& RpakStream, string Name, uint64_t Offset, const std::unique_ptr<Assets::Model>& Model, RMdlFixupPatches& Fixup, uint32_t Version, bool IncludeMaterials);
@@ -501,6 +503,7 @@ private:
 	void ExtractSettings(const RpakLoadAsset& Asset, const string& Path, const string& Name, const SettingsHeader& Header);
 	SettingsLayout ExtractSettingsLayout(const RpakLoadAsset& Asset);
 	void ExtractRSON(const RpakLoadAsset& Asset, const string& Path);
+	void ExtractRUI(const RpakLoadAsset& Asset, const string& Path);
 
 	void ExtractTextureName(const RpakLoadAsset& Asset, string& Name);
 	string ReadStringFromPointer(const RpakLoadAsset& Asset, const RPakPtr& ptr);
