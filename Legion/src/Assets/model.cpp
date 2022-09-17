@@ -110,7 +110,8 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.NameIndex, ModHeader.NameOffset));
 
-	string ModelName = IO::Path::GetFileNameWithoutExtension(Reader.ReadCString());
+	string RawModelName = Reader.ReadCString();
+	string ModelName = IO::Path::GetFileNameWithoutExtension(RawModelName);
 	string ModelPath = IO::Path::Combine(Path, ModelName);
 	string TexturePath = IO::Path::Combine(ModelPath, "_images");
 	string AnimationPath = IO::Path::Combine(AnimPath, ModelName);
@@ -125,26 +126,32 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 	auto ModelFormat = (ModelExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat");
 
-	const uint64_t SkeletonOffset = this->GetFileOffset(Asset, ModHeader.SkeletonIndex, ModHeader.SkeletonOffset);
+	const uint64_t StudioOffset = this->GetFileOffset(Asset, ModHeader.SkeletonIndex, ModHeader.SkeletonOffset);
 
 	bool bExportingRawRMdl = false;
 
 	string BaseFileName = IO::Path::Combine(ModelPath, ModelName);
 
+	RpakStream->SetPosition(StudioOffset);
+
+	studiohdr_t studiohdr = Reader.Read<studiohdr_t>();
+
+	RpakStream->SetPosition(StudioOffset);
+
+	std::unique_ptr<char[]> studioBuf(new char[studiohdr.DataSize]);
+
+	Reader.Read(studioBuf.get(), 0, studiohdr.DataSize);
+
+	// write QC file when exporting as SMD
+	if (Path != "" && AnimPath != "" && ModelFormat == ModelExportFormat_t::SMD)
+	{
+		this->ExportQC(Asset.AssetVersion, BaseFileName + ".qc", RawModelName, studioBuf.get(), nullptr);
+	}
+
 	if (Path != "" && AnimPath != "" && ModelFormat == ModelExportFormat_t::RMDL)
 	{
 		// set this here so we don't have to do this check every time
 		bExportingRawRMdl = true;
-
-		RpakStream->SetPosition(SkeletonOffset);
-
-		studiohdr_t SkeletonHeader = Reader.Read<studiohdr_t>();
-
-		RpakStream->SetPosition(SkeletonOffset);
-
-		char* skelBuf = new char[SkeletonHeader.DataSize];
-
-		Reader.Read(skelBuf, 0, SkeletonHeader.DataSize);
 
 		uint64_t PhyOffset = 0;
 
@@ -177,11 +184,11 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 		std::ofstream rmdlOut(BaseFileName + ".rmdl", std::ios::out | std::ios::binary);
 
-		rmdlOut.write(skelBuf, SkeletonHeader.DataSize);
+		rmdlOut.write(studioBuf.get(), studiohdr.DataSize);
 		rmdlOut.close();
 	}
 
-	Model->Bones = std::move(ExtractSkeleton(Reader, SkeletonOffset, Asset.AssetVersion));
+	Model->Bones = std::move(ExtractSkeleton(Reader, StudioOffset, Asset.AssetVersion));
 
 	if (!bExportingRawRMdl)
 		Model->GenerateGlobalTransforms(true, true); // We need global transforms
@@ -204,7 +211,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 		}
 	}
 
-	RpakStream->SetPosition(SkeletonOffset);
+	RpakStream->SetPosition(StudioOffset);
 
 	studiohdr_t SkeletonHeader{};
 
@@ -218,7 +225,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 		memcpy(&SkeletonHeader, &TempSkeletonHeader, 0x110);
 
 		SkeletonHeader.SubmeshLodsOffset = TempSkeletonHeader.meshindex;
-		SkeletonHeader.BoneRemapCount = TempSkeletonHeader.BoneRemapCount;
+		SkeletonHeader.BoneRemapCount = 0; // s3 doesnt use these from here
 	}
 
 	uint32_t SubmeshLodsOffset = SkeletonHeader.SubmeshLodsOffset;
@@ -235,7 +242,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 		BoneRemapCount = SkeletonHeader.BoneRemapCount_V14;
 	}
 
-	RpakStream->SetPosition(SkeletonOffset + TexturesOffset);
+	RpakStream->SetPosition(StudioOffset + TexturesOffset);
 
 	List<RMdlTexture> MaterialBuffer(TexturesCount, true);
 	RpakStream->Read((uint8_t*)&MaterialBuffer[0], 0, TexturesCount * sizeof(RMdlTexture));
@@ -251,17 +258,17 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 	}
 	else
 	{
-		RpakStream->SetPosition(SkeletonOffset + (SkeletonHeader.DataSize - BoneRemapCount));
+		RpakStream->SetPosition(StudioOffset + (SkeletonHeader.DataSize - BoneRemapCount));
 		RpakStream->Read((uint8_t*)&BoneRemapTable[0], 0, BoneRemapCount);
 	}
 
-	RpakStream->SetPosition(SkeletonOffset + SubmeshLodsOffset);
+	RpakStream->SetPosition(StudioOffset + SubmeshLodsOffset);
 
 	RMdlFixupPatches Fixups{};
 	Fixups.MaterialPath = TexturePath;
 	Fixups.Materials = &MaterialBuffer;
 	Fixups.BoneRemaps = &BoneRemapTable;
-	Fixups.FixupTableOffset = (SkeletonOffset + SubmeshLodsOffset);
+	Fixups.FixupTableOffset = (StudioOffset + SubmeshLodsOffset);
 
 	uint64_t ActualStarpakOffset = Asset.StarpakOffset & 0xFFFFFFFFFFFFFF00;
 	uint64_t ActualOptStarpakOffset = Asset.OptimalStarpakOffset & 0xFFFFFFFFFFFFFF00;
@@ -301,7 +308,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 			StarpakReader.Read(streamBuf, 0, ModHeader.StreamedDataSize);
 
-			RpakStream->SetPosition(SkeletonOffset);
+			RpakStream->SetPosition(StudioOffset);
 
 			s3studiohdr_t hdr = Reader.Read<s3studiohdr_t>();
 

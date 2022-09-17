@@ -132,6 +132,9 @@
     <ClCompile Include="src\assets\rson.cpp">
       <Filter>RPak\Assets</Filter>
     </ClCompile>
+    <ClCompile Include="src\Assets\qc.cpp">
+      <Filter>RPak\Assets</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MilesLib.h">
@@ -208,6 +211,9 @@
     </ClInclude>
     <ClInclude Include="version.h">
       <Filter>Legion\Main</Filter>
+    </ClInclude>
+    <ClInclude Include="rmdlstructs.h">
+      <Filter>MDL</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

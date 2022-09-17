@@ -160,10 +160,10 @@ void MdlLib::ExportRMdl(const string& Asset, const string& Path)
 		for (uint32_t i = 0; i < hdr.numbodyparts; i++)
 		{
 			List<ModelSubmeshList>& NewPart = PartModelMeshes.Emplace();
-			uint64_t Position = hdr.bodypartindex + (i * sizeof(r2mstudiobodyparts_t));
+			uint64_t Position = hdr.bodypartindex + (i * sizeof(mstudiobodyparts_t));
 
 			Stream->SetPosition(Position);
-			r2mstudiobodyparts_t Part = Reader.Read<r2mstudiobodyparts_t>();
+			mstudiobodyparts_t Part = Reader.Read<mstudiobodyparts_t>();
 
 			for (uint32_t p = 0; p < Part.nummodels; p++)
 			{
@@ -189,10 +189,10 @@ void MdlLib::ExportRMdl(const string& Asset, const string& Path)
 
 		for (uint32_t i = 0; i < LodHeader.NumBodyParts; i++)
 		{
-			uint64_t Position = (uint64_t)hdr.vtxindex + LodHeader.BodyPartOffset + (i * sizeof(mstudiobodyparts_t));
+			uint64_t Position = (uint64_t)hdr.vtxindex + LodHeader.BodyPartOffset + (i * sizeof(mstudiobodyparts_short_t));
 
 			Stream->SetPosition(Position);
-			mstudiobodyparts_t Part = Reader.Read<mstudiobodyparts_t>();
+			mstudiobodyparts_short_t Part = Reader.Read<mstudiobodyparts_short_t>();
 
 			for (uint32_t m = 0; m < Part.nummodels; m++)
 			{

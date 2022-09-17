@@ -14,6 +14,7 @@
 #include "Model.h"
 #include "Texture.h"
 #include "Exporter.h"
+#include "rmdlstructs.h"
 
 #define MAX_LOADED_FILES 4096
 
@@ -441,6 +442,8 @@ public:
 	void ExportUIImageAtlas(const RpakLoadAsset& Asset, const string& Path);
 	void ExportSettings(const RpakLoadAsset& Asset, const string& Path);
 	void ExportRSON(const RpakLoadAsset& Asset, const string& Path);
+	void ExportQC(int assetVersion, const string& Path, const string& modelPath, char* rmdlBuf, char* phyBuf = nullptr);
+
 	List<List<DataTableColumnData>> ExtractDataTable(const RpakLoadAsset& Asset);
 	List<ShaderVar> ExtractShaderVars(const RpakLoadAsset& Asset, const std::string& CBufName = "", D3D_SHADER_VARIABLE_TYPE Type = D3D_SVT_FORCE_DWORD); // default value as a type that should never be used
 	List<ShaderResBinding> ExtractShaderResourceBindings(const RpakLoadAsset& Asset, D3D_SHADER_INPUT_TYPE InputType);

@@ -164,6 +164,7 @@
     <ClCompile Include="src\Assets\datatable.cpp" />
     <ClCompile Include="src\Assets\material.cpp" />
     <ClCompile Include="src\Assets\model.cpp" />
+    <ClCompile Include="src\Assets\qc.cpp" />
     <ClCompile Include="src\assets\rson.cpp" />
     <ClCompile Include="src\assets\settings.cpp" />
     <ClCompile Include="src\Assets\shader.cpp" />
@@ -213,6 +214,7 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="RBspLib.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="rmdlstructs.h" />
     <ClInclude Include="RpakAssets.h" />
     <ClInclude Include="RpakImageTiles.h" />
     <ClInclude Include="RpakLib.h" />
