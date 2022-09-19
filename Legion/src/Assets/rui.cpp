@@ -134,7 +134,10 @@ void RpakLib::ExtractRUI(const RpakLoadAsset& Asset, const string& Path)
 		}
 		case RuiArgumentType_t::TYPE_UIHANDLE:
 		{
-			string val = "uihandle";// this->ReadStringFromPointer(Asset, Reader.Read<RPakPtr>());
+			string val = "uihandle";// 
+
+			if(Asset.AssetVersion <= 30)
+				val = this->ReadStringFromPointer(Asset, Reader.Read<RPakPtr>());
 			out_stream << "$\"" << val.ToCString() << "\"";
 			break;
 		}
