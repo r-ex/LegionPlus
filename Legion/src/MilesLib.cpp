@@ -535,6 +535,27 @@ bool MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 	metadata(header, sizeof(header), &channels, &sample_rate, &samples_count, adw4);
 
 	ReaderStream->SetPosition(Asset.PreloadOffset);
+
+	if ((AudioExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("AudioFormat") == AudioExportFormat_t::BinkA)
+	{
+		char* preloadBuf = new char[Asset.PreloadSize];
+		ReaderStream->Read((uint8_t*)preloadBuf, 0, Asset.PreloadSize);
+
+		ReaderStream->SetPosition(Asset.StreamOffset + Bank.StreamDataOffset);
+
+		uint32_t StreamDataSize = *(uint32_t*)(header + 16) - Asset.PreloadSize;
+
+		char* streamDataBuf = new char[StreamDataSize];
+		ReaderStream->Read((uint8_t*)streamDataBuf, 0, StreamDataSize);
+
+		std::ofstream out_file(IO::Path::ChangeExtension(FilePath, "binka").ToCString(), std::ios::out | std::ios::binary);
+		out_file.write(preloadBuf, Asset.PreloadSize);
+		out_file.write(streamDataBuf, StreamDataSize);
+		out_file.close();
+		return true;
+	}
+
+
 	auto allocd = std::vector<uint8_t>(adw4[0], 0);
 	BinkASIReader UserData{ &Reader, 0, Asset.PreloadSize, Asset.StreamOffset + Bank.StreamDataOffset, 0 };
 	if (version_tf2) {

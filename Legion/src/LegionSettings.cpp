@@ -337,6 +337,28 @@ void LegionSettings::InitializeComponent()
 	this->groupBox5->AddControl(this->MatCPUExportFormat);
 
 	//
+	//  AudioExportFormat
+	//
+	this->label8 = new UIX::UIXLabel();
+	this->label8->SetSize({ 90, 15 });
+	this->label8->SetLocation({ 230, 65 });
+	this->label8->SetTabIndex(9);
+	this->label8->SetText("Audio Format");
+	this->label8->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->label8->SetTextAlign(Drawing::ContentAlignment::TopLeft);
+	this->groupBox5->AddControl(this->label8);
+
+	this->AudioExportFormat = new UIX::UIXComboBox();
+	this->AudioExportFormat->SetSize({ 90, 21 });
+	this->AudioExportFormat->SetLocation({ 230, 80 });
+	this->AudioExportFormat->SetTabIndex(0);
+	this->AudioExportFormat->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->AudioExportFormat->SetDropDownStyle(Forms::ComboBoxStyle::DropDownList);
+	this->AudioExportFormat->Items.Add("WAV");
+	this->AudioExportFormat->Items.Add("BinkA");
+	this->groupBox5->AddControl(this->AudioExportFormat);
+
+	//
 	//	Image Export Format
 	//
 	this->label3 = new UIX::UIXLabel();
@@ -451,6 +473,7 @@ void LegionSettings::LoadSettings()
 	NormalRecalcType_t NormalRecalcType = (NormalRecalcType_t)ExportManager::Config.Get<System::SettingType::Integer>("NormalRecalcType");
 	MilesLanguageID AudioLanguage = (MilesLanguageID)ExportManager::Config.Get<System::SettingType::Integer>("AudioLanguage");
 	MatCPUExportFormat_t MatCPUFormat = (MatCPUExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("MatCPUFormat");
+	AudioExportFormat_t AudioFormat = (AudioExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("AudioFormat");
 
 	if (!ExportManager::Config.Has("NormalRecalcType"))
 		NormalRecalcType = NormalRecalcType_t::OpenGl;
@@ -554,6 +577,16 @@ void LegionSettings::LoadSettings()
 		break;
 	}
 
+	switch (AudioFormat)
+	{
+	case AudioExportFormat_t::WAV:
+		this->AudioExportFormat->SetSelectedIndex(0);
+		break;
+	case AudioExportFormat_t::BinkA:
+		this->AudioExportFormat->SetSelectedIndex(1);
+		break;
+	}
+
 	this->AudioLanguage->SetSelectedIndex(static_cast<int32_t>(AudioLanguage));
 
 	this->LoadModels->SetChecked(ExportManager::Config.GetBool("LoadModels"));
@@ -593,6 +626,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	auto NormalRecalcType = NormalRecalcType_t::OpenGl;
 	auto AudioLanguage = MilesLanguageID::English;
 	auto MatCPUExportFormat = MatCPUExportFormat_t::None;
+	auto AudioFormat = AudioExportFormat_t::WAV;
 
 	if (ThisPtr->ModelExportFormat->SelectedIndex() > -1)
 	{
@@ -700,6 +734,19 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		}
 	}
 
+	if (ThisPtr->AudioExportFormat->SelectedIndex() > -1)
+	{
+		switch (ThisPtr->AudioExportFormat->SelectedIndex())
+		{
+		case 0:
+			AudioFormat = AudioExportFormat_t::WAV;
+			break;
+		case 1:
+			AudioFormat = AudioExportFormat_t::BinkA;
+			break;
+		}
+	}
+
 	// have the settings actually changed?
 	bool bRefreshView = false;
 
@@ -744,6 +791,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	ExportManager::Config.SetInt("NormalRecalcType", (uint32_t)NormalRecalcType);
 	ExportManager::Config.SetInt("AudioLanguage", (uint32_t)AudioLanguage);
 	ExportManager::Config.SetInt("MatCPUFormat", (uint32_t)MatCPUExportFormat);
+	ExportManager::Config.SetInt("AudioFormat", (uint32_t)AudioFormat);
 
 	auto ExportDirectory = ThisPtr->ExportBrowseFolder->Text();
 

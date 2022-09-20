@@ -342,6 +342,12 @@ enum class MatCPUExportFormat_t
 	CPU
 };
 
+enum class AudioExportFormat_t
+{
+	WAV,
+	BinkA
+};
+
 enum class ImageExportFormat_t
 {
 	Dds,

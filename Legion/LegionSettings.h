@@ -39,6 +39,7 @@ private:
 	UIX::UIXLabel* label5;
 	UIX::UIXLabel* label6;
 	UIX::UIXLabel* label7;
+	UIX::UIXLabel* label8;
 	UIX::UIXLabel* labelVersion; // version
 	UIX::UIXLabel* labelAbout; // about
 	// Boxes
@@ -70,6 +71,7 @@ private:
 	UIX::UIXComboBox* AudioLanguage;
 	UIX::UIXComboBox* NormalRecalcType;
 	UIX::UIXComboBox* MatCPUExportFormat;
+	UIX::UIXComboBox* AudioExportFormat;
 	// Export Formats
 	UIX::UIXRadioButton* ExportCastAnim;
 	UIX::UIXRadioButton* ExportSEAnim;
