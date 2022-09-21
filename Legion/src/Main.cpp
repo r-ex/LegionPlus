@@ -202,6 +202,22 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 					ExportManager::Config.Set<System::SettingType::Integer>("NormalRecalcType", (uint32_t)NmlRecalcType);
 			}
 
+			if (cmdline.HasParam(L"--audiofmt"))
+			{
+				AudioExportFormat_t AudioExportFormat = (AudioExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("AudioExportFormat");
+
+				wstring sFmt = cmdline.GetParamValue(L"--audiofmt");
+				sFmt = sFmt.ToLower();
+
+				if (sFmt == L"wav")
+					AudioExportFormat = AudioExportFormat_t::WAV;
+				if (sFmt == L"bink")
+					AudioExportFormat = AudioExportFormat_t::BinkA;
+
+				if (AudioExportFormat != (AudioExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("AudioExportFormat"))
+					ExportManager::Config.Set<System::SettingType::Integer>("AudioExportFormat", (uint32_t)AudioExportFormat);
+			}
+
 			if (cmdline.HasParam(L"--audiolanguage"))
 			{
 				MilesLanguageID SubtFmt = (MilesLanguageID)ExportManager::Config.Get<System::SettingType::Integer>("AudioLanguage");
