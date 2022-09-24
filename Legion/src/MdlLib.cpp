@@ -285,10 +285,10 @@ void MdlLib::ExportRMdl(const string& Asset, const string& Path)
 
 		for (uint32_t i = 0; i < hdr.numlocalanim; i++)
 		{
-			uint64_t Position = hdr.localanimindex + (i * sizeof(RAnimTitanfallHeader));
+			uint64_t Position = hdr.localanimindex + (i * sizeof(mstudioanimdescv53_t));
 
 			Stream->SetPosition(Position);
-			RAnimTitanfallHeader AnimHeader = Reader.Read<RAnimTitanfallHeader>();
+			mstudioanimdescv53_t AnimHeader = Reader.Read<mstudioanimdescv53_t>();
 
 			auto Anim = std::make_unique<Assets::Animation>(Model->Bones.Count(), AnimHeader.Framerate);
 			Assets::AnimationCurveMode AnimCurveType = Assets::AnimationCurveMode::Absolute;

@@ -6,6 +6,7 @@
 #include "ListBase.h"
 #include <d3dcommon.h>
 #include "Utils.h"
+#include <animtypes.h>
 
 // Game structures
 // APEX
@@ -328,129 +329,6 @@ struct AnimRigHeader
 
 	uint32_t Unk3;
 	uint32_t Unk4;
-};
-
-struct RAnimHeader
-{
-	uint32_t Zero;
-	uint32_t NameOffset;
-	uint32_t SourceOffset;
-	uint32_t Flags;
-
-	uint64_t Unknown;
-
-	uint32_t NotetrackCount;
-	uint32_t NotetrackOffset;
-
-	float Mins[3];
-	float Maxs[3];
-
-	uint32_t AnimationCount;
-	uint32_t AnimationOffset;
-};
-
-struct RAnimTitanfallHeader
-{
-	uint32_t Zero;
-	uint32_t NameOffset;
-
-	float Framerate;
-
-	uint32_t Flags;
-	uint32_t FrameCount;
-
-	uint32_t Zero1;
-	uint32_t Zero2;
-
-	uint32_t UnknownOffset;
-	uint32_t FirstChunkOffset;
-
-	uint32_t UnknownCount2;
-	uint32_t UnknownOffset2;
-
-	uint32_t Zero3;
-	uint32_t Zero4;
-
-	uint32_t OffsetToChunkOffsetsTable;
-	uint32_t FrameSplitCount;
-
-	uint8_t UnknownZero[0x20];
-};
-
-struct RAnimSequenceHeader
-{
-	uint32_t Zero;
-	uint32_t NameOffset;
-
-	float Framerate;
-
-	uint32_t Flags;
-	uint32_t FrameCount;
-
-	uint64_t UnknownZero;
-
-	uint32_t FloatTableOffset;
-	uint32_t FirstChunkOffset;
-	uint32_t Flags2;
-	uint32_t UnknownTableOffset;
-	uint32_t OffsetToChunkOffsetsTable;
-	uint32_t FrameSplitCount;
-	uint32_t FrameMedianCount;
-	uint64_t Padding;
-	uint64_t SomeDataOffset;
-};
-
-struct RAnimBoneFlag
-{
-	uint16_t Size : 12;
-	uint16_t bAdditiveCustom : 1;
-	uint16_t bDynamicScale : 1;			// If zero, one per data set
-	uint16_t bDynamicRotation : 1;		// If zero, one per data set
-	uint16_t bDynamicTranslation : 1;	// If zero, one per data set
-};
-
-struct RAnimTitanfallBoneFlag
-{
-	uint8_t Unused : 1;
-	uint8_t bStaticTranslation : 1;		// If zero, one per data set
-	uint8_t bStaticRotation : 1;		// If zero, one per data set
-	uint8_t bStaticScale : 1;			// If zero, one per data set
-	uint8_t Unused2 : 1;
-	uint8_t Unused3 : 1;
-	uint8_t Unused4 : 1;
-};
-
-struct RAnimBoneHeader
-{
-	float TranslationScale;
-
-	uint8_t BoneIndex;
-	RAnimTitanfallBoneFlag BoneFlags;
-	uint8_t Flags2;
-	uint8_t Flags3;
-	
-	union
-	{
-		struct
-		{
-			uint16_t OffsetX;
-			uint16_t OffsetY;
-			uint16_t OffsetZ;
-			uint16_t OffsetL;
-		};
-
-		uint64_t PackedRotation;
-	} RotationInfo;
-
-	uint16_t TranslationX;
-	uint16_t TranslationY;
-	uint16_t TranslationZ;
-
-	uint16_t ScaleX;
-	uint16_t ScaleY;
-	uint16_t ScaleZ;
-
-	uint32_t DataSize;
 };
 
 // MODELS
@@ -1170,7 +1048,7 @@ ASSERT_SIZE(ModelHeaderS68, 0x68);
 ASSERT_SIZE(ModelHeaderS80, 0x80);
 ASSERT_SIZE(AnimHeader, 0x30);
 ASSERT_SIZE(AnimRigHeader, 0x28);
-ASSERT_SIZE(RAnimHeader, 0x40);
+ASSERT_SIZE(mstudioseqdesc_t, 0x40);
 
 struct RUIImageTile
 {

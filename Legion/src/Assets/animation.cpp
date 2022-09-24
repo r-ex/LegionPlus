@@ -3,6 +3,7 @@
 #include "Path.h"
 #include "Directory.h"
 #include <rtech.h>
+#include <animtypes.h>
 
 void RpakLib::BuildAnimInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 {
@@ -139,12 +140,10 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 
 	RpakStream->SetPosition(AnimationOffset);
 
-	RAnimHeader AnimSequenceHeader = Reader.Read<RAnimHeader>();
+	mstudioseqdesc_t AnimSequenceHeader = Reader.Read<mstudioseqdesc_t>();
 
 	uint64_t ActualStarpakOffset = Asset.StarpakOffset & 0xFFFFFFFFFFFFFF00;
 	uint64_t ActualOptStarpakOffset = Asset.OptimalStarpakOffset & 0xFFFFFFFFFFFFFF00;
-	uint64_t StarpakPatchIndex = Asset.StarpakOffset & 0xFF;
-	uint64_t OptStarpakIndex = Asset.OptimalStarpakOffset & 0xFF;
 
 	uint64_t OffsetOfStarpakData = 0;
 	std::unique_ptr<IO::FileStream> StarpakStream = nullptr;
@@ -162,28 +161,27 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 
 	IO::BinaryReader StarpakReader = IO::BinaryReader(StarpakStream.get(), true);
 
-	for (uint32_t i = 0; i < AnimSequenceHeader.AnimationCount; i++)
+	for (uint32_t i = 0; i < AnimSequenceHeader.numblends; i++)
 	{
-		RpakStream->SetPosition(AnimationOffset + AnimSequenceHeader.AnimationOffset + ((uint64_t)i * 0x4));
+		RpakStream->SetPosition(AnimationOffset + AnimSequenceHeader.animindexindex + ((uint64_t)i * sizeof(uint32_t)));
 
 		uint32_t AnimDataOffset = Reader.Read<uint32_t>();
 
 		RpakStream->SetPosition(AnimationOffset + AnimDataOffset);
 
-		uint64_t offseq = RpakStream->GetPosition();
+		mstudioanimdescv54_t animdesc = Reader.Read<mstudioanimdescv54_t>();
 
-		RAnimSequenceHeader AnimDataHeader = Reader.Read<RAnimSequenceHeader>();
-
-		if (!(AnimDataHeader.Flags & 0x20000))
+		// unsure what this flag is
+		if (!(animdesc.flags & 0x20000))
 			continue;
 
-		auto Anim = std::make_unique<Assets::Animation>(Skeleton.Count());
-		auto AnimCurveType = Assets::AnimationCurveMode::Absolute;
+		std::unique_ptr<Assets::Animation> Anim = std::make_unique<Assets::Animation>(Skeleton.Count());
 
-		if (AnimDataHeader.Flags & 0x4)
-		{
+		Assets::AnimationCurveMode AnimCurveType = Assets::AnimationCurveMode::Absolute;
+
+		// anim is delta
+		if (animdesc.flags & STUDIO_DELTA)
 			AnimCurveType = Assets::AnimationCurveMode::Additive;
-		}
 
 		for (auto& Bone : Skeleton)
 		{
@@ -203,38 +201,38 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 
 		const uint64_t AnimHeaderPointer = AnimationOffset + AnimDataOffset;
 
-		for (uint32_t Frame = 0; Frame < AnimDataHeader.FrameCount; Frame++)
+		for (uint32_t Frame = 0; Frame < animdesc.numframes; Frame++)
 		{
 			uint32_t ChunkTableIndex = 0;
 			uint32_t ChunkFrame = Frame;
 			uint32_t FrameCountOneLess = 0;
-			uint32_t FirstChunk = AnimDataHeader.FirstChunkOffset;
+			uint32_t FirstChunk = animdesc.animindex;
 			uint64_t ChunkDataOffset = 0;
 			uint32_t IsChunkInStarpak = 0;
 			uint64_t ResultDataPtr = 0;
 
-			if (!AnimDataHeader.FrameMedianCount)
+			if (!animdesc.FrameMedianCount)
 			{
 				// Nothing here
 				goto nomedian;
 			}
-			else if (ChunkFrame >= AnimDataHeader.FrameSplitCount)
+			else if (ChunkFrame >= animdesc.FrameSplitCount)
 			{
-				uint32_t FrameCount = AnimDataHeader.FrameCount;
-				uint32_t ChunkFrameMinusSplitCount = ChunkFrame - AnimDataHeader.FrameSplitCount;
-				if (FrameCount <= AnimDataHeader.FrameMedianCount || ChunkFrame != FrameCount - 1)
+				uint32_t FrameCount = animdesc.numframes;
+				uint32_t ChunkFrameMinusSplitCount = ChunkFrame - animdesc.FrameSplitCount;
+				if (FrameCount <= animdesc.FrameMedianCount || ChunkFrame != FrameCount - 1)
 				{
-					ChunkTableIndex = ChunkFrameMinusSplitCount / AnimDataHeader.FrameMedianCount + 1;
-					ChunkFrame = ChunkFrame - (AnimDataHeader.FrameMedianCount * (ChunkFrameMinusSplitCount / AnimDataHeader.FrameMedianCount)) - AnimDataHeader.FrameSplitCount;
+					ChunkTableIndex = ChunkFrameMinusSplitCount / animdesc.FrameMedianCount + 1;
+					ChunkFrame = ChunkFrame - (animdesc.FrameMedianCount * (ChunkFrameMinusSplitCount / animdesc.FrameMedianCount)) - animdesc.FrameSplitCount;
 				}
 				else
 				{
 					ChunkFrame = 0;
-					ChunkTableIndex = (FrameCount - AnimDataHeader.FrameSplitCount - 1) / AnimDataHeader.FrameMedianCount + 2;
+					ChunkTableIndex = (FrameCount - animdesc.FrameSplitCount - 1) / animdesc.FrameMedianCount + 2;
 				}
 			}
 
-			ChunkDataOffset = AnimDataHeader.OffsetToChunkOffsetsTable + 8 * (uint64_t)ChunkTableIndex;
+			ChunkDataOffset = animdesc.sectionindex + 8 * (uint64_t)ChunkTableIndex;
 
 			RpakStream->SetPosition(AnimHeaderPointer + ChunkDataOffset);
 			FirstChunk = Reader.Read<uint32_t>();
@@ -244,7 +242,7 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 
 			if (IsChunkInStarpak)
 			{
-				uint64_t v13 = AnimDataHeader.SomeDataOffset;
+				uint64_t v13 = animdesc.SomeDataOffset;
 				if (v13)
 				{
 					ResultDataPtr = v13 + FirstChunk;

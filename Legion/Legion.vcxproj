@@ -198,6 +198,7 @@
     <ClCompile Include="src\VpkLib.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="animtypes.h" />
     <ClInclude Include="ApexAsset.h" />
     <ClInclude Include="basetypes.h" />
     <ClInclude Include="CommandLine.h" />

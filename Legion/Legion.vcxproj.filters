@@ -218,6 +218,9 @@
     <ClInclude Include="rmdlstructs.h">
       <Filter>MDL</Filter>
     </ClInclude>
+    <ClInclude Include="animtypes.h">
+      <Filter>MDL</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Legion.rc">
