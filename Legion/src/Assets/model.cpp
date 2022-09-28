@@ -358,24 +358,50 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 			uint64_t dataSize = VGHeader.DataSize;
 
+			// if dataSize is not actually dataSize
 			if (dataSize < 32)
 			{
 				// here we go again
-				/*
+				
 				StarpakStream->SetPosition(Offset);
-				auto VGHeaderNew = StarpakReader.Read<RMdlVGHeader>();
-				dataSize = VGHeaderNew.DataSize;*/
+				auto vg = StarpakReader.Read<RMdlVGHeader>();
+
+				// offset to array of lods
+				size_t lodsOffset = offsetof(RMdlVGHeader, lodOffset) + vg.lodOffset;
+
+				dataSize = lodsOffset + (vg.lodCount * sizeof(VGLod));
+
+				dataSize += 16 - (dataSize % 16);
+
+				for (int i = 0; i < vg.lodCount; ++i)
+				{
+					// offset within starpak data entry
+					size_t relOffset = lodsOffset + (sizeof(VGLod) * i);
+					size_t thisLodOffset = Offset + relOffset;
+
+					StarpakStream->SetPosition(thisLodOffset);
+
+					VGLod lod = StarpakReader.Read<VGLod>();
+					dataSize += offsetof(RMdlVGHeader, unk1) + lod.dataSize;
+
+					if (i + 1 != vg.lodCount)
+						dataSize += 16 - (dataSize % 16);
+				}
+
 			}
 
-			StarpakStream->SetPosition(Offset);
-			char* vgBuf = new char[dataSize];
+			if (dataSize)
+			{
+				StarpakStream->SetPosition(Offset);
+				char* vgBuf = new char[dataSize];
 
-			StarpakReader.Read(vgBuf, 0, dataSize);
+				StarpakReader.Read(vgBuf, 0, dataSize);
 
-			std::ofstream vgOut(BaseFileName + ".vg", std::ios::out | std::ios::binary);
+				std::ofstream vgOut(BaseFileName + ".vg", std::ios::out | std::ios::binary);
 
-			vgOut.write(vgBuf, dataSize);
-			vgOut.close();
+				vgOut.write(vgBuf, dataSize);
+				vgOut.close();
+			}
 		}
 		else if (Asset.AssetVersion == 13)
 		{
