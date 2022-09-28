@@ -732,8 +732,8 @@ struct RMdlVGHeaderOld
 	uint64_t BoneRemapOffset;
 	uint64_t BoneRemapCount;		// Only 1 byte each
 
-	uint64_t SubmeshOffset;
-	uint64_t SubmeshCount;		// 0x48 each
+	uint64_t MeshOffset;
+	uint64_t MeshCount;		// 0x48 each
 
 	uint64_t IndexOffset;
 	uint64_t IndexCount;		// 0x2 each (uint16_t)
@@ -772,11 +772,11 @@ struct VGLod
 {
 	char unk[4];
 	uint32_t dataSize;
-	short submeshCount;
+	short meshCount;
 	char unk1; // both of these bytes line up with the LOD index
 	char unk2;
 	float distance;
-	uint64_t submeshOffset;
+	uint64_t meshOffset;
 };
 
 struct RMdlVGIndexCountPacked
@@ -785,10 +785,10 @@ struct RMdlVGIndexCountPacked
 	uint64_t Type : 8;
 };
 
-struct RMdlVGSubmesh
+struct RMdlVGMesh
 {
-	uint32_t Flags1;					// Flags that pertain to this submesh
-	uint32_t Flags2;					// Also flags that pertain to this submesh
+	uint32_t Flags1;					// Flags that pertain to this mesh
+	uint32_t Flags2;					// Also flags that pertain to this mesh
 	uint32_t VertexBufferStride;		// Stride in bytes of the vertex buffer
 	uint32_t VertexCount;				// Count of vertices used
 
@@ -808,10 +808,10 @@ struct RMdlVGSubmesh
 	uint64_t StripsCount;			// 0x23 each
 };
 
-struct RMdlVGSubmesh_V14
+struct RMdlVGMesh_V14
 {
-	uint32_t Flags1;					// Flags that pertain to this submesh
-	uint32_t Flags2;					// Also flags that pertain to this submesh
+	uint32_t Flags1;					// Flags that pertain to this mesh
+	uint32_t Flags2;					// Also flags that pertain to this mesh
 	uint32_t VertexBufferStride;		// Stride in bytes of the vertex buffer
 	uint32_t VertexCount;				// Count of vertices used
 
@@ -834,16 +834,16 @@ struct RMdlVGSubmesh_V14
 	uint64_t UnkCount;		// Only 1 byte per count
 };
 
-struct RMdlVGSubmeshOld
+struct RMdlVGMeshOld
 {
-	uint32_t Flags1;					// Flags that pertain to this submesh
-	uint32_t Flags2;					// Also flags that pertain to this submesh
+	uint32_t Flags1;					// Flags that pertain to this mesh
+	uint32_t Flags2;					// Also flags that pertain to this mesh
 	uint32_t VertexOffsetBytes;			// Offset into vertex buffer by bytes
 	uint32_t VertexBufferStride;		// Stride in bytes of the vertex buffer
 	uint32_t VertexCount;				// Count of vertices used
 	uint32_t Int6;
 	uint32_t ExtendedWeightsOffset;		// Offset into the extended weights buffer
-	uint32_t ExtendedWeightsSize;		// Size or count of extended weights used by this submesh
+	uint32_t ExtendedWeightsSize;		// Size or count of extended weights used by this mesh
 	uint32_t IndexOffset;				// Some form of index offset
 	uint32_t IndexCount;				// Some form of index count
 	uint32_t VertexOffset2;				// Some form of vertex offset (Not always used??)
@@ -873,8 +873,8 @@ struct RMdlVGStrip
 
 struct RMdlVGLod
 {
-	uint16_t SubmeshIndex;
-	uint16_t SubmeshCount;
+	uint16_t MeshIndex;
+	uint16_t MeshCount;
 	float Distance;
 };
 

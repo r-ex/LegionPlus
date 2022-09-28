@@ -444,41 +444,41 @@ void RpakLib::ExtractModelLod_V14(IO::BinaryReader& Reader, const std::unique_pt
 
 	VGLod lod = Reader.Read<VGLod>();
 
-	size_t SubmeshPointer = thisLodOffset + offsetof(VGLod, submeshOffset) + lod.submeshOffset;
+	size_t meshOffset = thisLodOffset + offsetof(VGLod, meshOffset) + lod.meshOffset;
 
-	BaseStream->SetPosition(SubmeshPointer);
+	BaseStream->SetPosition(meshOffset);
 
-	// We need to read the submeshes
-	List<RMdlVGSubmesh_V14> SubmeshBuffer(lod.submeshCount, true);
-	Reader.Read((uint8_t*)&SubmeshBuffer[0], 0, lod.submeshCount * sizeof(RMdlVGSubmesh_V14));
+	// We need to read the meshes
+	List<RMdlVGMesh_V14> MeshBuffer(lod.meshCount, true);
+	Reader.Read((uint8_t*)&MeshBuffer[0], 0, lod.meshCount * sizeof(RMdlVGMesh_V14));
 
-	// Loop and read submeshes
-	for (uint32_t s = 0; s < lod.submeshCount; s++)
+	// Loop and read meshes
+	for (uint32_t s = 0; s < lod.meshCount; s++)
 	{
-		RMdlVGSubmesh_V14& Submesh = SubmeshBuffer[s];
+		RMdlVGMesh_V14& mesh = MeshBuffer[s];
 
-		// We have buffers per submesh now thank god
-		List<uint8_t> VertexBuffer(Submesh.VertexCountBytes, true);
-		BaseStream->SetPosition(SubmeshPointer + (s * sizeof(RMdlVGSubmesh_V14)) + offsetof(RMdlVGSubmesh_V14, VertexOffset) + Submesh.VertexOffset);
-		Reader.Read((uint8_t*)&VertexBuffer[0], 0, Submesh.VertexCountBytes);
+		// We have buffers per mesh now thank god
+		List<uint8_t> VertexBuffer(mesh.VertexCountBytes, true);
+		BaseStream->SetPosition(meshOffset + (s * sizeof(RMdlVGMesh_V14)) + offsetof(RMdlVGMesh_V14, VertexOffset) + mesh.VertexOffset);
+		Reader.Read((uint8_t*)&VertexBuffer[0], 0, mesh.VertexCountBytes);
 
-		List<uint16_t> IndexBuffer(Submesh.IndexPacked.Count, true);
-		BaseStream->SetPosition(SubmeshPointer + (s * sizeof(RMdlVGSubmesh_V14)) + offsetof(RMdlVGSubmesh_V14, IndexOffset) + Submesh.IndexOffset);
-		Reader.Read((uint8_t*)&IndexBuffer[0], 0, Submesh.IndexPacked.Count * sizeof(uint16_t));
+		List<uint16_t> IndexBuffer(mesh.IndexPacked.Count, true);
+		BaseStream->SetPosition(meshOffset + (s * sizeof(RMdlVGMesh_V14)) + offsetof(RMdlVGMesh_V14, IndexOffset) + mesh.IndexOffset);
+		Reader.Read((uint8_t*)&IndexBuffer[0], 0, mesh.IndexPacked.Count * sizeof(uint16_t));
 
-		List<RMdlExtendedWeight> ExtendedWeights(Submesh.ExtendedWeightsCount / sizeof(RMdlExtendedWeight), true);
-		BaseStream->SetPosition(SubmeshPointer + (s * sizeof(RMdlVGSubmesh_V14)) + offsetof(RMdlVGSubmesh_V14, ExtendedWeightsOffset) + Submesh.ExtendedWeightsOffset);
-		Reader.Read((uint8_t*)&ExtendedWeights[0], 0, Submesh.ExtendedWeightsCount);
+		List<RMdlExtendedWeight> ExtendedWeights(mesh.ExtendedWeightsCount / sizeof(RMdlExtendedWeight), true);
+		BaseStream->SetPosition(meshOffset + (s * sizeof(RMdlVGMesh_V14)) + offsetof(RMdlVGMesh_V14, ExtendedWeightsOffset) + mesh.ExtendedWeightsOffset);
+		Reader.Read((uint8_t*)&ExtendedWeights[0], 0, mesh.ExtendedWeightsCount);
 
-		List<RMdlVGExternalWeights> ExternalWeightsBuffer(Submesh.ExternalWeightsCount, true);
-		BaseStream->SetPosition(SubmeshPointer + (s * sizeof(RMdlVGSubmesh_V14)) + offsetof(RMdlVGSubmesh_V14, ExternalWeightsOffset) + Submesh.ExternalWeightsOffset);
-		Reader.Read((uint8_t*)&ExternalWeightsBuffer[0], 0, Submesh.ExternalWeightsCount * sizeof(RMdlVGExternalWeights));
+		List<RMdlVGExternalWeights> ExternalWeightsBuffer(mesh.ExternalWeightsCount, true);
+		BaseStream->SetPosition(meshOffset + (s * sizeof(RMdlVGMesh_V14)) + offsetof(RMdlVGMesh_V14, ExternalWeightsOffset) + mesh.ExternalWeightsOffset);
+		Reader.Read((uint8_t*)&ExternalWeightsBuffer[0], 0, mesh.ExternalWeightsCount * sizeof(RMdlVGExternalWeights));
 
-		List<RMdlVGStrip> StripBuffer(Submesh.StripsCount, true);
-		BaseStream->SetPosition(SubmeshPointer + (s * sizeof(RMdlVGSubmesh_V14)) + offsetof(RMdlVGSubmesh_V14, StripsOffset) + Submesh.StripsOffset);
-		Reader.Read((uint8_t*)&StripBuffer[0], 0, Submesh.StripsCount * sizeof(RMdlVGStrip));
+		List<RMdlVGStrip> StripBuffer(mesh.StripsCount, true);
+		BaseStream->SetPosition(meshOffset + (s * sizeof(RMdlVGMesh_V14)) + offsetof(RMdlVGMesh_V14, StripsOffset) + mesh.StripsOffset);
+		Reader.Read((uint8_t*)&StripBuffer[0], 0, mesh.StripsCount * sizeof(RMdlVGStrip));
 
-		// Ignore a submesh that has no strips, otherwise there is no mesh.
+		// Ignore a mesh that has no strips, otherwise there is no mesh data.
 		// This is likely also determined by flags == 0x0, but this is a good check.
 		/*if (Submesh.StripsCount == 0)
 		{
@@ -487,28 +487,28 @@ void RpakLib::ExtractModelLod_V14(IO::BinaryReader& Reader, const std::unique_pt
 
 		List<uint8_t>& BoneRemapBuffer = *Fixup.BoneRemaps;
 
-		Assets::Mesh& Mesh = Model->Meshes.Emplace(0x10, (((Submesh.Flags2 & 0x2) == 0x2) ? 2 : 1));	// max weights / max uvs
+		Assets::Mesh& NewMesh = Model->Meshes.Emplace(0x10, (((mesh.Flags2 & 0x2) == 0x2) ? 2 : 1));	// max weights / max uvs
 		RMdlVGStrip& Strip = StripBuffer[0];
 
 		uint8_t* VertexBufferPtr = (uint8_t*)&VertexBuffer[0];
 		uint16_t* FaceBufferPtr = (uint16_t*)&IndexBuffer[0];
 
-		// Cache these here, flags in the submesh dictate what to use
+		// Cache these here, flags in the mesh dictate what to use
 		Math::Vector3 Position{};
 		Math::Vector3 Normal{};
 		Math::Vector2 UVs{};
 		Assets::VertexColor Color{};
 
-		for (uint32_t v = 0; v < Submesh.VertexCount; v++)
+		for (uint32_t v = 0; v < mesh.VertexCount; v++)
 		{
 			uint32_t Shift = 0;
 
-			if ((Submesh.Flags1 & 0x1) == 0x1)
+			if ((mesh.Flags1 & 0x1) == 0x1)
 			{
 				Position = *(Math::Vector3*)(VertexBufferPtr + Shift);
 				Shift += sizeof(Math::Vector3);
 			}
-			else if ((Submesh.Flags1 & 0x2) == 0x2)
+			else if ((mesh.Flags1 & 0x2) == 0x2)
 			{
 				Position = (*(RMdlPackedVertexPosition*)(VertexBufferPtr + Shift)).Unpack();
 				Shift += sizeof(RMdlPackedVertexPosition);
@@ -516,7 +516,7 @@ void RpakLib::ExtractModelLod_V14(IO::BinaryReader& Reader, const std::unique_pt
 
 			RMdlPackedVertexWeights Weights{};
 
-			if ((Submesh.Flags1 & 0x5000) == 0x5000)
+			if ((mesh.Flags1 & 0x5000) == 0x5000)
 			{
 				Weights = *(RMdlPackedVertexWeights*)(VertexBufferPtr + Shift);
 				Shift += sizeof(RMdlPackedVertexWeights);
@@ -525,7 +525,7 @@ void RpakLib::ExtractModelLod_V14(IO::BinaryReader& Reader, const std::unique_pt
 			Normal = (*(RMdlPackedVertexNormal*)(VertexBufferPtr + Shift)).Unpack();
 			Shift += sizeof(RMdlPackedVertexNormal);
 
-			if ((Submesh.Flags1 & 0x10) == 0x10)
+			if ((mesh.Flags1 & 0x10) == 0x10)
 			{
 				Color = *(Assets::VertexColor*)(VertexBufferPtr + Shift);
 				Shift += sizeof(Assets::VertexColor);
@@ -534,15 +534,15 @@ void RpakLib::ExtractModelLod_V14(IO::BinaryReader& Reader, const std::unique_pt
 			UVs = *(Math::Vector2*)(VertexBufferPtr + Shift);
 			Shift += sizeof(Math::Vector2);
 
-			Assets::Vertex Vertex = Mesh.Vertices.Emplace(Position, Normal, Color, UVs);
+			Assets::Vertex Vertex = NewMesh.Vertices.Emplace(Position, Normal, Color, UVs);
 
-			if ((Submesh.Flags2 & 0x2) == 0x2)
+			if ((mesh.Flags2 & 0x2) == 0x2)
 			{
 				Vertex.SetUVLayer(*(Math::Vector2*)(VertexBufferPtr + Shift), 1);
 				Shift += sizeof(Math::Vector2);
 			}
 
-			if ((Submesh.Flags1 & 0x5000) == 0x5000)
+			if ((mesh.Flags1 & 0x5000) == 0x5000)
 			{
 				auto& ExternalWeights = ExternalWeightsBuffer[v];
 
@@ -628,7 +628,7 @@ void RpakLib::ExtractModelLod_V14(IO::BinaryReader& Reader, const std::unique_pt
 				Vertex.SetWeight({ 0, 1.f }, 0);
 			}
 
-			VertexBufferPtr += Submesh.VertexBufferStride;
+			VertexBufferPtr += mesh.VertexBufferStride;
 		}
 
 		for (uint32_t f = 0; f < (IndexBuffer.Count() / 3); f++)
@@ -637,7 +637,7 @@ void RpakLib::ExtractModelLod_V14(IO::BinaryReader& Reader, const std::unique_pt
 			uint16_t i2 = *(uint16_t*)(FaceBufferPtr + 1);
 			uint16_t i3 = *(uint16_t*)(FaceBufferPtr + 2);
 
-			Mesh.Faces.EmplaceBack(i1, i2, i3);
+			NewMesh.Faces.EmplaceBack(i1, i2, i3);
 
 			FaceBufferPtr += 3;
 		}
@@ -672,16 +672,16 @@ void RpakLib::ExtractModelLod_V14(IO::BinaryReader& Reader, const std::unique_pt
 			if (ParsedMaterial.CavityMapName != "")
 				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Cavity, { "_images\\" + ParsedMaterial.CavityMapName, ParsedMaterial.CavityHash });
 
-			Mesh.MaterialIndices.EmplaceBack(MaterialIndex);
+			NewMesh.MaterialIndices.EmplaceBack(MaterialIndex);
 		}
 		else
 		{
-			Mesh.MaterialIndices.EmplaceBack(-1);
+			NewMesh.MaterialIndices.EmplaceBack(-1);
 		}
 
 		// Add an extra slot for the extra UV Layer if present
-		if ((Submesh.Flags2 & 0x2) == 0x2)
-			Mesh.MaterialIndices.EmplaceBack(-1);
+		if ((mesh.Flags2 & 0x2) == 0x2)
+			NewMesh.MaterialIndices.EmplaceBack(-1);
 
 		Fixup.FixupTableOffset += sizeof(RMdlLodSubmesh);
 
@@ -715,50 +715,50 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 
 	VGLod lod = Reader.Read<VGLod>();
 
-	size_t SubmeshPointer = thisLodOffset + offsetof(VGLod, submeshOffset) + lod.submeshOffset;
+	size_t meshOffset = thisLodOffset + offsetof(VGLod, meshOffset) + lod.meshOffset;
 
-	BaseStream->SetPosition(SubmeshPointer);
+	BaseStream->SetPosition(meshOffset);
 
-	// We need to read the submeshes
-	List<RMdlVGSubmesh> SubmeshBuffer(lod.submeshCount, true);
-	Reader.Read((uint8_t*)&SubmeshBuffer[0], 0, lod.submeshCount * sizeof(RMdlVGSubmesh));
+	// We need to read the meshes
+	List<RMdlVGMesh> MeshBuffer(lod.meshCount, true);
+	Reader.Read((uint8_t*)&MeshBuffer[0], 0, lod.meshCount * sizeof(RMdlVGMesh));
 
-	// Loop and read submeshes
-	for (uint32_t s = 0; s < lod.submeshCount; s++)
+	// Loop and read meshes
+	for (uint32_t s = 0; s < lod.meshCount; s++)
 	{
-		RMdlVGSubmesh& Submesh = SubmeshBuffer[s];
+		RMdlVGMesh& mesh = MeshBuffer[s];
 
-		// We have buffers per submesh now thank god
-		List<uint8_t> VertexBuffer(Submesh.VertexCountBytes, true);
-		BaseStream->SetPosition(SubmeshPointer + (s * sizeof(RMdlVGSubmesh)) + offsetof(RMdlVGSubmesh, VertexOffset) + Submesh.VertexOffset);
-		Reader.Read((uint8_t*)&VertexBuffer[0], 0, Submesh.VertexCountBytes);
+		// We have buffers per mesh now thank god
+		List<uint8_t> VertexBuffer(mesh.VertexCountBytes, true);
+		BaseStream->SetPosition(meshOffset + (s * sizeof(RMdlVGMesh)) + offsetof(RMdlVGMesh, VertexOffset) + mesh.VertexOffset);
+		Reader.Read((uint8_t*)&VertexBuffer[0], 0, mesh.VertexCountBytes);
 
-		List<uint16_t> IndexBuffer(Submesh.IndexPacked.Count, true);
-		BaseStream->SetPosition(SubmeshPointer + (s * sizeof(RMdlVGSubmesh)) + offsetof(RMdlVGSubmesh, IndexOffset) + Submesh.IndexOffset);
-		Reader.Read((uint8_t*)&IndexBuffer[0], 0, Submesh.IndexPacked.Count * sizeof(uint16_t));
+		List<uint16_t> IndexBuffer(mesh.IndexPacked.Count, true);
+		BaseStream->SetPosition(meshOffset + (s * sizeof(RMdlVGMesh)) + offsetof(RMdlVGMesh, IndexOffset) + mesh.IndexOffset);
+		Reader.Read((uint8_t*)&IndexBuffer[0], 0, mesh.IndexPacked.Count * sizeof(uint16_t));
 
-		List<RMdlExtendedWeight> ExtendedWeights(Submesh.ExtendedWeightsCount / sizeof(RMdlExtendedWeight), true);
-		BaseStream->SetPosition(SubmeshPointer + (s * sizeof(RMdlVGSubmesh)) + offsetof(RMdlVGSubmesh, ExtendedWeightsOffset) + Submesh.ExtendedWeightsOffset);
-		Reader.Read((uint8_t*)&ExtendedWeights[0], 0, Submesh.ExtendedWeightsCount);
+		List<RMdlExtendedWeight> ExtendedWeights(mesh.ExtendedWeightsCount / sizeof(RMdlExtendedWeight), true);
+		BaseStream->SetPosition(meshOffset + (s * sizeof(RMdlVGMesh)) + offsetof(RMdlVGMesh, ExtendedWeightsOffset) + mesh.ExtendedWeightsOffset);
+		Reader.Read((uint8_t*)&ExtendedWeights[0], 0, mesh.ExtendedWeightsCount);
 
-		List<RMdlVGExternalWeights> ExternalWeightsBuffer(Submesh.ExternalWeightsCount, true);
-		BaseStream->SetPosition(SubmeshPointer + (s * sizeof(RMdlVGSubmesh)) + offsetof(RMdlVGSubmesh, ExternalWeightsOffset) + Submesh.ExternalWeightsOffset);
-		Reader.Read((uint8_t*)&ExternalWeightsBuffer[0], 0, Submesh.ExternalWeightsCount * sizeof(RMdlVGExternalWeights));
+		List<RMdlVGExternalWeights> ExternalWeightsBuffer(mesh.ExternalWeightsCount, true);
+		BaseStream->SetPosition(meshOffset + (s * sizeof(RMdlVGMesh)) + offsetof(RMdlVGMesh, ExternalWeightsOffset) + mesh.ExternalWeightsOffset);
+		Reader.Read((uint8_t*)&ExternalWeightsBuffer[0], 0, mesh.ExternalWeightsCount * sizeof(RMdlVGExternalWeights));
 
-		List<RMdlVGStrip> StripBuffer(Submesh.StripsCount, true);
-		BaseStream->SetPosition(SubmeshPointer + (s * sizeof(RMdlVGSubmesh)) + offsetof(RMdlVGSubmesh, StripsOffset) + Submesh.StripsOffset);
-		Reader.Read((uint8_t*)&StripBuffer[0], 0, Submesh.StripsCount * sizeof(RMdlVGStrip));
+		List<RMdlVGStrip> StripBuffer(mesh.StripsCount, true);
+		BaseStream->SetPosition(meshOffset + (s * sizeof(RMdlVGMesh)) + offsetof(RMdlVGMesh, StripsOffset) + mesh.StripsOffset);
+		Reader.Read((uint8_t*)&StripBuffer[0], 0, mesh.StripsCount * sizeof(RMdlVGStrip));
 
-		// Ignore a submesh that has no strips, otherwise there is no mesh.
+		// Ignore a mesh that has no strips, otherwise there is no mesh.
 		// This is likely also determined by flags == 0x0, but this is a good check.
-		if (Submesh.StripsCount == 0)
+		if (mesh.StripsCount == 0)
 		{
 			continue;
 		}
 
 		List<uint8_t>& BoneRemapBuffer = *Fixup.BoneRemaps;
 
-		Assets::Mesh& Mesh = Model->Meshes.Emplace(0x10, (((Submesh.Flags2 & 0x2) == 0x2) ? 2 : 1));	// max weights / max uvs
+		Assets::Mesh& NewMesh = Model->Meshes.Emplace(0x10, (((mesh.Flags2 & 0x2) == 0x2) ? 2 : 1));	// max weights / max uvs
 		RMdlVGStrip& Strip = StripBuffer[0];
 
 		uint8_t* VertexBufferPtr = (uint8_t*)&VertexBuffer[0];
@@ -770,16 +770,16 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 		Math::Vector2 UVs{};
 		Assets::VertexColor Color{};
 
-		for (uint32_t v = 0; v < Submesh.VertexCount; v++)
+		for (uint32_t v = 0; v < mesh.VertexCount; v++)
 		{
 			uint32_t Shift = 0;
 
-			if ((Submesh.Flags1 & 0x1) == 0x1)
+			if ((mesh.Flags1 & 0x1) == 0x1)
 			{
 				Position = *(Math::Vector3*)(VertexBufferPtr + Shift);
 				Shift += sizeof(Math::Vector3);
 			}
-			else if ((Submesh.Flags1 & 0x2) == 0x2)
+			else if ((mesh.Flags1 & 0x2) == 0x2)
 			{
 				Position = (*(RMdlPackedVertexPosition*)(VertexBufferPtr + Shift)).Unpack();
 				Shift += sizeof(RMdlPackedVertexPosition);
@@ -787,7 +787,7 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 
 			RMdlPackedVertexWeights Weights{};
 
-			if ((Submesh.Flags1 & 0x5000) == 0x5000)
+			if ((mesh.Flags1 & 0x5000) == 0x5000)
 			{
 				Weights = *(RMdlPackedVertexWeights*)(VertexBufferPtr + Shift);
 				Shift += sizeof(RMdlPackedVertexWeights);
@@ -796,7 +796,7 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 			Normal = (*(RMdlPackedVertexNormal*)(VertexBufferPtr + Shift)).Unpack();
 			Shift += sizeof(RMdlPackedVertexNormal);
 
-			if ((Submesh.Flags1 & 0x10) == 0x10)
+			if ((mesh.Flags1 & 0x10) == 0x10)
 			{
 				Color = *(Assets::VertexColor*)(VertexBufferPtr + Shift);
 				Shift += sizeof(Assets::VertexColor);
@@ -805,15 +805,15 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 			UVs = *(Math::Vector2*)(VertexBufferPtr + Shift);
 			Shift += sizeof(Math::Vector2);
 
-			Assets::Vertex Vertex = Mesh.Vertices.Emplace(Position, Normal, Color, UVs);
+			Assets::Vertex Vertex = NewMesh.Vertices.Emplace(Position, Normal, Color, UVs);
 
-			if ((Submesh.Flags2 & 0x2) == 0x2)
+			if ((mesh.Flags2 & 0x2) == 0x2)
 			{
 				Vertex.SetUVLayer(*(Math::Vector2*)(VertexBufferPtr + Shift), 1);
 				Shift += sizeof(Math::Vector2);
 			}
 
-			if ((Submesh.Flags1 & 0x5000) == 0x5000)
+			if ((mesh.Flags1 & 0x5000) == 0x5000)
 			{
 				auto& ExternalWeights = ExternalWeightsBuffer[v];
 
@@ -890,7 +890,7 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 				Vertex.SetWeight({ 0, 1.f }, 0);
 			}
 
-			VertexBufferPtr += Submesh.VertexBufferStride;
+			VertexBufferPtr += mesh.VertexBufferStride;
 		}
 
 		for (uint32_t f = 0; f < (Strip.IndexCount / 3); f++)
@@ -899,7 +899,7 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 			uint16_t i2 = *(uint16_t*)(FaceBufferPtr + 1);
 			uint16_t i3 = *(uint16_t*)(FaceBufferPtr + 2);
 
-			Mesh.Faces.EmplaceBack(i1, i2, i3);
+			NewMesh.Faces.EmplaceBack(i1, i2, i3);
 
 			FaceBufferPtr += 3;
 		}
@@ -934,16 +934,16 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 			if (ParsedMaterial.CavityMapName != "")
 				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Cavity, { "_images\\" + ParsedMaterial.CavityMapName, ParsedMaterial.CavityHash });
 
-			Mesh.MaterialIndices.EmplaceBack(MaterialIndex);
+			NewMesh.MaterialIndices.EmplaceBack(MaterialIndex);
 		}
 		else
 		{
-			Mesh.MaterialIndices.EmplaceBack(-1);
+			NewMesh.MaterialIndices.EmplaceBack(-1);
 		}
 
 		// Add an extra slot for the extra UV Layer if present
-		if ((Submesh.Flags2 & 0x2) == 0x2)
-			Mesh.MaterialIndices.EmplaceBack(-1);
+		if ((mesh.Flags2 & 0x2) == 0x2)
+			NewMesh.MaterialIndices.EmplaceBack(-1);
 
 		Fixup.FixupTableOffset += sizeof(RMdlLodSubmesh);
 	}
@@ -964,12 +964,12 @@ void RpakLib::ExtractModelLodOld(IO::BinaryReader& Reader, const std::unique_ptr
 	auto VGHeader = Reader.Read<RMdlVGHeaderOld>();
 
 	// Offsets in submesh are relative to the submesh we're reading...
-	const auto SubmeshPointer = Offset + VGHeader.SubmeshOffset;
+	const auto meshOffset = Offset + VGHeader.MeshOffset;
 
-	BaseStream->SetPosition(SubmeshPointer);
+	BaseStream->SetPosition(meshOffset);
 	// We need to read the submeshes
-	List<RMdlVGSubmeshOld> SubmeshBuffer(VGHeader.SubmeshCount, true);
-	Reader.Read((uint8_t*)&SubmeshBuffer[0], 0, VGHeader.SubmeshCount * sizeof(RMdlVGSubmeshOld));
+	List<RMdlVGMeshOld> SubmeshBuffer(VGHeader.MeshCount, true);
+	Reader.Read((uint8_t*)&SubmeshBuffer[0], 0, VGHeader.MeshCount * sizeof(RMdlVGMeshOld));
 
 	List<uint8_t> VertexBuffer(VGHeader.VertexBufferSize, true);
 	BaseStream->SetPosition(Offset + VGHeader.VertexBufferOffset);
@@ -998,8 +998,8 @@ void RpakLib::ExtractModelLodOld(IO::BinaryReader& Reader, const std::unique_ptr
 	if (VGHeader.LodCount == 0)
 		return;
 
-	size_t LodSubmeshCount = LodBuffer[0].SubmeshCount;
-	size_t LodSubmeshStart = LodBuffer[0].SubmeshIndex;
+	size_t LodSubmeshCount = LodBuffer[0].MeshCount;
+	size_t LodSubmeshStart = LodBuffer[0].MeshIndex;
 
 	if (LodSubmeshCount == 0)
 		return;
@@ -1018,7 +1018,7 @@ void RpakLib::ExtractModelLodOld(IO::BinaryReader& Reader, const std::unique_ptr
 
 		auto& BoneRemapBuffer = *Fixup.BoneRemaps;
 
-		auto& Mesh = Model->Meshes.Emplace(0x10, (((Submesh.Flags2 & 0x2) == 0x2) ? 2 : 1));	// max weights / max uvs
+		auto& NewMesh = Model->Meshes.Emplace(0x10, (((Submesh.Flags2 & 0x2) == 0x2) ? 2 : 1));	// max weights / max uvs
 		auto& Strip = StripBuffer[Submesh.StripsIndex];
 
 		auto VertexBufferPtr = (uint8_t*)&VertexBuffer[Submesh.VertexOffsetBytes];
@@ -1065,7 +1065,7 @@ void RpakLib::ExtractModelLodOld(IO::BinaryReader& Reader, const std::unique_ptr
 			UVs = *(Math::Vector2*)(VertexBufferPtr + Shift);
 			Shift += sizeof(Math::Vector2);
 
-			auto Vertex = Mesh.Vertices.Emplace(Position, Normal, Color, UVs);
+			auto Vertex = NewMesh.Vertices.Emplace(Position, Normal, Color, UVs);
 
 			if ((Submesh.Flags2 & 0x2) == 0x2)
 			{
@@ -1159,7 +1159,7 @@ void RpakLib::ExtractModelLodOld(IO::BinaryReader& Reader, const std::unique_ptr
 			auto i2 = *(uint16_t*)(FaceBufferPtr + 1);
 			auto i3 = *(uint16_t*)(FaceBufferPtr + 2);
 
-			Mesh.Faces.EmplaceBack(i1, i2, i3);
+			NewMesh.Faces.EmplaceBack(i1, i2, i3);
 
 			FaceBufferPtr += 3;
 		}
@@ -1194,16 +1194,16 @@ void RpakLib::ExtractModelLodOld(IO::BinaryReader& Reader, const std::unique_ptr
 			if (ParsedMaterial.CavityMapName != "")
 				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Cavity, { "_images\\" + ParsedMaterial.CavityMapName, ParsedMaterial.CavityHash });
 
-			Mesh.MaterialIndices.EmplaceBack(MaterialIndex);
+			NewMesh.MaterialIndices.EmplaceBack(MaterialIndex);
 		}
 		else
 		{
-			Mesh.MaterialIndices.EmplaceBack(-1);
+			NewMesh.MaterialIndices.EmplaceBack(-1);
 		}
 
 		// Add an extra slot for the extra UV Layer if present
 		if ((Submesh.Flags2 & 0x2) == 0x2)
-			Mesh.MaterialIndices.EmplaceBack(-1);
+			NewMesh.MaterialIndices.EmplaceBack(-1);
 
 		Fixup.FixupTableOffset += sizeof(RMdlLodSubmesh);
 	}
