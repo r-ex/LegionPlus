@@ -2779,4 +2779,46 @@ std::unique_ptr<IO::MemoryStream> RTech::DecompressStreamedBuffer(const uint8_t*
 	}
 }
 
+
+// "usertable" is a really bad arg name, and the var is unused
+// this is because in the original func, this arg is passed with an array
+unsigned int __fastcall RTech::PakPatch_DecodeData(char* in_data, int numbits, char* index_array, char* a4, char* a5)
+{
+	int lut_index = 0;
+
+	unsigned long bit_index = 0;
+	char bit_size = 0;
+
+	if (_BitScanReverse(&bit_index, numbits - 2))
+		bit_size = bit_index + 1;
+
+	unsigned int out_index = 0;
+
+	unsigned int v15 = (1 << bit_size) - 1;
+
+	unsigned int size = 1 << numbits;
+	unsigned int counter = size;
+	char masked_in = (((1 << bit_size) - 1) & in_data[0]) + 1;
+	while (1)
+	{
+		char old_in = masked_in;
+		//char* p_table_data = &index_array[in_data[out_index] >> bit_size];
+		for (__int64 i = LUT_18002D840[lut_index << (8 - masked_in)]; i < size; i = ((1 << masked_in) + i))
+		{
+			--counter;
+			//a4[i] = *p_table_data;
+			a4[i] = in_data[out_index] >> bit_size;
+			a5[i] = masked_in;
+		}
+		out_index++;
+
+		if (!counter)
+			break;
+
+		masked_in = (v15 & in_data[out_index]) + 1;
+
+		lut_index = (lut_index + 1) << (masked_in - old_in);
+	}
+	return out_index;
+}
 ///////////////////////////////////////////////////////////////////////////////

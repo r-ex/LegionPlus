@@ -769,6 +769,17 @@ bool RpakLib::ParseApexRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 		File->PatchDataSize = PatchHeader.PatchDataSize;
 
 		ParseStream->Read(File->PatchData.get(), 0, PatchHeader.PatchDataSize);
+
+		// used to index an array of functions for patching data
+		char patch_funcs[64];
+		char some_buffer_1[64];
+
+		char unk_buffer_2[256];
+		char some_buffer_2[256];
+
+		int new_index = RTech::PakPatch_DecodeData((char*)File->PatchData.get(), 6, nullptr, patch_funcs, some_buffer_1);
+
+		new_index = RTech::PakPatch_DecodeData((char*)File->PatchData.get() + new_index, 8, nullptr, unk_buffer_2, some_buffer_2);
 	}
 
 	uint64_t BufferRemaining = ParseStream->GetLength() - ParseStream->GetPosition();
