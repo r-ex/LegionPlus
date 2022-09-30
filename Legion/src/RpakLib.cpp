@@ -707,8 +707,11 @@ bool RpakLib::ParseApexRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 	if (Header.PatchIndex)
 	{
 		ParseStream->Read((uint8_t*)&PatchHeader, 0, sizeof(RpakPatchHeader));
-		ParseStream->Read((uint8_t*)&PatchCompressPairs, 0, sizeof(RpakPatchCompressPair) * Header.PatchIndex);
-		ParseStream->Read((uint8_t*)&PatchIndicesToFile, 0, sizeof(uint16_t) * Header.PatchIndex);
+
+		// we should never actually go above 16 patch files i hope :clueless:
+		// but it'd be pretty bad if we did, so min(index, 16)
+		ParseStream->Read((uint8_t*)&PatchCompressPairs, 0, sizeof(RpakPatchCompressPair) * min(Header.PatchIndex, 16));
+		ParseStream->Read((uint8_t*)&PatchIndicesToFile, 0, sizeof(uint16_t) * min(Header.PatchIndex, 16));
 	}
 
 	uint32_t StarpakLen = Header.StarpakReferenceSize;
@@ -756,12 +759,10 @@ bool RpakLib::ParseApexRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 	ParseStream->Seek(Header.DescriptorCount * sizeof(RpakDescriptor), IO::SeekOrigin::Current);
 	ParseStream->Read((uint8_t*)&AssetEntries[0], 0, sizeof(RpakApexAssetEntry) * Header.AssetEntryCount);
 
-	// The fifth and sixth blocks appear to only
-	// be used for streaming images / starpak stuff, not always there
 	ParseStream->Seek(sizeof(RpakDescriptor) * Header.GuidDescriptorCount, IO::SeekOrigin::Current);
 	ParseStream->Seek(sizeof(RpakFileRelation) * Header.RelationsCount, IO::SeekOrigin::Current);
 
-	// At this point, we need to check if we have to switch to a patch edit stream
+	// do we have patch info
 	if (Header.PatchIndex)
 	{
 		File->PatchData = std::make_unique<uint8_t[]>(PatchHeader.PatchDataSize);
@@ -783,6 +784,7 @@ bool RpakLib::ParseApexRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 	{
 		File->AssetHashmap.Add(Asset.NameHash, Asset);
 	}
+
 	File->StartSegmentIndex = PatchHeader.PatchSegmentIndex;
 	File->SegmentData = std::make_unique<uint8_t[]>(BufferRemaining);
 	File->SegmentDataSize = BufferRemaining;
@@ -835,8 +837,8 @@ bool RpakLib::ParseTitanfallRpak(const string& RpakPath, std::unique_ptr<IO::Mem
 	if (Header.PatchIndex)
 	{
 		ParseStream->Read((uint8_t*)&PatchHeader, 0, sizeof(RpakPatchHeader));
-		ParseStream->Read((uint8_t*)&PatchCompressPairs, 0, sizeof(RpakPatchCompressPair) * Header.PatchIndex);
-		ParseStream->Read((uint8_t*)&PatchIndicesToFile, 0, sizeof(uint16_t) * Header.PatchIndex);
+		ParseStream->Read((uint8_t*)&PatchCompressPairs, 0, sizeof(RpakPatchCompressPair) * min(Header.PatchIndex, 16));
+		ParseStream->Read((uint8_t*)&PatchIndicesToFile, 0, sizeof(uint16_t) * min(Header.PatchIndex, 16));
 	}
 
 	uint32_t StarpakLen = Header.StarpakReferenceSize;

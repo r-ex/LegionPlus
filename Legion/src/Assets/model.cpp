@@ -387,7 +387,6 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 					if (i + 1 != vg.lodCount)
 						dataSize += 16 - (dataSize % 16);
 				}
-
 			}
 
 			if (dataSize)
@@ -403,14 +402,10 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 				vgOut.close();
 			}
 		}
-		else if (Asset.AssetVersion == 13)
-		{
 
-		}
 		return nullptr;
 	}
 
-	
 	if (Asset.AssetVersion >= 14)
 		this->ExtractModelLod_V14(StarpakReader, RpakStream, ModelName, Offset, Model, Fixups, Asset.AssetVersion, IncludeMaterials);
 	else if (Asset.AssetVersion < 12)
