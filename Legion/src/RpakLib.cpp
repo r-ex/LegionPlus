@@ -208,6 +208,11 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(const std::array<bool, 
 				continue;
 			BuildSettingsInfo(Asset, NewAsset);
 			break;
+		case (uint32_t)AssetType_t::SettingsLayout:
+			if (!arrAssets[7])
+				continue;
+			BuildSettingsLayoutInfo(Asset, NewAsset);
+			break;
 		case (uint32_t)AssetType_t::RSON:
 			if (!arrAssets[8])
 				continue;
