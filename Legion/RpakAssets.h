@@ -159,7 +159,7 @@ struct DataTableHeader
 	uint32_t RowHeaderBlock;
 	uint32_t RowHeaderOffset;
 	uint32_t UnkHash;
-	
+
 	uint16_t Un1;
 	uint16_t Un2;
 
@@ -236,7 +236,8 @@ struct SettingsHeader
 
 	uint32_t KvpBufferSize;
 
-	uint8_t Unk3[0xC];
+	uint64_t Unk3;
+	uint32_t Unk4;
 };
 ASSERT_SIZE(SettingsHeader, 0x48);
 
@@ -446,7 +447,7 @@ struct MaterialHeader
 	uint32_t SurfaceIndex;
 	uint32_t SurfaceOffset;
 
-	uint8_t Unknown2[0x28];
+	uint64_t GUIDRefs[5];
 	uint64_t ShaderSetHash;
 
 	uint32_t TexturesIndex;
@@ -496,7 +497,7 @@ struct MaterialHeaderV12
 
 	RPakPtr m_pszName; // pointer to partial asset path
 	RPakPtr m_pszSurfaceProp; // pointer to surfaceprop (as defined in surfaceproperties.txt)
-	RPakPtr m_pszSurfaceProp2; // pointer to surfaceprop2 
+	RPakPtr m_pszSurfaceProp2; // pointer to surfaceprop2
 
 	// IDX 1: DepthShadow
 	// IDX 2: DepthPrepass

@@ -219,6 +219,9 @@ void ExportManager::ExportRpakAssets(const std::unique_ptr<RpakLib>& RpakFileSys
 			case (uint32_t)AssetType_t::Settings:
 				RpakFileSystem->ExportSettings(AssetToExport, IO::Path::Combine(ExportDirectory, "settings"));
 				break;
+			case (uint32_t)AssetType_t::SettingsLayout:
+				RpakFileSystem->ExportSettingsLayout(AssetToExport, IO::Path::Combine(ExportDirectory, "settings_layouts"));
+				break;
 			case (uint32_t)AssetType_t::RSON:
 				RpakFileSystem->ExportRSON(AssetToExport, IO::Path::Combine(ExportDirectory, "rson"));
 				break;

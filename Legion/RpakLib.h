@@ -194,7 +194,7 @@ struct RpakTitanfallAssetEntry
 	uint32_t RawDataBlockIndex;
 	uint32_t RawDataBlockOffset;
 
-	uint64_t StarpakOffset;				
+	uint64_t StarpakOffset;
 
 	uint16_t PageEnd;
 	uint16_t Un2;
@@ -273,7 +273,7 @@ struct RpakLoadAsset
 	uint32_t RawDataIndex;
 	uint32_t RawDataOffset;
 
-	uint64_t StarpakOffset;			
+	uint64_t StarpakOffset;
 	uint64_t OptimalStarpakOffset;
 
 	RpakLoadAsset() = default;
@@ -448,6 +448,7 @@ public:
 	void ExportShaderSet(const RpakLoadAsset& Asset, const string& Path);
 	void ExportUIImageAtlas(const RpakLoadAsset& Asset, const string& Path);
 	void ExportSettings(const RpakLoadAsset& Asset, const string& Path);
+	void ExportSettingsLayout(const RpakLoadAsset& Asset, const string& Path);
 	void ExportRSON(const RpakLoadAsset& Asset, const string& Path);
 	void ExportQC(int assetVersion, const string& Path, const string& modelPath, char* rmdlBuf, char* phyBuf = nullptr);
 	void ExportRUI(const RpakLoadAsset& Asset, const string& Path);
@@ -490,6 +491,7 @@ private:
 	void BuildShaderSetInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildUIImageAtlasInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildSettingsInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
+	void BuildSettingsLayoutInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildRSONInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildRUIInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 
@@ -508,6 +510,7 @@ private:
 	void ExtractUIImageAtlas(const RpakLoadAsset& Asset, const string& Path);
 	void ExtractSettings(const RpakLoadAsset& Asset, const string& Path, const string& Name, const SettingsHeader& Header);
 	SettingsLayout ExtractSettingsLayout(const RpakLoadAsset& Asset);
+
 	void ExtractRSON(const RpakLoadAsset& Asset, const string& Path);
 	void ExtractRUI(const RpakLoadAsset& Asset, const string& Path);
 
