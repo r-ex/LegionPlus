@@ -4,6 +4,7 @@
 #include "Directory.h"
 #include <rtech.h>
 
+// N1094_CL456479 (Season 3 Launch) won't work with this because the base rpak (effects.rpak) is patched itself.
 void RpakLib::BuildEffectInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 {
 	auto RpakStream = this->GetFileStream(Asset);
