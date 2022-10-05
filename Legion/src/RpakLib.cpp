@@ -90,7 +90,8 @@ void RpakLib::PatchAssets()
 					Kvp.second.StarpakOffset,
 					Kvp.second.OptimalStarpakOffset,
 					LoadedFile.Version,
-					Kvp.second.Version
+					Kvp.second.Version,
+					&this->LoadedFiles[i]
 				);
 
 				// All assets must follow this patch sequence
@@ -332,12 +333,12 @@ uint64_t RpakLib::GetFileOffset(const RpakLoadAsset& Asset, uint32_t SegmentInde
 {
 	if (SegmentIndex < 0) return 0;
 
-	return (this->LoadedFiles[Asset.FileIndex].SegmentBlocks[SegmentIndex - this->LoadedFiles[Asset.FileIndex].StartSegmentIndex].Offset + SegmentOffset);
+	return (Asset.PakFile->SegmentBlocks[SegmentIndex - Asset.PakFile->StartSegmentIndex].Offset + SegmentOffset);
 }
 
 uint64_t RpakLib::GetEmbeddedStarpakOffset(const RpakLoadAsset& Asset)
 {
-	return this->LoadedFiles[Asset.FileIndex].EmbeddedStarpakOffset;
+	return Asset.PakFile->EmbeddedStarpakOffset;
 }
 
 std::unique_ptr<IO::FileStream> RpakLib::GetStarpakStream(const RpakLoadAsset& Asset, bool Optimal)
@@ -498,6 +499,7 @@ void RpakLib::ParseRAnimBoneRotationTrack(const RAnimBoneFlag& BoneFlags, uint16
 		} while (v31 < 3);
 
 		Math::Quaternion Result;
+
 		RTech::DecompressConvertRotation((const __m128i*) & EulerResult[0], (float*)&Result);
 
 		Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name())[0].Keyframes.Emplace(FrameIndex, Result);
@@ -1239,8 +1241,8 @@ string RpakLib::ReadStringFromPointer(const RpakLoadAsset& Asset, uint32_t index
 	return result;
 }
 
-RpakLoadAsset::RpakLoadAsset(uint64_t NameHash, uint32_t FileIndex, uint32_t AssetType, uint32_t SubHeaderIndex, uint32_t SubHeaderOffset, uint32_t SubHeaderSize, uint32_t RawDataIndex, uint32_t RawDataOffset, uint64_t StarpakOffset, uint64_t OptimalStarpakOffset, RpakGameVersion Version, uint32_t AssetVersion)
-	: NameHash(NameHash), FileIndex(FileIndex), RpakFileIndex(FileIndex), AssetType(AssetType), SubHeaderIndex(SubHeaderIndex), SubHeaderOffset(SubHeaderOffset), SubHeaderSize(SubHeaderSize), RawDataIndex(RawDataIndex), RawDataOffset(RawDataOffset), StarpakOffset(StarpakOffset), OptimalStarpakOffset(OptimalStarpakOffset), Version(Version), AssetVersion(AssetVersion)
+RpakLoadAsset::RpakLoadAsset(uint64_t NameHash, uint32_t FileIndex, uint32_t AssetType, uint32_t SubHeaderIndex, uint32_t SubHeaderOffset, uint32_t SubHeaderSize, uint32_t RawDataIndex, uint32_t RawDataOffset, uint64_t StarpakOffset, uint64_t OptimalStarpakOffset, RpakGameVersion Version, uint32_t AssetVersion, RpakFile* PakFile)
+	: NameHash(NameHash), FileIndex(FileIndex), RpakFileIndex(FileIndex), AssetType(AssetType), SubHeaderIndex(SubHeaderIndex), SubHeaderOffset(SubHeaderOffset), SubHeaderSize(SubHeaderSize), RawDataIndex(RawDataIndex), RawDataOffset(RawDataOffset), StarpakOffset(StarpakOffset), OptimalStarpakOffset(OptimalStarpakOffset), Version(Version), AssetVersion(AssetVersion), PakFile(PakFile)
 {
 }
 

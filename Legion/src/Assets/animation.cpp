@@ -130,44 +130,44 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	AnimHeader AnHeader = Reader.Read<AnimHeader>();
+	AnimHeader animHeader = Reader.Read<AnimHeader>();
 
-	RpakStream->SetPosition(this->GetFileOffset(Asset, AnHeader.NameIndex, AnHeader.NameOffset));
+	RpakStream->SetPosition(this->GetFileOffset(Asset, animHeader.NameIndex, animHeader.NameOffset));
 
-	string AnimName = IO::Path::GetFileNameWithoutExtension(Reader.ReadCString());
+	string animName = IO::Path::GetFileNameWithoutExtension(Reader.ReadCString());
 
-	const uint64_t AnimationOffset = this->GetFileOffset(Asset, AnHeader.AnimationIndex, AnHeader.AnimationOffset);
+	const uint64_t seqOffset = this->GetFileOffset(Asset, animHeader.AnimationIndex, animHeader.AnimationOffset);
 
-	RpakStream->SetPosition(AnimationOffset);
+	RpakStream->SetPosition(seqOffset);
 
-	mstudioseqdesc_t AnimSequenceHeader = Reader.Read<mstudioseqdesc_t>();
+	mstudioseqdesc_t seqdesc = Reader.Read<mstudioseqdesc_t>();
 
 	uint64_t ActualStarpakOffset = Asset.StarpakOffset & 0xFFFFFFFFFFFFFF00;
 	uint64_t ActualOptStarpakOffset = Asset.OptimalStarpakOffset & 0xFFFFFFFFFFFFFF00;
 
-	uint64_t OffsetOfStarpakData = 0;
+	uint64_t starpakDataOffset = 0;
 	std::unique_ptr<IO::FileStream> StarpakStream = nullptr;
 
 	if (Asset.OptimalStarpakOffset != -1)
 	{
-		OffsetOfStarpakData = ActualOptStarpakOffset;
+		starpakDataOffset = ActualOptStarpakOffset;
 		StarpakStream = this->GetStarpakStream(Asset, true);
 	}
 	else if (Asset.StarpakOffset != -1)
 	{
-		OffsetOfStarpakData = ActualStarpakOffset;
+		starpakDataOffset = ActualStarpakOffset;
 		StarpakStream = this->GetStarpakStream(Asset, false);
 	}
 
 	IO::BinaryReader StarpakReader = IO::BinaryReader(StarpakStream.get(), true);
 
-	for (uint32_t i = 0; i < AnimSequenceHeader.numblends; i++)
+	for (uint32_t i = 0; i < seqdesc.numblends; i++)
 	{
-		RpakStream->SetPosition(AnimationOffset + AnimSequenceHeader.animindexindex + ((uint64_t)i * sizeof(uint32_t)));
+		RpakStream->SetPosition(seqOffset + seqdesc.animindexindex + ((uint64_t)i * sizeof(uint32_t)));
 
-		uint32_t AnimDataOffset = Reader.Read<uint32_t>();
+		int animindex = Reader.Read<int>();
 
-		RpakStream->SetPosition(AnimationOffset + AnimDataOffset);
+		RpakStream->SetPosition(seqOffset + animindex);
 
 		mstudioanimdescv54_t animdesc = Reader.Read<mstudioanimdescv54_t>();
 
@@ -199,7 +199,7 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 			CurveNodes.EmplaceBack(Bone.Name(), Assets::CurveProperty::ScaleZ, AnimCurveType);
 		}
 
-		const uint64_t AnimHeaderPointer = AnimationOffset + AnimDataOffset;
+		const uint64_t AnimHeaderPointer = seqOffset + animindex;
 
 		for (uint32_t Frame = 0; Frame < animdesc.numframes; Frame++)
 		{
@@ -251,7 +251,7 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 				{
 					RpakStream->SetPosition(AnimHeaderPointer + ChunkDataOffset);
 					uint32_t v14 = Reader.Read<uint32_t>();
-					ResultDataPtr = OffsetOfStarpakData + v14;
+					ResultDataPtr = starpakDataOffset + v14;
 				}
 			}
 			else
@@ -302,7 +302,7 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 
 		Anim->RemoveEmptyNodes();
 
-		string DestinationPath = IO::Path::Combine(Path, AnimName + string::Format("_%d", i) + (const char*)this->AnimExporter->AnimationExtension());
+		string DestinationPath = IO::Path::Combine(Path, animName + string::Format("_%d", i) + (const char*)this->AnimExporter->AnimationExtension());
 
 		if (!Utils::ShouldWriteFile(DestinationPath))
 			continue;
