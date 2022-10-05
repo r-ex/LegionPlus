@@ -300,7 +300,6 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 	{
 		IO::Stream* StarpakStream = StarpakReader.GetBaseStream();
 
-
 		if (Asset.AssetVersion <= 8) // s1
 		{
 			StarpakStream->SetPosition(Offset);
@@ -350,6 +349,21 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 			vgOut.write(vgBuf, VGHeader.DataSize);
 			vgOut.close();
+
+			StarpakStream->SetPosition(Offset);
+			char* streamBuf = new char[ModHeader.StreamedDataSize];
+
+			StarpakReader.Read(streamBuf, 0, ModHeader.StreamedDataSize);
+
+			RpakStream->SetPosition(StudioOffset);
+
+			s3studiohdr_t hdr = Reader.Read<s3studiohdr_t>();
+
+			for (int i = 0; i < hdr.numtextures; i++)
+			{
+				RMdlTexture* mat = reinterpret_cast<RMdlTexture*>(studioBuf.get() + hdr.textureindex + (i * sizeof(RMdlTexture)));
+				this->ExtractMaterial(Assets[mat->MaterialHash], Fixups.MaterialPath, IncludeMaterials, false);
+			}
 		}
 		else if (Asset.AssetVersion >= 12)
 		{
