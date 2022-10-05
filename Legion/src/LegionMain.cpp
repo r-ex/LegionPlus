@@ -520,7 +520,7 @@ void LegionMain::RefreshView()
 	{
 		this->AssetsListView->SetVirtualListSize(0);
 
-		std::array<bool, 9> bAssets = {
+		std::array<bool, 10> bAssets = {
 			ExportManager::Config.GetBool("LoadModels"),
 			ExportManager::Config.GetBool("LoadAnimations"),
 			ExportManager::Config.GetBool("LoadImages"),
@@ -529,7 +529,8 @@ void LegionMain::RefreshView()
 			ExportManager::Config.GetBool("LoadDataTables"),
 			ExportManager::Config.GetBool("LoadShaderSets"),
 			ExportManager::Config.GetBool("LoadSettingsSets"),
-			ExportManager::Config.GetBool("LoadRSONs")
+			ExportManager::Config.GetBool("LoadRSONs"),
+			ExportManager::Config.GetBool("LoadEffects")
 		};
 
 		this->LoadedAssets = this->RpakFileSystem->BuildAssetList(bAssets);
@@ -767,7 +768,7 @@ void LegionMain::GetVirtualItem(const std::unique_ptr<Forms::RetrieveVirtualItem
 
 	uint32_t RemappedDisplayIndex = ThisPtr->DisplayIndices[EventArgs->ItemIndex];
 
-	static const char* AssetTypes[] = { "Model", "AnimationSet", "Image", "Material", "DataTable", "Sound", "Subtitles", "ShaderSet", "UI Image", "UI Image Atlas", "Settings", "RSON", "RUI" , "Settings Layout", "Map" };
+	static const char* AssetTypes[] = { "Model", "AnimationSet", "Image", "Material", "DataTable", "Sound", "Subtitles", "ShaderSet", "UI Image", "UI Image Atlas", "Settings", "RSON", "RUI" , "Settings Layout", "Map", "Effect" };
 	static const Drawing::Color AssetTypesColors[] = 
 	{
 		Drawing::Color(0, 157, 220),  // Model
@@ -784,7 +785,8 @@ void LegionMain::GetVirtualItem(const std::unique_ptr<Forms::RetrieveVirtualItem
 		Drawing::Color(54, 249, 249), // RSON
 		Drawing::Color(4, 197, 4),    // RUI
 		Drawing::Color(255, 196, 0),  // SettingsLayout
-		Drawing::Color(131 ,69 ,255),  // Map
+		Drawing::Color(131 ,69, 255), // Map
+		Drawing::Color(17, 221, 191), // Effect
 	};
 
 	static const char* AssetStatus[] = { "Loaded", "Exporting", "Exported", "Error" };

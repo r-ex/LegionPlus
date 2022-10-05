@@ -241,6 +241,14 @@ void LegionSettings::InitializeComponent()
 	this->LoadSettingsSets->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->groupBox4->AddControl(this->LoadSettingsSets);
 
+	this->LoadEffects = new UIX::UIXCheckBox();
+	this->LoadEffects->SetSize({ 108, 18 });
+	this->LoadEffects->SetLocation({ 130, 114 });
+	this->LoadEffects->SetTabIndex(2);
+	this->LoadEffects->SetText("Load Effects");
+	this->LoadEffects->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox4->AddControl(this->LoadEffects);
+
 	this->LoadRSONs = new UIX::UIXCheckBox();
 	this->LoadRSONs->SetSize({ 108, 18 });
 	this->LoadRSONs->SetLocation({ 15, 114 });
@@ -597,6 +605,7 @@ void LegionSettings::LoadSettings()
 	this->LoadDataTables->SetChecked(ExportManager::Config.GetBool("LoadDataTables"));
 	this->LoadShaderSets->SetChecked(ExportManager::Config.GetBool("LoadShaderSets"));
 	this->LoadSettingsSets->SetChecked(ExportManager::Config.GetBool("LoadSettingsSets"));
+	this->LoadEffects->SetChecked(ExportManager::Config.GetBool("LoadEffects"));
 	this->LoadRSONs->SetChecked(ExportManager::Config.GetBool("LoadRSONs"));
 	this->ToggleOverwriting->SetChecked(ExportManager::Config.GetBool("OverwriteExistingFiles"));
 	this->ToggleAudioLanguageFolders->SetChecked(ExportManager::Config.GetBool("AudioLanguageFolders"));
@@ -764,6 +773,8 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		bRefreshView = true;
 	if (ThisPtr->LoadShaderSets->Checked() != ExportManager::Config.GetBool("LoadShaderSets"))
 		bRefreshView = true;
+	if (ThisPtr->LoadShaderSets->Checked() != ExportManager::Config.GetBool("LoadEffects"))
+		bRefreshView = true;
 	if (ThisPtr->LoadSettingsSets->Checked() != ExportManager::Config.GetBool("LoadSettingsSets"))
 		bRefreshView = true;
 	if (ThisPtr->LoadRSONs->Checked() != ExportManager::Config.GetBool("LoadRSONs"))
@@ -779,6 +790,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	ExportManager::Config.SetBool("LoadDataTables", ThisPtr->LoadDataTables->Checked());
 	ExportManager::Config.SetBool("LoadShaderSets", ThisPtr->LoadShaderSets->Checked());
 	ExportManager::Config.SetBool("LoadSettingsSets", ThisPtr->LoadSettingsSets->Checked());
+	ExportManager::Config.SetBool("LoadEffects", ThisPtr->LoadEffects->Checked());
 	ExportManager::Config.SetBool("LoadRSONs", ThisPtr->LoadRSONs->Checked());
 	ExportManager::Config.SetBool("OverwriteExistingFiles", ThisPtr->ToggleOverwriting->Checked());
 	ExportManager::Config.SetBool("AudioLanguageFolders", ThisPtr->ToggleAudioLanguageFolders->Checked());

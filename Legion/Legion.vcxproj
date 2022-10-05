@@ -162,6 +162,7 @@
     <ClCompile Include="src\ApexAsset.cpp" />
     <ClCompile Include="src\Assets\animation.cpp" />
     <ClCompile Include="src\Assets\datatable.cpp" />
+    <ClCompile Include="src\Assets\effect.cpp" />
     <ClCompile Include="src\Assets\material.cpp" />
     <ClCompile Include="src\Assets\model.cpp" />
     <ClCompile Include="src\Assets\qc.cpp" />

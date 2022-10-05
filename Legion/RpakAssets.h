@@ -936,6 +936,24 @@ struct UIAtlasImage // uiai wen
 	uint16_t PosY;
 };
 
+// --- efct ---
+struct EffectHeader
+{
+	RPakPtr EffectData;
+	uint32_t unk2;
+	uint32_t unk3;
+};
+
+struct EffectData
+{
+	RPakPtr PCF;
+	RPakPtr EffectName; // Double ptr to effect name
+	RPakPtr unk2;
+	RPakPtr ParticleSystemOperator; // Double ptr to pso name
+	RPakPtr unk3;
+	RPakPtr unk4;
+};
+
 // --- rson ---
 #define RSON_STRING 0x2
 #define RSON_OBJECT 0x8

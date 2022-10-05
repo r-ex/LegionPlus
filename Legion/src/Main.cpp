@@ -269,7 +269,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 			if (bNoFlagsSpecified)
 			{
-				std::array<bool, 9> bAssets = {
+				std::array<bool, 10> bAssets = {
 					ExportManager::Config.GetBool("LoadModels"),
 					ExportManager::Config.GetBool("LoadAnimations"),
 					ExportManager::Config.GetBool("LoadImages"),
@@ -278,14 +278,15 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 					ExportManager::Config.GetBool("LoadDataTables"),
 					ExportManager::Config.GetBool("LoadShaderSets"),
 					ExportManager::Config.GetBool("LoadSettingsSets"),
-					ExportManager::Config.GetBool("LoadRSONs")
+					ExportManager::Config.GetBool("LoadRSONs"),
+					ExportManager::Config.GetBool("LoadEffects")
 				};
 
 				AssetList = Rpak->BuildAssetList(bAssets);
 			}
 			else
 			{
-				std::array<bool, 9> bAssets = {
+				std::array<bool, 10> bAssets = {
 					bLoadModels,
 					bLoadAnims,
 					bLoadImages,
@@ -295,6 +296,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 					bLoadShaderSets,
 					bLoadSettingsSets,
 					bLoadRSONs,
+					false // not ready yet.
 				};
 
 				AssetList = Rpak->BuildAssetList(bAssets);

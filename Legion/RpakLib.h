@@ -315,6 +315,7 @@ enum class AssetType_t : uint32_t
 	RSON = 'nosr', // rson - 0x72736F6E
 	RUI = 'iu', // ui - 0x75690000
 	Map = 'pamr', // rmap - 0x70616D72
+	Effect = 'tcfe', // efct - 0x74636665
 };
 
 enum class ModelExportFormat_t
@@ -423,7 +424,7 @@ public:
 	bool m_bImageExporterInitialized = false;
 
 	// Builds the viewer list of assets
-	std::unique_ptr<List<ApexAsset>> BuildAssetList(const std::array<bool, 9>& arrAssets);
+	std::unique_ptr<List<ApexAsset>> BuildAssetList(const std::array<bool, 10>& arrAssets);
 	// Builds the preview model mesh
 	std::unique_ptr<Assets::Model> BuildPreviewModel(uint64_t Hash);
 	// Builds the preview texture
@@ -495,6 +496,7 @@ private:
 	void BuildUIImageAtlasInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildSettingsInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildMapInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
+	void BuildEffectInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildSettingsLayoutInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildRSONInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildRUIInfo(const RpakLoadAsset& Asset, ApexAsset& Info);

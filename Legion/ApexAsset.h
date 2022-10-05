@@ -19,6 +19,7 @@ enum class ApexAssetType
 	RUI,
 	SettingsLayout,
 	Map,
+	Effect,
 };
 
 enum class ApexAssetStatus

@@ -155,7 +155,7 @@ void RpakLib::PatchAssets()
 }
 
 //std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims, bool Images, bool Materials, bool UIImages, bool DataTables)
-std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(const std::array<bool, 9> &arrAssets)
+std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(const std::array<bool, 10> &arrAssets)
 {
 	auto Result = std::make_unique<List<ApexAsset>>();
 
@@ -223,6 +223,11 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(const std::array<bool, 
 			//if (!arrAssets[9])
 			//	continue;
 			BuildRUIInfo(Asset, NewAsset);
+			break;
+		case (uint32_t)AssetType_t::Effect:
+			if (!arrAssets[9])
+				continue;
+			BuildEffectInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::UIImageAtlas: // TODO ARRAY
 			BuildUIImageAtlasInfo(Asset, NewAsset);
@@ -640,6 +645,11 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 		{ // finally an actual check for this
 			UIAtlasHeader Header = Reader.Read<UIAtlasHeader>();
 			return Header.TexturesCount != 0;
+		}
+		case (uint32_t)AssetType_t::Effect:
+		{
+			// Changed at unknown version.
+			return Asset.AssetVersion <= 3;
 		}
 		case (uint32_t)AssetType_t::Shader:
 		case (uint32_t)AssetType_t::ShaderSet:

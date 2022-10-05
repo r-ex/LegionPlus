@@ -58,6 +58,7 @@ private:
 	UIX::UIXCheckBox* LoadShaderSets;
 	UIX::UIXCheckBox* LoadSettingsSets;
 	UIX::UIXCheckBox* LoadRSONs;
+	UIX::UIXCheckBox* LoadEffects;
 	// Toggles
 	UIX::UIXCheckBox* ToggleOverwriting;
 	UIX::UIXCheckBox* ToggleAudioLanguageFolders;
