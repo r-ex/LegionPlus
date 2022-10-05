@@ -18,6 +18,7 @@ enum class ApexAssetType
 	RSON,
 	RUI,
 	SettingsLayout,
+	Map,
 };
 
 enum class ApexAssetStatus

@@ -312,6 +312,7 @@ enum class AssetType_t : uint32_t
 	UIImageAtlas = 'gmiu', // uimg - 0x676D6975
 	RSON = 'nosr', // rson - 0x72736F6E
 	RUI = 'iu', // ui - 0x75690000
+	Map = 'pamr', // rmap - 0x70616D72
 };
 
 enum class ModelExportFormat_t
@@ -491,6 +492,7 @@ private:
 	void BuildShaderSetInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildUIImageAtlasInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildSettingsInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
+	void BuildMapInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildSettingsLayoutInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildRSONInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildRUIInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
