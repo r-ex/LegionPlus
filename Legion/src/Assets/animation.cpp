@@ -44,12 +44,12 @@ void RpakLib::BuildRawAnimInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, AnHeader.NameIndex, AnHeader.NameOffset));
 
-	string AnimName = Reader.ReadCString();
+	string animName = Reader.ReadCString();
 
 	if (ExportManager::Config.GetBool("UseFullPaths"))
-		Info.Name = AnimName;
+		Info.Name = animName;
 	else
-		Info.Name = IO::Path::GetFileNameWithoutExtension(AnimName).ToLower();
+		Info.Name = IO::Path::GetFileNameWithoutExtension(animName).ToLower();
 
 	Info.Type = ApexAssetType::AnimationSet;
 	Info.Status = ApexAssetStatus::Loaded;
@@ -140,7 +140,7 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 
 	string AnimRawStream = Reader.ReadCString();
 
-	string AnimName = IO::Path::GetFileNameWithoutExtension(AnimRawStream);
+	string animName = IO::Path::GetFileNameWithoutExtension(AnimRawStream);
 	string AnimPath = IO::Path::GetDirectoryName(AnimRawStream);
 
 	const uint64_t seqOffset = this->GetFileOffset(Asset, animHeader.AnimationIndex, animHeader.AnimationOffset);
