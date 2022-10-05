@@ -119,7 +119,7 @@ void LegionSettings::InitializeComponent()
 	//	About Text Label
 	//
 	this->labelVersion = new UIX::UIXLabel();
-	this->labelVersion->SetSize({ 200, 12 });
+	this->labelVersion->SetSize({ 200, 20 });
 	this->labelVersion->SetLocation({ 12, 20 });
 	this->labelVersion->SetTabIndex(0);
 #ifndef NIGHTLY
