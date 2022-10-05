@@ -18,9 +18,9 @@ void RpakLib::ExtractTextureName(const RpakLoadAsset& Asset, string& Name)
 
 	TextureHeader TexHeader = Reader.Read<TextureHeader>();
 
-	if (TexHeader.NameIndex || TexHeader.NameOffset)
+	if (TexHeader.szdebugName.Index || TexHeader.szdebugName.Offset)
 	{
-		RpakStream->SetPosition(this->GetFileOffset(Asset, TexHeader.NameIndex, TexHeader.NameOffset));
+		RpakStream->SetPosition(this->GetFileOffset(Asset, TexHeader.szdebugName.Index, TexHeader.szdebugName.Offset));
 
 		Name = Reader.ReadCString();
 	}
@@ -60,10 +60,10 @@ void RpakLib::BuildTextureInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	{
 		auto TexHeader = Reader.Read<TextureHeader>();
 
-		TextureWidth = TexHeader.Width;
-		TextureHeight = TexHeader.Height;
-		NameIndex = TexHeader.NameIndex;
-		NameOffset = TexHeader.NameOffset;
+		TextureWidth = TexHeader.width;
+		TextureHeight = TexHeader.height;
+		NameIndex = TexHeader.szdebugName.Index;
+		NameOffset = TexHeader.szdebugName.Offset;
 		break;
 	}
 	}
@@ -146,21 +146,21 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 		auto TexHeaderV9 = Reader.Read<TextureHeaderV9>();
 
-		TexHeader.NameIndex = TexHeaderV9.NameIndex;
-		TexHeader.NameOffset = TexHeaderV9.NameOffset;
-		TexHeader.Width = TexHeaderV9.Width;
-		TexHeader.Height = TexHeaderV9.Height;
-		TexHeader.Format = TexHeaderV9.Format;
-		TexHeader.DataSize = TexHeaderV9.DataSize;
+		TexHeader.szdebugName.Index = TexHeaderV9.NameIndex;
+		TexHeader.szdebugName.Offset = TexHeaderV9.NameOffset;
+		TexHeader.width = TexHeaderV9.Width;
+		TexHeader.height = TexHeaderV9.Height;
+		TexHeader.format = TexHeaderV9.Format;
+		TexHeader.dataSize = TexHeaderV9.DataSize;
 	}
 
 	Assets::DDSFormat Fmt;
+	
+	Fmt.Format = TxtrFormatToDXGI[TexHeader.format];
 
-	Fmt.Format = TxtrFormatToDXGI[TexHeader.Format];
-
-	if (TexHeader.NameIndex || TexHeader.NameOffset)
+	if (TexHeader.szdebugName.Index || TexHeader.szdebugName.Offset)
 	{
-		uint64_t NameOffset = this->GetFileOffset(Asset, TexHeader.NameIndex, TexHeader.NameOffset);
+		uint64_t NameOffset = this->GetFileOffset(Asset, TexHeader.szdebugName.Index, TexHeader.szdebugName.Offset);
 
 		RpakStream->SetPosition(NameOffset);
 
@@ -170,7 +170,7 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		Name = "";
 	}
 
-	Texture = std::make_unique<Assets::Texture>(TexHeader.Width, TexHeader.Height, Fmt.Format);
+	Texture = std::make_unique<Assets::Texture>(TexHeader.width, TexHeader.height, Fmt.Format);
 
 	uint64_t BlockSize = Texture->BlockSize();
 
@@ -188,9 +188,13 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 
 		if (this->LoadedFiles[Asset.FileIndex].OptimalStarpakMap.ContainsKey(Asset.OptimalStarpakOffset))
 		{
-			if (Asset.AssetVersion != 9)
+			if (Asset.AssetVersion != 9 && !TexHeader.mipFlags)
 			{
 				Offset += (this->LoadedFiles[Asset.FileIndex].OptimalStarpakMap[Asset.OptimalStarpakOffset] - BlockSize);
+				bStreamed = true;
+			}
+			else if (Asset.AssetVersion != 9 && TexHeader.mipFlags & 0x1)
+			{
 				bStreamed = true;
 			}
 			else
@@ -226,8 +230,8 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 			// ???: why didnt this originally just check if it also had non-opt starpak offsets and use that for the image?
 			//      then at least the image would be higher quality than the highest permanent mip
 			///
-			if (Asset.AssetVersion != 9 && Asset.Version != RpakGameVersion::R2TT)
-				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.DataSize - BlockSize);
+			if (Asset.AssetVersion != 9 && !TexHeader.mipFlags)
+				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.dataSize - BlockSize);
 			else
 				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
 		}
@@ -239,12 +243,12 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 
 		if (this->LoadedFiles[Asset.FileIndex].StarpakMap.ContainsKey(Asset.StarpakOffset))
 		{
-			if (Asset.AssetVersion != 9 && Asset.Version != RpakGameVersion::R2TT)
+			if (Asset.AssetVersion != 9 && !TexHeader.mipFlags)
 			{
 				Offset += (this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset] - BlockSize);
 				bStreamed = true;
 			}
-			else if (Asset.Version == RpakGameVersion::R2TT)
+			else if (Asset.AssetVersion != 9 && TexHeader.mipFlags & 0x1)
 			{
 				bStreamed = true;
 			}
@@ -270,8 +274,8 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		{
 			g_Logger.Warning("Starpak for asset 0x%llx is not loaded. Output may be incorrect/weird\n", Asset.NameHash);
 
-			if (Asset.AssetVersion != 9 && Asset.Version != RpakGameVersion::R2TT)
-				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.DataSize - BlockSize);
+			if (Asset.AssetVersion != 9 && !TexHeader.mipFlags)
+				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.dataSize - BlockSize);
 			else
 				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
 		}
@@ -282,8 +286,8 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		// All texture data is inline in rpak, we can calculate without anything else
 		//
 
-		if (Asset.AssetVersion != 9 && Asset.Version != RpakGameVersion::R2TT)
-			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.DataSize - BlockSize);
+		if (Asset.AssetVersion != 9 && !TexHeader.mipFlags)
+			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.dataSize - BlockSize);
 		else
 			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
 	}
@@ -303,10 +307,12 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		RpakStream->Read(Texture->GetPixels(), 0, BlockSize);
 	}
 
-	// this is a kinda dumb check but i'm assuming we'll never see rpak v6 on anything other than ps4
-	if (Asset.Version == RpakGameVersion::R2TT)
+	printf("name: %s \n compressionType %i : mipFlags %i \n  dxgi = %i \n", Name.ToCString(), TexHeader.compressionType, TexHeader.mipFlags, TexHeader.format);
+
+	// unswizzle ps4 textures
+	if (TexHeader.compressionType == 8)
 	{
-		auto UTexture = std::make_unique<Assets::Texture>(TexHeader.Width, TexHeader.Height, Fmt.Format);
+		auto UTexture = std::make_unique<Assets::Texture>(TexHeader.width, TexHeader.height, Fmt.Format);
 
 		uint8_t bpp = Texture->GetBpp();
 		int vp = (bpp * 2);
@@ -315,8 +321,8 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		if (pixbl == 1)
 			vp = bpp / 8;
 
-		int blocksY = TexHeader.Height / pixbl;
-		int blocksX = TexHeader.Width / pixbl;
+		int blocksY = TexHeader.height / pixbl;
+		int blocksX = TexHeader.width / pixbl;
 
 		uint8_t tempArray[16]{};
 		int tmp = 0;
@@ -345,4 +351,67 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 
 		Texture = std::move(UTexture);
 	}
+
+	// unswizzle switch textures
+	/*else if (TexHeader.compressionType == 9)
+	{
+		byte[] array5 = new byte[num2 * 4L];
+		byte[] array6 = new byte[16];
+
+		int num14 = this.sy / num4;
+		int num15 = this.sx / num4;
+
+		int[,] array7 = new int[num15 * 2, num14 * 2];
+
+		int num16 = num14 / 8;
+
+		if (num16 > 16)
+		{
+			num16 = 16;
+		}
+
+		int num17 = 0;
+		int num18 = 1;
+
+		if (num5 = 16)
+		{
+			num18 = 1;
+		}
+			
+		if (num5 = 8)
+		{
+			num18 = 2;
+		}
+
+		if (num5 == 4)
+		{
+			num18 = 4;
+		}
+			
+		for (int i = 0; i < num14 / 8 / num16; i++)
+		{
+			for (int j = 0; j < num15 / 4 / num18; j++)
+			{
+				for (int k = 0; k < num16; k++)
+				{
+					for (int l = 0; l < 32; l++)
+					{
+						for (int m = 0; m < num18; m++)
+						{
+							int num22 = Form1.swi[l];
+							int num23 = num22 / 4;
+							int num24 = num22 % 4;
+							fileStream.Read(array6, 0, num5);
+							int num25 = (i * num16 + k) * 8 + num23;
+							int num26 = (j * 4 + num24) * num18 + m;
+							int destination Index3 = num5 * (num25 * num15 + num26); 
+							Array.Copy(array6, 0, array5, destinationIndex3, num5);
+							array7[num26, num25] = num17; num17++;
+						}
+					}
+				}
+			}
+		}		
+		fileStream2.Write(array, 0, (int)num2);
+	}*/
 }
