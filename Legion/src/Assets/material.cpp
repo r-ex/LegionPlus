@@ -283,6 +283,9 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 		g_Logger.Info("> %i textures:\n", TexturesCount);
 	}
 
+
+	uint32_t bindingIdx = 0;
+
 	// These textures have named slots
 	for (uint32_t i = 0; i < TexturesCount; i++)
 	{
@@ -295,12 +298,11 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 
 		if (TextureHash != 0)
 		{
-
 			TextureName = string::Format("0x%llx%s", TextureHash, (const char*)ImageExtension);
 
-			if (PixelShaderResBindings.Count() > 0 && i < PixelShaderResBindings.Count())
+			if (PixelShaderResBindings.Count() > 0 && bindingIdx < PixelShaderResBindings.Count())
 			{
-				string ResName = PixelShaderResBindings[i].Name;
+				string ResName = PixelShaderResBindings[bindingIdx].Name;
 				if (!ExportManager::Config.GetBool("UseTxtrGuids"))
 				{
 					TextureName = string::Format("%s_%s%s", Result.MaterialName.ToCString(), ResName.ToCString(), (const char*)ImageExtension);
@@ -345,6 +347,8 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 				Result.CavityMapName = TextureName;
 				break;
 			}
+			bindingIdx++;
+
 		}
 
 		// Extract to disk if need be
