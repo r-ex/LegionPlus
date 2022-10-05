@@ -10,7 +10,6 @@ void RpakLib::BuildMapInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
-	SettingsHeader Header = Reader.Read<SettingsHeader>();
 
 	string Name = string::Format("map_%llx", Asset.NameHash);
 
