@@ -156,7 +156,15 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 
 	Assets::DDSFormat Fmt;
 	
-	Fmt.Format = TxtrFormatToDXGI[TexHeader.format];
+	if (TexHeader.compressionType == 9)
+	{
+		Fmt.Format = NSwitchTxtrFormatToDXGI[TexHeader.format];
+		printf("pee!!!");
+	}
+	else
+	{
+		Fmt.Format = TxtrFormatToDXGI[TexHeader.format];
+	}
 
 	if (TexHeader.szdebugName.Index || TexHeader.szdebugName.Offset)
 	{
