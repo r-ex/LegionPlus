@@ -7,6 +7,7 @@
 #include "LegionSettings.h"
 #include "LegionTitanfallConverter.h"
 #include "LegionTablePreview.h"
+#include <version.h>
 
 LegionMain::LegionMain()
 	: Forms::Form(), IsInExportMode(false)
@@ -20,7 +21,7 @@ void LegionMain::InitializeComponent()
 	this->SuspendLayout();
 	this->SetAutoScaleDimensions({ 6, 13 });
 	this->SetAutoScaleMode(Forms::AutoScaleMode::Font);
-	this->SetText("Legion+");
+	this->SetText("Legion+ " UI_VER_STR);
 	this->SetClientSize({ 844, 481 });
 	this->SetMinimumSize({ 791, 520 });
 	this->SetStartPosition(Forms::FormStartPosition::CenterScreen);
