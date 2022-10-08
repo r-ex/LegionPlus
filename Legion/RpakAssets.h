@@ -489,7 +489,7 @@ struct MaterialHeader
 	UnknownMaterialSectionV15 m_UnknownSections[2];
 	char bytef0;
 	char bytef1;
-	char bytef2;
+	char materialType;
 	char bytef3; // used for unksections loading in UpdateMaterialAsset
 	char pad_00F4[4];
 	uint64_t textureAnimationGuid;

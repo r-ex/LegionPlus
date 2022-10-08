@@ -6,6 +6,20 @@
 #include <typeinfo>
 #include <typeindex>
 
+const char* s_MaterialTypes[] = {
+	"RGDU",
+	"RGDP",
+	"RGDC",
+	"SKNU",
+	"SKNP",
+	"SKNC",
+	"WLDU",
+	"WLDC",
+	"PTCU",
+	"PTCS",
+	"RGBS",
+};
+
 void RpakLib::BuildMaterialInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 {
 	auto RpakStream = this->GetFileStream(Asset);
@@ -16,7 +30,11 @@ void RpakLib::BuildMaterialInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	MaterialHeader hdr;
 	
 	if (Asset.Version == RpakGameVersion::Apex)
+	{
 		hdr = Reader.Read<MaterialHeader>();
+
+		Info.DebugInfo = string::Format("type: %s", s_MaterialTypes[hdr.materialType]);
+	}
 	else
 	{
 		MaterialHeaderV12 temp = Reader.Read<MaterialHeaderV12>();
