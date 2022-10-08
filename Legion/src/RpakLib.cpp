@@ -620,11 +620,19 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 		}
 		case (uint32_t)AssetType_t::Material:
 		{
-			MaterialHeader SubHeader = Reader.Read<MaterialHeader>();
+			MaterialHeader hdr;
+
 			if (Asset.Version == RpakGameVersion::Apex)
-				return (SubHeader.NameIndex >= LoadedFile.StartSegmentIndex && SubHeader.TexturesIndex >= LoadedFile.StartSegmentIndex);
+				hdr = Reader.Read<MaterialHeader>();
 			else
-				return (SubHeader.NameIndex >= LoadedFile.StartSegmentIndex && SubHeader.TexturesTFIndex >= LoadedFile.StartSegmentIndex);
+			{
+				MaterialHeaderV12 temp = Reader.Read<MaterialHeaderV12>();
+
+				hdr.pszName = temp.pszName;
+				hdr.textureHandles = temp.textureHandles;
+			}
+			
+			return (hdr.pszName.Index >= LoadedFile.StartSegmentIndex && hdr.textureHandles.Index >= LoadedFile.StartSegmentIndex);
 		}
 		case (uint32_t)AssetType_t::AnimationRig:
 		{

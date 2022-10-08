@@ -435,39 +435,64 @@ struct ModelHeaderS80
 
 // MATERIALS
 // --- matl ---
+struct UnknownMaterialSectionV15
+{
+
+	// required but seems to follow a pattern. maybe related to "Unknown2" above?
+	// nulling these bytes makes the material stop drawing entirely
+	uint32_t unk1[8];
+
+	// for more details see the 'UnknownMaterialSectionV12' struct.
+	uint32_t unkRenderFlags;
+	uint16_t visFlags; // different render settings, such as opacity and transparency.
+	uint16_t faceDrawFlags; // how the face is drawn, culling, wireframe, etc.
+
+	char pad[8];
+};
+
 struct MaterialHeader
 {
-	uint8_t Unknown[0x10];
-	uint64_t Hash;
+	__int64 m_VtblReserved;
+	char m_Padding[0x8];
+	uint64_t guid; // guid of this material asset
 
-	uint32_t NameIndex;
-	uint32_t NameOffset;
-	uint32_t TypeIndex;
-	uint32_t TypeOffset;
-	uint32_t SurfaceIndex;
-	uint32_t SurfaceOffset;
+	RPakPtr pszName; // pointer to partial asset path
+	RPakPtr pszSurfaceProp; // pointer to surfaceprop (as defined in surfaceproperties.rson)
+	RPakPtr pszSurfaceProp2; // pointer to surfaceprop2 
 
-	uint64_t GUIDRefs[5];
-	uint64_t ShaderSetHash;
+	// IDX 1: DepthShadow
+	// IDX 2: DepthPrepass
+	// IDX 3: DepthVSM
+	// IDX 4: DepthShadowTight
+	// IDX 5: ColPass
+	uint64_t materialGuids[5];
+	uint64_t shaderSetGuid; // guid/ptr of shaderset asset
 
-	uint32_t TexturesIndex;
-	uint32_t TexturesOffset;
-	// Also Texture pointer, but less relevant for now.
-	uint32_t StreamableTexturesIndex;
-	uint32_t StreamableTexturesOffset;
+	RPakPtr textureHandles; // texture guids
+	RPakPtr streamingTextureHandles; // streaming texture guids
 
-	int16_t StreamableTextureCount;
-	int16_t Width;
-	int16_t Height;
-	int16_t Unused;
-	uint32_t ImageFlags; // Image Flags, they decide the tiling, stretching etc.
+	short streamingTextureCount; // number of textures with streamed mip levels.
+	short width;
+	short height;
+	short unk1;
 
-	uint8_t Unknown3[0x1C];
+	int someFlags;
+	int unk2;
 
-	uint32_t TexturesTFIndex;
-	uint32_t TexturesTFOffset;
-	uint32_t UnknownTFIndex;
-	uint32_t UnknownTFOffset;
+	int unk3;
+
+	int unk4;
+
+	int unk5;
+	int unk6;
+
+	UnknownMaterialSectionV15 m_UnknownSections[2];
+	char bytef0;
+	char bytef1;
+	char bytef2;
+	char bytef3; // used for unksections loading in UpdateMaterialAsset
+	char pad_00F4[4];
+	uint64_t textureAnimationGuid;
 };
 
 // structs taken from repak - thanks Rika
@@ -490,14 +515,14 @@ struct UnknownMaterialSectionV12
 
 struct MaterialHeaderV12
 {
-	uint64_t m_VtblReserved; // Gets set to CMaterialGlue vtbl ptr
-	uint8_t m_Padding[0x8]; // unused
+	__int64 m_VtblReserved; // Gets set to CMaterialGlue vtbl ptr
+	char m_Padding[0x8]; // unused
 
-	uint64_t m_nGUID; // guid of this material asset
+	uint64_t guid; // guid of this material asset
 
-	RPakPtr m_pszName; // pointer to partial asset path
-	RPakPtr m_pszSurfaceProp; // pointer to surfaceprop (as defined in surfaceproperties.txt)
-	RPakPtr m_pszSurfaceProp2; // pointer to surfaceprop2
+	RPakPtr pszName; // pointer to partial asset path
+	RPakPtr pszSurfaceProp; // pointer to surfaceprop (as defined in surfaceproperties.txt)
+	RPakPtr pszSurfaceProp2; // pointer to surfaceprop2
 
 	// IDX 1: DepthShadow
 	// IDX 2: DepthPrepass
@@ -505,36 +530,36 @@ struct MaterialHeaderV12
 	// IDX 4: ColPass
 	// Titanfall is does not have 'DepthShadowTight'
 
-	uint64_t m_GUIDRefs[4]; // Required to have proper textures.
+	uint64_t materialGuids[4]; // Required to have proper textures.
 
 	// these blocks dont seem to change often but are the same?
 	// these blocks relate to different render filters and flags. still not well understood.
 	UnknownMaterialSectionV12 m_UnknownSections[2];
 
-	uint64_t m_pShaderSet; // guid of the shaderset asset that this material uses
+	uint64_t shaderSetGuid; // guid of the shaderset asset that this material uses
 
-	RPakPtr m_pTextureHandles; // TextureGUID Map 1
+	RPakPtr textureHandles; // TextureGUID Map 1
 
 	// should be reserved - used to store the handles for any textures that have streaming mip levels
-	RPakPtr m_pStreamingTextureHandles;
+	RPakPtr streamingTextureHandles;
 
-	int16_t m_nStreamingTextureHandleCount; // Number of textures with streamed mip levels.
-	uint32_t m_Flags; // see ImageFlags in the apex struct.
-	int16_t m_Unk1; // might be "m_Unknown2"
+	short streamingTextureHandleCount; // Number of textures with streamed mip levels.
+	int flags; // see ImageFlags in the apex struct.
+	short unk1; // might be "m_Unknown2"
 
-	uint64_t m_Padding1; // haven't observed anything here, however I really doubt this is actually padding.
+	uint64_t unk2; // haven't observed anything here, however I really doubt this is actually padding.
 
 	// seems to be 0xFBA63181 for loadscreens
-	uint32_t m_Unknown3; // name carried over from apex struct.
+	int unk3; // name carried over from apex struct.
 
-	uint32_t m_Unk2; // this might actually be "m_Unknown4"
+	int unk4; // this might actually be "m_Unknown4"
 
-	uint32_t m_Flags2;
-	uint32_t something2; // seems mostly unchanged between all materials, including apex, however there are some edge cases where this is 0x0.
+	int flags2;
+	int something2; // seems mostly unchanged between all materials, including apex, however there are some edge cases where this is 0x0.
 
-	int16_t m_nWidth;
-	int16_t m_nHeight;
-	uint32_t m_Unk3; // might be padding but could also be something else such as "m_Unknown1"?.
+	short m_nWidth;
+	short m_nHeight;
+	int unk5; // might be padding but could also be something else such as "m_Unknown1"?.
 
 	/* ImageFlags
 	0x050300 for loadscreens, 0x1D0300 for normal materials.
