@@ -357,7 +357,9 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 			for (int i = 0; i < hdr.numtextures; i++)
 			{
 				RMdlTexture* mat = reinterpret_cast<RMdlTexture*>(studioBuf.get() + hdr.textureindex + (i * sizeof(RMdlTexture)));
-				this->ExtractMaterial(Assets[mat->MaterialHash], Fixups.MaterialPath, IncludeMaterials, true);
+
+				if(mat->MaterialHash)
+					this->ExtractMaterial(Assets[mat->MaterialHash], Fixups.MaterialPath, IncludeMaterials, true);
 			}
 		}
 		else if (Asset.AssetVersion >= 12)
