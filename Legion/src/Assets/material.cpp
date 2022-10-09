@@ -32,8 +32,11 @@ void RpakLib::BuildMaterialInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	if (Asset.Version == RpakGameVersion::Apex)
 	{
 		hdr = Reader.Read<MaterialHeader>();
+		if (Asset.AssetVersion < 20)
+		{
+			Info.DebugInfo = string::Format("type: %s", s_MaterialTypes[hdr.materialType]);
+		}
 
-		Info.DebugInfo = string::Format("type: %s", s_MaterialTypes[hdr.materialType]);
 	}
 	else
 	{
@@ -56,7 +59,7 @@ void RpakLib::BuildMaterialInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	Info.Type = ApexAssetType::Material;
 	Info.Status = ApexAssetStatus::Loaded;
 
-	uint32_t TexturesCount = (hdr.streamingTextureHandles.Offset - hdr.textureHandles.Offset) / 8;;
+	uint32_t TexturesCount = (hdr.streamingTextureHandles.Offset - hdr.textureHandles.Offset) / 8;
 
 	Info.Info = string::Format("Textures: %i", TexturesCount);
 }
