@@ -1081,7 +1081,6 @@ void RpakLib::ExtractModelLodOld(IO::BinaryReader& Reader, const std::unique_ptr
 
 			if ((Submesh.Flags1 & 0x5000) == 0x5000)
 			{
-				auto& ExternalWeights = ExternalWeightsBuffer[v];
 
 				if (ExtendedWeights.Count() > 0)
 				{
@@ -1131,22 +1130,28 @@ void RpakLib::ExtractModelLodOld(IO::BinaryReader& Reader, const std::unique_ptr
 					// These models have 3 or less weights
 					//
 
-					if (ExternalWeights.NumWeights == 0x1)
+					if (ExternalWeightsBuffer.Count() > 0)
 					{
-						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], 1.0f }, 0);
-					}
-					else if (ExternalWeights.NumWeights == 0x2)
-					{
-						float CurrentWeightTotal = (float)(Weights.BlendWeights[0] + 1) / (float)0x8000;
+						auto& ExternalWeights = ExternalWeightsBuffer[v];
 
-						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], CurrentWeightTotal }, 0);
-						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[1]], 1.0f - CurrentWeightTotal }, 1);
-					}
-					else if (ExternalWeights.NumWeights == 0x3)
-					{
-						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], ExternalWeights.SimpleWeights[0] }, 0);
-						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[1]], ExternalWeights.SimpleWeights[1] }, 1);
-						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[2]], ExternalWeights.SimpleWeights[2] }, 2);
+						if (ExternalWeights.NumWeights == 0x1)
+						{
+							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], 1.0f }, 0);
+						}
+						else if (ExternalWeights.NumWeights == 0x2)
+						{
+							float CurrentWeightTotal = (float)(Weights.BlendWeights[0] + 1) / (float)0x8000;
+
+							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], CurrentWeightTotal }, 0);
+							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[1]], 1.0f - CurrentWeightTotal }, 1);
+						}
+						else if (ExternalWeights.NumWeights == 0x3)
+						{
+							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], ExternalWeights.SimpleWeights[0] }, 0);
+							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[1]], ExternalWeights.SimpleWeights[1] }, 1);
+							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[2]], ExternalWeights.SimpleWeights[2] }, 2);
+						}
+
 					}
 				}
 			}
