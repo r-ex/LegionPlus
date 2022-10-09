@@ -31,23 +31,26 @@ void RpakLib::BuildMaterialInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	
 	if (Asset.Version == RpakGameVersion::Apex)
 	{
-		hdr = Reader.Read<MaterialHeader>();
-		if (Asset.AssetVersion < 20)
+		if (Asset.AssetVersion >= 16)
 		{
-			Info.DebugInfo = string::Format("type: %s", s_MaterialTypes[hdr.materialType]);
+			MaterialHeaderV16 hdr_v16 = Reader.Read<MaterialHeaderV16>();
+			hdr.FromV16(hdr_v16);
 		}
+		else hdr = Reader.Read<MaterialHeader>();
+
+		Info.DebugInfo = string::Format("type: %s", s_MaterialTypes[hdr.materialType]);
 
 	}
 	else
 	{
 		MaterialHeaderV12 temp = Reader.Read<MaterialHeaderV12>();
 
-		hdr.pszName = temp.pszName;
+		hdr.pName = temp.pName;
 		hdr.textureHandles = temp.textureHandles;
 		hdr.streamingTextureHandles = temp.streamingTextureHandles;
 	}
 
-	RpakStream->SetPosition(this->GetFileOffset(Asset, hdr.pszName.Index, hdr.pszName.Offset));
+	RpakStream->SetPosition(this->GetFileOffset(Asset, hdr.pName.Index, hdr.pName.Offset));
 
 	string MaterialName = Reader.ReadCString();
 
@@ -203,7 +206,7 @@ void RpakLib::ExportMaterialCPU(const RpakLoadAsset& Asset, const string& Path)
 
 	MaterialHeader MatHeader = Reader.Read<MaterialHeader>();
 
-	RpakStream->SetPosition(this->GetFileOffset(Asset, MatHeader.pszName.Index, MatHeader.pszName.Offset));
+	RpakStream->SetPosition(this->GetFileOffset(Asset, MatHeader.pName.Index, MatHeader.pName.Offset));
 
 	auto ExportFormat = (MatCPUExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("MatCPUFormat");
 
@@ -261,18 +264,25 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 	MaterialHeader hdr;
 
 	if (Asset.Version == RpakGameVersion::Apex)
-		hdr = Reader.Read<MaterialHeader>();
+	{
+		if (Asset.AssetVersion >= 16)
+		{
+			MaterialHeaderV16 hdr_v16 = Reader.Read<MaterialHeaderV16>();
+			hdr.FromV16(hdr_v16);
+		}
+		else hdr = Reader.Read<MaterialHeader>();
+	}
 	else
 	{
 		MaterialHeaderV12 temp = Reader.Read<MaterialHeaderV12>();
 
-		hdr.pszName = temp.pszName;
+		hdr.pName = temp.pName;
 		hdr.textureHandles = temp.textureHandles;
 		hdr.streamingTextureHandles = temp.streamingTextureHandles;
 		hdr.shaderSetGuid = temp.shaderSetGuid;
 	}
 
-	RpakStream->SetPosition(this->GetFileOffset(Asset, hdr.pszName.Index, hdr.pszName.Offset));
+	RpakStream->SetPosition(this->GetFileOffset(Asset, hdr.pName.Index, hdr.pName.Offset));
 
 	Result.MaterialName = IO::Path::GetFileNameWithoutExtension(Reader.ReadCString());
 

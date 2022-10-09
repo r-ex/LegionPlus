@@ -628,11 +628,11 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 			{
 				MaterialHeaderV12 temp = Reader.Read<MaterialHeaderV12>();
 
-				hdr.pszName = temp.pszName;
+				hdr.pName = temp.pName;
 				hdr.textureHandles = temp.textureHandles;
 			}
 			
-			return (hdr.pszName.Index >= LoadedFile.StartSegmentIndex && hdr.textureHandles.Index >= LoadedFile.StartSegmentIndex);
+			return (hdr.pName.Index >= LoadedFile.StartSegmentIndex && hdr.textureHandles.Index >= LoadedFile.StartSegmentIndex);
 		}
 		case (uint32_t)AssetType_t::AnimationRig:
 		{

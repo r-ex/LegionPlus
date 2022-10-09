@@ -450,15 +450,71 @@ struct UnknownMaterialSectionV15
 	char pad[8];
 };
 
+
+struct MaterialHeaderV16
+{
+	__int64 reservedVtbl; // Gets set to CMaterialGlue vtbl ptr
+	char padding[8]; // unused
+
+	uint64_t guid; // guid of this material asset
+
+	RPakPtr pName; // pointer to partial asset path
+	RPakPtr pSurfaceProp; // pointer to surfaceprop (as defined in surfaceproperties.txt)
+	RPakPtr pSurfaceProp2; // pointer to surfaceprop2 
+
+	// IDX 1: DepthShadow
+	// IDX 2: DepthPrepass
+	// IDX 3: DepthVSM
+	// IDX 4: DepthShadowTight
+	// IDX 5: ColPass
+
+	uint64_t guidRefs[5]; // Required to have proper textures.
+	uint64_t shadersetGuid; // guid of the shaderset asset that this material uses
+
+	RPakPtr pTextureHandles; // TextureGUID Map
+	RPakPtr pStreamingTextureHandles; // reserved slot for texture guids which have streamed mip levels
+	short streamingTextureCount; // reserved slot for the number of textures with streamed mip levels
+
+	short width;
+	short height;
+
+	short unknown1; // reserved texture count?
+
+	int flags; // related to cpu data
+
+	int unknown2;
+	int unknown3;
+	int unknown4;
+
+	__int64 flags2;
+
+	UnknownMaterialSectionV15 unknownSections;
+
+	int unk_v16[2];
+
+	byte bytef0;
+	byte bytef1;
+
+	byte materialType; // used '4' and '8' observed
+
+	byte bytef3; // used for unksections loading in UpdateMaterialAsset
+
+	int unk;
+
+	__int64 textureAnimationGuid;
+
+	int unk1_v16[6];
+};
+
 struct MaterialHeader
 {
 	__int64 m_VtblReserved;
 	char m_Padding[0x8];
 	uint64_t guid; // guid of this material asset
 
-	RPakPtr pszName; // pointer to partial asset path
-	RPakPtr pszSurfaceProp; // pointer to surfaceprop (as defined in surfaceproperties.rson)
-	RPakPtr pszSurfaceProp2; // pointer to surfaceprop2 
+	RPakPtr pName; // pointer to partial asset path
+	RPakPtr pSurfaceProp; // pointer to surfaceprop (as defined in surfaceproperties.rson)
+	RPakPtr pSurfaceProp2; // pointer to surfaceprop2 
 
 	// IDX 1: DepthShadow
 	// IDX 2: DepthPrepass
@@ -493,6 +549,30 @@ struct MaterialHeader
 	char bytef3; // used for unksections loading in UpdateMaterialAsset
 	char pad_00F4[4];
 	uint64_t textureAnimationGuid;
+
+	void FromV16(MaterialHeaderV16& mhn)
+	{
+		guid = mhn.guid;
+		pName = mhn.pName;
+		pSurfaceProp = mhn.pSurfaceProp;
+		pSurfaceProp2 = mhn.pSurfaceProp2;
+
+		std::memcpy(&materialGuids, &mhn.guidRefs, sizeof(mhn.guidRefs));
+
+		shaderSetGuid = mhn.shadersetGuid;
+		textureHandles = mhn.pTextureHandles;
+		streamingTextureHandles = mhn.pStreamingTextureHandles;
+		streamingTextureCount = mhn.streamingTextureCount;
+		width = mhn.width;
+		height = mhn.height;
+		unk1 = mhn.unknown1;
+		someFlags = mhn.flags;
+		unk2 = mhn.unknown2;
+		unk3 = mhn.unknown3;
+		unk4 = mhn.unknown4;
+		materialType = mhn.materialType;
+		textureAnimationGuid = mhn.textureAnimationGuid;
+	}
 };
 
 // structs taken from repak - thanks Rika
@@ -520,9 +600,9 @@ struct MaterialHeaderV12
 
 	uint64_t guid; // guid of this material asset
 
-	RPakPtr pszName; // pointer to partial asset path
-	RPakPtr pszSurfaceProp; // pointer to surfaceprop (as defined in surfaceproperties.txt)
-	RPakPtr pszSurfaceProp2; // pointer to surfaceprop2
+	RPakPtr pName; // pointer to partial asset path
+	RPakPtr pSurfaceProp; // pointer to surfaceprop (as defined in surfaceproperties.txt)
+	RPakPtr pSurfaceProp2; // pointer to surfaceprop2
 
 	// IDX 1: DepthShadow
 	// IDX 2: DepthPrepass
