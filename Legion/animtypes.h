@@ -1,53 +1,128 @@
 #pragma once
 #include <cstdint>
 
+enum eventtype : uint8_t
+{
+	NEW_EVENT_STYLE = (1 << 10),
+};
+
+struct mstudioeventv54_t
+{
+	float cycle;
+	int	event;
+	eventtype type; // this will be 0 if old style I'd imagine
+	char options[256];
+
+	int szeventindex;
+};
+
+struct mstudioactivitymodifierv53_t
+{
+	int sznameindex;
+	int unk; // 0 or 1 observed.
+};
+
 struct mstudioseqdesc_t
 {
 	int baseptr;
-	int szlabelindex;
-	int szactivitynameindex;
-	int flags;
 
-	int activity;
+	int	szlabelindex;
+
+	int szactivitynameindex;
+
+	int flags; // looping/non-looping flags
+
+	int activity; // initialized at loadtime to game DLL values
 	int actweight;
 
 	int numevents;
 	int eventindex;
 
-	float bbmin[3];
-	float bbmax[3];
+	Vector3 bbmin; // per sequence bounding box
+	Vector3 bbmax;
 
 	int numblends;
+
+	// Index into array of shorts which is groupsize[0] x groupsize[1] in length
 	int animindexindex;
 
-	// there is more but we don't need to use it here. see respawn-mdl/rmdl/rmdl_structs.bt at mstudioseqdesc_t_v54
+	int movementindex; // [blend] float array for blended movement
+	int groupsize[2];
+	int paramindex[2]; // X, Y, Z, XR, YR, ZR
+	Vector2 paramstart; // local (0..1) starting value
+	Vector2 paramend; // local (0..1) ending value
+	int paramparent;
+
+	float fadeintime; // ideal cross fate in time (0.2 default)
+	float fadeouttime; // ideal cross fade out time (0.2 default)
+
+	int localentrynode; // transition node at entry
+	int localexitnode; // transition node at exit
+	int nodeflags; // transition rules
+
+	float entryphase; // used to match entry gait
+	float exitphase; // used to match exit gait
+
+	float lastframe; // frame that should generation EndOfSequence
+
+	int nextseq; // auto advancing sequences
+	int pose; // index of delta animation between end and nextseq
+
+	int numikrules;
+
+	int numautolayers;
+	int autolayerindex;
+
+	int weightlistindex;
+
+	int posekeyindex;
+
+	int numiklocks;
+	int iklockindex;
+
+	// Key values
+	int keyvalueindex;
+	int keyvaluesize;
+
+	int cycleposeindex; // index of pose parameter to use as cycle index
+
+	int activitymodifierindex;
+	int numactivitymodifiers;
+
+	int unk;
+	int unk1;
+
+	int unkindex;
+
+	int unk2;
 };
 
 struct mstudioanimdescv54_t
 {
 	int baseptr;
+
 	int sznameindex;
 
-	float fps;
+	float fps; // frames per second
+	int flags; // looping/non-looping flags
 
-	int flags;
 	int numframes;
 
+	// piecewise movement
 	int nummovements;
 	int movementindex;
 
 	int compressedikerrorindex;
-	int animindex;
+	int animindex; // non-zero when anim data isn't in sections
 
-	int Flags2;
-	int UnknownTableOffset;
+	int numikrules;
+	int ikruleindex; // non-zero when IK data is stored in the mdl
 
-
-	int sectionindex; // was chunk offset
-	int FrameSplitCount;
-	int FrameMedianCount;
-	uint64_t Padding;
-	uint64_t SomeDataOffset;
+	int sectionindex;
+	int sectionframes; // number of frames used in each fast lookup section, zero if not used
+	int mediancount;
+	uint64_t padding;
+	uint64_t somedataoffset;
 };
 
 struct mstudioanimdescv53_t

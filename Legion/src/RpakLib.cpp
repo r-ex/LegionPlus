@@ -155,7 +155,7 @@ void RpakLib::PatchAssets()
 }
 
 //std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims, bool Images, bool Materials, bool UIImages, bool DataTables)
-std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(const std::array<bool, 10> &arrAssets)
+std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(const std::array<bool, 11> &arrAssets)
 {
 	auto Result = std::make_unique<List<ApexAsset>>();
 
@@ -179,43 +179,48 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(const std::array<bool, 
 				continue;
 			BuildAnimInfo(Asset, NewAsset);
 			break;
-		case (uint32_t)AssetType_t::Texture:
+		case (uint32_t)AssetType_t::Animation:
 			if (!arrAssets[2])
+				continue;
+			BuildRawAnimInfo(Asset, NewAsset);
+			break;
+		case (uint32_t)AssetType_t::Texture:
+			if (!arrAssets[3])
 				continue;
 			BuildTextureInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::Material:
-			if (!arrAssets[3])
+			if (!arrAssets[4])
 				continue;
 			BuildMaterialInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::UIIA:
-			if (!arrAssets[4])
+			if (!arrAssets[5])
 				continue;
 			BuildUIIAInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::DataTable:
-			if (!arrAssets[5])
+			if (!arrAssets[6])
 				continue;
 			BuildDataTableInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::ShaderSet:
-			if (!arrAssets[6])
+			if (!arrAssets[7])
 				continue;
 			BuildShaderSetInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::Settings:
-			if (!arrAssets[7])
+			if (!arrAssets[9])
 				continue;
 			BuildSettingsInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::SettingsLayout:
-			if (!arrAssets[7])
+			if (!arrAssets[9])
 				continue;
 			BuildSettingsLayoutInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::RSON:
-			if (!arrAssets[8])
+			if (!arrAssets[10])
 				continue;
 			BuildRSONInfo(Asset, NewAsset);
 			break;
