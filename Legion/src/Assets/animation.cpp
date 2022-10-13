@@ -431,30 +431,30 @@ void RpakLib::ExportAnimationSeq(const RpakLoadAsset& Asset, const string& Path)
 
 	// WIP EXTERNAL DATA
 
-	if (StarpakStream != nullptr && AnHeader.pExternalData.Index && AnHeader.externalDataSize > 0)
-	{
-		//RpakStream->SetPosition(AnimationOffset + );
+	//if (StarpakStream != nullptr && AnHeader.pExternalData.Index && AnHeader.externalDataSize > 0)
+	//{
+	//	//RpakStream->SetPosition(AnimationOffset + );
 
 
 
-		char* externalBuf = new char[AnHeader.externalDataSize];
-	
-		if (StarpakStream != nullptr)
-		{
-			StarpakStream->SetPosition(starpakDataOffset);
-			StarpakStream->Read((uint8_t*)externalBuf, 0, AnHeader.externalDataSize);
-		}
-		else
-		{
-			RpakStream->SetPosition(AnimationOffset + AnHeader.pExternalData.Index);
-			RpakStream->Read((uint8_t*)externalBuf, 0, AnHeader.externalDataSize);
-		}
-	
-	
-		std::ofstream externalOut(IO::Path::ChangeExtension(AnimSetPath, ".ExternalData"), std::ios::out | std::ios::binary);
-		externalOut.write(externalBuf, AnHeader.externalDataSize);
-		externalOut.close();
-	}
+	//	char* externalBuf = new char[AnHeader.externalDataSize];
+	//
+	//	if (StarpakStream != nullptr)
+	//	{
+	//		StarpakStream->SetPosition(starpakDataOffset);
+	//		StarpakStream->Read((uint8_t*)externalBuf, 0, AnHeader.externalDataSize);
+	//	}
+	//	else
+	//	{
+	//		RpakStream->SetPosition(AnimationOffset + AnHeader.pExternalData.Index);
+	//		RpakStream->Read((uint8_t*)externalBuf, 0, AnHeader.externalDataSize);
+	//	}
+	//
+	//
+	//	std::ofstream externalOut(IO::Path::ChangeExtension(AnimSetPath, ".ExternalData"), std::ios::out | std::ios::binary);
+	//	externalOut.write(externalBuf, AnHeader.externalDataSize);
+	//	externalOut.close();
+	//}
 	
 
 }
