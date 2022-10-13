@@ -302,6 +302,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				true, // LoadRSONs
 				false // LoadEffects not ready yet.
 				};
+
+				AssetList = Rpak->BuildAssetList(bAssets);
 			}
 			else
 			{
