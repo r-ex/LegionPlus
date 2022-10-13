@@ -239,12 +239,15 @@ void ExportManager::ExportRpakAssets(const std::unique_ptr<RpakLib>& RpakFileSys
 
 			{
 				std::lock_guard<std::mutex> UpdateLock(UpdateMutex);
-				auto NewProgress = (uint32_t)(((float)AssetToConvert / (float)ExportAssets.Count()) * 100.f);
+				auto NewProgress = (uint32_t)(((float)(AssetToConvert + 1) / ((float)ExportAssets.Count())) * 100.f);
 
 				if (NewProgress > CurrentProgress)
 				{
 					CurrentProgress = NewProgress;
-					ProgressCallback(NewProgress, MainForm, false);
+					if (NewProgress >= 100)
+						ProgressCallback(100, MainForm, true);
+					else
+						ProgressCallback(NewProgress, MainForm, false);
 				}
 			}
 		}

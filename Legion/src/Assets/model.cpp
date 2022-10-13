@@ -63,7 +63,11 @@ void RpakLib::ExportModel(const RpakLoadAsset& Asset, const string& Path, const 
 
 	if (Model && this->ModelExporter)
 	{
-		string DestinationPath = IO::Path::Combine(IO::Path::Combine(Path, Model->Name), Model->Name + "_LOD0" + (const char*)ModelExporter->ModelExtension());
+		string DestinationPath{};
+		if (ExportManager::Config.GetBool("UseFullPaths"))
+			DestinationPath = IO::Path::Combine(IO::Path::Combine(Path, IO::Path::Combine(Model->EnginePath, Model->Name)), Model->Name + "_LOD0" + (const char*)ModelExporter->ModelExtension());
+		else
+			DestinationPath = IO::Path::Combine(IO::Path::Combine(Path, Model->Name), Model->Name + "_LOD0" + (const char*)ModelExporter->ModelExtension());
 
 		if (Utils::ShouldWriteFile(DestinationPath))
 			this->ModelExporter->ExportModel(*Model.get(), DestinationPath);
@@ -125,11 +129,15 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 	string RawModelName = Reader.ReadCString();
 	string ModelName = IO::Path::GetFileNameWithoutExtension(RawModelName);
-	string ModelPath = IO::Path::Combine(Path, ModelName);
+	bool ExportFullPaths = ExportManager::Config.GetBool("UseFullPaths");
+
+	string ModelInternalPath = IO::Path::GetDirectoryName(RawModelName);
+	string ModelPath = IO::Path::Combine(Path, ExportFullPaths ? IO::Path::Combine(ModelInternalPath, ModelName) : ModelName);
 	string TexturePath = IO::Path::Combine(ModelPath, "_images");
 	string AnimationPath = IO::Path::Combine(AnimPath, ModelName);
 
 	Model->Name = ModelName;
+	Model->EnginePath = ModelInternalPath;
 
 	if (IncludeMaterials)
 	{
@@ -386,7 +394,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 			if (dataSize < 32)
 			{
 				// here we go again
-				
+
 				StarpakStream->SetPosition(Offset);
 				auto vg = StarpakReader.Read<RMdlVGHeader>();
 
