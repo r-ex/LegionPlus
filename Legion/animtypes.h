@@ -16,6 +16,20 @@ struct mstudioeventv54_t
 	int szeventindex;
 };
 
+// rseq v10
+struct mstudioevent54_t_v122
+{
+	float cycle;
+	int	event;
+	eventtype type; // this will be 0 if old style I'd imagine
+
+	int unk;
+
+	char options[256]; // this is the only difference compared to normal v54
+	int szeventindex;
+};
+
+
 struct mstudioactivitymodifierv53_t
 {
 	int sznameindex;
@@ -97,6 +111,50 @@ struct mstudioseqdesc_t
 	int unk2;
 };
 
+
+// rseq v7.1
+struct mstudioanimdesc_t_mod
+{
+	int baseptr;
+
+	int sznameindex;
+
+	float fps; // frames per second
+	int flags; // looping/non-looping flags
+
+	int numframes;
+
+	// piecewise movement
+	int nummovements;
+	int movementindex;
+
+	int compressedikerrorindex;
+	int animindex; // non-zero when anim data isn't in sections
+
+	int numikrules;
+	int ikruleindex; // non-zero when IK data is stored in the mdl
+
+	int sectionindex;
+
+	int unk; // what, obviously section related as it's wedged between sectionindex and sectiom frames
+
+	int sectionframes; // number of frames used in each fast lookup section, zero if not used
+
+	int unk1[4];
+
+	// for data transfer
+	int mediancount;
+	uint64_t somedataoffset;
+
+	//int unk1; // Padding
+	//int unk2; // Padding
+	//int unk3; // SomeDataOffset
+	//int unk4; // SomeDataOffset
+
+	// it seems like there's another int here but I'm unsure
+};
+
+
 struct mstudioanimdescv54_t
 {
 	int baseptr;
@@ -124,6 +182,46 @@ struct mstudioanimdescv54_t
 	uint64_t padding;
 	uint64_t somedataoffset;
 };
+
+
+// rseq v7.1
+struct mstudioanimdescv54_t_v121
+{
+	int baseptr;
+
+	int sznameindex;
+
+	float fps; // frames per second
+	int flags; // looping/non-looping flags
+
+	int numframes;
+
+	// piecewise movement
+	int nummovements;
+	int movementindex;
+
+	int compressedikerrorindex;
+	int animindex; // non-zero when anim data isn't in sections
+
+	int numikrules;
+	int ikruleindex; // non-zero when IK data is stored in the mdl
+
+	int sectionindex;
+
+	int unk; // what, obviously section related as it's wedged between sectionindex and sectiom frames
+
+	int sectionframes; // number of frames used in each fast lookup section, zero if not used
+
+	int unk1[4];
+
+	//int unk1; // Padding
+	//int unk2; // Padding
+	//int unk3; // SomeDataOffset
+	//int unk4; // SomeDataOffset
+
+	// it seems like there's another int here but I'm unsure
+};
+
 
 struct mstudioanimdescv53_t
 {

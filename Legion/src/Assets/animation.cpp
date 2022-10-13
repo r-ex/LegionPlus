@@ -40,13 +40,13 @@ void RpakLib::BuildRawAnimInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	AnimHeader AnHeader = Reader.Read<AnimHeader>();
+	ASeqHeader AnHeader = Reader.Read<ASeqHeader>();
 
-	RpakStream->SetPosition(this->GetFileOffset(Asset, AnHeader.NameIndex, AnHeader.NameOffset));
+	RpakStream->SetPosition(this->GetFileOffset(Asset, AnHeader.pName.Index, AnHeader.pName.Offset));
 
 	string AnimName = Reader.ReadCString();
 
-	const uint64_t AnimationOffset = this->GetFileOffset(Asset, AnHeader.AnimationIndex, AnHeader.AnimationOffset);
+	const uint64_t AnimationOffset = this->GetFileOffset(Asset, AnHeader.pAnimation.Index, AnHeader.pAnimation.Offset);
 
 	RpakStream->SetPosition(AnimationOffset);
 
@@ -122,9 +122,9 @@ void RpakLib::ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path)
 
 			AnimStream->SetPosition(this->GetFileOffset(SeqAsset, SeqAsset.SubHeaderIndex, SeqAsset.SubHeaderOffset));
 
-			AnimHeader AnHeader = AnimReader.Read<AnimHeader>();
+			ASeqHeader AnHeader = AnimReader.Read<ASeqHeader>();
 
-			AnimStream->SetPosition(this->GetFileOffset(SeqAsset, AnHeader.NameIndex, AnHeader.NameOffset));
+			AnimStream->SetPosition(this->GetFileOffset(SeqAsset, AnHeader.pName.Index, AnHeader.pName.Offset));
 
 			string SeqName = AnimReader.ReadCString();
 			string SeqSetName = IO::Path::GetFileNameWithoutExtension(SeqName);
@@ -132,7 +132,7 @@ void RpakLib::ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path)
 
 			g_Logger.Info("-> %s\n", SeqName.ToCString());
 
-			const uint64_t AnimationOffset = this->GetFileOffset(SeqAsset, AnHeader.AnimationIndex, AnHeader.AnimationOffset);
+			const uint64_t AnimationOffset = this->GetFileOffset(SeqAsset, AnHeader.pAnimation.Index, AnHeader.pAnimation.Offset);
 
 			this->ExportAnimationSeq(Assets[AnimHash], AnimSetPath);
 
@@ -173,8 +173,6 @@ void RpakLib::ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path)
 	}
 }
 
-
-
 string RpakLib::ExtractAnimationSeq(const RpakLoadAsset& Asset)
 {
 	auto RpakStream = this->GetFileStream(Asset);
@@ -182,9 +180,9 @@ string RpakLib::ExtractAnimationSeq(const RpakLoadAsset& Asset)
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	AnimHeader AnHeader = Reader.Read<AnimHeader>();
+	ASeqHeader AnHeader = Reader.Read<ASeqHeader>();
 
-	RpakStream->SetPosition(this->GetFileOffset(Asset, AnHeader.NameIndex, AnHeader.NameOffset));
+	RpakStream->SetPosition(this->GetFileOffset(Asset, AnHeader.pName.Index, AnHeader.pName.Offset));
 
 	return Reader.ReadCString();
 }
@@ -208,7 +206,7 @@ string RpakLib::ExtractAnimationRig(const RpakLoadAsset& Asset)
 struct FilterOffset
 {
 	int offset;
-	int count = 1;
+	uint32_t count = 1;
 };
 
 bool FilterByOffset(FilterOffset const& x, FilterOffset const& y)
@@ -225,11 +223,59 @@ void RpakLib::ExportAnimationSeq(const RpakLoadAsset& Asset, const string& Path)
 	if (AnimFormat != AnimExportFormat_t::RAnim)
 		return;
 
+	if (Asset.RawDataIndex != -1)
+		int test = 0;
+
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	AnimHeader AnHeader = Reader.Read<AnimHeader>();
+	ASeqHeaderV10 AnHeader{};
+	switch (Asset.SubHeaderSize)
+	{
+	case 0x30: // 7
+	{
+		ASeqHeader AnHeaderTMP = Reader.Read<ASeqHeader>();
 
-	RpakStream->SetPosition(this->GetFileOffset(Asset, AnHeader.NameIndex, AnHeader.NameOffset));
+		AnHeader = {
+			AnHeaderTMP.pAnimation,
+			AnHeaderTMP.pName,
+			0,
+			AnHeaderTMP.ModelCount,
+			AnHeaderTMP.SettingCount,
+			0,
+			AnHeaderTMP.pModels,
+			{},
+			AnHeaderTMP.pSettings,
+			{}
+		};
+		break;
+	}
+	case 0x38: // 7.1
+	{
+		ASeqHeaderV71 AnHeaderTMP = Reader.Read<ASeqHeaderV71>();
+
+		AnHeader = {
+			AnHeaderTMP.pAnimation,
+			AnHeaderTMP.pName,
+			0,
+			AnHeaderTMP.ModelCount,
+			AnHeaderTMP.SettingCount,
+			AnHeaderTMP.externalDataSize,
+			AnHeaderTMP.pModels,
+			{},
+			AnHeaderTMP.pSettings,
+			AnHeaderTMP.pExternalData
+		};
+
+		break;
+	}
+	case 0x40: // 10
+	{
+		AnHeader = Reader.Read<ASeqHeaderV10>();
+		break;
+	}
+	}
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, AnHeader.pName.Index, AnHeader.pName.Offset));
 
 	string FullAnimSetName = Reader.ReadCString();
 	string AnimSetPath = IO::Path::Combine(Path, FullAnimSetName);
@@ -237,7 +283,7 @@ void RpakLib::ExportAnimationSeq(const RpakLoadAsset& Asset, const string& Path)
 
 	IO::Directory::CreateDirectory(FolderPath);
 
-	const uint64_t AnimationOffset = this->GetFileOffset(Asset, AnHeader.AnimationIndex, AnHeader.AnimationOffset);
+	const uint64_t AnimationOffset = this->GetFileOffset(Asset, AnHeader.pAnimation.Index, AnHeader.pAnimation.Offset);
 
 	RpakStream->SetPosition(AnimationOffset);
 
@@ -245,17 +291,20 @@ void RpakLib::ExportAnimationSeq(const RpakLoadAsset& Asset, const string& Path)
 
 	RpakStream->SetPosition(AnimationOffset);
 
-	uint64_t OffsetOfStarpakData = 0;
+	uint64_t ActualStarpakOffset = Asset.StarpakOffset & 0xFFFFFFFFFFFFFF00;
+	uint64_t ActualOptStarpakOffset = Asset.OptimalStarpakOffset & 0xFFFFFFFFFFFFFF00;
+
+	uint64_t starpakDataOffset = 0;
 	std::unique_ptr<IO::FileStream> StarpakStream = nullptr;
 
 	if (Asset.OptimalStarpakOffset != -1)
 	{
-		OffsetOfStarpakData = Asset.StarpakOffset & 0xFFFFFFFFFFFFFF00;
+		starpakDataOffset = ActualOptStarpakOffset;
 		StarpakStream = this->GetStarpakStream(Asset, true);
 	}
 	else if (Asset.StarpakOffset != -1)
 	{
-		OffsetOfStarpakData = Asset.OptimalStarpakOffset & 0xFFFFFFFFFFFFFF00;
+		starpakDataOffset = ActualStarpakOffset;
 		StarpakStream = this->GetStarpakStream(Asset, false);
 	}
 
@@ -274,20 +323,58 @@ void RpakLib::ExportAnimationSeq(const RpakLoadAsset& Asset, const string& Path)
 
 	for (int i = 0; i < seqdesc.numblends; i++)
 	{
-		RpakStream->SetPosition(AnimationOffset + Blends[i]);
-
 		const uint64_t AnimHeaderPointer = AnimationOffset + Blends[i];
 
-		mstudioanimdescv54_t animdesc = Reader.Read<mstudioanimdescv54_t>();
+		RpakStream->SetPosition(AnimHeaderPointer);
+
+		mstudioanimdesc_t_mod animdesc{};
+
+		switch (Asset.SubHeaderSize)
+		{
+		case 0x30: // 7
+		{
+			mstudioanimdescv54_t animdescTMP = Reader.Read<mstudioanimdescv54_t>();
+			std::memcpy(&animdesc, &animdescTMP, offsetof(mstudioanimdescv54_t, sectionindex));
+
+			animdesc.mediancount = animdescTMP.mediancount;
+			animdesc.somedataoffset = animdescTMP.somedataoffset;
+			animdesc.sectionframes = animdescTMP.sectionframes;
+
+			break;
+		}
+		case 0x38 || 0x40: // 7.1 / 10
+		{
+			mstudioanimdescv54_t_v121 animdescTMP = Reader.Read<mstudioanimdescv54_t_v121>();
+			std::memcpy(&animdesc, &animdescTMP, sizeof(mstudioanimdescv54_t_v121));
+			break;
+		}
+		}
+
 
 		if (seqdesc.numevents > 0)
 		{
 			RpakStream->SetPosition(AnimationOffset + seqdesc.eventindex);
 			for (int i = 0; i < seqdesc.numevents; i++)
 			{
-				auto Data = Reader.Read<mstudioeventv54_t>();
+				FilterOffset InputData = { 0 , seqdesc.numevents };
 
-				FilterOffset InputData = { sizeof(mstudioseqdesc_t) + Data.szeventindex , seqdesc.numevents };
+				switch (Asset.SubHeaderSize)
+				{
+				case 0x30 || 0x38: // 7 / 7.1
+				{
+					auto Data = Reader.Read<mstudioeventv54_t>();
+
+					InputData.offset = sizeof(mstudioseqdesc_t) + Data.szeventindex;
+					break;
+				}
+				case 0x40: // 10
+				{
+					auto Data = Reader.Read<mstudioevent54_t_v122>();
+					InputData.offset = sizeof(mstudioseqdesc_t) + Data.szeventindex;
+					break;
+				}
+				}
+
 				Filter.push_back(InputData);
 			}
 		}
@@ -334,6 +421,32 @@ void RpakLib::ExportAnimationSeq(const RpakLoadAsset& Asset, const string& Path)
 	std::ofstream rseqOut(AnimSetPath, std::ios::out | std::ios::binary);
 	rseqOut.write(rseqBuf, RSeqSize);
 	rseqOut.close();
+
+
+	// WIP EXTERNAL DATA
+
+	//if (StarpakStream != nullptr && AnHeader.pExternalData.Index && AnHeader.externalDataSize > 0)
+	//{
+	//	char* externalBuf = new char[AnHeader.externalDataSize];
+	//
+	//	if (StarpakStream != nullptr)
+	//	{
+	//		StarpakStream->SetPosition(starpakDataOffset);
+	//		StarpakStream->Read((uint8_t*)externalBuf, 0, AnHeader.externalDataSize);
+	//	}
+	//	else
+	//	{
+	//		RpakStream->SetPosition(starpakDataOffset);
+	//		RpakStream->Read((uint8_t*)externalBuf, 0, AnHeader.externalDataSize);
+	//	}
+	//
+	//
+	//	std::ofstream externalOut(IO::Path::ChangeExtension(AnimSetPath, ".ExternalData"), std::ios::out | std::ios::binary);
+	//	externalOut.write(externalBuf, AnHeader.externalDataSize);
+	//	externalOut.close();
+	//}
+	
+
 }
 
 
@@ -344,13 +457,13 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	AnimHeader animHeader = Reader.Read<AnimHeader>();
+	ASeqHeader animHeader = Reader.Read<ASeqHeader>();
 
-	RpakStream->SetPosition(this->GetFileOffset(Asset, animHeader.NameIndex, animHeader.NameOffset));
+	RpakStream->SetPosition(this->GetFileOffset(Asset, animHeader.pName.Index, animHeader.pName.Offset));
 
 	string animName = IO::Path::GetFileNameWithoutExtension(Reader.ReadCString());
 
-	const uint64_t seqOffset = this->GetFileOffset(Asset, animHeader.AnimationIndex, animHeader.AnimationOffset);
+	const uint64_t seqOffset = this->GetFileOffset(Asset, animHeader.pAnimation.Index, animHeader.pAnimation.Offset);
 
 	RpakStream->SetPosition(seqOffset);
 

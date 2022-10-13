@@ -299,18 +299,60 @@ struct PatchHeader
 
 // ANIMATIONS
 // --- aseq ---
-struct AnimHeader
+struct ASeqHeader
 {
-	uint32_t AnimationIndex;
-	uint32_t AnimationOffset;
+	RPakPtr pAnimation;
+	RPakPtr pName;
 
-	uint32_t NameIndex;
-	uint32_t NameOffset;
+	RPakPtr pModels;
+	uint32_t ModelCount;
+	uint32_t Reserved;
 
-	uint8_t Unknown[0x18];
+	RPakPtr pSettings;
+	uint32_t SettingCount;
+	uint32_t Reserved1;
+};
 
-	uint32_t ModelHashIndex;
-	uint32_t ModelHashOffset;
+struct ASeqHeaderV71
+{
+	RPakPtr pAnimation;
+	RPakPtr pName;
+
+	RPakPtr pModels;
+	uint32_t ModelCount;
+
+	uint32_t externalDataSize;
+
+	// this can point to a group of guids and not one singular one.
+	RPakPtr pSettings;
+	uint32_t SettingCount;
+	uint32_t Reserved1;
+
+	// pointer to data stored outside of the raw rseq.
+	RPakPtr pExternalData;
+};
+
+struct ASeqHeaderV10
+{
+	RPakPtr pAnimation;
+	RPakPtr pName;
+
+	uint64_t Unknown; // possible pointer, guid, or reserved space.
+
+	// counts for mdl_ and stgs assets, normally just one but can be multiples.
+	uint32_t ModelCount;
+	uint32_t SettingCount;
+
+	// size of the external data.
+	uint32_t externalDataSize;
+
+	// these can all point to a group of guids and not one singular one.
+	RPakPtr pModels;
+	RPakPtr pEffects;
+	RPakPtr pSettings;
+
+	// data that is stored outside of the raw rseq.
+	RPakPtr pExternalData;
 };
 
 // --- arig ---
@@ -1177,7 +1219,7 @@ ASSERT_SIZE(SettingsKeyValue, 0x8);
 ASSERT_SIZE(SettingsKeyValuePair, 0x10);
 ASSERT_SIZE(ModelHeaderS68, 0x78);
 ASSERT_SIZE(ModelHeaderS80, 0x80);
-ASSERT_SIZE(AnimHeader, 0x30);
+ASSERT_SIZE(ASeqHeader, 0x30);
 ASSERT_SIZE(AnimRigHeader, 0x28);
 ASSERT_SIZE(mstudioseqdesc_t, 0xD0);
 

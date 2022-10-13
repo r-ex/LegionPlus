@@ -206,7 +206,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 	if (!bExportingRawRMdl)
 		Model->GenerateGlobalTransforms(true, true); // We need global transforms
 
-	if (IncludeAnimations && ModHeader.animSeqCount > 0 && Asset.AssetVersion > 9 && !bExportingRawRMdl)
+	if (IncludeAnimations && ModHeader.animSeqCount > 0 && Asset.AssetVersion > 9)
 	{
 		IO::Directory::CreateDirectory(AnimationPath);
 
@@ -220,7 +220,10 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 				continue;	// Should never happen
 
 			// We need to make sure the skeleton is kept alive (copied) here...
-			this->ExtractAnimation(Assets[AnimHash], Model->Bones, AnimationPath);
+			if (!bExportingRawRMdl)
+				this->ExtractAnimation(Assets[AnimHash], Model->Bones, AnimationPath);
+			else
+				this->ExportAnimationSeq(Assets[AnimHash], AnimationPath);
 		}
 	}
 

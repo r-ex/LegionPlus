@@ -230,7 +230,7 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(const std::array<bool, 
 			BuildRUIInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::Effect:
-			if (!arrAssets[9])
+			if (!arrAssets[10])
 				continue;
 			BuildEffectInfo(Asset, NewAsset);
 			break;
@@ -646,8 +646,8 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 		}
 		case (uint32_t)AssetType_t::Animation:
 		{
-			AnimHeader SubHeader = Reader.Read<AnimHeader>();
-			return (SubHeader.AnimationIndex >= LoadedFile.StartSegmentIndex);
+			ASeqHeader SubHeader = Reader.Read<ASeqHeader>();
+			return (SubHeader.pAnimation.Index >= LoadedFile.StartSegmentIndex);
 		}
 		case (uint32_t)AssetType_t::DataTable:
 		{
