@@ -19,23 +19,20 @@ void RpakLib::BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 		}
 		else
 		{
-			ModelHeaderS50 ModHeaderTmp = Reader.Read<ModelHeaderS50>();
-			ModHeader.SkeletonIndex = ModHeaderTmp.SkeletonIndex;
-			ModHeader.SkeletonOffset = ModHeaderTmp.SkeletonOffset;
-
-			ModHeader.NameIndex = ModHeaderTmp.NameIndex;
-			ModHeader.NameOffset = ModHeaderTmp.NameOffset;
-			// we don't need the rest here
+			ModelHeaderS50 mht = Reader.Read<ModelHeaderS50>();
+			ModHeader.pRMDL = { mht.SkeletonIndex , mht.SkeletonOffset };
+			ModHeader.pName = { mht.NameIndex , mht.NameOffset };
+			ModHeader.pPhyData = { mht.PhyIndex , mht.PhyOffset };
+			ModHeader.alignedStreamingSize = mht.StreamedDataSize;
 		}
 	}
 	else
 	{
 		ModelHeaderS80 ModHeaderTmp = Reader.Read<ModelHeaderS80>();
 		std::memcpy(&ModHeader, &ModHeaderTmp, offsetof(ModelHeaderS80, DataFlags));
-		std::memcpy(&ModHeader.AnimSequenceCount, &ModHeaderTmp.AnimSequenceCount, sizeof(uint32_t) * 3);
+		std::memcpy(&ModHeader.animSeqCount, &ModHeaderTmp.AnimSequenceCount, sizeof(uint32_t) * 3);
 	}
-
-	RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.NameIndex, ModHeader.NameOffset));
+	RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.pName.Index, ModHeader.pName.Offset));
 
 	string ModelName = Reader.ReadCString();
 
@@ -46,13 +43,13 @@ void RpakLib::BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	Info.Type = ApexAssetType::Model;
 
-	RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.SkeletonIndex, ModHeader.SkeletonOffset));
+	RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.pRMDL.Index, ModHeader.pRMDL.Offset));
 
 	studiohdr_t SkeletonHeader = Reader.Read<studiohdr_t>();
 
-	if (ModHeader.AnimSequenceCount > 0)
+	if (ModHeader.animSeqCount > 0)
 	{
-		Info.Info = string::Format("Bones: %d, Meshes: %d, Animations: %d", SkeletonHeader.BoneCount, SkeletonHeader.BodyPartCount, ModHeader.AnimSequenceCount);
+		Info.Info = string::Format("Bones: %d, Meshes: %d, Animations: %d", SkeletonHeader.BoneCount, SkeletonHeader.BodyPartCount, ModHeader.animSeqCount);
 	}
 	else
 	{
@@ -95,24 +92,40 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 		else
 		{
 			ModelHeaderS50 mht = Reader.Read<ModelHeaderS50>();
-			ModHeader.SkeletonIndex = mht.SkeletonIndex;
-			ModHeader.SkeletonOffset = mht.SkeletonOffset;
-
-			ModHeader.NameIndex = mht.NameIndex;
-			ModHeader.NameOffset = mht.NameOffset;
-			ModHeader.PhyIndex = mht.PhyIndex;
-			ModHeader.PhyOffset = mht.PhyOffset;
-			ModHeader.StreamedDataSize = mht.StreamedDataSize;
+			ModHeader.pRMDL = { mht.SkeletonIndex , mht.SkeletonOffset };
+			ModHeader.pName = { mht.NameIndex , mht.NameOffset };
+			ModHeader.pPhyData = { mht.PhyIndex , mht.PhyOffset };
+			ModHeader.alignedStreamingSize = mht.StreamedDataSize;
 		}
 	}
 	else
 	{
 		ModelHeaderS80 ModHeaderTmp = Reader.Read<ModelHeaderS80>();
 		std::memcpy(&ModHeader, &ModHeaderTmp, offsetof(ModelHeaderS80, DataFlags));
-		std::memcpy(&ModHeader.AnimSequenceCount, &ModHeaderTmp.AnimSequenceCount, sizeof(uint32_t) * 3);
+		std::memcpy(&ModHeader.animSeqCount, &ModHeaderTmp.AnimSequenceCount, sizeof(uint32_t) * 3);
 	}
 
-	RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.NameIndex, ModHeader.NameOffset));
+
+	g_Logger.Info("====================== RIGS\n");
+	for (int i = 0; i < ModHeader.animRigCount; i++)
+	{
+		RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.pAnimRigs.Index, ModHeader.pAnimRigs.Offset + ( sizeof(uint64_t) * i )));
+		uint64_t RigGuid = Reader.Read<uint64_t>();
+
+		g_Logger.Info("Rig %d -> %s\n", i, this->ExtractAnimationRig(Assets[RigGuid]).ToCString());
+	}
+	g_Logger.Info("====================== RSEQS\n");
+	for (int i = 0; i < ModHeader.animSeqCount; i++)
+	{
+		RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.pAnimSeqs.Index, ModHeader.pAnimSeqs.Offset + (sizeof(uint64_t) * i)));
+		uint64_t SeqGuid = Reader.Read<uint64_t>();
+
+		g_Logger.Info("Seq %d -> %s\n", i, this->ExtractAnimationSeq(Assets[SeqGuid]).ToCString());
+	}
+	g_Logger.Info("======================\n");
+
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.pName.Index, ModHeader.pName.Offset));
 
 	string RawModelName = Reader.ReadCString();
 	string ModelName = IO::Path::GetFileNameWithoutExtension(RawModelName);
@@ -134,7 +147,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 	auto ModelFormat = (ModelExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat");
 
-	const uint64_t StudioOffset = this->GetFileOffset(Asset, ModHeader.SkeletonIndex, ModHeader.SkeletonOffset);
+	const uint64_t StudioOffset = this->GetFileOffset(Asset, ModHeader.pRMDL.Index, ModHeader.pRMDL.Offset);
 
 	bool bExportingRawRMdl = false;
 
@@ -163,8 +176,8 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 		uint64_t PhyOffset = 0;
 
-		if (ModHeader.PhyIndex != 0 || ModHeader.PhyOffset != 0)
-			PhyOffset = this->GetFileOffset(Asset, ModHeader.PhyIndex, ModHeader.PhyOffset);
+		if (ModHeader.pPhyData.Index != 0 || ModHeader.pPhyData.Offset != 0)
+			PhyOffset = this->GetFileOffset(Asset, ModHeader.pPhyData.Index, ModHeader.pPhyData.Offset);
 
 		// check if this model has a phy segment
 		if (PhyOffset)
@@ -201,13 +214,13 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 	if (!bExportingRawRMdl)
 		Model->GenerateGlobalTransforms(true, true); // We need global transforms
 
-	if (IncludeAnimations && ModHeader.AnimSequenceCount > 0 && Asset.AssetVersion > 9 && !bExportingRawRMdl)
+	if (IncludeAnimations && ModHeader.animSeqCount > 0 && Asset.AssetVersion > 9)
 	{
 		IO::Directory::CreateDirectory(AnimationPath);
 
-		RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.AnimSequenceIndex, ModHeader.AnimSequenceOffset));
+		RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.pAnimSeqs.Index, ModHeader.pAnimSeqs.Offset));
 
-		for (uint32_t i = 0; i < ModHeader.AnimSequenceCount; i++)
+		for (uint32_t i = 0; i < ModHeader.animSeqCount; i++)
 		{
 			uint64_t AnimHash = Reader.Read<uint64_t>();
 
@@ -215,7 +228,10 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 				continue;	// Should never happen
 
 			// We need to make sure the skeleton is kept alive (copied) here...
-			this->ExtractAnimation(Assets[AnimHash], Model->Bones, AnimationPath);
+			if (!bExportingRawRMdl)
+				this->ExtractAnimation(Assets[AnimHash], Model->Bones, AnimationPath);
+			else
+				this->ExportAnimationSeq(Assets[AnimHash], AnimationPath);
 		}
 	}
 
@@ -311,9 +327,9 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 		if (Asset.AssetVersion <= 8) // s1
 		{
 			StarpakStream->SetPosition(Offset);
-			char* streamBuf = new char[ModHeader.StreamedDataSize];
+			char* streamBuf = new char[ModHeader.alignedStreamingSize];
 
-			StarpakReader.Read(streamBuf, 0, ModHeader.StreamedDataSize);
+			StarpakReader.Read(streamBuf, 0, ModHeader.alignedStreamingSize);
 
 			RpakStream->SetPosition(StudioOffset);
 

@@ -288,9 +288,9 @@ void MdlLib::ExportRMdl(const string& Asset, const string& Path)
 			uint64_t Position = hdr.localanimindex + (i * sizeof(mstudioanimdescv53_t));
 
 			Stream->SetPosition(Position);
-			mstudioanimdescv53_t AnimHeader = Reader.Read<mstudioanimdescv53_t>();
+			mstudioanimdescv53_t ASeqHeader = Reader.Read<mstudioanimdescv53_t>();
 
-			auto Anim = std::make_unique<Assets::Animation>(Model->Bones.Count(), AnimHeader.Framerate);
+			auto Anim = std::make_unique<Assets::Animation>(Model->Bones.Count(), ASeqHeader.Framerate);
 			Assets::AnimationCurveMode AnimCurveType = Assets::AnimationCurveMode::Absolute;
 
 			for (auto& Bone : Model->Bones)
@@ -308,16 +308,16 @@ void MdlLib::ExportRMdl(const string& Asset, const string& Path)
 				CurveNodes.EmplaceBack(Bone.Name(), Assets::CurveProperty::ScaleZ, AnimCurveType);
 			}
 
-			Anim->Looping = (bool)(AnimHeader.Flags & 0x20000);
+			Anim->Looping = (bool)(ASeqHeader.Flags & 0x20000);
 
-			Stream->SetPosition(Position + AnimHeader.NameOffset);
+			Stream->SetPosition(Position + ASeqHeader.NameOffset);
 			string AnimName = Reader.ReadCString();
 
 			List<uint64_t> AnimChunkOffsets;
 
-			if (AnimHeader.FrameSplitCount)
+			if (ASeqHeader.FrameSplitCount)
 			{
-				Stream->SetPosition(Position + AnimHeader.OffsetToChunkOffsetsTable);
+				Stream->SetPosition(Position + ASeqHeader.OffsetToChunkOffsetsTable);
 
 				while (true)
 				{
@@ -330,26 +330,26 @@ void MdlLib::ExportRMdl(const string& Asset, const string& Path)
 				}
 			}
 			else
-				AnimChunkOffsets.Add(AnimHeader.FirstChunkOffset + Position);
+				AnimChunkOffsets.Add(ASeqHeader.FirstChunkOffset + Position);
 
-			for (uint32_t Frame = 0; Frame < AnimHeader.FrameCount; Frame++)
+			for (uint32_t Frame = 0; Frame < ASeqHeader.FrameCount; Frame++)
 			{
 				uint32_t ChunkTableIndex = 0;
 				uint32_t ChunkFrame = Frame;
 				uint32_t FrameCountOneLess = 0;
 
-				if (AnimHeader.FrameSplitCount)
+				if (ASeqHeader.FrameSplitCount)
 				{
-					uint32_t FrameCount = AnimHeader.FrameCount;
-					if (FrameCount <= AnimHeader.FrameSplitCount || (FrameCountOneLess = FrameCount - 1, ChunkFrame != FrameCountOneLess))
+					uint32_t FrameCount = ASeqHeader.FrameCount;
+					if (FrameCount <= ASeqHeader.FrameSplitCount || (FrameCountOneLess = FrameCount - 1, ChunkFrame != FrameCountOneLess))
 					{
-						ChunkTableIndex = ChunkFrame / AnimHeader.FrameSplitCount;
-						ChunkFrame -= AnimHeader.FrameSplitCount * (ChunkFrame / AnimHeader.FrameSplitCount);
+						ChunkTableIndex = ChunkFrame / ASeqHeader.FrameSplitCount;
+						ChunkFrame -= ASeqHeader.FrameSplitCount * (ChunkFrame / ASeqHeader.FrameSplitCount);
 					}
 					else
 					{
 						ChunkFrame = 0;
-						ChunkTableIndex = FrameCountOneLess / AnimHeader.FrameSplitCount + 1;
+						ChunkTableIndex = FrameCountOneLess / ASeqHeader.FrameSplitCount + 1;
 					}
 				}
 

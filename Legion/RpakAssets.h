@@ -299,18 +299,60 @@ struct PatchHeader
 
 // ANIMATIONS
 // --- aseq ---
-struct AnimHeader
+struct ASeqHeader
 {
-	uint32_t AnimationIndex;
-	uint32_t AnimationOffset;
+	RPakPtr pAnimation;
+	RPakPtr pName;
 
-	uint32_t NameIndex;
-	uint32_t NameOffset;
+	RPakPtr pModels;
+	uint32_t ModelCount;
+	uint32_t Reserved;
 
-	uint8_t Unknown[0x18];
+	RPakPtr pSettings;
+	uint32_t SettingCount;
+	uint32_t Reserved1;
+};
 
-	uint32_t ModelHashIndex;
-	uint32_t ModelHashOffset;
+struct ASeqHeaderV71
+{
+	RPakPtr pAnimation;
+	RPakPtr pName;
+
+	RPakPtr pModels;
+	uint32_t ModelCount;
+
+	uint32_t externalDataSize;
+
+	// this can point to a group of guids and not one singular one.
+	RPakPtr pSettings;
+	uint32_t SettingCount;
+	uint32_t Reserved1;
+
+	// pointer to data stored outside of the raw rseq.
+	RPakPtr pExternalData;
+};
+
+struct ASeqHeaderV10
+{
+	RPakPtr pAnimation;
+	RPakPtr pName;
+
+	uint64_t Unknown; // possible pointer, guid, or reserved space.
+
+	// counts for mdl_ and stgs assets, normally just one but can be multiples.
+	uint32_t ModelCount;
+	uint32_t SettingCount;
+
+	// size of the external data.
+	uint32_t externalDataSize;
+
+	// these can all point to a group of guids and not one singular one.
+	RPakPtr pModels;
+	RPakPtr pEffects;
+	RPakPtr pSettings;
+
+	// data that is stored outside of the raw rseq.
+	RPakPtr pExternalData;
 };
 
 // --- arig ---
@@ -360,41 +402,46 @@ struct ModelHeaderS50
 	uint64_t Padding6;
 
 	uint32_t AnimSequenceCount;
-
 };
 
 struct ModelHeaderS68
 {
-	// .rmdl
-	uint32_t SkeletonIndex;
-	uint32_t SkeletonOffset;
-	uint64_t Padding;
+	// IDST data
+	// .mdl
+	RPakPtr pRMDL;
+	uint64_t Padding = 0;
 
-	uint32_t NameIndex;
-	uint32_t NameOffset;
-	uint64_t Padding2;
+	// model path
+	// e.g. mdl/vehicle/goblin_dropship/goblin_dropship.rmdl
+	RPakPtr pName;
+	uint64_t Padding2 = 0;
 
 	// .phy
-	uint32_t PhyIndex;
-	uint32_t PhyOffset;
-	uint64_t Padding3;
+	RPakPtr pPhyData;
+	uint64_t Padding3 = 0;
 
-	// .vvd
-	uint32_t BlockIndex1;
-	uint32_t BlockOffset1;
-	uint64_t Padding4;
+	// preload cache data for static props
+	RPakPtr pStaticPropVtxCache;
 
-	uint32_t Padding5;
-	uint32_t StreamedDataSize;
-	uint32_t DataFlags;
-	uint64_t Padding6;
+	// pointer to data for the model's arig guid(s?)
+	RPakPtr pAnimRigs;
 
-	uint32_t AnimSequenceCount;
-	uint32_t AnimSequenceIndex;
-	uint32_t AnimSequenceOffset;
+	// this is a guess based on the above ptr's data. i think this is == to the number of guids at where the ptr points to
+	uint32_t animRigCount = 0;
 
-	uint64_t Padding7;
+	// size of the data kept in starpak
+	uint32_t unkDataSize = 0;
+	uint32_t alignedStreamingSize = 0; // full size of the starpak entry, aligned to 4096.
+
+	uint64_t Padding6 = 0;
+
+	// number of anim sequences directly associated with this model
+	uint32_t animSeqCount = 0;
+	RPakPtr pAnimSeqs;
+
+	uint64_t Padding7 = 0;
 };
+
 
 struct ModelHeaderS80
 {
@@ -1170,9 +1217,9 @@ ASSERT_SIZE(SettingsKeyValue, 0x8);
 ASSERT_SIZE(SettingsKeyValuePair, 0x10);
 ASSERT_SIZE(ModelHeaderS68, 0x68);
 ASSERT_SIZE(ModelHeaderS80, 0x80);
-ASSERT_SIZE(AnimHeader, 0x30);
+ASSERT_SIZE(ASeqHeader, 0x30);
 ASSERT_SIZE(AnimRigHeader, 0x28);
-ASSERT_SIZE(mstudioseqdesc_t, 0x40);
+ASSERT_SIZE(mstudioseqdesc_t, 0xD0);
 
 struct RUIImageTile
 {

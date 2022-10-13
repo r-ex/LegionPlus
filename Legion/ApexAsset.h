@@ -6,6 +6,7 @@ enum class ApexAssetType
 {
 	Model,
 	AnimationSet,
+	AnimationSeq,
 	Image,
 	Material,
 	DataTable,
@@ -15,9 +16,9 @@ enum class ApexAssetType
 	UIImage,
 	UIImageAtlas,
 	Settings,
+	SettingsLayout,
 	RSON,
 	RUI,
-	SettingsLayout,
 	Map,
 	Effect,
 };
