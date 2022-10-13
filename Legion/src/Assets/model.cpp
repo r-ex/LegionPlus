@@ -102,15 +102,23 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 	}
 
 
+	g_Logger.Info("====================== RIGS\n");
 	for (int i = 0; i < ModHeader.animRigCount; i++)
 	{
 		RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.pAnimRigs.Index, ModHeader.pAnimRigs.Offset + ( sizeof(uint64_t) * i )));
 		uint64_t RigGuid = Reader.Read<uint64_t>();
 
-		;
 		g_Logger.Info("Rig %d -> %s\n", i, this->ExtractAnimationRig(Assets[RigGuid]).ToCString());
-
 	}
+	g_Logger.Info("====================== RSEQS\n");
+	for (int i = 0; i < ModHeader.animSeqCount; i++)
+	{
+		RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.pAnimSeqs.Index, ModHeader.pAnimSeqs.Offset + (sizeof(uint64_t) * i)));
+		uint64_t SeqGuid = Reader.Read<uint64_t>();
+
+		g_Logger.Info("Seq %d -> %s\n", i, this->ExtractAnimationSeq(Assets[SeqGuid]).ToCString());
+	}
+	g_Logger.Info("======================\n");
 
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.pName.Index, ModHeader.pName.Offset));
