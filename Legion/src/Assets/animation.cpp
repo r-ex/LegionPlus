@@ -113,7 +113,7 @@ void RpakLib::ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path)
 			RpakStream->SetPosition(ReferenceOffset + ((uint64_t)i * 0x8));
 
 			uint64_t AnimHash = Reader.Read<uint64_t>();
-
+if(Assets.ContainsKey(AnimHash))
 			auto SeqAsset = Assets[AnimHash];
 
 			auto AnimStream = this->GetFileStream(SeqAsset);
