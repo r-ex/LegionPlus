@@ -290,17 +290,17 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			else if (bLoadAll)
 			{
 				std::array<bool, 11> bAssets = {
-				true, // LoadModels
-				true, // LoadAnims
-				true, // LoadAnimSeqs
-				true, // LoadImages
-				true, // LoadMaterials
-				true, // LoadUIImages
-				true, // LoadDataTables
-				true, // LoadShaderSets
-				true, // LoadSettingsSets
-				true, // LoadRSONs
-				false // LoadEffects not ready yet.
+					true, // LoadModels
+					true, // LoadAnims
+					true, // LoadAnimSeqs
+					true, // LoadImages
+					true, // LoadMaterials
+					true, // LoadUIImages
+					true, // LoadDataTables
+					true, // LoadShaderSets
+					true, // LoadSettingsSets
+					true, // LoadRSONs
+					false // LoadEffects not ready yet.
 				};
 
 				AssetList = Rpak->BuildAssetList(bAssets);
