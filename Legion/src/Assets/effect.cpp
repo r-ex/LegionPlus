@@ -16,31 +16,24 @@ void RpakLib::BuildEffectInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	string Name;
 	string PCFPath;
-	try {
-		if (EffectHdr.EffectData.Index || EffectHdr.EffectData.Offset)
-		{
-			RpakStream->SetPosition(this->GetFileOffset(Asset, EffectHdr.EffectData.Index, EffectHdr.EffectData.Offset));
-			EffectData Data = Reader.Read<EffectData>();
-
-			RpakStream->SetPosition(this->GetFileOffset(Asset, Data.PCF.Index, Data.PCF.Offset));
-			PCFPath = Reader.ReadCString();
-
-			RpakStream->SetPosition(this->GetFileOffset(Asset, Data.EffectName.Index, Data.EffectName.Offset));
-			RPakPtr Ptr = Reader.Read<RPakPtr>();
-			RpakStream->SetPosition(this->GetFileOffset(Asset, Ptr.Index, Ptr.Offset));
-			Name = Reader.ReadCString();
-
-			RpakStream->SetPosition(this->GetFileOffset(Asset, Data.ParticleSystemOperator.Index, Data.ParticleSystemOperator.Offset));
-			Ptr = Reader.Read<RPakPtr>();
-			RpakStream->SetPosition(this->GetFileOffset(Asset, Ptr.Index, Ptr.Offset));
-			string PSOName = Reader.ReadCString();
-		}
-	}
-	catch (...)
+	if (EffectHdr.EffectData.Index || EffectHdr.EffectData.Offset)
 	{
+		RpakStream->SetPosition(this->GetFileOffset(Asset, EffectHdr.EffectData.Index, EffectHdr.EffectData.Offset));
+		EffectData Data = Reader.Read<EffectData>();
 
+		RpakStream->SetPosition(this->GetFileOffset(Asset, Data.PCF.Index, Data.PCF.Offset));
+		PCFPath = Reader.ReadCString();
+
+		RpakStream->SetPosition(this->GetFileOffset(Asset, Data.EffectName.Index, Data.EffectName.Offset));
+		RPakPtr Ptr = Reader.Read<RPakPtr>();
+		RpakStream->SetPosition(this->GetFileOffset(Asset, Ptr.Index, Ptr.Offset));
+		Name = Reader.ReadCString();
+
+		RpakStream->SetPosition(this->GetFileOffset(Asset, Data.ParticleSystemOperator.Index, Data.ParticleSystemOperator.Offset));
+		Ptr = Reader.Read<RPakPtr>();
+		RpakStream->SetPosition(this->GetFileOffset(Asset, Ptr.Index, Ptr.Offset));
+		string PSOName = Reader.ReadCString();
 	}
-
 
 	if (ExportManager::Config.GetBool("UseFullPaths"))
 		Info.Name = Name;

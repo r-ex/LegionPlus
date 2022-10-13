@@ -113,30 +113,33 @@ void RpakLib::ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path)
 			RpakStream->SetPosition(ReferenceOffset + ((uint64_t)i * 0x8));
 
 			uint64_t AnimHash = Reader.Read<uint64_t>();
-if(Assets.ContainsKey(AnimHash))
-			auto SeqAsset = Assets[AnimHash];
+			if (Assets.ContainsKey(AnimHash))
+			{
+				auto SeqAsset = Assets[AnimHash];
 
-			auto AnimStream = this->GetFileStream(SeqAsset);
+				auto AnimStream = this->GetFileStream(SeqAsset);
 
-			IO::BinaryReader AnimReader = IO::BinaryReader(AnimStream.get(), true);
+				IO::BinaryReader AnimReader = IO::BinaryReader(AnimStream.get(), true);
 
-			AnimStream->SetPosition(this->GetFileOffset(SeqAsset, SeqAsset.SubHeaderIndex, SeqAsset.SubHeaderOffset));
+				AnimStream->SetPosition(this->GetFileOffset(SeqAsset, SeqAsset.SubHeaderIndex, SeqAsset.SubHeaderOffset));
 
-			ASeqHeader AnHeader = AnimReader.Read<ASeqHeader>();
+				ASeqHeader AnHeader = AnimReader.Read<ASeqHeader>();
 
-			AnimStream->SetPosition(this->GetFileOffset(SeqAsset, AnHeader.pName.Index, AnHeader.pName.Offset));
+				AnimStream->SetPosition(this->GetFileOffset(SeqAsset, AnHeader.pName.Index, AnHeader.pName.Offset));
 
-			string SeqName = AnimReader.ReadCString();
-			string SeqSetName = IO::Path::GetFileNameWithoutExtension(SeqName);
-			string SeqSetPath = IO::Path::Combine(Path, AnimSetName);
+				string SeqName = AnimReader.ReadCString();
+				string SeqSetName = IO::Path::GetFileNameWithoutExtension(SeqName);
+				string SeqSetPath = IO::Path::Combine(Path, AnimSetName);
 
-			g_Logger.Info("-> %s\n", SeqName.ToCString());
+				g_Logger.Info("-> %s\n", SeqName.ToCString());
 
-			const uint64_t AnimationOffset = this->GetFileOffset(SeqAsset, AnHeader.pAnimation.Index, AnHeader.pAnimation.Offset);
+				const uint64_t AnimationOffset = this->GetFileOffset(SeqAsset, AnHeader.pAnimation.Index, AnHeader.pAnimation.Offset);
 
-			this->ExportAnimationSeq(Assets[AnimHash], AnimSetPath);
+				this->ExportAnimationSeq(Assets[AnimHash], AnimSetPath);
 
-			AnimStream.release();
+				AnimStream.release();
+
+			}
 
 			continue;
 		}
@@ -342,7 +345,8 @@ void RpakLib::ExportAnimationSeq(const RpakLoadAsset& Asset, const string& Path)
 
 			break;
 		}
-		case 0x38 || 0x40: // 7.1 / 10
+		case 0x38: // 7.1 / 10
+		case 0x40: 
 		{
 			mstudioanimdescv54_t_v121 animdescTMP = Reader.Read<mstudioanimdescv54_t_v121>();
 			std::memcpy(&animdesc, &animdescTMP, sizeof(mstudioanimdescv54_t_v121));
@@ -360,7 +364,9 @@ void RpakLib::ExportAnimationSeq(const RpakLoadAsset& Asset, const string& Path)
 
 				switch (Asset.SubHeaderSize)
 				{
-				case 0x30 || 0x38: // 7 / 7.1
+					
+				case 0x30: // 7 / 7.1
+				case 0x38:
 				{
 					auto Data = Reader.Read<mstudioeventv54_t>();
 
@@ -425,26 +431,30 @@ void RpakLib::ExportAnimationSeq(const RpakLoadAsset& Asset, const string& Path)
 
 	// WIP EXTERNAL DATA
 
-	//if (StarpakStream != nullptr && AnHeader.pExternalData.Index && AnHeader.externalDataSize > 0)
-	//{
-	//	char* externalBuf = new char[AnHeader.externalDataSize];
-	//
-	//	if (StarpakStream != nullptr)
-	//	{
-	//		StarpakStream->SetPosition(starpakDataOffset);
-	//		StarpakStream->Read((uint8_t*)externalBuf, 0, AnHeader.externalDataSize);
-	//	}
-	//	else
-	//	{
-	//		RpakStream->SetPosition(starpakDataOffset);
-	//		RpakStream->Read((uint8_t*)externalBuf, 0, AnHeader.externalDataSize);
-	//	}
-	//
-	//
-	//	std::ofstream externalOut(IO::Path::ChangeExtension(AnimSetPath, ".ExternalData"), std::ios::out | std::ios::binary);
-	//	externalOut.write(externalBuf, AnHeader.externalDataSize);
-	//	externalOut.close();
-	//}
+	if (StarpakStream != nullptr && AnHeader.pExternalData.Index && AnHeader.externalDataSize > 0)
+	{
+		//RpakStream->SetPosition(AnimationOffset + );
+
+
+
+		char* externalBuf = new char[AnHeader.externalDataSize];
+	
+		if (StarpakStream != nullptr)
+		{
+			StarpakStream->SetPosition(starpakDataOffset);
+			StarpakStream->Read((uint8_t*)externalBuf, 0, AnHeader.externalDataSize);
+		}
+		else
+		{
+			RpakStream->SetPosition(AnimationOffset + AnHeader.pExternalData.Index);
+			RpakStream->Read((uint8_t*)externalBuf, 0, AnHeader.externalDataSize);
+		}
+	
+	
+		std::ofstream externalOut(IO::Path::ChangeExtension(AnimSetPath, ".ExternalData"), std::ios::out | std::ios::binary);
+		externalOut.write(externalBuf, AnHeader.externalDataSize);
+		externalOut.close();
+	}
 	
 
 }

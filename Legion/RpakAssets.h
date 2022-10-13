@@ -440,8 +440,6 @@ struct ModelHeaderS68
 	RPakPtr pAnimSeqs;
 
 	uint64_t Padding7 = 0;
-	uint64_t Padding8 = 0;
-	uint64_t Padding9 = 0;
 };
 
 
@@ -1217,7 +1215,7 @@ ASSERT_SIZE(PatchHeader, 0x18);
 ASSERT_SIZE(UIIAHeader, 0x40);
 ASSERT_SIZE(SettingsKeyValue, 0x8);
 ASSERT_SIZE(SettingsKeyValuePair, 0x10);
-ASSERT_SIZE(ModelHeaderS68, 0x78);
+ASSERT_SIZE(ModelHeaderS68, 0x68);
 ASSERT_SIZE(ModelHeaderS80, 0x80);
 ASSERT_SIZE(ASeqHeader, 0x30);
 ASSERT_SIZE(AnimRigHeader, 0x28);
