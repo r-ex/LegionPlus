@@ -257,7 +257,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			// load rpak flags
 			bool bLoadModels = cmdline.HasParam(L"--loadmodels");
 			bool bLoadAnims = cmdline.HasParam(L"--loadanimations");
-			bool BLoadAnimSeqs = cmdline.HasParam(L"--loadanimationseqs");
 			bool bLoadImages = cmdline.HasParam(L"--loadimages");
 			bool bLoadMaterials = cmdline.HasParam(L"--loadmaterials");
 			bool bLoadUIImages = cmdline.HasParam(L"--loaduiimages");
@@ -266,14 +265,13 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			bool bLoadSettingsSets = cmdline.HasParam(L"--loadsettingssets");
 			bool bLoadRSONs = cmdline.HasParam(L"--loadrsons");
 
-			bool bNoFlagsSpecified = !bLoadModels && !bLoadAnims && !BLoadAnimSeqs && !bLoadImages && !bLoadMaterials && !bLoadUIImages && !bLoadDataTables && !bLoadShaderSets && !bLoadSettingsSets && !bLoadRSONs;
+			bool bNoFlagsSpecified = !bLoadModels && !bLoadAnims && !bLoadImages && !bLoadMaterials && !bLoadUIImages && !bLoadDataTables && !bLoadShaderSets && !bLoadSettingsSets&& !bLoadRSONs;
 
 			if (bNoFlagsSpecified)
 			{
-				std::array<bool, 11> bAssets = {
+				std::array<bool, 10> bAssets = {
 					ExportManager::Config.GetBool("LoadModels"),
 					ExportManager::Config.GetBool("LoadAnimations"),
-					ExportManager::Config.GetBool("LoadAnimationSeqs"),
 					ExportManager::Config.GetBool("LoadImages"),
 					ExportManager::Config.GetBool("LoadMaterials"),
 					ExportManager::Config.GetBool("LoadUIImages"),
@@ -288,10 +286,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			}
 			else
 			{
-				std::array<bool, 11> bAssets = {
+				std::array<bool, 10> bAssets = {
 					bLoadModels,
 					bLoadAnims,
-					BLoadAnimSeqs,
 					bLoadImages,
 					bLoadMaterials,
 					bLoadUIImages,

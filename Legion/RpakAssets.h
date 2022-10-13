@@ -1172,7 +1172,7 @@ ASSERT_SIZE(ModelHeaderS68, 0x68);
 ASSERT_SIZE(ModelHeaderS80, 0x80);
 ASSERT_SIZE(AnimHeader, 0x30);
 ASSERT_SIZE(AnimRigHeader, 0x28);
-ASSERT_SIZE(mstudioseqdesc_t, 0xD0);
+ASSERT_SIZE(mstudioseqdesc_t, 0x40);
 
 struct RUIImageTile
 {

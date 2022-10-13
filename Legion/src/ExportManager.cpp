@@ -205,9 +205,6 @@ void ExportManager::ExportRpakAssets(const std::unique_ptr<RpakLib>& RpakFileSys
 			case (uint32_t)AssetType_t::AnimationRig:
 				RpakFileSystem->ExportAnimationRig(AssetToExport, IO::Path::Combine(ExportDirectory, "animations"));
 				break;
-			case (uint32_t)AssetType_t::Animation:
-				RpakFileSystem->ExportAnimationSeq(AssetToExport, IO::Path::Combine(ExportDirectory, "anim_sequences"));
-				break;
 			case (uint32_t)AssetType_t::DataTable:
 				RpakFileSystem->ExportDataTable(AssetToExport, IO::Path::Combine(ExportDirectory, "datatables"));
 				break;

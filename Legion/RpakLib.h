@@ -424,7 +424,7 @@ public:
 	bool m_bImageExporterInitialized = false;
 
 	// Builds the viewer list of assets
-	std::unique_ptr<List<ApexAsset>> BuildAssetList(const std::array<bool, 11>& arrAssets);
+	std::unique_ptr<List<ApexAsset>> BuildAssetList(const std::array<bool, 10>& arrAssets);
 	// Builds the preview model mesh
 	std::unique_ptr<Assets::Model> BuildPreviewModel(uint64_t Hash);
 	// Builds the preview texture
@@ -447,7 +447,6 @@ public:
 	void ExportTexture(const RpakLoadAsset& Asset, const string& Path, bool IncludeImageNames, string NameOverride = "", bool NormalRecalculate = false);
 	void ExportUIIA(const RpakLoadAsset& Asset, const string& Path);
 	void ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path);
-	void ExportAnimationSeq(const RpakLoadAsset& Asset, const string& Path);
 	void ExportDataTable(const RpakLoadAsset& Asset, const string& Path);
 	void ExportSubtitles(const RpakLoadAsset& Asset, const string& Path);
 	void ExportShaderSet(const RpakLoadAsset& Asset, const string& Path);

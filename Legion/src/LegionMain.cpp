@@ -520,10 +520,9 @@ void LegionMain::RefreshView()
 	{
 		this->AssetsListView->SetVirtualListSize(0);
 
-		std::array<bool, 11> bAssets = {
+		std::array<bool, 10> bAssets = {
 			ExportManager::Config.GetBool("LoadModels"),
 			ExportManager::Config.GetBool("LoadAnimations"),
-			ExportManager::Config.GetBool("LoadAnimationSeqs"),
 			ExportManager::Config.GetBool("LoadImages"),
 			ExportManager::Config.GetBool("LoadMaterials"),
 			ExportManager::Config.GetBool("LoadUIImages"),
@@ -769,12 +768,11 @@ void LegionMain::GetVirtualItem(const std::unique_ptr<Forms::RetrieveVirtualItem
 
 	uint32_t RemappedDisplayIndex = ThisPtr->DisplayIndices[EventArgs->ItemIndex];
 
-	static const char* AssetTypes[] = { "Model", "AnimationSet","AnimationSeq", "Image", "Material", "DataTable", "Sound", "Subtitles", "ShaderSet", "UI Image", "UI Image Atlas", "Settings", "RSON", "RUI" , "Settings Layout", "Map", "Effect" };
+	static const char* AssetTypes[] = { "Model", "AnimationSet", "Image", "Material", "DataTable", "Sound", "Subtitles", "ShaderSet", "UI Image", "UI Image Atlas", "Settings", "RSON", "RUI" , "Settings Layout", "Map", "Effect" };
 	static const Drawing::Color AssetTypesColors[] = 
 	{
 		Drawing::Color(0, 157, 220),  // Model
 		Drawing::Color(219, 80, 74),  // AnimationSet
-		Drawing::Color(220, 75, 109), // Animation Seq
 		Drawing::Color(202, 97, 195), // Image
 		Drawing::Color(27, 153, 139), // Material
 		Drawing::Color(211, 7, 247),  // DataTable

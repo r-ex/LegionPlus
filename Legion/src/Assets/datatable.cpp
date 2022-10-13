@@ -92,52 +92,6 @@ void RpakLib::ExportDataTable(const RpakLoadAsset& Asset, const string& Path)
 		}
 	}
 
-	auto LastExport = DataTable[DataTable.Count() - 1];
-
-	for (uint32_t c = 0; c < LastExport.Count(); ++c)
-	{
-		DataTableColumnData cd = LastExport[c];
-
-		switch (cd.Type)
-		{
-		case DataTableColumnDataType::Bool:
-			dtbl_out << "\"bool\"";
-			break;
-		case DataTableColumnDataType::Int:
-			dtbl_out << "\"int\"";
-			break;
-		case DataTableColumnDataType::Float:
-			dtbl_out << "\"float\"";
-			break;
-		case DataTableColumnDataType::Vector:
-		{
-			dtbl_out << "\"vector\"";
-			break;
-		}
-		case DataTableColumnDataType::Asset:
-		{
-			dtbl_out << "\"asset\"";
-			break;
-		}
-		case DataTableColumnDataType::AssetNoPrecache:
-		{
-			dtbl_out << "\"assetnoprecache\"";
-			break;
-		}
-		case DataTableColumnDataType::StringT:
-		{
-			dtbl_out << "\"string\"";
-			break;
-		}
-
-		}
-
-		if (c != LastExport.Count() - 1)
-			dtbl_out << ",";
-		else
-			dtbl_out << "\n";
-	}
-
 	dtbl_out.close();
 }
 
