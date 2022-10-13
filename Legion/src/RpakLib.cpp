@@ -210,17 +210,17 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(const std::array<bool, 
 			BuildShaderSetInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::Settings:
-			if (!arrAssets[9])
+			if (!arrAssets[8])
 				continue;
 			BuildSettingsInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::SettingsLayout:
-			if (!arrAssets[9])
+			if (!arrAssets[8])
 				continue;
 			BuildSettingsLayoutInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::RSON:
-			if (!arrAssets[10])
+			if (!arrAssets[9])
 				continue;
 			BuildRSONInfo(Asset, NewAsset);
 			break;
