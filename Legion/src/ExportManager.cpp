@@ -54,7 +54,6 @@ void ExportManager::InitializeExporter()
 
 	INIT_SETTING(Boolean, "LoadModels", true);
 	INIT_SETTING(Boolean, "LoadAnimations", true);
-	INIT_SETTING(Boolean, "LoadAnimationSeqs", true);
 	INIT_SETTING(Boolean, "LoadImages", true);
 	INIT_SETTING(Boolean, "LoadMaterials", true);
 	INIT_SETTING(Boolean, "LoadUIImages", true);
