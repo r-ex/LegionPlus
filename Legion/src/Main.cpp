@@ -255,6 +255,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			std::unique_ptr<List<ApexAsset>> AssetList;
 
 			// load rpak flags
+			bool bLoadAll = cmdline.HasParam(L"--loadall");
 			bool bLoadModels = cmdline.HasParam(L"--loadmodels");
 			bool bLoadAnims = cmdline.HasParam(L"--loadanimations");
 			bool BLoadAnimSeqs = cmdline.HasParam(L"--loadanimationseqs");
@@ -266,7 +267,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			bool bLoadSettingsSets = cmdline.HasParam(L"--loadsettingssets");
 			bool bLoadRSONs = cmdline.HasParam(L"--loadrsons");
 
-			bool bNoFlagsSpecified = !bLoadModels && !bLoadAnims && !BLoadAnimSeqs && !bLoadImages && !bLoadMaterials && !bLoadUIImages && !bLoadDataTables && !bLoadShaderSets && !bLoadSettingsSets && !bLoadRSONs;
+			bool bNoFlagsSpecified = !bLoadAll && !bLoadModels && !bLoadAnims && !BLoadAnimSeqs && !bLoadImages && !bLoadMaterials && !bLoadUIImages && !bLoadDataTables && !bLoadShaderSets && !bLoadSettingsSets && !bLoadRSONs;
 
 			if (bNoFlagsSpecified)
 			{
@@ -286,6 +287,20 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 				AssetList = Rpak->BuildAssetList(bAssets);
 			}
+			else if (bLoadAll)
+			{
+				true, // LoadModels
+				true, // LoadAnims
+				true, // LoadAnimSeqs
+				true, // LoadImages
+				true, // LoadMaterials
+				true, // LoadUIImages
+				true, // LoadDataTables
+				true, // LoadShaderSets
+				true, // LoadSettingsSets
+				true, // LoadRSONs
+				false // LoadEffects, not ready yet.
+			}
 			else
 			{
 				std::array<bool, 11> bAssets = {
@@ -299,7 +314,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 					bLoadShaderSets,
 					bLoadSettingsSets,
 					bLoadRSONs,
-					false // not ready yet.
+					false // LoadEffects, not ready yet.
 				};
 
 				AssetList = Rpak->BuildAssetList(bAssets);

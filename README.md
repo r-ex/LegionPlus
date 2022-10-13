@@ -43,6 +43,7 @@ When any load flag is used, your saved configuration is ignored and only the spe
 When multiple load flags are used together, all specified types will be loaded
 
 ```
+--loadall - This flag loads all the flags below
 --loadmodels
 --loadanimations
 --loadimages
