@@ -289,6 +289,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			}
 			else if (bLoadAll)
 			{
+				std::array<bool, 11> bAssets = {
 				true, // LoadModels
 				true, // LoadAnims
 				true, // LoadAnimSeqs
@@ -299,7 +300,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				true, // LoadShaderSets
 				true, // LoadSettingsSets
 				true, // LoadRSONs
-				false // LoadEffects, not ready yet.
+				false // LoadEffects not ready yet.
+				};
 			}
 			else
 			{
