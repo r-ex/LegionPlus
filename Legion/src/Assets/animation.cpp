@@ -178,37 +178,6 @@ void RpakLib::ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path)
 }
 
 
-
-string RpakLib::ExtractAnimationSeq(const RpakLoadAsset& Asset)
-{
-	auto RpakStream = this->GetFileStream(Asset);
-	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
-
-	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
-
-	AnimHeader AnHeader = Reader.Read<AnimHeader>();
-
-	RpakStream->SetPosition(this->GetFileOffset(Asset, AnHeader.NameIndex, AnHeader.NameOffset));
-
-	return Reader.ReadCString();
-}
-
-
-string RpakLib::ExtractAnimationRig(const RpakLoadAsset& Asset)
-{
-	auto RpakStream = this->GetFileStream(Asset);
-	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
-
-	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
-
-	AnimRigHeader RigHeader = Reader.Read<AnimRigHeader>();
-
-	RpakStream->SetPosition(this->GetFileOffset(Asset, RigHeader.NameIndex, RigHeader.NameOffset));
-
-	return Reader.ReadCString();
-}
-
-
 struct FilterOffset
 {
 	int offset;
@@ -339,7 +308,6 @@ void RpakLib::ExportAnimationSeq(const RpakLoadAsset& Asset, const string& Path)
 	rseqOut.write(rseqBuf, RSeqSize);
 	rseqOut.close();
 }
-
 
 void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bone>& Skeleton, const string& Path)
 {

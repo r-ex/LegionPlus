@@ -518,9 +518,6 @@ private:
 	void ExtractSettings(const RpakLoadAsset& Asset, const string& Path, const string& Name, const SettingsHeader& Header);
 	SettingsLayout ExtractSettingsLayout(const RpakLoadAsset& Asset);
 
-	string ExtractAnimationRig(const RpakLoadAsset& Asset);
-	string ExtractAnimationSeq(const RpakLoadAsset& Asset);
-
 	void ExtractRSON(const RpakLoadAsset& Asset, const string& Path);
 	void ExtractRUI(const RpakLoadAsset& Asset, const string& Path);
 

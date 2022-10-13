@@ -605,7 +605,7 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 			else if (Asset.SubHeaderSize <= 0x68)
 			{
 				ModelHeaderS68 SubHeader = Reader.Read<ModelHeaderS68>();
-				return (SubHeader.pName.Index >= LoadedFile.StartSegmentIndex && SubHeader.pRMDL.Index >= LoadedFile.StartSegmentIndex);
+				return (SubHeader.NameIndex >= LoadedFile.StartSegmentIndex && SubHeader.SkeletonIndex >= LoadedFile.StartSegmentIndex);
 			}
 			else
 			{
