@@ -284,7 +284,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 	Fixups.MaterialPath = TexturePath;
 	Fixups.Materials = &MaterialBuffer;
 	Fixups.BoneRemaps = &BoneRemapTable;
-	Fixups.FixupTableOffset = (StudioOffset + SubmeshLodsOffset);
+	Fixups.MeshOffset = (StudioOffset + SubmeshLodsOffset);
 
 	uint64_t ActualStarpakOffset = Asset.StarpakOffset & 0xFFFFFFFFFFFFFF00;
 	uint64_t ActualOptStarpakOffset = Asset.OptimalStarpakOffset & 0xFFFFFFFFFFFFFF00;
@@ -664,13 +664,13 @@ void RpakLib::ExtractModelLod_V14(IO::BinaryReader& Reader, const std::unique_pt
 			FaceBufferPtr += 3;
 		}
 
-		RpakStream->SetPosition(Fixup.FixupTableOffset);
+		RpakStream->SetPosition(Fixup.MeshOffset);
 
-		IO::BinaryReader SubmeshLodReader = IO::BinaryReader(RpakStream.get(), true);
-		RMdlLodSubmesh SubmeshLod = SubmeshLodReader.Read<RMdlLodSubmesh>();
-		RMdlTexture& Material = (*Fixup.Materials)[SubmeshLod.Index];
+		IO::BinaryReader meshreader = IO::BinaryReader(RpakStream.get(), true);
+		mstudiomesh_v121_t rmdlMesh = meshreader.Read<mstudiomesh_v121_t>();
+		RMdlTexture& Material = (*Fixup.Materials)[rmdlMesh.material];
 
-		if (SubmeshLod.Index < Fixup.Materials->Count() && Assets.ContainsKey(Material.MaterialHash))
+		if (rmdlMesh.material < Fixup.Materials->Count() && Assets.ContainsKey(Material.MaterialHash))
 		{
 			RpakLoadAsset& MaterialAsset = Assets[Material.MaterialHash];
 
@@ -705,12 +705,7 @@ void RpakLib::ExtractModelLod_V14(IO::BinaryReader& Reader, const std::unique_pt
 		if ((mesh.Flags2 & 0x2) == 0x2)
 			NewMesh.MaterialIndices.EmplaceBack(-1);
 
-		Fixup.FixupTableOffset += sizeof(RMdlLodSubmesh);
-
-		// these fixes just keep getting worse
-		// (go back 4 bytes to account for the final int in the struct which only exists on v14)
-		if (Version < 14)
-			Fixup.FixupTableOffset -= 4;
+		Fixup.MeshOffset += sizeof(mstudiomesh_v121_t);
 	}
 }
 
@@ -926,13 +921,13 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 			FaceBufferPtr += 3;
 		}
 
-		RpakStream->SetPosition(Fixup.FixupTableOffset);
+		RpakStream->SetPosition(Fixup.MeshOffset);
 
-		IO::BinaryReader SubmeshLodReader = IO::BinaryReader(RpakStream.get(), true);
-		RMdlLodSubmesh SubmeshLod = SubmeshLodReader.Read<RMdlLodSubmesh>();
-		RMdlTexture& Material = (*Fixup.Materials)[SubmeshLod.Index];
+		IO::BinaryReader meshreader = IO::BinaryReader(RpakStream.get(), true);
+		mstudiomesh_v121_t rmdlMesh = meshreader.Read<mstudiomesh_v121_t>();
+		RMdlTexture& Material = (*Fixup.Materials)[rmdlMesh.material];
 
-		if (SubmeshLod.Index < Fixup.Materials->Count() && Assets.ContainsKey(Material.MaterialHash))
+		if (rmdlMesh.material < Fixup.Materials->Count() && Assets.ContainsKey(Material.MaterialHash))
 		{
 			RpakLoadAsset& MaterialAsset = Assets[Material.MaterialHash];
 
@@ -967,7 +962,7 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 		if ((mesh.Flags2 & 0x2) == 0x2)
 			NewMesh.MaterialIndices.EmplaceBack(-1);
 
-		Fixup.FixupTableOffset += sizeof(RMdlLodSubmesh);
+		Fixup.MeshOffset += sizeof(mstudiomesh_v121_t);
 	}
 }
 
@@ -1191,13 +1186,13 @@ void RpakLib::ExtractModelLodOld(IO::BinaryReader& Reader, const std::unique_ptr
 			FaceBufferPtr += 3;
 		}
 
-		RpakStream->SetPosition(Fixup.FixupTableOffset);
+		RpakStream->SetPosition(Fixup.MeshOffset);
 
-		auto SubmeshLodReader = IO::BinaryReader(RpakStream.get(), true);
-		auto SubmeshLod = SubmeshLodReader.Read<RMdlLodSubmesh>();
-		auto& Material = (*Fixup.Materials)[SubmeshLod.Index];
+		auto meshreader = IO::BinaryReader(RpakStream.get(), true);
+		mstudiomesh_s3_t rmdlMesh = meshreader.Read<mstudiomesh_s3_t>();
+		auto& Material = (*Fixup.Materials)[rmdlMesh.material];
 
-		if (SubmeshLod.Index < Fixup.Materials->Count() && Assets.ContainsKey(Material.MaterialHash))
+		if (rmdlMesh.material < Fixup.Materials->Count() && Assets.ContainsKey(Material.MaterialHash))
 		{
 			auto& MaterialAsset = Assets[Material.MaterialHash];
 
@@ -1232,7 +1227,7 @@ void RpakLib::ExtractModelLodOld(IO::BinaryReader& Reader, const std::unique_ptr
 		if ((Submesh.Flags2 & 0x2) == 0x2)
 			NewMesh.MaterialIndices.EmplaceBack(-1);
 
-		Fixup.FixupTableOffset += sizeof(RMdlLodSubmesh);
+		Fixup.MeshOffset += sizeof(mstudiomesh_s3_t);
 	}
 }
 
