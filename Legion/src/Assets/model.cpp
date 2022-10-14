@@ -101,7 +101,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 		std::memcpy(&ModHeader.animSeqCount, &ModHeaderTmp.AnimSequenceCount, sizeof(uint32_t) * 3);
 	}
 
-	if (ModHeader.animRigCount)
+	if (ModHeader.animRigCount && ModHeader.pAnimRigs.Index)
 	{
 		g_Logger.Info("====================== RIGS\n");
 		for (int i = 0; i < ModHeader.animRigCount; i++)
@@ -117,12 +117,12 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 	}
 
 
-	if (ModHeader.animSeqCount)
+	if (ModHeader.animSeqCount && ModHeader.pAnimSeqs.Index)
 	{
 		g_Logger.Info("====================== RSEQS\n");
 		for (int i = 0; i < ModHeader.animSeqCount; i++)
 		{
-			RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.pAnimSeqs.Index, ModHeader.pAnimSeqs.Offset + (sizeof(uint64_t) * i)));
+			RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.pAnimSeqs.Index , ModHeader.pAnimSeqs.Offset + (sizeof(uint64_t) * i)));
 			uint64_t SeqGuid = Reader.Read<uint64_t>();
 
 			if (Assets.ContainsKey(SeqGuid))
