@@ -101,24 +101,39 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 		std::memcpy(&ModHeader.animSeqCount, &ModHeaderTmp.AnimSequenceCount, sizeof(uint32_t) * 3);
 	}
 
-
-	g_Logger.Info("====================== RIGS\n");
-	for (int i = 0; i < ModHeader.animRigCount; i++)
+	if (ModHeader.animRigCount)
 	{
-		RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.pAnimRigs.Index, ModHeader.pAnimRigs.Offset + ( sizeof(uint64_t) * i )));
-		uint64_t RigGuid = Reader.Read<uint64_t>();
+		g_Logger.Info("====================== RIGS\n");
+		for (int i = 0; i < ModHeader.animRigCount; i++)
+		{
+			RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.pAnimRigs.Index, ModHeader.pAnimRigs.Offset + (sizeof(uint64_t) * i)));
+			uint64_t RigGuid = Reader.Read<uint64_t>();
 
-		g_Logger.Info("Rig %d -> %s\n", i, this->ExtractAnimationRig(Assets[RigGuid]).ToCString());
+			if (Assets.ContainsKey(RigGuid))
+				g_Logger.Info("Rig %d -> %s\n", i, this->ExtractAnimationRig(Assets[RigGuid]).ToCString());
+			else
+				g_Logger.Info("Rig %d -> 0x%llX NOT LOADED\n", i, RigGuid);
+		}
 	}
-	g_Logger.Info("====================== RSEQS\n");
-	for (int i = 0; i < ModHeader.animSeqCount; i++)
+
+
+	if (ModHeader.animSeqCount)
 	{
-		RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.pAnimSeqs.Index, ModHeader.pAnimSeqs.Offset + (sizeof(uint64_t) * i)));
-		uint64_t SeqGuid = Reader.Read<uint64_t>();
+		g_Logger.Info("====================== RSEQS\n");
+		for (int i = 0; i < ModHeader.animSeqCount; i++)
+		{
+			RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.pAnimSeqs.Index, ModHeader.pAnimSeqs.Offset + (sizeof(uint64_t) * i)));
+			uint64_t SeqGuid = Reader.Read<uint64_t>();
 
-		g_Logger.Info("Seq %d -> %s\n", i, this->ExtractAnimationSeq(Assets[SeqGuid]).ToCString());
+			if (Assets.ContainsKey(SeqGuid))
+				g_Logger.Info("Seq %d -> %s\n", i, this->ExtractAnimationSeq(Assets[SeqGuid]).ToCString());
+			else
+				g_Logger.Info("Seq %d -> 0x%llX NOT LOADED\n", i, SeqGuid);
+		}
 	}
-	g_Logger.Info("======================\n");
+
+	if (ModHeader.animSeqCount || ModHeader.animRigCount)
+		g_Logger.Info("======================\n");
 
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.pName.Index, ModHeader.pName.Offset));
