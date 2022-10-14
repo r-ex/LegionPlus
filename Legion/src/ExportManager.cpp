@@ -54,6 +54,7 @@ void ExportManager::InitializeExporter()
 
 	INIT_SETTING(Boolean, "LoadModels", true);
 	INIT_SETTING(Boolean, "LoadAnimations", true);
+	INIT_SETTING(Boolean, "LoadAnimationSeqs", false);
 	INIT_SETTING(Boolean, "LoadImages", true);
 	INIT_SETTING(Boolean, "LoadMaterials", true);
 	INIT_SETTING(Boolean, "LoadUIImages", true);
@@ -161,6 +162,7 @@ void ExportManager::ExportRpakAssets(const std::unique_ptr<RpakLib>& RpakFileSys
 	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "materials"));
 	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "models"));
 	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "animations"));
+	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "anim_sequences"));
 	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "subtitles"));
 	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "datatables"));
 	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "shadersets"));

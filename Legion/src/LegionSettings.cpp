@@ -769,7 +769,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		bRefreshView = true;
 	if (ThisPtr->LoadAnimations->Checked() != ExportManager::Config.GetBool("LoadAnimations"))
 		bRefreshView = true;
-	if (ThisPtr->LoadAnimationSeqs->Checked() != ExportManager::Config.GetBool("LoadAnimationsSeqs"))
+	if (ThisPtr->LoadAnimationSeqs->Checked() != ExportManager::Config.GetBool("LoadAnimationSeqs"))
 		bRefreshView = true;
 	if (ThisPtr->LoadImages->Checked() != ExportManager::Config.GetBool("LoadImages"))
 		bRefreshView = true;
