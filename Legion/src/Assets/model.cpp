@@ -221,7 +221,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 	if (!bExportingRawRMdl)
 		Model->GenerateGlobalTransforms(true, true); // We need global transforms
 
-	if (IncludeAnimations && ModHeader.animSeqCount > 0 && Asset.AssetVersion > 9)
+	if (IncludeAnimations && ModHeader.animSeqCount > 0 && Asset.AssetVersion > 9 && ModHeader.pAnimSeqs.Index)
 	{
 		IO::Directory::CreateDirectory(AnimationPath);
 
