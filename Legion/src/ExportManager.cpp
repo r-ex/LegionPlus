@@ -54,12 +54,12 @@ void ExportManager::InitializeExporter()
 
 	INIT_SETTING(Boolean, "LoadModels", true);
 	INIT_SETTING(Boolean, "LoadAnimations", true);
-	INIT_SETTING(Boolean, "LoadAnimationSeqs", true);
 	INIT_SETTING(Boolean, "LoadImages", true);
 	INIT_SETTING(Boolean, "LoadMaterials", true);
 	INIT_SETTING(Boolean, "LoadUIImages", true);
 	INIT_SETTING(Boolean, "LoadDataTables", true);
 	INIT_SETTING(Boolean, "LoadShaderSets", true);
+	INIT_SETTING(Boolean, "LoadSettingsSets", true);
 	INIT_SETTING(Boolean, "LoadEffects", true);
 	INIT_SETTING(Boolean, "LoadRSONs", true);
 	INIT_SETTING(Boolean, "OverwriteExistingFiles", false);
