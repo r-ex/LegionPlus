@@ -231,8 +231,8 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 	RpakStream->SetPosition(StudioOffset + TexturesOffset);
 
-	List<RMdlTexture> MaterialBuffer(TexturesCount, true);
-	RpakStream->Read((uint8_t*)&MaterialBuffer[0], 0, TexturesCount * sizeof(RMdlTexture));
+	List<mstudiotexturev54_t> MaterialBuffer(TexturesCount, true);
+	RpakStream->Read((uint8_t*)&MaterialBuffer[0], 0, TexturesCount * sizeof(mstudiotexturev54_t));
 
 	List<uint8_t> BoneRemapTable(BoneRemapCount, true);
 
@@ -343,10 +343,10 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 			for (int i = 0; i < hdr.numtextures; i++)
 			{
-				RMdlTexture* mat = reinterpret_cast<RMdlTexture*>(studioBuf.get() + hdr.textureindex + (i * sizeof(RMdlTexture)));
+				mstudiotexturev54_t* mat = reinterpret_cast<mstudiotexturev54_t*>(studioBuf.get() + hdr.textureindex + (i * sizeof(mstudiotexturev54_t)));
 
-				if(mat->MaterialHash)
-					this->ExtractMaterial(Assets[mat->MaterialHash], Fixups.MaterialPath, IncludeMaterials, true);
+				if(Assets.ContainsKey(mat->guid))
+					this->ExtractMaterial(Assets[mat->guid], Fixups.MaterialPath, IncludeMaterials, true);
 			}
 		}
 		else if (Asset.AssetVersion >= 12)
@@ -642,11 +642,11 @@ void RpakLib::ExtractModelLod_V14(IO::BinaryReader& Reader, const std::unique_pt
 
 		IO::BinaryReader meshreader = IO::BinaryReader(RpakStream.get(), true);
 		mstudiomesh_v121_t rmdlMesh = meshreader.Read<mstudiomesh_v121_t>();
-		RMdlTexture& Material = (*Fixup.Materials)[rmdlMesh.material];
+		mstudiotexturev54_t& Material = (*Fixup.Materials)[rmdlMesh.material];
 
-		if (rmdlMesh.material < Fixup.Materials->Count() && Assets.ContainsKey(Material.MaterialHash))
+		if (rmdlMesh.material < Fixup.Materials->Count() && Assets.ContainsKey(Material.guid))
 		{
-			RpakLoadAsset& MaterialAsset = Assets[Material.MaterialHash];
+			RpakLoadAsset& MaterialAsset = Assets[Material.guid];
 
 			RMdlMaterial ParsedMaterial = this->ExtractMaterial(MaterialAsset, Fixup.MaterialPath, IncludeMaterials, false);
 			uint32_t MaterialIndex = Model->AddMaterial(ParsedMaterial.MaterialName, ParsedMaterial.AlbedoHash);
@@ -899,11 +899,11 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 
 		IO::BinaryReader meshreader = IO::BinaryReader(RpakStream.get(), true);
 		mstudiomesh_v121_t rmdlMesh = meshreader.Read<mstudiomesh_v121_t>();
-		RMdlTexture& Material = (*Fixup.Materials)[rmdlMesh.material];
+		mstudiotexturev54_t& Material = (*Fixup.Materials)[rmdlMesh.material];
 
-		if (rmdlMesh.material < Fixup.Materials->Count() && Assets.ContainsKey(Material.MaterialHash))
+		if (rmdlMesh.material < Fixup.Materials->Count() && Assets.ContainsKey(Material.guid))
 		{
-			RpakLoadAsset& MaterialAsset = Assets[Material.MaterialHash];
+			RpakLoadAsset& MaterialAsset = Assets[Material.guid];
 
 			RMdlMaterial ParsedMaterial = this->ExtractMaterial(MaterialAsset, Fixup.MaterialPath, IncludeMaterials, false);
 			uint32_t MaterialIndex = Model->AddMaterial(ParsedMaterial.MaterialName, ParsedMaterial.AlbedoHash);
@@ -1164,11 +1164,11 @@ void RpakLib::ExtractModelLodOld(IO::BinaryReader& Reader, const std::unique_ptr
 
 		auto meshreader = IO::BinaryReader(RpakStream.get(), true);
 		mstudiomesh_s3_t rmdlMesh = meshreader.Read<mstudiomesh_s3_t>();
-		auto& Material = (*Fixup.Materials)[rmdlMesh.material];
+		mstudiotexturev54_t& Material = (*Fixup.Materials)[rmdlMesh.material];
 
-		if (rmdlMesh.material < Fixup.Materials->Count() && Assets.ContainsKey(Material.MaterialHash))
+		if (rmdlMesh.material < Fixup.Materials->Count() && Assets.ContainsKey(Material.guid))
 		{
-			auto& MaterialAsset = Assets[Material.MaterialHash];
+			auto& MaterialAsset = Assets[Material.guid];
 
 			auto ParsedMaterial = this->ExtractMaterial(MaterialAsset, Fixup.MaterialPath, IncludeMaterials, false);
 			auto MaterialIndex = Model->AddMaterial(ParsedMaterial.MaterialName, ParsedMaterial.AlbedoHash);

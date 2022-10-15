@@ -1283,18 +1283,12 @@ struct mstudiotexturev54_t
 	int sznameindex;
 	uint64_t guid;
 };
-
-struct RMdlTexture
-{
-	uint32_t Offset;
-	uint64_t MaterialHash;
-};
 #pragma pack(pop)
 
 // Game helper structs
 struct RMdlFixupPatches
 {
-	List<RMdlTexture>* Materials;
+	List<mstudiotexturev54_t>* Materials;
 	List<uint8_t>* BoneRemaps;
 	string MaterialPath;
 
