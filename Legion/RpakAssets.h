@@ -376,115 +376,287 @@ struct AnimRigHeader
 
 // MODELS
 // --- mdl_ ---
-struct ModelHeaderS50
+#define MODEL_HAS_BBOX    (1 << 0)
+#define MODEL_HAS_CACHE   (1 << 1)
+#define MODEL_HAS_PHYSICS (1 << 2)
+
+// size: 0x50
+struct ModelHeaderV8
 {
 	// .rmdl
-	uint32_t SkeletonIndex;
-	uint32_t SkeletonOffset;
+	RPakPtr studioData;
 
-	uint32_t NameIndex;
-	uint32_t NameOffset;
+	RPakPtr name;
 
-	uint64_t Padding3;
+	char unk1[8];
 
 	// .phy
-	uint32_t PhyIndex;
-	uint32_t PhyOffset;
+	RPakPtr phyData;
 
 	// .vvd
-	uint32_t BlockIndex1;
-	uint32_t BlockOffset1;
-	uint64_t Padding4;
+	RPakPtr vgCacheData;
+	RPakPtr animRigs;
 
-	uint32_t Padding5;
-	uint32_t StreamedDataSize;
-	uint32_t DataFlags;
-	uint64_t Padding6;
+	int animRigCount;
+	int unkDataSize;
+	int alignedStreamingSize;
 
-	uint32_t AnimSequenceCount;
+	int animSeqCount;
+	RPakPtr animSeqs;
+
+	char unk2[8];
 };
 
-struct ModelHeaderS68
+// size: 0x78
+struct ModelHeaderV9
+{
+	RPakPtr studioData;
+	char unk1[8];
+
+	RPakPtr name;
+	char unk2[8];
+
+	RPakPtr phyData;
+	char unk3[8];
+
+	RPakPtr vgCacheData;
+
+	RPakPtr animRigs;
+
+	int animRigCount;
+
+	int unkDataSize;
+	int alignedStreamingSize; // full size of the starpak entry, aligned to 4096.
+
+	char unk4[8];
+
+	int animSeqCount;
+	RPakPtr animSeqs;
+
+	char unk5[8];
+	char unk6[8];
+	char unk7[8];
+};
+
+// size: 0x68
+struct ModelHeaderV12_1
 {
 	// IDST data
 	// .mdl
-	RPakPtr pRMDL;
-	uint64_t Padding = 0;
+	RPakPtr studioData;
+	char unk1[8];
 
 	// model path
 	// e.g. mdl/vehicle/goblin_dropship/goblin_dropship.rmdl
-	RPakPtr pName;
-	uint64_t Padding2 = 0;
+	RPakPtr name;
+	char unk2[8];
 
 	// .phy
-	RPakPtr pPhyData;
-	uint64_t Padding3 = 0;
+	RPakPtr phyData;
+	char unk3[8];
 
 	// preload cache data for static props
-	RPakPtr pStaticPropVtxCache;
+	RPakPtr vgCacheData;
 
 	// pointer to data for the model's arig guid(s?)
-	RPakPtr pAnimRigs;
+	RPakPtr animRigs;
 
 	// this is a guess based on the above ptr's data. i think this is == to the number of guids at where the ptr points to
-	uint32_t animRigCount = 0;
+	int animRigCount;
 
 	// size of the data kept in starpak
-	uint32_t unkDataSize = 0;
-	uint32_t alignedStreamingSize = 0; // full size of the starpak entry, aligned to 4096.
+	int unkDataSize;
+	int alignedStreamingSize; // full size of the starpak entry, aligned to 4096.
 
-	uint64_t Padding6 = 0;
+	char unk4[8];
 
 	// number of anim sequences directly associated with this model
-	uint32_t animSeqCount = 0;
-	RPakPtr pAnimSeqs;
+	int animSeqCount;
+	RPakPtr animSeqs;
 
-	uint64_t Padding7 = 0;
+	char unk5[8];
 };
 
-
-struct ModelHeaderS80
+// size: 0x80
+struct ModelHeaderV13
 {
 	// .rmdl
-	uint32_t SkeletonIndex;
-	uint32_t SkeletonOffset;
-	uint64_t Padding;
+	RPakPtr studioData;
+	char unk1[8];
 
-	uint32_t NameIndex;
-	uint32_t NameOffset;
-	uint64_t Padding2;
+	RPakPtr name;
+	char unk2[8];
 
 	// .phy
-	uint32_t PhyIndex;
-	uint32_t PhyOffset;
-	uint64_t Padding3;
+	RPakPtr phyData;
+	char unk3[8];
 
 	// .vvd
 	// this pointer is not always registered
 	// similar data will often be streamed from a mandatory starpak
-	uint32_t VGIndex1;
-	uint32_t VGOffset1;
-	uint64_t Padding4;
+	RPakPtr vgCacheData;
+	RPakPtr animRigs;
 
-	uint32_t Padding5;
-	uint32_t StreamedDataSize;
-	uint32_t DataFlags;
+	int animRigCount;
+	int unkDataSize;
+	int alignedStreamingSize;
 
-	float Box[6];
-	uint64_t Padding6;
+	Vector3 bbox_min;
+	Vector3 bbox_max;
 
-	uint32_t AnimSequenceCount;
-	uint32_t AnimSequenceIndex;
-	uint32_t AnimSequenceOffset;
+	char unk4[8];
 
-	uint64_t Padding7;
+	int animSeqCount;
+	RPakPtr animSeqs;
+
+	char unk5[8];
+};
+
+struct ModelHeader
+{
+	struct mdlversion_t {
+		int major;
+		__int8 minor;
+	};
+
+	RPakPtr studioData;
+	RPakPtr pName;
+	string name;
+	RPakPtr phyData;
+	RPakPtr vgCacheData;
+	RPakPtr animRigs;
+	RPakPtr animSeqs;
+
+	int animRigCount;
+	int animSeqCount;
+	int alignedStreamingSize;
+
+	// probably min/max
+	Vector3 bbox_min;
+	Vector3 bbox_max;
+
+private:
+	mdlversion_t _version;
+	int _flags;
+
+public:
+	inline mdlversion_t version() { return _version; };
+	inline int flags() { return _flags; };
+
+	inline bool IsFlagSet(int flag) { return _flags & flag; };
+	inline void SetFlags(int flag) { _flags |= flag; };
+	inline void SetVersion(int major, __int8 minor = 0) { _version = { major, minor }; };
+
+	void ReadFromAssetStream(std::unique_ptr<IO::MemoryStream>* RpakStream, int headerSize, int assetVersion)
+	{
+		IO::BinaryReader Reader = IO::BinaryReader(RpakStream->get(), true);
+
+
+		switch (assetVersion)
+		{
+		case 8:
+		{
+			ModelHeaderV8 mht = Reader.Read<ModelHeaderV8>();
+			studioData = mht.studioData;
+			pName = mht.name;
+			phyData = mht.phyData;
+			vgCacheData = mht.vgCacheData;
+			animRigs = mht.animRigs;
+			animSeqs = mht.animSeqs;
+			animRigCount = mht.animRigCount;
+			animSeqCount = mht.animSeqCount;
+
+			SetVersion(8);
+			break;
+		}
+		// versions 9, 10, 11, 12.0 all share the same model header
+		case 9:
+		case 10:
+		case 11:
+		{
+			ModelHeaderV9 mht = Reader.Read<ModelHeaderV9>();
+			studioData = mht.studioData;
+			pName = mht.name;
+			phyData = mht.phyData;
+			vgCacheData = mht.vgCacheData;
+			animRigs = mht.animRigs;
+			animSeqs = mht.animSeqs;
+			animRigCount = mht.animRigCount;
+			animSeqCount = mht.animSeqCount;
+
+			SetVersion(assetVersion);
+			break;
+		}
+		case 12:
+		{
+			if (headerSize == 0x78)
+			{
+				ModelHeaderV9 mht = Reader.Read<ModelHeaderV9>();
+				studioData = mht.studioData;
+				pName = mht.name;
+				phyData = mht.phyData;
+				vgCacheData = mht.vgCacheData;
+				animRigs = mht.animRigs;
+				animSeqs = mht.animSeqs;
+				animRigCount = mht.animRigCount;
+				animSeqCount = mht.animSeqCount;
+
+				// 12.0
+				SetVersion(assetVersion, 0);
+			}
+			else
+			{
+				ModelHeaderV12_1 mht = Reader.Read<ModelHeaderV12_1>();
+				studioData = mht.studioData;
+				pName = mht.name;
+				phyData = mht.phyData;
+				vgCacheData = mht.vgCacheData;
+				animRigs = mht.animRigs;
+				animSeqs = mht.animSeqs;
+				animRigCount = mht.animRigCount;
+				animSeqCount = mht.animSeqCount;
+
+				// 12.1 - this is not always correct
+				// there are technically two "subversions" of v12,
+				// but i'm not really sure how to tell them apart
+				SetVersion(assetVersion, 1);
+			}
+			break;
+		}
+		case 13:
+		case 14:
+		case 15:
+		{
+			ModelHeaderV13 mht = Reader.Read<ModelHeaderV13>();
+			studioData = mht.studioData;
+			pName = mht.name;
+			phyData = mht.phyData;
+			vgCacheData = mht.vgCacheData;
+			animRigs = mht.animRigs;
+			animSeqs = mht.animSeqs;
+			animRigCount = mht.animRigCount;
+			animSeqCount = mht.animSeqCount;
+			bbox_min = mht.bbox_min;
+			bbox_max = mht.bbox_max;
+
+			SetFlags(MODEL_HAS_BBOX);
+
+			SetVersion(assetVersion);
+		}
+		}
+
+		if (phyData.Index || phyData.Offset)
+			SetFlags(MODEL_HAS_PHYSICS);
+
+		if (vgCacheData.Index || vgCacheData.Offset)
+			SetFlags(MODEL_HAS_CACHE);
+	}
 };
 
 // MATERIALS
 // --- matl ---
 struct UnknownMaterialSectionV15
 {
-
 	// required but seems to follow a pattern. maybe related to "Unknown2" above?
 	// nulling these bytes makes the material stop drawing entirely
 	uint32_t unk1[8];
@@ -1215,8 +1387,8 @@ ASSERT_SIZE(PatchHeader, 0x18);
 ASSERT_SIZE(UIIAHeader, 0x40);
 ASSERT_SIZE(SettingsKeyValue, 0x8);
 ASSERT_SIZE(SettingsKeyValuePair, 0x10);
-ASSERT_SIZE(ModelHeaderS68, 0x68);
-ASSERT_SIZE(ModelHeaderS80, 0x80);
+ASSERT_SIZE(ModelHeaderV12_1, 0x68);
+ASSERT_SIZE(ModelHeaderV13, 0x80);
 ASSERT_SIZE(ASeqHeader, 0x30);
 ASSERT_SIZE(AnimRigHeader, 0x28);
 ASSERT_SIZE(mstudioseqdesc_t, 0xD0);

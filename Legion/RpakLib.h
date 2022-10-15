@@ -484,6 +484,10 @@ private:
 	uint64_t GetEmbeddedStarpakOffset(const RpakLoadAsset& asset);
 	std::unique_ptr<IO::FileStream> GetStarpakStream(const RpakLoadAsset& Asset, bool Optimal);
 
+	string ReadStringFromPointer(const RpakLoadAsset& Asset, const RPakPtr& ptr);
+	string ReadStringFromPointer(const RpakLoadAsset& Asset, uint32_t index, uint32_t offset);
+
+private:
 	// purpose: set up asset list entries
 	void BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildAnimInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
@@ -509,7 +513,7 @@ private:
 	void ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Texture>& Texture, string& Name);
 	void ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Texture>& Texture);
 	void ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bone>& Skeleton, const string& Path);
-	List<Assets::Bone> ExtractSkeleton(IO::BinaryReader& Reader, uint64_t SkeletonOffset, uint32_t Version);
+	List<Assets::Bone> ExtractSkeleton(IO::BinaryReader& Reader, uint64_t SkeletonOffset, uint32_t Version, int mdlHeaderSize=0);
 	//List<List<DataTableColumnData>> ExtractDataTable(const RpakLoadAsset& Asset);
 	List<SubtitleEntry> ExtractSubtitles(const RpakLoadAsset& Asset);
 	void ExtractShader(const RpakLoadAsset& Asset, const string& OutputDirPath, const string& Path);
@@ -525,8 +529,6 @@ private:
 	void ExtractRUI(const RpakLoadAsset& Asset, const string& Path);
 
 	void ExtractTextureName(const RpakLoadAsset& Asset, string& Name);
-	string ReadStringFromPointer(const RpakLoadAsset& Asset, const RPakPtr& ptr);
-	string ReadStringFromPointer(const RpakLoadAsset& Asset, uint32_t index, uint32_t offset);
 
 	void R_WriteRSONFile(const RpakLoadAsset& Asset, std::ofstream& out, IO::BinaryReader & Reader, RSONNode node, int level);
 

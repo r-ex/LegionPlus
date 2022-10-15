@@ -10,46 +10,25 @@ void RpakLib::BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	ModelHeaderS68 ModHeader{};
-	if (Asset.SubHeaderSize <= 0x68)
-	{
-		if (Asset.AssetVersion > 8)
-		{
-			ModHeader = Reader.Read<ModelHeaderS68>();
-		}
-		else
-		{
-			ModelHeaderS50 mht = Reader.Read<ModelHeaderS50>();
-			ModHeader.pRMDL = { mht.SkeletonIndex , mht.SkeletonOffset };
-			ModHeader.pName = { mht.NameIndex , mht.NameOffset };
-			ModHeader.pPhyData = { mht.PhyIndex , mht.PhyOffset };
-			ModHeader.alignedStreamingSize = mht.StreamedDataSize;
-		}
-	}
-	else
-	{
-		ModelHeaderS80 ModHeaderTmp = Reader.Read<ModelHeaderS80>();
-		std::memcpy(&ModHeader, &ModHeaderTmp, offsetof(ModelHeaderS80, DataFlags));
-		std::memcpy(&ModHeader.animSeqCount, &ModHeaderTmp.AnimSequenceCount, sizeof(uint32_t) * 3);
-	}
-	RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.pName.Index, ModHeader.pName.Offset));
+	ModelHeader mdlHdr;
+	mdlHdr.ReadFromAssetStream(&RpakStream, Asset.SubHeaderSize, Asset.AssetVersion);
 
-	string ModelName = Reader.ReadCString();
+	mdlHdr.name = this->ReadStringFromPointer(Asset, mdlHdr.pName);
 
 	if (ExportManager::Config.GetBool("UseFullPaths"))
-		Info.Name = ModelName;
+		Info.Name = mdlHdr.name;
 	else
-		Info.Name = IO::Path::GetFileNameWithoutExtension(ModelName).ToLower();
+		Info.Name = IO::Path::GetFileNameWithoutExtension(mdlHdr.name).ToLower();
 
 	Info.Type = ApexAssetType::Model;
 
-	RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.pRMDL.Index, ModHeader.pRMDL.Offset));
+	RpakStream->SetPosition(this->GetFileOffset(Asset, mdlHdr.studioData.Index, mdlHdr.studioData.Offset));
 
 	studiohdr_t SkeletonHeader = Reader.Read<studiohdr_t>();
 
-	if (ModHeader.animSeqCount > 0)
+	if (mdlHdr.animSeqCount > 0)
 	{
-		Info.Info = string::Format("Bones: %d, Meshes: %d, Animations: %d", SkeletonHeader.BoneCount, SkeletonHeader.BodyPartCount, ModHeader.animSeqCount);
+		Info.Info = string::Format("Bones: %d, Meshes: %d, Animations: %d", SkeletonHeader.BoneCount, SkeletonHeader.BodyPartCount, mdlHdr.animSeqCount);
 	}
 	else
 	{
@@ -78,52 +57,44 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	ModelHeaderS68 ModHeader{};
-	if (Asset.SubHeaderSize <= 0x68)
+	ModelHeader mdlHdr;
+	mdlHdr.ReadFromAssetStream(&RpakStream, Asset.SubHeaderSize, Asset.AssetVersion);
+
+	mdlHdr.name = this->ReadStringFromPointer(Asset, mdlHdr.pName);
+
+	if (mdlHdr.animRigCount > 0)
 	{
-		if (Asset.AssetVersion > 8)
+		g_Logger.Info("====================== RIGS\n");
+		for (int i = 0; i < mdlHdr.animRigCount; i++)
 		{
-			ModHeader = Reader.Read<ModelHeaderS68>();
+			RpakStream->SetPosition(this->GetFileOffset(Asset, mdlHdr.animRigs.Index, mdlHdr.animRigs.Offset + (sizeof(uint64_t) * i)));
+			uint64_t RigGuid = Reader.Read<uint64_t>();
+
+			if (Assets.ContainsKey(RigGuid))
+				g_Logger.Info("Rig %d -> %s\n", i, this->ExtractAnimationRig(Assets[RigGuid]).ToCString());
+			else
+				g_Logger.Info("Rig %d -> %llx\n", i, RigGuid);
 		}
-		else
+	}
+
+	if (mdlHdr.animSeqCount > 0)
+	{
+		g_Logger.Info("====================== RSEQS\n");
+		for (int i = 0; i < mdlHdr.animSeqCount; i++)
 		{
-			ModelHeaderS50 mht = Reader.Read<ModelHeaderS50>();
-			ModHeader.pRMDL = { mht.SkeletonIndex , mht.SkeletonOffset };
-			ModHeader.pName = { mht.NameIndex , mht.NameOffset };
-			ModHeader.pPhyData = { mht.PhyIndex , mht.PhyOffset };
-			ModHeader.alignedStreamingSize = mht.StreamedDataSize;
+			RpakStream->SetPosition(this->GetFileOffset(Asset, mdlHdr.animSeqs.Index, mdlHdr.animSeqs.Offset + (sizeof(uint64_t) * i)));
+			uint64_t SeqGuid = Reader.Read<uint64_t>();
+
+			if (Assets.ContainsKey(SeqGuid))
+				g_Logger.Info("Seq %d -> %s\n", i, this->ExtractAnimationSeq(Assets[SeqGuid]).ToCString());
+			else
+				g_Logger.Info("Seq %d -> %llx\n", i, SeqGuid);
+
 		}
-	}
-	else
-	{
-		ModelHeaderS80 ModHeaderTmp = Reader.Read<ModelHeaderS80>();
-		std::memcpy(&ModHeader, &ModHeaderTmp, offsetof(ModelHeaderS80, DataFlags));
-		std::memcpy(&ModHeader.animSeqCount, &ModHeaderTmp.AnimSequenceCount, sizeof(uint32_t) * 3);
+		g_Logger.Info("======================\n");
 	}
 
-
-	g_Logger.Info("====================== RIGS\n");
-	for (int i = 0; i < ModHeader.animRigCount; i++)
-	{
-		RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.pAnimRigs.Index, ModHeader.pAnimRigs.Offset + ( sizeof(uint64_t) * i )));
-		uint64_t RigGuid = Reader.Read<uint64_t>();
-
-		g_Logger.Info("Rig %d -> %s\n", i, this->ExtractAnimationRig(Assets[RigGuid]).ToCString());
-	}
-	g_Logger.Info("====================== RSEQS\n");
-	for (int i = 0; i < ModHeader.animSeqCount; i++)
-	{
-		RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.pAnimSeqs.Index, ModHeader.pAnimSeqs.Offset + (sizeof(uint64_t) * i)));
-		uint64_t SeqGuid = Reader.Read<uint64_t>();
-
-		g_Logger.Info("Seq %d -> %s\n", i, this->ExtractAnimationSeq(Assets[SeqGuid]).ToCString());
-	}
-	g_Logger.Info("======================\n");
-
-
-	RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.pName.Index, ModHeader.pName.Offset));
-
-	string RawModelName = Reader.ReadCString();
+	string RawModelName = mdlHdr.name;
 	string ModelName = IO::Path::GetFileNameWithoutExtension(RawModelName);
 	string ModelPath = IO::Path::Combine(Path, ModelName);
 	string TexturePath = IO::Path::Combine(ModelPath, "_images");
@@ -139,7 +110,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 	auto ModelFormat = (ModelExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat");
 
-	const uint64_t StudioOffset = this->GetFileOffset(Asset, ModHeader.pRMDL.Index, ModHeader.pRMDL.Offset);
+	const uint64_t StudioOffset = this->GetFileOffset(Asset, mdlHdr.studioData.Index, mdlHdr.studioData.Offset);
 
 	bool bExportingRawRMdl = false;
 
@@ -168,8 +139,8 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 		uint64_t PhyOffset = 0;
 
-		if (ModHeader.pPhyData.Index != 0 || ModHeader.pPhyData.Offset != 0)
-			PhyOffset = this->GetFileOffset(Asset, ModHeader.pPhyData.Index, ModHeader.pPhyData.Offset);
+		if (mdlHdr.IsFlagSet(MODEL_HAS_PHYSICS))
+			PhyOffset = this->GetFileOffset(Asset, mdlHdr.phyData.Index, mdlHdr.phyData.Offset);
 
 		// check if this model has a phy segment
 		if (PhyOffset)
@@ -201,18 +172,18 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 		rmdlOut.close();
 	}
 
-	Model->Bones = std::move(ExtractSkeleton(Reader, StudioOffset, Asset.AssetVersion));
+	Model->Bones = std::move(ExtractSkeleton(Reader, StudioOffset, Asset.AssetVersion, Asset.SubHeaderSize));
 
 	if (!bExportingRawRMdl)
 		Model->GenerateGlobalTransforms(true, true); // We need global transforms
 
-	if (IncludeAnimations && ModHeader.animSeqCount > 0 && Asset.AssetVersion > 9)
+	if (IncludeAnimations && mdlHdr.animSeqCount > 0 && Asset.AssetVersion > 9)
 	{
 		IO::Directory::CreateDirectory(AnimationPath);
 
-		RpakStream->SetPosition(this->GetFileOffset(Asset, ModHeader.pAnimSeqs.Index, ModHeader.pAnimSeqs.Offset));
+		RpakStream->SetPosition(this->GetFileOffset(Asset, mdlHdr.animSeqs.Index, mdlHdr.animSeqs.Offset));
 
-		for (uint32_t i = 0; i < ModHeader.animSeqCount; i++)
+		for (uint32_t i = 0; i < mdlHdr.animSeqCount; i++)
 		{
 			uint64_t AnimHash = Reader.Read<uint64_t>();
 
@@ -319,9 +290,9 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 		if (Asset.AssetVersion <= 8) // s1
 		{
 			StarpakStream->SetPosition(Offset);
-			char* streamBuf = new char[ModHeader.alignedStreamingSize];
+			char* streamBuf = new char[mdlHdr.alignedStreamingSize];
 
-			StarpakReader.Read(streamBuf, 0, ModHeader.alignedStreamingSize);
+			StarpakReader.Read(streamBuf, 0, mdlHdr.alignedStreamingSize);
 
 			RpakStream->SetPosition(StudioOffset);
 
@@ -351,7 +322,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 				vvcOut.close();
 			}
 		}
-		else if (Asset.AssetVersion >= 9 && Asset.AssetVersion <= 11) // s2/3
+		else if ((Asset.AssetVersion >= 9 && Asset.AssetVersion <= 11) || (Asset.AssetVersion == 12 && Asset.SubHeaderSize == 0x78)) // s2-s6
 		{
 			StarpakStream->SetPosition(Offset);
 			auto VGHeader = StarpakReader.Read<RMdlVGHeaderOld>();
@@ -433,11 +404,14 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 		return nullptr;
 	}
 
-	if (Asset.AssetVersion >= 14)
-		this->ExtractModelLod_V14(StarpakReader, RpakStream, ModelName, Offset, Model, Fixups, Asset.AssetVersion, IncludeMaterials);
-	else if (Asset.AssetVersion < 12)
+	// accept v9-v12.0 (v8 is vtx/vvd/vvc, v12.1+ is new VG)
+	bool useOldVg = (mdlHdr.version().major > 8 && mdlHdr.version().major < 12) || (mdlHdr.version().major == 12 && mdlHdr.version().minor == 0);
+
+	if(useOldVg)
 		this->ExtractModelLodOld(StarpakReader, RpakStream, ModelName, Offset, Model, Fixups, Asset.AssetVersion, IncludeMaterials);
-	else
+	else if (Asset.AssetVersion >= 14)
+		this->ExtractModelLod_V14(StarpakReader, RpakStream, ModelName, Offset, Model, Fixups, Asset.AssetVersion, IncludeMaterials);
+	else // v12.1-v13
 		this->ExtractModelLod(StarpakReader, RpakStream, ModelName, Offset, Model, Fixups, Asset.AssetVersion, IncludeMaterials);
 
 	return std::move(Model);
@@ -1231,7 +1205,7 @@ void RpakLib::ExtractModelLodOld(IO::BinaryReader& Reader, const std::unique_ptr
 	}
 }
 
-List<Assets::Bone> RpakLib::ExtractSkeleton(IO::BinaryReader& Reader, uint64_t SkeletonOffset, uint32_t Version)
+List<Assets::Bone> RpakLib::ExtractSkeleton(IO::BinaryReader& Reader, uint64_t SkeletonOffset, uint32_t Version, int mdlHeaderSize)
 {
 	IO::Stream* RpakStream = Reader.GetBaseStream();
 
@@ -1243,7 +1217,8 @@ List<Assets::Bone> RpakLib::ExtractSkeleton(IO::BinaryReader& Reader, uint64_t S
 
 	for (uint32_t i = 0; i < SkeletonHeader.BoneCount; i++)
 	{
-		uint64_t Position = SkeletonOffset + SkeletonHeader.BoneDataOffset + (i * (sizeof(mstudiobone_t) + (Version >= 9 && Version < 12 ? 4 : 0)));
+		bool bIsOldModel = (Version >= 8 && Version < 12) || (Version == 12 && mdlHeaderSize == 0x78);
+		uint64_t Position = SkeletonOffset + SkeletonHeader.BoneDataOffset + (i * (sizeof(mstudiobone_t) + (bIsOldModel ? 4 : 0)));
 
 		RpakStream->SetPosition(Position);
 		mstudiobone_t Bone = Reader.Read<mstudiobone_t>();

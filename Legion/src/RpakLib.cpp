@@ -596,22 +596,10 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 		{
 		case (uint32_t)AssetType_t::Model:
 		{
-			if (Asset.AssetVersion == 8)
-			{
-				ModelHeaderS50 SubHeader = Reader.Read<ModelHeaderS50>();
-				return (SubHeader.NameIndex >= LoadedFile.StartSegmentIndex && SubHeader.SkeletonIndex >= LoadedFile.StartSegmentIndex);
+			ModelHeader mdlHdr;
+			mdlHdr.ReadFromAssetStream(&RpakStream, Asset.SubHeaderSize, Asset.AssetVersion);
 
-			}
-			else if (Asset.SubHeaderSize <= 0x68)
-			{
-				ModelHeaderS68 SubHeader = Reader.Read<ModelHeaderS68>();
-				return (SubHeader.pName.Index >= LoadedFile.StartSegmentIndex && SubHeader.pRMDL.Index >= LoadedFile.StartSegmentIndex);
-			}
-			else
-			{
-				ModelHeaderS80 SubHeader = Reader.Read<ModelHeaderS80>();
-				return (SubHeader.NameIndex >= LoadedFile.StartSegmentIndex && SubHeader.SkeletonIndex >= LoadedFile.StartSegmentIndex);
-			}
+			return (mdlHdr.studioData.Index >= LoadedFile.StartSegmentIndex && mdlHdr.pName.Index >= LoadedFile.StartSegmentIndex);
 		}
 		case (uint32_t)AssetType_t::Texture:
 		{
