@@ -32,31 +32,27 @@ struct TextureHeader
 {
 	uint64_t Guid;
 
-	RPakPtr szdebugName;
+	RPakPtr pName;
 
 	uint16_t width;
 	uint16_t height;
-
-	// possible int16
-	uint8_t Un1;
-	uint8_t Un2;
-
-	uint16_t format;  // Maps to a DXGI format
+	uint16_t depth;
+	uint16_t imageFormat;  // Maps to a DXGI format
 
 	uint32_t dataSize;	// This is the total amount of image data across all banks
 
-	uint8_t compressionType; // 8 PS4, 9 Switch
+	uint8_t unk; // 8 PS4, 9 Switch
 
 	uint8_t optStreamedMipCount; // r5 only
 
 	uint8_t arraySize;
 	uint8_t layerCount;
 
-	uint8_t mipFlags;
+	uint8_t unkMip; // 0x1 inverted, 0x2 ???
 	uint8_t permanentMipCount;
 	uint8_t streamedMipCount;
 
-	byte unk[13]; // mipmap related, used bytes is always total mip count minus one, not present if no mipmaps (see mip count - 1)
+	byte unk1[13]; // mipmap related, used bytes is always total mip count minus one, not present if no mipmaps (see mip count - 1)
 
 	uint64_t numPixels; // reserved, set on load.
 };
