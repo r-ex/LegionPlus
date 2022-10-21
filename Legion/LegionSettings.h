@@ -51,6 +51,7 @@ private:
 	// Load Types
 	UIX::UIXCheckBox* LoadModels;
 	UIX::UIXCheckBox* LoadAnimations;
+	UIX::UIXCheckBox* LoadAnimationSeqs;
 	UIX::UIXCheckBox* LoadImages;
 	UIX::UIXCheckBox* LoadUIImages;
 	UIX::UIXCheckBox* LoadMaterials;
@@ -58,6 +59,8 @@ private:
 	UIX::UIXCheckBox* LoadShaderSets;
 	UIX::UIXCheckBox* LoadSettingsSets;
 	UIX::UIXCheckBox* LoadRSONs;
+	UIX::UIXCheckBox* LoadEffects;
+
 	// Toggles
 	UIX::UIXCheckBox* ToggleOverwriting;
 	UIX::UIXCheckBox* ToggleAudioLanguageFolders;

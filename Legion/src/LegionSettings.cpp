@@ -119,7 +119,7 @@ void LegionSettings::InitializeComponent()
 	//	About Text Label
 	//
 	this->labelVersion = new UIX::UIXLabel();
-	this->labelVersion->SetSize({ 200, 12 });
+	this->labelVersion->SetSize({ 200, 20 });
 	this->labelVersion->SetLocation({ 12, 20 });
 	this->labelVersion->SetTabIndex(0);
 #ifndef NIGHTLY
@@ -169,85 +169,98 @@ void LegionSettings::InitializeComponent()
 	this->groupBox4->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->AddControl(this->groupBox4);
 
+
 	// 
-	//	Load Settings
-	//
+//	Load Settings
+//
 	this->LoadModels = new UIX::UIXCheckBox();
 	this->LoadModels->SetSize({ 108, 18 });
-	this->LoadModels->SetLocation({ 15, 22 });
+	this->LoadModels->SetLocation({ 15, 20 });
 	this->LoadModels->SetTabIndex(0);
 	this->LoadModels->SetText("Load Models");
 	this->LoadModels->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->groupBox4->AddControl(this->LoadModels);
 
-
-	this->LoadAnimations = new UIX::UIXCheckBox();
-	this->LoadAnimations->SetSize({ 108, 18 });
-	this->LoadAnimations->SetLocation({ 130, 22 });
-	this->LoadAnimations->SetTabIndex(1);
-	this->LoadAnimations->SetText("Load Animations");
-	this->LoadAnimations->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox4->AddControl(this->LoadAnimations);
-
-
 	this->LoadImages = new UIX::UIXCheckBox();
 	this->LoadImages->SetSize({ 108, 18 });
-	this->LoadImages->SetLocation({ 15, 45 });
+	this->LoadImages->SetLocation({ 15, 40 });
 	this->LoadImages->SetTabIndex(2);
 	this->LoadImages->SetText("Load Images");
 	this->LoadImages->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->groupBox4->AddControl(this->LoadImages);
 
-
-	this->LoadUIImages = new UIX::UIXCheckBox();
-	this->LoadUIImages->SetSize({ 108, 18 });
-	this->LoadUIImages->SetLocation({ 130, 45 });
-	this->LoadUIImages->SetTabIndex(2);
-	this->LoadUIImages->SetText("Load UI Images");
-	this->LoadUIImages->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox4->AddControl(this->LoadUIImages);
-
-
 	this->LoadMaterials = new UIX::UIXCheckBox();
 	this->LoadMaterials->SetSize({ 108, 18 });
-	this->LoadMaterials->SetLocation({ 15, 68 });
+	this->LoadMaterials->SetLocation({ 15, 60 });
 	this->LoadMaterials->SetTabIndex(3);
 	this->LoadMaterials->SetText("Load Materials");
 	this->LoadMaterials->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->groupBox4->AddControl(this->LoadMaterials);
 
-
-	this->LoadDataTables = new UIX::UIXCheckBox();
-	this->LoadDataTables->SetSize({ 108, 18 });
-	this->LoadDataTables->SetLocation({ 130, 68 });
-	this->LoadDataTables->SetTabIndex(2);
-	this->LoadDataTables->SetText("Load DataTables");
-	this->LoadDataTables->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox4->AddControl(this->LoadDataTables);
+	this->LoadRSONs = new UIX::UIXCheckBox();
+	this->LoadRSONs->SetSize({ 108, 18 });
+	this->LoadRSONs->SetLocation({ 15, 80 });
+	this->LoadRSONs->SetTabIndex(2);
+	this->LoadRSONs->SetText("Load RSONs");
+	this->LoadRSONs->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox4->AddControl(this->LoadRSONs);
 
 	this->LoadShaderSets = new UIX::UIXCheckBox();
 	this->LoadShaderSets->SetSize({ 108, 18 });
-	this->LoadShaderSets->SetLocation({ 15, 91 });
+	this->LoadShaderSets->SetLocation({ 15, 100 });
 	this->LoadShaderSets->SetTabIndex(2);
 	this->LoadShaderSets->SetText("Load ShaderSets");
 	this->LoadShaderSets->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->groupBox4->AddControl(this->LoadShaderSets);
 
+
+	this->LoadAnimations = new UIX::UIXCheckBox();
+	this->LoadAnimations->SetSize({ 108, 18 });
+	this->LoadAnimations->SetLocation({ 130, 20 });
+	this->LoadAnimations->SetTabIndex(1);
+	this->LoadAnimations->SetText("Load Animations");
+	this->LoadAnimations->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox4->AddControl(this->LoadAnimations);
+
+	this->LoadAnimationSeqs = new UIX::UIXCheckBox();
+	this->LoadAnimationSeqs->SetSize({ 108, 18 });
+	this->LoadAnimationSeqs->SetLocation({ 130, 40 });
+	this->LoadAnimationSeqs->SetTabIndex(2);
+	this->LoadAnimationSeqs->SetText("Load Anim Seqs");
+	this->LoadAnimationSeqs->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox4->AddControl(this->LoadAnimationSeqs);
+
+	this->LoadUIImages = new UIX::UIXCheckBox();
+	this->LoadUIImages->SetSize({ 108, 18 });
+	this->LoadUIImages->SetLocation({ 130, 60 });
+	this->LoadUIImages->SetTabIndex(2);
+	this->LoadUIImages->SetText("Load UI Images");
+	this->LoadUIImages->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox4->AddControl(this->LoadUIImages);
+
+	this->LoadDataTables = new UIX::UIXCheckBox();
+	this->LoadDataTables->SetSize({ 108, 18 });
+	this->LoadDataTables->SetLocation({ 130, 80 });
+	this->LoadDataTables->SetTabIndex(2);
+	this->LoadDataTables->SetText("Load DataTables");
+	this->LoadDataTables->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox4->AddControl(this->LoadDataTables);
+
 	this->LoadSettingsSets = new UIX::UIXCheckBox();
 	this->LoadSettingsSets->SetSize({ 108, 18 });
-	this->LoadSettingsSets->SetLocation({ 130, 91 });
+	this->LoadSettingsSets->SetLocation({ 130, 100 });
 	this->LoadSettingsSets->SetTabIndex(2);
 	this->LoadSettingsSets->SetText("Load SettingsSets");
 	this->LoadSettingsSets->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->groupBox4->AddControl(this->LoadSettingsSets);
 
-	this->LoadRSONs = new UIX::UIXCheckBox();
-	this->LoadRSONs->SetSize({ 108, 18 });
-	this->LoadRSONs->SetLocation({ 15, 114 });
-	this->LoadRSONs->SetTabIndex(2);
-	this->LoadRSONs->SetText("Load RSONs");
-	this->LoadRSONs->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->groupBox4->AddControl(this->LoadRSONs);
+	this->LoadEffects = new UIX::UIXCheckBox();
+	this->LoadEffects->SetSize({ 108, 18 });
+	this->LoadEffects->SetLocation({ 130, 120 });
+	this->LoadEffects->SetTabIndex(2);
+	this->LoadEffects->SetText("Load Effects");
+	this->LoadEffects->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox4->AddControl(this->LoadEffects);
 
 	//
 	//	Assets Export Settings Box
@@ -591,12 +604,14 @@ void LegionSettings::LoadSettings()
 
 	this->LoadModels->SetChecked(ExportManager::Config.GetBool("LoadModels"));
 	this->LoadAnimations->SetChecked(ExportManager::Config.GetBool("LoadAnimations"));
+	this->LoadAnimationSeqs->SetChecked(ExportManager::Config.GetBool("LoadAnimationSeqs"));
 	this->LoadImages->SetChecked(ExportManager::Config.GetBool("LoadImages"));
 	this->LoadMaterials->SetChecked(ExportManager::Config.GetBool("LoadMaterials"));
 	this->LoadUIImages->SetChecked(ExportManager::Config.GetBool("LoadUIImages"));
 	this->LoadDataTables->SetChecked(ExportManager::Config.GetBool("LoadDataTables"));
 	this->LoadShaderSets->SetChecked(ExportManager::Config.GetBool("LoadShaderSets"));
 	this->LoadSettingsSets->SetChecked(ExportManager::Config.GetBool("LoadSettingsSets"));
+	this->LoadEffects->SetChecked(ExportManager::Config.GetBool("LoadEffects"));
 	this->LoadRSONs->SetChecked(ExportManager::Config.GetBool("LoadRSONs"));
 	this->ToggleOverwriting->SetChecked(ExportManager::Config.GetBool("OverwriteExistingFiles"));
 	this->ToggleAudioLanguageFolders->SetChecked(ExportManager::Config.GetBool("AudioLanguageFolders"));
@@ -754,6 +769,8 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		bRefreshView = true;
 	if (ThisPtr->LoadAnimations->Checked() != ExportManager::Config.GetBool("LoadAnimations"))
 		bRefreshView = true;
+	if (ThisPtr->LoadAnimationSeqs->Checked() != ExportManager::Config.GetBool("LoadAnimationSeqs"))
+		bRefreshView = true;
 	if (ThisPtr->LoadImages->Checked() != ExportManager::Config.GetBool("LoadImages"))
 		bRefreshView = true;
 	if (ThisPtr->LoadMaterials->Checked() != ExportManager::Config.GetBool("LoadMaterials"))
@@ -764,6 +781,8 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		bRefreshView = true;
 	if (ThisPtr->LoadShaderSets->Checked() != ExportManager::Config.GetBool("LoadShaderSets"))
 		bRefreshView = true;
+	if (ThisPtr->LoadShaderSets->Checked() != ExportManager::Config.GetBool("LoadEffects"))
+		bRefreshView = true;
 	if (ThisPtr->LoadSettingsSets->Checked() != ExportManager::Config.GetBool("LoadSettingsSets"))
 		bRefreshView = true;
 	if (ThisPtr->LoadRSONs->Checked() != ExportManager::Config.GetBool("LoadRSONs"))
@@ -773,12 +792,14 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 
 	ExportManager::Config.SetBool("LoadModels", ThisPtr->LoadModels->Checked());
 	ExportManager::Config.SetBool("LoadAnimations", ThisPtr->LoadAnimations->Checked());
+	ExportManager::Config.SetBool("LoadAnimationSeqs", ThisPtr->LoadAnimationSeqs->Checked());
 	ExportManager::Config.SetBool("LoadImages", ThisPtr->LoadImages->Checked());
 	ExportManager::Config.SetBool("LoadMaterials", ThisPtr->LoadMaterials->Checked());
 	ExportManager::Config.SetBool("LoadUIImages", ThisPtr->LoadUIImages->Checked());
 	ExportManager::Config.SetBool("LoadDataTables", ThisPtr->LoadDataTables->Checked());
 	ExportManager::Config.SetBool("LoadShaderSets", ThisPtr->LoadShaderSets->Checked());
 	ExportManager::Config.SetBool("LoadSettingsSets", ThisPtr->LoadSettingsSets->Checked());
+	ExportManager::Config.SetBool("LoadEffects", ThisPtr->LoadEffects->Checked());
 	ExportManager::Config.SetBool("LoadRSONs", ThisPtr->LoadRSONs->Checked());
 	ExportManager::Config.SetBool("OverwriteExistingFiles", ThisPtr->ToggleOverwriting->Checked());
 	ExportManager::Config.SetBool("AudioLanguageFolders", ThisPtr->ToggleAudioLanguageFolders->Checked());

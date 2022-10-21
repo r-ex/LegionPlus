@@ -276,8 +276,10 @@ struct RpakLoadAsset
 	uint64_t StarpakOffset;
 	uint64_t OptimalStarpakOffset;
 
+	RpakFile* PakFile;
+
 	RpakLoadAsset() = default;
-	RpakLoadAsset(uint64_t NameHash, uint32_t FileIndex, uint32_t AssetType, uint32_t SubHeaderIndex, uint32_t SubHeaderOffset, uint32_t SubHeaderSize, uint32_t RawDataIndex, uint32_t RawDataOffset, uint64_t StarpakOffset, uint64_t OptimalStarpakOffset, RpakGameVersion Version, uint32_t AssetVersion);
+	RpakLoadAsset(uint64_t NameHash, uint32_t FileIndex, uint32_t AssetType, uint32_t SubHeaderIndex, uint32_t SubHeaderOffset, uint32_t SubHeaderSize, uint32_t RawDataIndex, uint32_t RawDataOffset, uint64_t StarpakOffset, uint64_t OptimalStarpakOffset, RpakGameVersion Version, uint32_t AssetVersion, RpakFile* PakFile);
 };
 
 // Shared
@@ -312,6 +314,8 @@ enum class AssetType_t : uint32_t
 	UIImageAtlas = 'gmiu', // uimg - 0x676D6975
 	RSON = 'nosr', // rson - 0x72736F6E
 	RUI = 'iu', // ui - 0x75690000
+	Map = 'pamr', // rmap - 0x70616D72
+	Effect = 'tcfe', // efct - 0x74636665
 };
 
 enum class ModelExportFormat_t
@@ -420,7 +424,7 @@ public:
 	bool m_bImageExporterInitialized = false;
 
 	// Builds the viewer list of assets
-	std::unique_ptr<List<ApexAsset>> BuildAssetList(const std::array<bool, 9>& arrAssets);
+	std::unique_ptr<List<ApexAsset>> BuildAssetList(const std::array<bool, 11>& arrAssets);
 	// Builds the preview model mesh
 	std::unique_ptr<Assets::Model> BuildPreviewModel(uint64_t Hash);
 	// Builds the preview texture
@@ -443,6 +447,7 @@ public:
 	void ExportTexture(const RpakLoadAsset& Asset, const string& Path, bool IncludeImageNames, string NameOverride = "", bool NormalRecalculate = false);
 	void ExportUIIA(const RpakLoadAsset& Asset, const string& Path);
 	void ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path);
+	void ExportAnimationSeq(const RpakLoadAsset& Asset, const string& Path);
 	void ExportDataTable(const RpakLoadAsset& Asset, const string& Path);
 	void ExportSubtitles(const RpakLoadAsset& Asset, const string& Path);
 	void ExportShaderSet(const RpakLoadAsset& Asset, const string& Path);
@@ -479,6 +484,10 @@ private:
 	uint64_t GetEmbeddedStarpakOffset(const RpakLoadAsset& asset);
 	std::unique_ptr<IO::FileStream> GetStarpakStream(const RpakLoadAsset& Asset, bool Optimal);
 
+	string ReadStringFromPointer(const RpakLoadAsset& Asset, const RPakPtr& ptr);
+	string ReadStringFromPointer(const RpakLoadAsset& Asset, uint32_t index, uint32_t offset);
+
+private:
 	// purpose: set up asset list entries
 	void BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildAnimInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
@@ -491,6 +500,8 @@ private:
 	void BuildShaderSetInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildUIImageAtlasInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildSettingsInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
+	void BuildMapInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
+	void BuildEffectInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildSettingsLayoutInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildRSONInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildRUIInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
@@ -502,7 +513,7 @@ private:
 	void ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Texture>& Texture, string& Name);
 	void ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Texture>& Texture);
 	void ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bone>& Skeleton, const string& Path);
-	List<Assets::Bone> ExtractSkeleton(IO::BinaryReader& Reader, uint64_t SkeletonOffset, uint32_t Version);
+	List<Assets::Bone> ExtractSkeleton(IO::BinaryReader& Reader, uint64_t SkeletonOffset, uint32_t Version, int mdlHeaderSize=0);
 	//List<List<DataTableColumnData>> ExtractDataTable(const RpakLoadAsset& Asset);
 	List<SubtitleEntry> ExtractSubtitles(const RpakLoadAsset& Asset);
 	void ExtractShader(const RpakLoadAsset& Asset, const string& OutputDirPath, const string& Path);
@@ -511,12 +522,13 @@ private:
 	void ExtractSettings(const RpakLoadAsset& Asset, const string& Path, const string& Name, const SettingsHeader& Header);
 	SettingsLayout ExtractSettingsLayout(const RpakLoadAsset& Asset);
 
+	string ExtractAnimationRig(const RpakLoadAsset& Asset);
+	string ExtractAnimationSeq(const RpakLoadAsset& Asset);
+
 	void ExtractRSON(const RpakLoadAsset& Asset, const string& Path);
 	void ExtractRUI(const RpakLoadAsset& Asset, const string& Path);
 
 	void ExtractTextureName(const RpakLoadAsset& Asset, string& Name);
-	string ReadStringFromPointer(const RpakLoadAsset& Asset, const RPakPtr& ptr);
-	string ReadStringFromPointer(const RpakLoadAsset& Asset, uint32_t index, uint32_t offset);
 
 	void R_WriteRSONFile(const RpakLoadAsset& Asset, std::ofstream& out, IO::BinaryReader & Reader, RSONNode node, int level);
 

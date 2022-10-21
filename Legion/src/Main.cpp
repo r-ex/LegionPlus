@@ -257,6 +257,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			// load rpak flags
 			bool bLoadModels = cmdline.HasParam(L"--loadmodels");
 			bool bLoadAnims = cmdline.HasParam(L"--loadanimations");
+			bool BLoadAnimSeqs = cmdline.HasParam(L"--loadanimationseqs");
 			bool bLoadImages = cmdline.HasParam(L"--loadimages");
 			bool bLoadMaterials = cmdline.HasParam(L"--loadmaterials");
 			bool bLoadUIImages = cmdline.HasParam(L"--loaduiimages");
@@ -265,29 +266,32 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 			bool bLoadSettingsSets = cmdline.HasParam(L"--loadsettingssets");
 			bool bLoadRSONs = cmdline.HasParam(L"--loadrsons");
 
-			bool bNoFlagsSpecified = !bLoadModels && !bLoadAnims && !bLoadImages && !bLoadMaterials && !bLoadUIImages && !bLoadDataTables && !bLoadShaderSets && !bLoadSettingsSets&& !bLoadRSONs;
+			bool bNoFlagsSpecified = !bLoadModels && !bLoadAnims && !BLoadAnimSeqs && !bLoadImages && !bLoadMaterials && !bLoadUIImages && !bLoadDataTables && !bLoadShaderSets && !bLoadSettingsSets && !bLoadRSONs;
 
 			if (bNoFlagsSpecified)
 			{
-				std::array<bool, 9> bAssets = {
+				std::array<bool, 11> bAssets = {
 					ExportManager::Config.GetBool("LoadModels"),
 					ExportManager::Config.GetBool("LoadAnimations"),
+					ExportManager::Config.GetBool("LoadAnimationSeqs"),
 					ExportManager::Config.GetBool("LoadImages"),
 					ExportManager::Config.GetBool("LoadMaterials"),
 					ExportManager::Config.GetBool("LoadUIImages"),
 					ExportManager::Config.GetBool("LoadDataTables"),
 					ExportManager::Config.GetBool("LoadShaderSets"),
 					ExportManager::Config.GetBool("LoadSettingsSets"),
-					ExportManager::Config.GetBool("LoadRSONs")
+					ExportManager::Config.GetBool("LoadRSONs"),
+					ExportManager::Config.GetBool("LoadEffects")
 				};
 
 				AssetList = Rpak->BuildAssetList(bAssets);
 			}
 			else
 			{
-				std::array<bool, 9> bAssets = {
+				std::array<bool, 11> bAssets = {
 					bLoadModels,
 					bLoadAnims,
+					BLoadAnimSeqs,
 					bLoadImages,
 					bLoadMaterials,
 					bLoadUIImages,
@@ -295,6 +299,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 					bLoadShaderSets,
 					bLoadSettingsSets,
 					bLoadRSONs,
+					false // not ready yet.
 				};
 
 				AssetList = Rpak->BuildAssetList(bAssets);

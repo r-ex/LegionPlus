@@ -1206,38 +1206,60 @@ struct RMdlExtendedWeight
 	uint16_t BoneId;
 };
 
-struct RMdlLodSubmeshOld
+struct mstudio_meshvertexdata_t
 {
-	uint32_t Index;
-
-	uint16_t Unknown1;
-	uint16_t Unknown2;
-	uint16_t Unknown3;
-	uint16_t Unknown4;
-
-	uint8_t UnknownPad[0x28];
-
-	uint32_t LodVertCounts[8];
-
-	uint32_t Unknown5;
-	uint32_t Unknown6;
+	int unk;
+	int numLODVertexes[8];
 };
 
-struct RMdlLodSubmesh
+struct mstudiomesh_s3_t
 {
-	uint32_t Index;
+	int material;
 
-	uint16_t Unknown1;
-	uint16_t Unknown2;
-	uint16_t Unknown3;
-	uint16_t Unknown4;
+	int modelindex;
 
-	uint8_t UnknownPad[0x18];
+	int numvertices; // number of unique vertices/normals/texcoords
+	int vertexoffset; // vertex mstudiovertex_t
 
-	uint32_t LodVertCounts[8];
+	// Access thin/fat mesh vertex data (only one will return a non-NULL result)
 
-	uint32_t Unknown5;
-	uint32_t Unknown6;
+	int numflexes; // vertex animation
+	int flexindex;
+
+	// special codes for material operations
+	int materialtype;
+	int materialparam;
+
+	// a unique ordinal for this mesh
+	int meshid;
+
+	Vector3 center;
+
+	mstudio_meshvertexdata_t vertexdata;
+
+	int unused[2];
+};
+
+struct mstudiomesh_v121_t
+{
+	int material;
+
+	int modelindex;
+
+	int numvertices; // number of unique vertices/normals/texcoords
+	int vertexoffset; // vertex mstudiovertex_t
+
+	// a unique ordinal for this mesh
+	int meshid;
+
+	Vector3 center;
+
+	// a unique ordinal for this mesh
+	//int meshid;
+
+	mstudio_meshvertexdata_t vertexdata;
+
+	int unused[2];
 };
 
 struct RMdlTitanfallLodSubmesh
@@ -1261,24 +1283,17 @@ struct mstudiotexturev54_t
 	int sznameindex;
 	uint64_t guid;
 };
-
-struct RMdlTexture
-{
-	uint32_t Offset;
-	uint64_t MaterialHash;
-};
 #pragma pack(pop)
 
 // Game helper structs
 struct RMdlFixupPatches
 {
-	List<RMdlTexture>* Materials;
-	List<RMdlLodSubmesh>* SubmeshLods;
+	List<mstudiotexturev54_t>* Materials;
 	List<uint8_t>* BoneRemaps;
 	string MaterialPath;
 
 	uint64_t VertexShift;
-	uint64_t FixupTableOffset;
+	uint64_t MeshOffset;
 	uint64_t WeightsTableOffset;
 };
 

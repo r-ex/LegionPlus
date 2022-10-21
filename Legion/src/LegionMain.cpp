@@ -7,6 +7,7 @@
 #include "LegionSettings.h"
 #include "LegionTitanfallConverter.h"
 #include "LegionTablePreview.h"
+#include <version.h>
 
 LegionMain::LegionMain()
 	: Forms::Form(), IsInExportMode(false)
@@ -20,7 +21,7 @@ void LegionMain::InitializeComponent()
 	this->SuspendLayout();
 	this->SetAutoScaleDimensions({ 6, 13 });
 	this->SetAutoScaleMode(Forms::AutoScaleMode::Font);
-	this->SetText("Legion+");
+	this->SetText("Legion+ " UI_VER_STR);
 	this->SetClientSize({ 844, 481 });
 	this->SetMinimumSize({ 791, 520 });
 	this->SetStartPosition(Forms::FormStartPosition::CenterScreen);
@@ -520,16 +521,18 @@ void LegionMain::RefreshView()
 	{
 		this->AssetsListView->SetVirtualListSize(0);
 
-		std::array<bool, 9> bAssets = {
+		std::array<bool, 11> bAssets = {
 			ExportManager::Config.GetBool("LoadModels"),
 			ExportManager::Config.GetBool("LoadAnimations"),
+			ExportManager::Config.GetBool("LoadAnimationSeqs"),
 			ExportManager::Config.GetBool("LoadImages"),
 			ExportManager::Config.GetBool("LoadMaterials"),
 			ExportManager::Config.GetBool("LoadUIImages"),
 			ExportManager::Config.GetBool("LoadDataTables"),
 			ExportManager::Config.GetBool("LoadShaderSets"),
 			ExportManager::Config.GetBool("LoadSettingsSets"),
-			ExportManager::Config.GetBool("LoadRSONs")
+			ExportManager::Config.GetBool("LoadRSONs"),
+			ExportManager::Config.GetBool("LoadEffects")
 		};
 
 		this->LoadedAssets = this->RpakFileSystem->BuildAssetList(bAssets);
@@ -767,11 +770,12 @@ void LegionMain::GetVirtualItem(const std::unique_ptr<Forms::RetrieveVirtualItem
 
 	uint32_t RemappedDisplayIndex = ThisPtr->DisplayIndices[EventArgs->ItemIndex];
 
-	static const char* AssetTypes[] = { "Model", "AnimationSet", "Image", "Material", "DataTable", "Sound", "Subtitles", "ShaderSet", "UI Image", "UI Image Atlas", "Settings", "RSON", "RUI" , "Settings Layout"};
+	static const char* AssetTypes[] = { "Model", "AnimationSet","AnimationSeq", "Image", "Material", "DataTable", "Sound", "Subtitles", "ShaderSet", "UI Image", "UI Image Atlas", "Settings","Settings Layout", "RSON", "RUI" , "Map", "Effect" };
 	static const Drawing::Color AssetTypesColors[] = 
 	{
 		Drawing::Color(0, 157, 220),  // Model
 		Drawing::Color(219, 80, 74),  // AnimationSet
+		Drawing::Color(220, 75, 109), // Animation Seq
 		Drawing::Color(202, 97, 195), // Image
 		Drawing::Color(27, 153, 139), // Material
 		Drawing::Color(211, 7, 247),  // DataTable
@@ -781,9 +785,11 @@ void LegionMain::GetVirtualItem(const std::unique_ptr<Forms::RetrieveVirtualItem
 		Drawing::Color(114, 142, 230),// UI Image
 		Drawing::Color(114, 142, 230),// UI Image Atlas
 		Drawing::Color(255, 196, 0),  // Settings
+		Drawing::Color(255, 127,0),  // SettingsLayout
 		Drawing::Color(54, 249, 249), // RSON
 		Drawing::Color(4, 197, 4),    // RUI
-		Drawing::Color(255, 196, 0),  // SettingsLayout
+		Drawing::Color(131 ,69, 255), // Map
+		Drawing::Color(17, 221, 191), // Effect
 	};
 
 	static const char* AssetStatus[] = { "Loaded", "Exporting", "Exported", "Error" };

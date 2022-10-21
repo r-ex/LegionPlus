@@ -90,7 +90,8 @@ void RpakLib::PatchAssets()
 					Kvp.second.StarpakOffset,
 					Kvp.second.OptimalStarpakOffset,
 					LoadedFile.Version,
-					Kvp.second.Version
+					Kvp.second.Version,
+					&this->LoadedFiles[i]
 				);
 
 				// All assets must follow this patch sequence
@@ -154,7 +155,7 @@ void RpakLib::PatchAssets()
 }
 
 //std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims, bool Images, bool Materials, bool UIImages, bool DataTables)
-std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(const std::array<bool, 9> &arrAssets)
+std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(const std::array<bool, 11> &arrAssets)
 {
 	auto Result = std::make_unique<List<ApexAsset>>();
 
@@ -178,43 +179,48 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(const std::array<bool, 
 				continue;
 			BuildAnimInfo(Asset, NewAsset);
 			break;
-		case (uint32_t)AssetType_t::Texture:
+		case (uint32_t)AssetType_t::Animation:
 			if (!arrAssets[2])
+				continue;
+			BuildRawAnimInfo(Asset, NewAsset);
+			break;
+		case (uint32_t)AssetType_t::Texture:
+			if (!arrAssets[3])
 				continue;
 			BuildTextureInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::Material:
-			if (!arrAssets[3])
+			if (!arrAssets[4])
 				continue;
 			BuildMaterialInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::UIIA:
-			if (!arrAssets[4])
+			if (!arrAssets[5])
 				continue;
 			BuildUIIAInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::DataTable:
-			if (!arrAssets[5])
+			if (!arrAssets[6])
 				continue;
 			BuildDataTableInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::ShaderSet:
-			if (!arrAssets[6])
+			if (!arrAssets[7])
 				continue;
 			BuildShaderSetInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::Settings:
-			if (!arrAssets[7])
+			if (!arrAssets[8])
 				continue;
 			BuildSettingsInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::SettingsLayout:
-			if (!arrAssets[7])
+			if (!arrAssets[8])
 				continue;
 			BuildSettingsLayoutInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::RSON:
-			if (!arrAssets[8])
+			if (!arrAssets[9])
 				continue;
 			BuildRSONInfo(Asset, NewAsset);
 			break;
@@ -223,11 +229,19 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(const std::array<bool, 
 			//	continue;
 			BuildRUIInfo(Asset, NewAsset);
 			break;
+		case (uint32_t)AssetType_t::Effect:
+			if (!arrAssets[10])
+				continue;
+			BuildEffectInfo(Asset, NewAsset);
+			break;
 		case (uint32_t)AssetType_t::UIImageAtlas: // TODO ARRAY
 			BuildUIImageAtlasInfo(Asset, NewAsset);
 			break;
 		case (uint32_t)AssetType_t::Subtitles:
 			BuildSubtitleInfo(Asset, NewAsset);
+			break;
+		case (uint32_t)AssetType_t::Map:
+			BuildMapInfo(Asset, NewAsset);
 			break;
 		default:
 			continue;
@@ -329,12 +343,12 @@ uint64_t RpakLib::GetFileOffset(const RpakLoadAsset& Asset, uint32_t SegmentInde
 {
 	if (SegmentIndex < 0) return 0;
 
-	return (this->LoadedFiles[Asset.FileIndex].SegmentBlocks[SegmentIndex - this->LoadedFiles[Asset.FileIndex].StartSegmentIndex].Offset + SegmentOffset);
+	return (Asset.PakFile->SegmentBlocks[SegmentIndex - Asset.PakFile->StartSegmentIndex].Offset + SegmentOffset);
 }
 
 uint64_t RpakLib::GetEmbeddedStarpakOffset(const RpakLoadAsset& Asset)
 {
-	return this->LoadedFiles[Asset.FileIndex].EmbeddedStarpakOffset;
+	return Asset.PakFile->EmbeddedStarpakOffset;
 }
 
 std::unique_ptr<IO::FileStream> RpakLib::GetStarpakStream(const RpakLoadAsset& Asset, bool Optimal)
@@ -495,6 +509,7 @@ void RpakLib::ParseRAnimBoneRotationTrack(const RAnimBoneFlag& BoneFlags, uint16
 		} while (v31 < 3);
 
 		Math::Quaternion Result;
+
 		RTech::DecompressConvertRotation((const __m128i*) & EulerResult[0], (float*)&Result);
 
 		Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name())[0].Keyframes.Emplace(FrameIndex, Result);
@@ -581,22 +596,10 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 		{
 		case (uint32_t)AssetType_t::Model:
 		{
-			if (Asset.AssetVersion == 8)
-			{
-				ModelHeaderS50 SubHeader = Reader.Read<ModelHeaderS50>();
-				return (SubHeader.NameIndex >= LoadedFile.StartSegmentIndex && SubHeader.SkeletonIndex >= LoadedFile.StartSegmentIndex);
+			ModelHeader mdlHdr;
+			mdlHdr.ReadFromAssetStream(&RpakStream, Asset.SubHeaderSize, Asset.AssetVersion);
 
-			}
-			else if (Asset.SubHeaderSize <= 0x68)
-			{
-				ModelHeaderS68 SubHeader = Reader.Read<ModelHeaderS68>();
-				return (SubHeader.NameIndex >= LoadedFile.StartSegmentIndex && SubHeader.SkeletonIndex >= LoadedFile.StartSegmentIndex);
-			}
-			else
-			{
-				ModelHeaderS80 SubHeader = Reader.Read<ModelHeaderS80>();
-				return (SubHeader.NameIndex >= LoadedFile.StartSegmentIndex && SubHeader.SkeletonIndex >= LoadedFile.StartSegmentIndex);
-			}
+			return (mdlHdr.studioData.Index >= LoadedFile.StartSegmentIndex && mdlHdr.pName.Index >= LoadedFile.StartSegmentIndex);
 		}
 		case (uint32_t)AssetType_t::Texture:
 		{
@@ -610,11 +613,19 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 		}
 		case (uint32_t)AssetType_t::Material:
 		{
-			MaterialHeader SubHeader = Reader.Read<MaterialHeader>();
+			MaterialHeader hdr;
+
 			if (Asset.Version == RpakGameVersion::Apex)
-				return (SubHeader.NameIndex >= LoadedFile.StartSegmentIndex && SubHeader.TexturesIndex >= LoadedFile.StartSegmentIndex);
+				hdr = Reader.Read<MaterialHeader>();
 			else
-				return (SubHeader.NameIndex >= LoadedFile.StartSegmentIndex && SubHeader.TexturesTFIndex >= LoadedFile.StartSegmentIndex);
+			{
+				MaterialHeaderV12 temp = Reader.Read<MaterialHeaderV12>();
+
+				hdr.pName = temp.pName;
+				hdr.textureHandles = temp.textureHandles;
+			}
+			
+			return (hdr.pName.Index >= LoadedFile.StartSegmentIndex && hdr.textureHandles.Index >= LoadedFile.StartSegmentIndex);
 		}
 		case (uint32_t)AssetType_t::AnimationRig:
 		{
@@ -623,8 +634,8 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 		}
 		case (uint32_t)AssetType_t::Animation:
 		{
-			AnimHeader SubHeader = Reader.Read<AnimHeader>();
-			return (SubHeader.AnimationIndex >= LoadedFile.StartSegmentIndex);
+			ASeqHeader SubHeader = Reader.Read<ASeqHeader>();
+			return (SubHeader.pAnimation.Index >= LoadedFile.StartSegmentIndex);
 		}
 		case (uint32_t)AssetType_t::DataTable:
 		{
@@ -636,6 +647,11 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 			UIAtlasHeader Header = Reader.Read<UIAtlasHeader>();
 			return Header.TexturesCount != 0;
 		}
+		case (uint32_t)AssetType_t::Effect:
+		{
+			// Changed at unknown version.
+			return Asset.AssetVersion <= 3;
+		}
 		case (uint32_t)AssetType_t::Shader:
 		case (uint32_t)AssetType_t::ShaderSet:
 		case (uint32_t)AssetType_t::Subtitles:
@@ -643,6 +659,7 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 		case (uint32_t)AssetType_t::SettingsLayout:
 		case (uint32_t)AssetType_t::RSON:
 		case (uint32_t)AssetType_t::RUI:
+		case (uint32_t)AssetType_t::Map:
 			return true;
 		default:
 			return false;
@@ -1235,8 +1252,8 @@ string RpakLib::ReadStringFromPointer(const RpakLoadAsset& Asset, uint32_t index
 	return result;
 }
 
-RpakLoadAsset::RpakLoadAsset(uint64_t NameHash, uint32_t FileIndex, uint32_t AssetType, uint32_t SubHeaderIndex, uint32_t SubHeaderOffset, uint32_t SubHeaderSize, uint32_t RawDataIndex, uint32_t RawDataOffset, uint64_t StarpakOffset, uint64_t OptimalStarpakOffset, RpakGameVersion Version, uint32_t AssetVersion)
-	: NameHash(NameHash), FileIndex(FileIndex), RpakFileIndex(FileIndex), AssetType(AssetType), SubHeaderIndex(SubHeaderIndex), SubHeaderOffset(SubHeaderOffset), SubHeaderSize(SubHeaderSize), RawDataIndex(RawDataIndex), RawDataOffset(RawDataOffset), StarpakOffset(StarpakOffset), OptimalStarpakOffset(OptimalStarpakOffset), Version(Version), AssetVersion(AssetVersion)
+RpakLoadAsset::RpakLoadAsset(uint64_t NameHash, uint32_t FileIndex, uint32_t AssetType, uint32_t SubHeaderIndex, uint32_t SubHeaderOffset, uint32_t SubHeaderSize, uint32_t RawDataIndex, uint32_t RawDataOffset, uint64_t StarpakOffset, uint64_t OptimalStarpakOffset, RpakGameVersion Version, uint32_t AssetVersion, RpakFile* PakFile)
+	: NameHash(NameHash), FileIndex(FileIndex), RpakFileIndex(FileIndex), AssetType(AssetType), SubHeaderIndex(SubHeaderIndex), SubHeaderOffset(SubHeaderOffset), SubHeaderSize(SubHeaderSize), RawDataIndex(RawDataIndex), RawDataOffset(RawDataOffset), StarpakOffset(StarpakOffset), OptimalStarpakOffset(OptimalStarpakOffset), Version(Version), AssetVersion(AssetVersion), PakFile(PakFile)
 {
 }
 

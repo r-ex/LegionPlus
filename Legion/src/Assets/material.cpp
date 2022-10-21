@@ -6,6 +6,20 @@
 #include <typeinfo>
 #include <typeindex>
 
+const char* s_MaterialTypes[] = {
+	"RGDU",
+	"RGDP",
+	"RGDC",
+	"SKNU",
+	"SKNP",
+	"SKNC",
+	"WLDU",
+	"WLDC",
+	"PTCU",
+	"PTCS",
+	"RGBS",
+};
+
 void RpakLib::BuildMaterialInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 {
 	auto RpakStream = this->GetFileStream(Asset);
@@ -13,9 +27,30 @@ void RpakLib::BuildMaterialInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	MaterialHeader MatHeader = Reader.Read<MaterialHeader>();
+	MaterialHeader hdr;
+	
+	if (Asset.Version == RpakGameVersion::Apex)
+	{
+		if (Asset.AssetVersion >= 16)
+		{
+			MaterialHeaderV16 hdr_v16 = Reader.Read<MaterialHeaderV16>();
+			hdr.FromV16(hdr_v16);
+		}
+		else hdr = Reader.Read<MaterialHeader>();
 
-	RpakStream->SetPosition(this->GetFileOffset(Asset, MatHeader.NameIndex, MatHeader.NameOffset));
+		Info.DebugInfo = string::Format("type: %s", s_MaterialTypes[hdr.materialType]);
+
+	}
+	else
+	{
+		MaterialHeaderV12 temp = Reader.Read<MaterialHeaderV12>();
+
+		hdr.pName = temp.pName;
+		hdr.textureHandles = temp.textureHandles;
+		hdr.streamingTextureHandles = temp.streamingTextureHandles;
+	}
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, hdr.pName.Index, hdr.pName.Offset));
 
 	string MaterialName = Reader.ReadCString();
 
@@ -27,17 +62,8 @@ void RpakLib::BuildMaterialInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	Info.Type = ApexAssetType::Material;
 	Info.Status = ApexAssetStatus::Loaded;
 
-	uint32_t TexturesCount = 0;
+	uint32_t TexturesCount = (hdr.streamingTextureHandles.Offset - hdr.textureHandles.Offset) / 8;
 
-	switch (Asset.Version) {
-	case RpakGameVersion::Apex:
-		TexturesCount = (MatHeader.StreamableTexturesOffset - MatHeader.TexturesOffset) / 8;
-		break;
-	case RpakGameVersion::Titanfall:
-	case RpakGameVersion::R2TT: // unverified but should work
-		TexturesCount = (MatHeader.UnknownTFOffset - MatHeader.TexturesTFOffset) / 8;
-		break;
-	}
 	Info.Info = string::Format("Textures: %i", TexturesCount);
 }
 
@@ -65,13 +91,13 @@ void RpakLib::ExportMatCPUAsStruct(const RpakLoadAsset& Asset, MaterialHeader& M
 		RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 		MaterialHeaderV12 mathdr = Reader.Read<MaterialHeaderV12>();
 
-		MatHdr.ShaderSetHash = mathdr.m_pShaderSet;
+		MatHdr.shaderSetGuid = mathdr.shaderSetGuid;
 	}
 
-	if (!Assets.ContainsKey(MatHdr.ShaderSetHash)) // no shaderset loaded
+	if (!Assets.ContainsKey(MatHdr.shaderSetGuid)) // no shaderset loaded
 		return;
 
-	RpakLoadAsset ShaderSetAsset = Assets[MatHdr.ShaderSetHash];
+	RpakLoadAsset ShaderSetAsset = Assets[MatHdr.shaderSetGuid];
 	ShaderSetHeader ShaderSetHeader = ExtractShaderSet(ShaderSetAsset);
 
 	uint64_t PixelShaderGuid = ShaderSetHeader.PixelShaderHash;
@@ -180,7 +206,7 @@ void RpakLib::ExportMaterialCPU(const RpakLoadAsset& Asset, const string& Path)
 
 	MaterialHeader MatHeader = Reader.Read<MaterialHeader>();
 
-	RpakStream->SetPosition(this->GetFileOffset(Asset, MatHeader.NameIndex, MatHeader.NameOffset));
+	RpakStream->SetPosition(this->GetFileOffset(Asset, MatHeader.pName.Index, MatHeader.pName.Offset));
 
 	auto ExportFormat = (MatCPUExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("MatCPUFormat");
 
@@ -235,19 +261,38 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	MaterialHeader MatHeader = Reader.Read<MaterialHeader>();
+	MaterialHeader hdr;
 
-	RpakStream->SetPosition(this->GetFileOffset(Asset, MatHeader.NameIndex, MatHeader.NameOffset));
+	if (Asset.Version == RpakGameVersion::Apex)
+	{
+		if (Asset.AssetVersion >= 16)
+		{
+			MaterialHeaderV16 hdr_v16 = Reader.Read<MaterialHeaderV16>();
+			hdr.FromV16(hdr_v16);
+		}
+		else hdr = Reader.Read<MaterialHeader>();
+	}
+	else
+	{
+		MaterialHeaderV12 temp = Reader.Read<MaterialHeaderV12>();
+
+		hdr.pName = temp.pName;
+		hdr.textureHandles = temp.textureHandles;
+		hdr.streamingTextureHandles = temp.streamingTextureHandles;
+		hdr.shaderSetGuid = temp.shaderSetGuid;
+	}
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, hdr.pName.Index, hdr.pName.Offset));
 
 	Result.MaterialName = IO::Path::GetFileNameWithoutExtension(Reader.ReadCString());
 
 	List<ShaderResBinding> PixelShaderResBindings;
 
-	bool shadersetLoaded = Assets.ContainsKey(MatHeader.ShaderSetHash);
+	bool shadersetLoaded = Assets.ContainsKey(hdr.shaderSetGuid);
 
 	if (shadersetLoaded)
 	{
-		RpakLoadAsset ShaderSetAsset = Assets[MatHeader.ShaderSetHash];
+		RpakLoadAsset ShaderSetAsset = Assets[hdr.shaderSetGuid];
 		ShaderSetHeader ShaderSetHeader = ExtractShaderSet(ShaderSetAsset);
 
 		uint64_t PixelShaderGuid = ShaderSetHeader.PixelShaderHash;
@@ -267,21 +312,13 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 	}
 
 	g_Logger.Info("\nMaterial Info for '%s' (%llX)\n", Result.MaterialName.ToCString(), Asset.NameHash);
-	g_Logger.Info("> ShaderSet: %llx (%s)\n", MatHeader.ShaderSetHash, shadersetLoaded ? "LOADED" : "NOT LOADED");
+	g_Logger.Info("> ShaderSet: %llx (%s)\n", hdr.shaderSetGuid, shadersetLoaded ? "LOADED" : "NOT LOADED");
 
-	const uint64_t TextureTable = (Asset.Version == RpakGameVersion::Apex) ? this->GetFileOffset(Asset, MatHeader.TexturesIndex, MatHeader.TexturesOffset) : this->GetFileOffset(Asset, MatHeader.TexturesTFIndex, MatHeader.TexturesTFOffset);
-	uint32_t TexturesCount = (Asset.Version == RpakGameVersion::Apex) ? 0x10 : 0x11;
+	const uint64_t TextureTable = this->GetFileOffset(Asset, hdr.textureHandles.Index, hdr.textureHandles.Offset); // (Asset.Version == RpakGameVersion::Apex) ? : this->GetFileOffset(Asset, hdr.TexturesTFIndex, hdr.TexturesTFOffset);
+	uint32_t TexturesCount = (hdr.streamingTextureHandles.Offset - hdr.textureHandles.Offset) / 8;
+	g_Logger.Info("> %i textures:\n", TexturesCount);
 
-	// we're actually gonna ignore the hardcoded value for apex materials
-	if (Asset.Version == RpakGameVersion::Apex)
-	{
-		TexturesCount = (MatHeader.StreamableTexturesOffset - MatHeader.TexturesOffset) / 8;
-		g_Logger.Info("> %i textures:\n", TexturesCount);
-	}
-	else {
-		TexturesCount = (MatHeader.UnknownTFOffset - MatHeader.TexturesTFOffset) / 8;
-		g_Logger.Info("> %i textures:\n", TexturesCount);
-	}
+	uint32_t bindingIdx = 0;
 
 	// These textures have named slots
 	for (uint32_t i = 0; i < TexturesCount; i++)
@@ -295,12 +332,11 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 
 		if (TextureHash != 0)
 		{
-
 			TextureName = string::Format("0x%llx%s", TextureHash, (const char*)ImageExtension);
 
-			if (PixelShaderResBindings.Count() > 0 && i < PixelShaderResBindings.Count())
+			if (PixelShaderResBindings.Count() > 0 && bindingIdx < PixelShaderResBindings.Count())
 			{
-				string ResName = PixelShaderResBindings[i].Name;
+				string ResName = PixelShaderResBindings[bindingIdx].Name;
 				if (!ExportManager::Config.GetBool("UseTxtrGuids"))
 				{
 					TextureName = string::Format("%s_%s%s", Result.MaterialName.ToCString(), ResName.ToCString(), (const char*)ImageExtension);
@@ -345,6 +381,8 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 				Result.CavityMapName = TextureName;
 				break;
 			}
+			bindingIdx++;
+
 		}
 
 		// Extract to disk if need be

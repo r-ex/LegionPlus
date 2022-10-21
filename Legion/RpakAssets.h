@@ -306,18 +306,60 @@ struct PatchHeader
 
 // ANIMATIONS
 // --- aseq ---
-struct AnimHeader
+struct ASeqHeader
 {
-	uint32_t AnimationIndex;
-	uint32_t AnimationOffset;
+	RPakPtr pAnimation;
+	RPakPtr pName;
 
-	uint32_t NameIndex;
-	uint32_t NameOffset;
+	RPakPtr pModels;
+	uint32_t ModelCount;
+	uint32_t Reserved;
 
-	uint8_t Unknown[0x18];
+	RPakPtr pSettings;
+	uint32_t SettingCount;
+	uint32_t Reserved1;
+};
 
-	uint32_t ModelHashIndex;
-	uint32_t ModelHashOffset;
+struct ASeqHeaderV71
+{
+	RPakPtr pAnimation;
+	RPakPtr pName;
+
+	RPakPtr pModels;
+	uint32_t ModelCount;
+
+	uint32_t externalDataSize;
+
+	// this can point to a group of guids and not one singular one.
+	RPakPtr pSettings;
+	uint32_t SettingCount;
+	uint32_t Reserved1;
+
+	// pointer to data stored outside of the raw rseq.
+	RPakPtr pExternalData;
+};
+
+struct ASeqHeaderV10
+{
+	RPakPtr pAnimation;
+	RPakPtr pName;
+
+	uint64_t Unknown; // possible pointer, guid, or reserved space.
+
+	// counts for mdl_ and stgs assets, normally just one but can be multiples.
+	uint32_t ModelCount;
+	uint32_t SettingCount;
+
+	// size of the external data.
+	uint32_t externalDataSize;
+
+	// these can all point to a group of guids and not one singular one.
+	RPakPtr pModels;
+	RPakPtr pEffects;
+	RPakPtr pSettings;
+
+	// data that is stored outside of the raw rseq.
+	RPakPtr pExternalData;
 };
 
 // --- arig ---
@@ -341,140 +383,422 @@ struct AnimRigHeader
 
 // MODELS
 // --- mdl_ ---
-struct ModelHeaderS50
+#define MODEL_HAS_BBOX    (1 << 0)
+#define MODEL_HAS_CACHE   (1 << 1)
+#define MODEL_HAS_PHYSICS (1 << 2)
+
+// size: 0x50
+struct ModelHeaderV8
 {
 	// .rmdl
-	uint32_t SkeletonIndex;
-	uint32_t SkeletonOffset;
+	RPakPtr studioData;
 
-	uint32_t NameIndex;
-	uint32_t NameOffset;
+	RPakPtr name;
 
-	uint64_t Padding3;
+	char unk1[8];
 
 	// .phy
-	uint32_t PhyIndex;
-	uint32_t PhyOffset;
+	RPakPtr phyData;
 
 	// .vvd
-	uint32_t BlockIndex1;
-	uint32_t BlockOffset1;
-	uint64_t Padding4;
+	RPakPtr vgCacheData;
+	RPakPtr animRigs;
 
-	uint32_t Padding5;
-	uint32_t StreamedDataSize;
-	uint32_t DataFlags;
-	uint64_t Padding6;
+	int animRigCount;
+	int unkDataSize;
+	int alignedStreamingSize;
 
-	uint32_t AnimSequenceCount;
+	int animSeqCount;
+	RPakPtr animSeqs;
 
+	char unk2[8];
 };
 
-struct ModelHeaderS68
+// size: 0x78
+struct ModelHeaderV9
 {
-	// .rmdl
-	uint32_t SkeletonIndex;
-	uint32_t SkeletonOffset;
-	uint64_t Padding;
+	RPakPtr studioData;
+	char unk1[8];
 
-	uint32_t NameIndex;
-	uint32_t NameOffset;
-	uint64_t Padding2;
+	RPakPtr name;
+	char unk2[8];
 
-	// .phy
-	uint32_t PhyIndex;
-	uint32_t PhyOffset;
-	uint64_t Padding3;
+	RPakPtr phyData;
+	char unk3[8];
 
-	// .vvd
-	uint32_t BlockIndex1;
-	uint32_t BlockOffset1;
-	uint64_t Padding4;
+	RPakPtr vgCacheData;
 
-	uint32_t Padding5;
-	uint32_t StreamedDataSize;
-	uint32_t DataFlags;
-	uint64_t Padding6;
+	RPakPtr animRigs;
 
-	uint32_t AnimSequenceCount;
-	uint32_t AnimSequenceIndex;
-	uint32_t AnimSequenceOffset;
+	int animRigCount;
 
-	uint64_t Padding7;
+	int unkDataSize;
+	int alignedStreamingSize; // full size of the starpak entry, aligned to 4096.
+
+	char unk4[8];
+
+	int animSeqCount;
+	RPakPtr animSeqs;
+
+	char unk5[8];
+	char unk6[8];
+	char unk7[8];
 };
 
-struct ModelHeaderS80
+// size: 0x68
+struct ModelHeaderV12_1
 {
-	// .rmdl
-	uint32_t SkeletonIndex;
-	uint32_t SkeletonOffset;
-	uint64_t Padding;
+	// IDST data
+	// .mdl
+	RPakPtr studioData;
+	char unk1[8];
 
-	uint32_t NameIndex;
-	uint32_t NameOffset;
-	uint64_t Padding2;
+	// model path
+	// e.g. mdl/vehicle/goblin_dropship/goblin_dropship.rmdl
+	RPakPtr name;
+	char unk2[8];
 
 	// .phy
-	uint32_t PhyIndex;
-	uint32_t PhyOffset;
-	uint64_t Padding3;
+	RPakPtr phyData;
+	char unk3[8];
+
+	// preload cache data for static props
+	RPakPtr vgCacheData;
+
+	// pointer to data for the model's arig guid(s?)
+	RPakPtr animRigs;
+
+	// this is a guess based on the above ptr's data. i think this is == to the number of guids at where the ptr points to
+	int animRigCount;
+
+	// size of the data kept in starpak
+	int unkDataSize;
+	int alignedStreamingSize; // full size of the starpak entry, aligned to 4096.
+
+	char unk4[8];
+
+	// number of anim sequences directly associated with this model
+	int animSeqCount;
+	RPakPtr animSeqs;
+
+	char unk5[8];
+};
+
+// size: 0x80
+struct ModelHeaderV13
+{
+	// .rmdl
+	RPakPtr studioData;
+	char unk1[8];
+
+	RPakPtr name;
+	char unk2[8];
+
+	// .phy
+	RPakPtr phyData;
+	char unk3[8];
 
 	// .vvd
 	// this pointer is not always registered
 	// similar data will often be streamed from a mandatory starpak
-	uint32_t VGIndex1;
-	uint32_t VGOffset1;
-	uint64_t Padding4;
+	RPakPtr vgCacheData;
+	RPakPtr animRigs;
 
-	uint32_t Padding5;
-	uint32_t StreamedDataSize;
-	uint32_t DataFlags;
+	int animRigCount;
+	int unkDataSize;
+	int alignedStreamingSize;
 
-	float Box[6];
-	uint64_t Padding6;
+	Vector3 bbox_min;
+	Vector3 bbox_max;
 
-	uint32_t AnimSequenceCount;
-	uint32_t AnimSequenceIndex;
-	uint32_t AnimSequenceOffset;
+	char unk4[8];
 
-	uint64_t Padding7;
+	int animSeqCount;
+	RPakPtr animSeqs;
+
+	char unk5[8];
+};
+
+struct ModelHeader
+{
+	struct mdlversion_t {
+		int major;
+		__int8 minor;
+	};
+
+	RPakPtr studioData;
+	RPakPtr pName;
+	string name;
+	RPakPtr phyData;
+	RPakPtr vgCacheData;
+	RPakPtr animRigs;
+	RPakPtr animSeqs;
+
+	int animRigCount;
+	int animSeqCount;
+	int alignedStreamingSize;
+
+	// probably min/max
+	Vector3 bbox_min;
+	Vector3 bbox_max;
+
+private:
+	mdlversion_t _version;
+	int _flags;
+
+public:
+	inline mdlversion_t version() { return _version; };
+	inline int flags() { return _flags; };
+
+	inline bool IsFlagSet(int flag) { return _flags & flag; };
+	inline void SetFlags(int flag) { _flags |= flag; };
+	inline void SetVersion(int major, __int8 minor = 0) { _version = { major, minor }; };
+
+	void ReadFromAssetStream(std::unique_ptr<IO::MemoryStream>* RpakStream, int headerSize, int assetVersion)
+	{
+		IO::BinaryReader Reader = IO::BinaryReader(RpakStream->get(), true);
+
+
+		switch (assetVersion)
+		{
+		case 8:
+		{
+			ModelHeaderV8 mht = Reader.Read<ModelHeaderV8>();
+			studioData = mht.studioData;
+			pName = mht.name;
+			phyData = mht.phyData;
+			vgCacheData = mht.vgCacheData;
+			animRigs = mht.animRigs;
+			animSeqs = mht.animSeqs;
+			animRigCount = mht.animRigCount;
+			animSeqCount = mht.animSeqCount;
+
+			SetVersion(8);
+			break;
+		}
+		// versions 9, 10, 11, 12.0 all share the same model header
+		case 9:
+		case 10:
+		case 11:
+		{
+			ModelHeaderV9 mht = Reader.Read<ModelHeaderV9>();
+			studioData = mht.studioData;
+			pName = mht.name;
+			phyData = mht.phyData;
+			vgCacheData = mht.vgCacheData;
+			animRigs = mht.animRigs;
+			animSeqs = mht.animSeqs;
+			animRigCount = mht.animRigCount;
+			animSeqCount = mht.animSeqCount;
+
+			SetVersion(assetVersion);
+			break;
+		}
+		case 12:
+		{
+			if (headerSize == 0x78)
+			{
+				ModelHeaderV9 mht = Reader.Read<ModelHeaderV9>();
+				studioData = mht.studioData;
+				pName = mht.name;
+				phyData = mht.phyData;
+				vgCacheData = mht.vgCacheData;
+				animRigs = mht.animRigs;
+				animSeqs = mht.animSeqs;
+				animRigCount = mht.animRigCount;
+				animSeqCount = mht.animSeqCount;
+
+				// 12.0
+				SetVersion(assetVersion, 0);
+			}
+			else
+			{
+				ModelHeaderV12_1 mht = Reader.Read<ModelHeaderV12_1>();
+				studioData = mht.studioData;
+				pName = mht.name;
+				phyData = mht.phyData;
+				vgCacheData = mht.vgCacheData;
+				animRigs = mht.animRigs;
+				animSeqs = mht.animSeqs;
+				animRigCount = mht.animRigCount;
+				animSeqCount = mht.animSeqCount;
+
+				// 12.1 - this is not always correct
+				// there are technically two "subversions" of v12,
+				// but i'm not really sure how to tell them apart
+				SetVersion(assetVersion, 1);
+			}
+			break;
+		}
+		case 13:
+		case 14:
+		case 15:
+		{
+			ModelHeaderV13 mht = Reader.Read<ModelHeaderV13>();
+			studioData = mht.studioData;
+			pName = mht.name;
+			phyData = mht.phyData;
+			vgCacheData = mht.vgCacheData;
+			animRigs = mht.animRigs;
+			animSeqs = mht.animSeqs;
+			animRigCount = mht.animRigCount;
+			animSeqCount = mht.animSeqCount;
+			bbox_min = mht.bbox_min;
+			bbox_max = mht.bbox_max;
+
+			SetFlags(MODEL_HAS_BBOX);
+
+			SetVersion(assetVersion);
+		}
+		}
+
+		if (phyData.Index || phyData.Offset)
+			SetFlags(MODEL_HAS_PHYSICS);
+
+		if (vgCacheData.Index || vgCacheData.Offset)
+			SetFlags(MODEL_HAS_CACHE);
+	}
 };
 
 // MATERIALS
 // --- matl ---
+struct UnknownMaterialSectionV15
+{
+	// required but seems to follow a pattern. maybe related to "Unknown2" above?
+	// nulling these bytes makes the material stop drawing entirely
+	uint32_t unk1[8];
+
+	// for more details see the 'UnknownMaterialSectionV12' struct.
+	uint32_t unkRenderFlags;
+	uint16_t visFlags; // different render settings, such as opacity and transparency.
+	uint16_t faceDrawFlags; // how the face is drawn, culling, wireframe, etc.
+
+	char pad[8];
+};
+
+
+struct MaterialHeaderV16
+{
+	__int64 reservedVtbl; // Gets set to CMaterialGlue vtbl ptr
+	char padding[8]; // unused
+
+	uint64_t guid; // guid of this material asset
+
+	RPakPtr pName; // pointer to partial asset path
+	RPakPtr pSurfaceProp; // pointer to surfaceprop (as defined in surfaceproperties.txt)
+	RPakPtr pSurfaceProp2; // pointer to surfaceprop2 
+
+	// IDX 1: DepthShadow
+	// IDX 2: DepthPrepass
+	// IDX 3: DepthVSM
+	// IDX 4: DepthShadowTight
+	// IDX 5: ColPass
+
+	uint64_t guidRefs[5]; // Required to have proper textures.
+	uint64_t shadersetGuid; // guid of the shaderset asset that this material uses
+
+	RPakPtr pTextureHandles; // TextureGUID Map
+	RPakPtr pStreamingTextureHandles; // reserved slot for texture guids which have streamed mip levels
+	short streamingTextureCount; // reserved slot for the number of textures with streamed mip levels
+
+	short width;
+	short height;
+
+	short unknown1; // reserved texture count?
+
+	int flags; // related to cpu data
+
+	int unknown2;
+	int unknown3;
+	int unknown4;
+
+	__int64 flags2;
+
+	UnknownMaterialSectionV15 unknownSections;
+
+	int unk_v16[2];
+
+	byte bytef0;
+	byte bytef1;
+
+	byte materialType; // used '4' and '8' observed
+
+	byte bytef3; // used for unksections loading in UpdateMaterialAsset
+
+	int unk;
+
+	__int64 textureAnimationGuid;
+
+	int unk1_v16[6];
+};
+
 struct MaterialHeader
 {
-	uint8_t Unknown[0x10];
-	uint64_t Hash;
+	__int64 m_VtblReserved;
+	char m_Padding[0x8];
+	uint64_t guid; // guid of this material asset
 
-	uint32_t NameIndex;
-	uint32_t NameOffset;
-	uint32_t TypeIndex;
-	uint32_t TypeOffset;
-	uint32_t SurfaceIndex;
-	uint32_t SurfaceOffset;
+	RPakPtr pName; // pointer to partial asset path
+	RPakPtr pSurfaceProp; // pointer to surfaceprop (as defined in surfaceproperties.rson)
+	RPakPtr pSurfaceProp2; // pointer to surfaceprop2 
 
-	uint64_t GUIDRefs[5];
-	uint64_t ShaderSetHash;
+	// IDX 1: DepthShadow
+	// IDX 2: DepthPrepass
+	// IDX 3: DepthVSM
+	// IDX 4: DepthShadowTight
+	// IDX 5: ColPass
+	uint64_t materialGuids[5];
+	uint64_t shaderSetGuid; // guid/ptr of shaderset asset
 
-	uint32_t TexturesIndex;
-	uint32_t TexturesOffset;
-	// Also Texture pointer, but less relevant for now.
-	uint32_t StreamableTexturesIndex;
-	uint32_t StreamableTexturesOffset;
+	RPakPtr textureHandles; // texture guids
+	RPakPtr streamingTextureHandles; // streaming texture guids
 
-	int16_t StreamableTextureCount;
-	int16_t Width;
-	int16_t Height;
-	int16_t Unused;
-	uint32_t ImageFlags; // Image Flags, they decide the tiling, stretching etc.
+	short streamingTextureCount; // number of textures with streamed mip levels.
+	short width;
+	short height;
+	short unk1;
 
-	uint8_t Unknown3[0x1C];
+	int someFlags;
+	int unk2;
 
-	uint32_t TexturesTFIndex;
-	uint32_t TexturesTFOffset;
-	uint32_t UnknownTFIndex;
-	uint32_t UnknownTFOffset;
+	int unk3;
+
+	int unk4;
+
+	int unk5;
+	int unk6;
+
+	UnknownMaterialSectionV15 m_UnknownSections[2];
+	char bytef0;
+	char bytef1;
+	char materialType;
+	char bytef3; // used for unksections loading in UpdateMaterialAsset
+	char pad_00F4[4];
+	uint64_t textureAnimationGuid;
+
+	void FromV16(MaterialHeaderV16& mhn)
+	{
+		guid = mhn.guid;
+		pName = mhn.pName;
+		pSurfaceProp = mhn.pSurfaceProp;
+		pSurfaceProp2 = mhn.pSurfaceProp2;
+
+		std::memcpy(&materialGuids, &mhn.guidRefs, sizeof(mhn.guidRefs));
+
+		shaderSetGuid = mhn.shadersetGuid;
+		textureHandles = mhn.pTextureHandles;
+		streamingTextureHandles = mhn.pStreamingTextureHandles;
+		streamingTextureCount = mhn.streamingTextureCount;
+		width = mhn.width;
+		height = mhn.height;
+		unk1 = mhn.unknown1;
+		someFlags = mhn.flags;
+		unk2 = mhn.unknown2;
+		unk3 = mhn.unknown3;
+		unk4 = mhn.unknown4;
+		materialType = mhn.materialType;
+		textureAnimationGuid = mhn.textureAnimationGuid;
+	}
 };
 
 // structs taken from repak - thanks Rika
@@ -497,14 +821,14 @@ struct UnknownMaterialSectionV12
 
 struct MaterialHeaderV12
 {
-	uint64_t m_VtblReserved; // Gets set to CMaterialGlue vtbl ptr
-	uint8_t m_Padding[0x8]; // unused
+	__int64 m_VtblReserved; // Gets set to CMaterialGlue vtbl ptr
+	char m_Padding[0x8]; // unused
 
-	uint64_t m_nGUID; // guid of this material asset
+	uint64_t guid; // guid of this material asset
 
-	RPakPtr m_pszName; // pointer to partial asset path
-	RPakPtr m_pszSurfaceProp; // pointer to surfaceprop (as defined in surfaceproperties.txt)
-	RPakPtr m_pszSurfaceProp2; // pointer to surfaceprop2
+	RPakPtr pName; // pointer to partial asset path
+	RPakPtr pSurfaceProp; // pointer to surfaceprop (as defined in surfaceproperties.txt)
+	RPakPtr pSurfaceProp2; // pointer to surfaceprop2
 
 	// IDX 1: DepthShadow
 	// IDX 2: DepthPrepass
@@ -512,36 +836,36 @@ struct MaterialHeaderV12
 	// IDX 4: ColPass
 	// Titanfall is does not have 'DepthShadowTight'
 
-	uint64_t m_GUIDRefs[4]; // Required to have proper textures.
+	uint64_t materialGuids[4]; // Required to have proper textures.
 
 	// these blocks dont seem to change often but are the same?
 	// these blocks relate to different render filters and flags. still not well understood.
 	UnknownMaterialSectionV12 m_UnknownSections[2];
 
-	uint64_t m_pShaderSet; // guid of the shaderset asset that this material uses
+	uint64_t shaderSetGuid; // guid of the shaderset asset that this material uses
 
-	RPakPtr m_pTextureHandles; // TextureGUID Map 1
+	RPakPtr textureHandles; // TextureGUID Map 1
 
 	// should be reserved - used to store the handles for any textures that have streaming mip levels
-	RPakPtr m_pStreamingTextureHandles;
+	RPakPtr streamingTextureHandles;
 
-	int16_t m_nStreamingTextureHandleCount; // Number of textures with streamed mip levels.
-	uint32_t m_Flags; // see ImageFlags in the apex struct.
-	int16_t m_Unk1; // might be "m_Unknown2"
+	short streamingTextureHandleCount; // Number of textures with streamed mip levels.
+	int flags; // see ImageFlags in the apex struct.
+	short unk1; // might be "m_Unknown2"
 
-	uint64_t m_Padding1; // haven't observed anything here, however I really doubt this is actually padding.
+	uint64_t unk2; // haven't observed anything here, however I really doubt this is actually padding.
 
 	// seems to be 0xFBA63181 for loadscreens
-	uint32_t m_Unknown3; // name carried over from apex struct.
+	int unk3; // name carried over from apex struct.
 
-	uint32_t m_Unk2; // this might actually be "m_Unknown4"
+	int unk4; // this might actually be "m_Unknown4"
 
-	uint32_t m_Flags2;
-	uint32_t something2; // seems mostly unchanged between all materials, including apex, however there are some edge cases where this is 0x0.
+	int flags2;
+	int something2; // seems mostly unchanged between all materials, including apex, however there are some edge cases where this is 0x0.
 
-	int16_t m_nWidth;
-	int16_t m_nHeight;
-	uint32_t m_Unk3; // might be padding but could also be something else such as "m_Unknown1"?.
+	short m_nWidth;
+	short m_nHeight;
+	int unk5; // might be padding but could also be something else such as "m_Unknown1"?.
 
 	/* ImageFlags
 	0x050300 for loadscreens, 0x1D0300 for normal materials.
@@ -943,6 +1267,24 @@ struct UIAtlasImage // uiai wen
 	uint16_t PosY;
 };
 
+// --- efct ---
+struct EffectHeader
+{
+	RPakPtr EffectData;
+	uint32_t unk2;
+	uint32_t unk3;
+};
+
+struct EffectData
+{
+	RPakPtr PCF;
+	RPakPtr EffectName; // Double ptr to effect name
+	RPakPtr unk2;
+	RPakPtr ParticleSystemOperator; // Double ptr to pso name
+	RPakPtr unk3;
+	RPakPtr unk4;
+};
+
 // --- rson ---
 #define RSON_STRING 0x2
 #define RSON_OBJECT 0x8
@@ -1052,11 +1394,11 @@ ASSERT_SIZE(PatchHeader, 0x18);
 ASSERT_SIZE(UIIAHeader, 0x40);
 ASSERT_SIZE(SettingsKeyValue, 0x8);
 ASSERT_SIZE(SettingsKeyValuePair, 0x10);
-ASSERT_SIZE(ModelHeaderS68, 0x68);
-ASSERT_SIZE(ModelHeaderS80, 0x80);
-ASSERT_SIZE(AnimHeader, 0x30);
+ASSERT_SIZE(ModelHeaderV12_1, 0x68);
+ASSERT_SIZE(ModelHeaderV13, 0x80);
+ASSERT_SIZE(ASeqHeader, 0x30);
 ASSERT_SIZE(AnimRigHeader, 0x28);
-ASSERT_SIZE(mstudioseqdesc_t, 0x40);
+ASSERT_SIZE(mstudioseqdesc_t, 0xD0);
 
 struct RUIImageTile
 {
