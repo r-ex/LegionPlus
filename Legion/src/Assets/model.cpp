@@ -28,11 +28,11 @@ void RpakLib::BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	if (mdlHdr.animSeqCount > 0)
 	{
-		Info.Info = string::Format("Bones: %d, Meshes: %d, Animations: %d", SkeletonHeader.BoneCount, SkeletonHeader.BodyPartCount, mdlHdr.animSeqCount);
+		Info.Info = string::Format("Bones: %d, Parts: %d, Animations: %d", SkeletonHeader.BoneCount, SkeletonHeader.BodyPartCount, mdlHdr.animSeqCount);
 	}
 	else
 	{
-		Info.Info = string::Format("Bones: %d, Meshes: %d", SkeletonHeader.BoneCount, SkeletonHeader.BodyPartCount);
+		Info.Info = string::Format("Bones: %d, Parts: %d", SkeletonHeader.BoneCount, SkeletonHeader.BodyPartCount);
 	}
 }
 
