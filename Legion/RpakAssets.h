@@ -565,6 +565,7 @@ public:
 			animSeqs = mht.animSeqs;
 			animRigCount = mht.animRigCount;
 			animSeqCount = mht.animSeqCount;
+			alignedStreamingSize = mht.unkDataSize;
 
 			SetVersion(8);
 			break;
@@ -583,6 +584,7 @@ public:
 			animSeqs = mht.animSeqs;
 			animRigCount = mht.animRigCount;
 			animSeqCount = mht.animSeqCount;
+			alignedStreamingSize = mht.alignedStreamingSize;
 
 			SetVersion(assetVersion);
 			break;
@@ -600,6 +602,7 @@ public:
 				animSeqs = mht.animSeqs;
 				animRigCount = mht.animRigCount;
 				animSeqCount = mht.animSeqCount;
+				alignedStreamingSize = mht.alignedStreamingSize;
 
 				// 12.0
 				SetVersion(assetVersion, 0);
@@ -615,6 +618,7 @@ public:
 				animSeqs = mht.animSeqs;
 				animRigCount = mht.animRigCount;
 				animSeqCount = mht.animSeqCount;
+				alignedStreamingSize = mht.alignedStreamingSize;
 
 				// 12.1 - this is not always correct
 				// there are technically two "subversions" of v12,
@@ -638,6 +642,7 @@ public:
 			animSeqCount = mht.animSeqCount;
 			bbox_min = mht.bbox_min;
 			bbox_max = mht.bbox_max;
+			alignedStreamingSize = mht.alignedStreamingSize;
 
 			SetFlags(MODEL_HAS_BBOX);
 
