@@ -70,8 +70,11 @@ void RpakLib::ExtractRUI(const RpakLoadAsset& Asset, const string& Path)
 
 		if (arg.shortHash == 0) // if empty slot
 			continue;
-		string name = string::Format("arg_0x%x", arg.shortHash & 0xFFFF);
-		if(Asset.AssetVersion <= 30)
+		string name = string::Format("%s_0x%x", s_RuiArgTypes[(uint8_t)arg.type], arg.shortHash & 0xFFFF);
+
+		bool hasArgNames = hdr.argNames.Index || hdr.argNames.Offset;
+
+		if(hasArgNames)
 			name = this->ReadStringFromPointer(Asset, { hdr.argNames.Index, hdr.argNames.Offset + arg.nameOffset });
 
 		out_stream << Utils::GetIndentation(1) << "\"" << name.ToCString() << "\" ";
@@ -143,12 +146,10 @@ void RpakLib::ExtractRUI(const RpakLoadAsset& Asset, const string& Path)
 		}
 		default:
 		{
-			out_stream << "0 // !! UNIMPLEMENTED TYPE " << (uint8_t)arg.type << " !!";
+			out_stream << "0 // !! UNIMPLEMENTED TYPE " << (int)arg.type << " !!";
 			break;
 		}
 		}
-		if (Asset.AssetVersion > 30)
-			out_stream << " // " << s_RuiArgTypes[(uint8_t)arg.type];
 		out_stream << "\n";
 	}
 
