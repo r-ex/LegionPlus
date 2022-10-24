@@ -45,6 +45,7 @@ When multiple load flags are used together, all specified types will be loaded
 ```
 --loadmodels
 --loadanimations
+--loadanimationseqs
 --loadimages
 --loadmaterials
 --loaduiimages
