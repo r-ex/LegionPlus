@@ -345,8 +345,8 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 			{
 				mstudiotexturev54_t* mat = reinterpret_cast<mstudiotexturev54_t*>(studioBuf.get() + hdr.textureindex + (i * sizeof(mstudiotexturev54_t)));
 
-				if(Assets.ContainsKey(mat->guid))
-					this->ExtractMaterial(Assets[mat->guid], Fixups.MaterialPath, IncludeMaterials, true);
+				//if(Assets.ContainsKey(mat->guid))
+				//	this->ExtractMaterial(Assets[mat->guid], Fixups.MaterialPath, IncludeMaterials, true);
 			}
 		}
 		else if (Asset.AssetVersion >= 12)
