@@ -604,7 +604,7 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 		case (uint32_t)AssetType_t::Texture:
 		{
 			TextureHeader SubHeader = Reader.Read<TextureHeader>();
-			return (SubHeader.DataSize > 0);
+			return (SubHeader.dataSize > 0);
 		}
 		case (uint32_t)AssetType_t::UIIA:
 		{

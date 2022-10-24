@@ -30,28 +30,31 @@ enum class CompressionType : uint8_t
 
 struct TextureHeader
 {
-	uint64_t NameHash;
-	uint32_t NameIndex;
-	uint32_t NameOffset;
+	uint64_t Guid;
 
-	uint16_t Width;
-	uint16_t Height;
+	RPakPtr pName;
 
-	uint8_t Un1;
-	uint8_t Un2;
-	uint8_t Format;				  // used as an index into an array of DXGI formats
-	uint8_t Un3;
+	uint16_t width;
+	uint16_t height;
+	uint16_t depth;
+	uint16_t imageFormat;  // Maps to a DXGI format
 
-	uint32_t DataSize;	          // total data size across all mips
-	uint8_t Unknown2;
-	uint8_t MipLevelsStreamedOpt; // mips stored in .opt.starpak
-	uint8_t ArraySize;
-	uint8_t LayerCount;
-	uint8_t Unknown4;
-	uint8_t MipLevelsPermanent;   // mips stored in .rpak
-	uint8_t MipLevelsStreamed;    // mips stored in .starpak
+	uint32_t dataSize;	// This is the total amount of image data across all banks
 
-	uint8_t UnknownPad[0x15];
+	uint8_t unk; // 8 PS4, 9 Switch
+
+	uint8_t optStreamedMipCount; // r5 only
+
+	uint8_t arraySize;
+	uint8_t layerCount;
+
+	uint8_t unkMip; // 0x1 inverted, 0x2 ???
+	uint8_t permanentMipCount;
+	uint8_t streamedMipCount;
+
+	byte unk1[13]; // mipmap related, used bytes is always total mip count minus one, not present if no mipmaps (see mip count - 1)
+
+	uint64_t numPixels; // reserved, set on load.
 };
 
 struct TextureHeaderV9
