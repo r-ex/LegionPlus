@@ -1,9 +1,10 @@
-Legion+
+Legion-
 =======
 
-Asset extraction tool for Apex Legends and Titanfall 2
+discount Asset extraction tool for Apex Legends and Titanfall 2
 
 Originally created by DTZxPorter in 2019.
+Continued by cute discord kittens rawr
 
 ---
 ## Table of Contents
