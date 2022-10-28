@@ -518,8 +518,8 @@ void RpakLib::ExtractModelLod_V14(IO::BinaryReader& Reader, const std::unique_pt
 				Shift += sizeof(RMdlPackedVertexWeights);
 			}
 
-			Normal = (*(RMdlPackedVertexNormal*)(VertexBufferPtr + Shift)).Unpack();
-			Shift += sizeof(RMdlPackedVertexNormal);
+			Normal = (*(RMdlPackedVertexTBN*)(VertexBufferPtr + Shift)).UnpackNormal();
+			Shift += sizeof(RMdlPackedVertexTBN);
 
 			if ((mesh.Flags1 & 0x10) == 0x10)
 			{
@@ -784,8 +784,8 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 				Shift += sizeof(RMdlPackedVertexWeights);
 			}
 
-			Normal = (*(RMdlPackedVertexNormal*)(VertexBufferPtr + Shift)).Unpack();
-			Shift += sizeof(RMdlPackedVertexNormal);
+			Normal = (*(RMdlPackedVertexTBN*)(VertexBufferPtr + Shift)).UnpackNormal();
+			Shift += sizeof(RMdlPackedVertexTBN);
 
 			if ((mesh.Flags1 & 0x10) == 0x10)
 			{
@@ -1044,8 +1044,8 @@ void RpakLib::ExtractModelLodOld(IO::BinaryReader& Reader, const std::unique_ptr
 				Shift += sizeof(RMdlPackedVertexWeights);
 			}
 
-			Normal = (*(RMdlPackedVertexNormal*)(VertexBufferPtr + Shift)).Unpack();
-			Shift += sizeof(RMdlPackedVertexNormal);
+			Normal = (*(RMdlPackedVertexTBN*)(VertexBufferPtr + Shift)).UnpackNormal();
+			Shift += sizeof(RMdlPackedVertexTBN);
 
 			if ((Submesh.Flags1 & 0x10) == 0x10)
 			{
