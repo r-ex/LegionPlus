@@ -7,6 +7,9 @@
 #include "ListBase.h"
 #include "StringBase.h"
 
+typedef unsigned short uint16;
+
+
 struct rmdlflags_t
 {
 	// This flag is set if no hitbox information was specified
@@ -619,6 +622,152 @@ struct r2studiohdr_t // titanfall 2 studiohdr (MDL v53)
 	int unused1[60]; // god I hope
 };
 
+struct studiohdr_t_v16
+{
+	int flags;
+	int checksum; // unsure if this is still checksum, there isn't any other files that have it still
+	short sznameindex; // No longer stored in string block, uses string in header.
+	char name[32]; // The internal name of the model, padding with null bytes.
+	// Typically "my_model.mdl" will have an internal name of "my_model"
+	byte unk_v16;
+
+	byte surfacepropLookup; // saved in the file
+
+	float mass;
+
+	int unk1_v16;
+
+	uint16 hitboxsetindex;
+	byte numhitboxsets;
+
+	byte illumpositionattachmentindex;
+
+	Vector3 illumposition;	// illumination center
+
+	Vector3 hull_min;		// ideal movement hull size
+	Vector3 hull_max;
+
+	Vector3 view_bbmin;		// clipping bounding box
+	Vector3 view_bbmax;
+
+	short numbones; // bones
+	uint16 boneindex;
+	uint16 bonedataindex;
+
+	short numlocalseq; // sequences
+	uint16 localseqindex;
+
+	byte unkfill[5];
+
+	byte numlocalattachments;
+	uint16 localattachmentindex;
+
+	short numlocalnodes;
+	uint16 localnodenameindex;
+	uint16 localnodeindex;
+
+	short numikchains;
+	uint16 ikchainindex;
+
+	short numtextures; // the material limit exceeds 128, probably 256.
+	uint16 textureindex;
+
+	// replaceable textures tables
+	short numskinref;
+	short numskinfamilies;
+	uint16 skinindex;
+
+	short numbodyparts;
+	uint16 bodypartindex;
+
+	// this is rui meshes
+	short numruimeshes;
+	uint16 ruimeshindex;
+
+	short numlocalposeparameters;
+	uint16 localposeparamindex;
+
+	uint16 surfacepropindex;
+
+	uint16 keyvalueindex;
+
+	uint16 vgmeshindex;
+	short numvgmeshes;
+
+	short bonetablebynameindex;
+
+	uint16 boneremapindex;
+	short numboneremaps;
+
+	uint16 vgloddataindex;
+	short numvgloddata;
+
+	uint16 vglodheaderindex;
+	short numvglodheader;
+
+	float fadedistance;
+
+	float gathersize; // what. from r5r struct
+
+	short numsrcbonetransform;
+	uint16 srcbonetransformindex;
+
+	// asset bakery strings if it has any
+	uint16 mayaindex;
+
+	uint16 linearboneindex;
+
+	short m_nBoneFlexDriverCount; // unsure if that's what it is in apex
+	uint16 m_nBoneFlexDriverIndex;
+	uint16 unkindexflex;
+
+	short unkcount3; // same as v54
+	uint16 unkindex3; // same as v54
+
+	uint16 unkindex4; // same as v54
+
+	byte unk5_v16; // unk4_v54[0]
+	byte unk6_v16; // unk4_v54[1]
+	short unk7_v16; // unk4_v54[2]
+	short unk8_v16;
+	short unk9_v16;
+
+	//uint16 unkshorts[7];
+};
+
+struct mstudiolinearbone_t_v16
+{
+	unsigned short numbones;
+
+	unsigned short flagsindex; // int
+
+	unsigned short parentindex; // short
+
+	unsigned short posindex; // vector3
+
+	unsigned short quatindex; // quaternion
+
+	unsigned short rotindex; // radianeuler
+
+	unsigned short posetoboneindex; // matrix3x4_t
+};
+
+struct vgloddata_t_v16
+{
+	int vgoffset; // offset to this section in vg
+	int unk;
+	int vgsize; // decompressed size of data in vg
+
+	byte numMeshes;
+
+	// this could also be vg section index
+	byte lodlevel; // 0, 1, 2, 3, etc
+	byte numlods; // normally 1, stolen from vg structs
+
+	// ids for something
+	byte unk2; // powers of two
+};
+
 struct mstudiobone_t
 {
 	uint32_t NameOffset;		// Relative to current position
@@ -647,6 +796,15 @@ struct r2mstudiobone_t
 	Math::Vector3 RotationScale;
 
 	uint8_t Padding[0x88];
+};
+
+struct mstudiobone_t_v16
+{
+	int contents;
+	short unk;
+	short surfacepropidx;
+	short unk1;
+	short sznameindex;
 };
 
 struct mstudiomodelv54_t
@@ -756,6 +914,7 @@ struct RMdlVGHeaderOld
 	uint64_t StripsOffset;
 	uint64_t StripsCount;			// 0x23 each
 };
+
 struct RMdlVGHeader
 {
 	int id;		// 0x47567430	'0tVG'
@@ -766,6 +925,15 @@ struct RMdlVGHeader
 	uint32_t unk1;
 	uint32_t lodOffset;
 	char unk3[8];
+};
+
+struct VGHeader_t_v16
+{
+	short unk0;
+	short unk2;
+	int unk4;
+	int nummeshes;
+	int meshindex;
 };
 
 struct VGLod
@@ -783,6 +951,30 @@ struct RMdlVGIndexCountPacked
 {
 	uint64_t Count : 56;
 	uint64_t Type : 8;
+};
+
+struct RMdlVGIndexCountPacked_V16
+{
+	unsigned int Count : 24;
+	unsigned int Type : 8;
+};
+
+struct VGMesh_t_v16
+{
+	uint64_t flags;
+	int vertexCount;
+	short vertexSize;
+	short unk;
+	int indexOffset;
+	RMdlVGIndexCountPacked_V16 indexPacked;
+	int vertexOffset;
+	int vertexBufferSize;
+
+	int weightsOffset;
+	int weightsCount;
+
+	int unkOffset;
+	int unkCount;
 };
 
 struct RMdlVGMesh
@@ -1333,6 +1525,32 @@ struct mstudiomesh_v121_t
 	mstudio_meshvertexdata_t vertexdata;
 
 	int unused[2];
+};
+
+struct mstudiomesh_t_v16
+{
+	short material;
+
+	// a unique ordinal for this mesh
+	short meshid;
+
+	//short modelindex;
+
+	byte unk[4];
+
+	//short numvertices; // number of unique vertices/normals/texcoords
+	//short vertexoffset; // vertex mstudiovertex_t
+
+	Vector3 center;
+};
+
+struct mstudiobodyparts_t_v16
+{
+	short sznameindex;
+	uint16 modelindex;
+	int base;
+	int nummodels;
+	int meshindex; // index into models array
 };
 
 struct RMdlTitanfallLodSubmesh

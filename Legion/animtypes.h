@@ -1,5 +1,7 @@
 #pragma once
 #include <cstdint>
+typedef unsigned short uint16;
+
 
 enum eventtype : uint8_t
 {
@@ -109,6 +111,83 @@ struct mstudioseqdesc_t
 	int unkindex;
 
 	int unk2;
+};
+
+struct mstudioseqdesc_t_v16
+{
+	short szlabelindex;
+
+	short szactivitynameindex;
+
+	int flags; // looping/non-looping flags
+
+	short activity; // initialized at loadtime to game DLL values
+	short actweight;
+
+	short numevents;
+	short eventindex;
+
+	Vector3 bbmin; // per sequence bounding box
+	Vector3 bbmax;
+
+	short numblends;
+
+	// Index into array of shorts which is groupsize[0] x groupsize[1] in length
+	short animindexindex;
+
+	//short movementindex; // [blend] float array for blended movement
+	short paramindex[2]; // X, Y, Z, XR, YR, ZR
+	float paramstart[2]; // local (0..1) starting value
+	float paramend[2]; // local (0..1) ending value
+	//short paramparent;
+
+	float fadeintime; // ideal cross fate in time (0.2 default)
+	float fadeouttime; // ideal cross fade out time (0.2 default)
+
+	byte fill[4];
+
+	// stuff is different after this
+	/*
+	short localentrynode; // transition node at entry
+	short localexitnode; // transition node at exit
+	short nodeflags; // transition rules
+
+	float entryphase; // used to match entry gait
+	float exitphase; // used to match exit gait
+
+	float lastframe; // frame that should generation EndOfSequence
+
+	short nextseq; // auto advancing sequences
+	short pose; // index of delta animation between end and nextseq*/
+
+	short numikrules;
+
+	short numautolayers;
+	uint16 autolayerindex;
+
+	uint16 weightlistindex;
+
+	byte groupsize[2];
+
+	uint16 posekeyindex;
+
+	short numiklocks;
+	short iklockindex;
+
+	// Key values
+	uint16 keyvalueindex;
+	short keyvaluesize;
+
+	//short cycleposeindex; // index of pose parameter to use as cycle index
+
+	short activitymodifierindex;
+	short numactivitymodifiers;
+
+	int unk;
+	int unk1;
+
+	uint16 unkindex;
+	short unkcount;
 };
 
 
@@ -222,6 +301,40 @@ struct mstudioanimdescv54_t_v121
 	// it seems like there's another int here but I'm unsure
 };
 
+struct mstudioanimdesc_t_v16
+{
+	//int baseptr;
+
+	float fps; // frames per second	
+	int flags; // looping/non-looping flags
+
+	short numframes;
+
+	// piecewise movement
+	//short nummovements;
+	//short movementindex;
+
+	short unk_v16;
+
+	uint16 sznameindex;
+
+	uint16 compressedikerrorindex;
+
+	uint16 animindex; // non-zero when anim data isn't in sections
+
+	short unk;
+
+	short numikrules;
+	uint16 ikruleindex; // non-zero when IK data is stored in the mdl
+
+	uint16 unk1[5];
+
+	uint16 sectionindex;
+
+	uint16 unk2; // what, obviously section related as it's wedged between sectionindex and sectiom frames
+
+	uint16 sectionframes; // number of frames used in each fast lookup section, zero if not used
+};
 
 struct mstudioanimdescv53_t
 {

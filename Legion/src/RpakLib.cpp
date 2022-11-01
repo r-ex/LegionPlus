@@ -227,7 +227,8 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(const std::array<bool, 
 		case (uint32_t)AssetType_t::RUI:
 			//if (!arrAssets[9])
 			//	continue;
-			BuildRUIInfo(Asset, NewAsset);
+			//BuildRUIInfo(Asset, NewAsset);
+			continue;
 			break;
 		case (uint32_t)AssetType_t::Effect:
 			if (!arrAssets[10])
@@ -344,6 +345,13 @@ uint64_t RpakLib::GetFileOffset(const RpakLoadAsset& Asset, uint32_t SegmentInde
 	if (SegmentIndex < 0) return 0;
 
 	return (Asset.PakFile->SegmentBlocks[SegmentIndex - Asset.PakFile->StartSegmentIndex].Offset + SegmentOffset);
+}
+
+uint64_t RpakLib::GetFileOffset(const RpakLoadAsset& Asset, RPakPtr& ptr)
+{
+	if (ptr.Index < 0) return 0;
+
+	return (Asset.PakFile->SegmentBlocks[ptr.Index - Asset.PakFile->StartSegmentIndex].Offset + ptr.Offset);
 }
 
 uint64_t RpakLib::GetEmbeddedStarpakOffset(const RpakLoadAsset& Asset)
@@ -629,8 +637,10 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 		}
 		case (uint32_t)AssetType_t::AnimationRig:
 		{
-			AnimRigHeader SubHeader = Reader.Read<AnimRigHeader>();
-			return (SubHeader.NameIndex >= LoadedFile.StartSegmentIndex && SubHeader.SkeletonIndex >= LoadedFile.StartSegmentIndex && SubHeader.AnimationReferenceIndex >= LoadedFile.StartSegmentIndex);
+			AnimRigHeader RigHeader{};
+			RigHeader.ReadFromAssetStream(&RpakStream, Asset.AssetVersion);
+
+			return (RigHeader.name.Index >= LoadedFile.StartSegmentIndex && RigHeader.studioData.Index >= LoadedFile.StartSegmentIndex && RigHeader.animSeqs.Index >= LoadedFile.StartSegmentIndex);
 		}
 		case (uint32_t)AssetType_t::Animation:
 		{

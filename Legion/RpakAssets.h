@@ -359,23 +359,63 @@ struct ASeqHeaderV10
 };
 
 // --- arig ---
+struct AnimRigHeaderV5
+{
+	RPakPtr studioData;
+	RPakPtr name;
+
+	short unk1;
+
+	short animSeqCount;
+
+	int unk1_v6;
+
+	RPakPtr animSeqs;
+
+	__int64 unk2;
+};
+
 struct AnimRigHeader
 {
-	uint32_t SkeletonIndex;
-	uint32_t SkeletonOffset;
+	RPakPtr studioData;
 
-	uint32_t NameIndex;
-	uint32_t NameOffset;
+	RPakPtr name;
 
-	uint32_t Unk1;
-	uint32_t AnimationReferenceCount;
+	DWORD unk1;
+	int animSeqCount;
 
-	uint32_t AnimationReferenceIndex;
-	uint32_t AnimationReferenceOffset;
+	int unk1_v6;
 
-	uint32_t Unk3;
-	uint32_t Unk4;
+	RPakPtr animSeqs;
+
+	__int64 unk2;
+
+
+	void ReadFromAssetStream(std::unique_ptr<IO::MemoryStream>* RpakStream, int assetVersion)
+	{
+		IO::BinaryReader Reader = IO::BinaryReader(RpakStream->get(), true);
+
+		studioData = Reader.Read<RPakPtr>();
+		name = Reader.Read<RPakPtr>();
+
+		if (assetVersion < 5)
+		{
+			unk1 = Reader.Read<DWORD>();
+			animSeqCount = Reader.Read<int>();
+			unk1_v6 = 0;
+		}
+		else {
+			unk1 = Reader.Read<short>();
+			animSeqCount = Reader.Read<short>();
+			unk1_v6 = Reader.Read<int>();
+		}
+
+		animSeqs = Reader.Read<RPakPtr>();
+		unk2 = Reader.Read<__int64>();
+	}
 };
+
+
 
 // MODELS
 // --- mdl_ ---
@@ -515,6 +555,17 @@ struct ModelHeaderV13
 	char unk5[8];
 };
 
+struct ModelHeaderV16
+{
+	RPakPtr studioData;
+	RPakPtr name;
+	char unk[0x1c];
+	int unk1;
+	Vector3 bbox_min;
+	Vector3 bbox_max;
+	char unk2[0x18];
+};
+
 struct ModelHeader
 {
 	struct mdlversion_t {
@@ -651,6 +702,17 @@ public:
 
 			SetVersion(assetVersion);
 		}
+		break;
+		case 16:
+		{
+			ModelHeaderV16 mht = Reader.Read<ModelHeaderV16>();
+			studioData = mht.studioData;
+			pName = mht.name;
+			bbox_min = mht.bbox_min;
+			bbox_max = mht.bbox_max;
+
+			SetVersion(assetVersion);
+		}
 		}
 
 		if (phyData.Index || phyData.Offset)
@@ -659,6 +721,12 @@ public:
 		if (vgCacheData.Index || vgCacheData.Offset)
 			SetFlags(MODEL_HAS_CACHE);
 	}
+};
+
+struct ModelCPU
+{
+	char unk[12];
+	int dataSize;
 };
 
 // MATERIALS
@@ -1398,7 +1466,7 @@ ASSERT_SIZE(SettingsKeyValuePair, 0x10);
 ASSERT_SIZE(ModelHeaderV12_1, 0x68);
 ASSERT_SIZE(ModelHeaderV13, 0x80);
 ASSERT_SIZE(ASeqHeader, 0x30);
-ASSERT_SIZE(AnimRigHeader, 0x28);
+//ASSERT_SIZE(AnimRigHeader, 0x28);
 ASSERT_SIZE(mstudioseqdesc_t, 0xD0);
 
 struct RUIImageTile
