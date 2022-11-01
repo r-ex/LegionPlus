@@ -701,8 +701,8 @@ public:
 			SetFlags(MODEL_HAS_BBOX);
 
 			SetVersion(assetVersion);
+			break;
 		}
-		break;
 		case 16:
 		{
 			ModelHeaderV16 mht = Reader.Read<ModelHeaderV16>();
