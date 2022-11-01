@@ -44,9 +44,7 @@ void RpakLib::BuildTextureInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	switch (Asset.AssetVersion)
-	{
-	case 9:
+	if (Asset.AssetVersion >= 9)
 	{
 		auto TexHeader = Reader.Read<TextureHeaderV9>();
 
@@ -54,9 +52,8 @@ void RpakLib::BuildTextureInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 		TextureHeight = TexHeader.Height;
 		NameIndex = TexHeader.NameIndex;
 		NameOffset = TexHeader.NameOffset;
-		break;
 	}
-	default:
+	else
 	{
 		auto TexHeader = Reader.Read<TextureHeader>();
 
@@ -64,8 +61,6 @@ void RpakLib::BuildTextureInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 		TextureHeight = TexHeader.height;
 		NameIndex = TexHeader.pName.Index;
 		NameOffset = TexHeader.pName.Offset;
-		break;
-	}
 	}
 
 	if (NameIndex || NameOffset)
@@ -188,7 +183,7 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 
 		if (this->LoadedFiles[Asset.FileIndex].OptimalStarpakMap.ContainsKey(Asset.OptimalStarpakOffset))
 		{
-			if (Asset.AssetVersion != 9)
+			if (Asset.AssetVersion < 9)
 			{
 				if(!TexHeader.unkMip)
 					Offset += (this->LoadedFiles[Asset.FileIndex].OptimalStarpakMap[Asset.OptimalStarpakOffset] - BlockSize);
@@ -228,7 +223,7 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 			// ???: why didnt this originally just check if it also had non-opt starpak offsets and use that for the image?
 			//      then at least the image would be higher quality than the highest permanent mip
 			///
-			if (Asset.AssetVersion != 9 && !TexHeader.unkMip)
+			if (Asset.AssetVersion < 9 && !TexHeader.unkMip)
 				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.dataSize - BlockSize);
 			else
 				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
@@ -241,7 +236,7 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 
 		if (this->LoadedFiles[Asset.FileIndex].StarpakMap.ContainsKey(Asset.StarpakOffset))
 		{
-			if (Asset.AssetVersion != 9)
+			if (Asset.AssetVersion < 9)
 			{
 				if(!TexHeader.unkMip)
 					Offset += (this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset] - BlockSize);
@@ -270,7 +265,7 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		{
 			g_Logger.Warning("Starpak for asset 0x%llx is not loaded. Output may be incorrect/weird\n", Asset.NameHash);
 
-			if (Asset.AssetVersion != 9 && !TexHeader.unkMip)
+			if (Asset.AssetVersion < 9 && !TexHeader.unkMip)
 				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.dataSize - BlockSize);
 			else
 				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
@@ -282,7 +277,7 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		// All texture data is inline in rpak, we can calculate without anything else
 		//
 
-		if (Asset.AssetVersion != 9 && !TexHeader.unkMip)
+		if (Asset.AssetVersion < 9 && !TexHeader.unkMip)
 			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.dataSize - BlockSize);
 		else
 			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
