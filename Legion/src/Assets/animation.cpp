@@ -641,8 +641,6 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 
 			RpakStream->SetPosition(AnimHeaderPointer + ChunkDataOffset);
 			FirstChunk = Reader.Read<uint32_t>();
-
-			RpakStream->SetPosition(AnimHeaderPointer + ChunkDataOffset + 4);
 			IsChunkInStarpak = Reader.Read<uint32_t>();
 
 			if (IsChunkInStarpak)
@@ -654,9 +652,7 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 				}
 				else
 				{
-					RpakStream->SetPosition(AnimHeaderPointer + ChunkDataOffset);
-					uint32_t v14 = Reader.Read<uint32_t>();
-					ResultDataPtr = starpakDataOffset + v14;
+					ResultDataPtr = starpakDataOffset + FirstChunk;
 				}
 			}
 			else
@@ -839,9 +835,7 @@ void RpakLib::ExtractAnimation_V11(const RpakLoadAsset& Asset, const List<Assets
 
 			RpakStream->SetPosition(AnimHeaderPointer + ChunkDataOffset);
 			FirstChunk = Reader.Read<uint32_t>();
-
-			RpakStream->SetPosition(AnimHeaderPointer + ChunkDataOffset + 4);
-			IsChunkInStarpak = Reader.Read<uint32_t>();
+			IsChunkInStarpak = Reader.Read<uint32_t>(); // this name is definitely wrong but sure
 
 			if (IsChunkInStarpak)
 			{
@@ -852,9 +846,7 @@ void RpakLib::ExtractAnimation_V11(const RpakLoadAsset& Asset, const List<Assets
 				}
 				else
 				{
-					RpakStream->SetPosition(AnimHeaderPointer + ChunkDataOffset);
-					uint32_t v14 = Reader.Read<uint32_t>();
-					ResultDataPtr = starpakDataOffset + v14;
+					ResultDataPtr = starpakDataOffset + FirstChunk;
 				}
 			}
 			else
