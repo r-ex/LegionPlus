@@ -107,6 +107,66 @@ void RpakLib::ExportAnimationRig_V5(const RpakLoadAsset& Asset, const string& Pa
 
 	IO::Directory::CreateDirectory(AnimSetPath);
 
+	AnimExportFormat_t AnimFormat = (AnimExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat");
+
+	if (AnimFormat == AnimExportFormat_t::RAnim)
+	{
+		uint64_t SkeletonOffset = this->GetFileOffset(Asset, RigHeader.studioData);
+		RpakStream->SetPosition(SkeletonOffset);
+
+		studiohdr_t_v16 SkeletonHeader = Reader.Read<studiohdr_t_v16>();
+
+		RpakStream->SetPosition(SkeletonOffset);
+
+		char* skelBuf = new char[SkeletonHeader.bonedataindex + (sizeof(mstudiobonedata_t_v16) * SkeletonHeader.numbones)];
+		Reader.Read(skelBuf, 0, SkeletonHeader.bonedataindex + (sizeof(mstudiobonedata_t_v16) * SkeletonHeader.numbones));
+
+		std::ofstream skelOut(IO::Path::Combine(AnimSetPath, AnimSetName + ".rrig"), std::ios::out | std::ios::binary);
+		skelOut.write(skelBuf, SkeletonHeader.bonedataindex + (sizeof(mstudiobonedata_t_v16) * SkeletonHeader.numbones));
+		skelOut.close();
+
+		// ignore for now
+		/*const uint64_t ReferenceOffset = this->GetFileOffset(Asset, RigHeader.animSeqs);
+
+		for (uint32_t i = 0; i < RigHeader.animSeqCount; i++)
+		{
+			RpakStream->SetPosition(ReferenceOffset + ((uint64_t)i * 0x8));
+
+			uint64_t AnimHash = Reader.Read<uint64_t>();
+			if (Assets.ContainsKey(AnimHash))
+			{
+				auto SeqAsset = Assets[AnimHash];
+
+				auto AnimStream = this->GetFileStream(SeqAsset);
+
+				IO::BinaryReader AnimReader = IO::BinaryReader(AnimStream.get(), true);
+
+				AnimStream->SetPosition(this->GetFileOffset(SeqAsset, SeqAsset.SubHeaderIndex, SeqAsset.SubHeaderOffset));
+
+				ASeqHeaderV10 AnHeader = AnimReader.Read<ASeqHeaderV10>();
+
+				AnimStream->SetPosition(this->GetFileOffset(SeqAsset, AnHeader.pName.Index, AnHeader.pName.Offset));
+
+				string SeqName = AnimReader.ReadCString();
+				string SeqSetName = IO::Path::GetFileNameWithoutExtension(SeqName);
+				string SeqSetPath = IO::Path::Combine(Path, AnimSetName);
+
+				g_Logger.Info("-> %s\n", SeqName.ToCString());
+
+				const uint64_t AnimationOffset = this->GetFileOffset(SeqAsset, AnHeader.pAnimation.Index, AnHeader.pAnimation.Offset);
+
+				this->ExportAnimationSeq(Assets[AnimHash], AnimSetPath);
+
+				AnimStream.release();
+
+			}
+
+			continue;
+		}*/
+
+		return;
+	}
+
 	// version is 99 because it's supposed to only check model version, not arig version
 	const List<Assets::Bone> Skeleton = this->ExtractSkeleton_V16(Reader, this->GetFileOffset(Asset, RigHeader.studioData), 99);
 

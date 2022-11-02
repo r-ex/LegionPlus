@@ -801,10 +801,37 @@ struct r2mstudiobone_t
 struct mstudiobone_t_v16
 {
 	int contents;
-	short unk;
-	short surfacepropidx;
-	short unk1;
+
+	byte unk;
+
+	byte surfacepropLookup; // written on compile in v54+
+	short surfacepropidx; // index into string tablefor property name
+	short physicsbone; // index into physically simulated bone
 	short sznameindex;
+};
+
+struct mstudiobonedata_t_v16
+{
+	matrix3x4_t poseToBone;
+	Math::Quaternion qAlignment;
+
+	// default values
+	Math::Vector3 pos;
+	Math::Quaternion quat;
+	Math::Vector3 rot;
+
+	Vector3 unkvector; // the same as whatever v53 is
+
+	short parent; // parent bone;
+
+	short unk1;
+
+	int flags;
+
+	byte unkid;
+
+	byte proctype;
+	uint16 procindex; // procedural rule
 };
 
 struct mstudiomodelv54_t
