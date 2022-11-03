@@ -855,7 +855,7 @@ void RpakLib::ExtractModelLod_V16(IO::BinaryReader& Reader, const std::unique_pt
 				}
 				else
 				{
-					Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[1]], 1.f }, 0);
+					Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], 1.f }, 0);
 				}
 			}
 			else if (Model->Bones.Count() > 0)
