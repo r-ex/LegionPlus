@@ -127,7 +127,7 @@ void RpakLib::ExportTexture(const RpakLoadAsset& Asset, const string& Path, bool
 	}
 }
 
-uint64_t CalculateHighestMipOffset(const TextureHeader& TextureHeader)
+uint64_t CalculateHighestPermanentMipOffset(const TextureHeader& TextureHeader)
 {
 	uint64_t retOffset = 0;
 
@@ -321,7 +321,7 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		if (Asset.AssetVersion < 9 && !TexHeader.unkMip)
 			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.dataSize - BlockSize);
 		else
-			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + CalculateHighestMipOffset(TexHeader);
+			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + CalculateHighestPermanentMipOffset(TexHeader);
 	}
 	else
 	{
