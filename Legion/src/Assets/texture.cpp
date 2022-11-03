@@ -127,6 +127,44 @@ void RpakLib::ExportTexture(const RpakLoadAsset& Asset, const string& Path, bool
 	}
 }
 
+uint64_t CalculateHighestPermanentMipOffset(const TextureHeader& TextureHeader)
+{
+	uint64_t retOffset = 0;
+
+	uint32_t mipLevel = TextureHeader.permanentMipCount;
+	for (int i = 1; i < TextureHeader.permanentMipCount; i++)
+	{
+		--mipLevel;
+		if (TextureHeader.arraySize)
+		{
+			int mipWidth = 0;
+			if (TextureHeader.width >> mipLevel > 1)
+				mipWidth = (TextureHeader.width >> mipLevel) - 1;
+
+			int mipHeight = 0;
+			if (TextureHeader.height >> mipLevel > 1)
+				mipHeight = (TextureHeader.height >> mipLevel) - 1;
+
+			uint8_t x = s_pBytesPerPixel[TextureHeader.imageFormat].first;
+			uint8_t y = s_pBytesPerPixel[TextureHeader.imageFormat].second;
+
+			uint32_t bytesPerPixelWidth = (y + mipWidth) >> (y >> 1);
+			uint32_t bytesPerPixelHeight = (y + mipHeight) >> (y >> 1);
+			uint32_t sliceWidth = x * (y >> (y >> 1));
+
+			uint32_t rowPitch = sliceWidth * bytesPerPixelWidth;
+			uint32_t slicePitch = x * bytesPerPixelWidth * bytesPerPixelHeight;
+
+			for (int a = 0; a < TextureHeader.arraySize; a++)
+			{
+				retOffset += ((uint64_t)(slicePitch + 15) & 0xFFFFFFF0);
+			}
+		}
+	}
+
+	return retOffset;
+}
+
 void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Texture>& Texture, string& Name)
 {
 	auto RpakStream = this->GetFileStream(Asset);
@@ -147,6 +185,10 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		TexHeader.height = TexHeaderV9.Height;
 		TexHeader.imageFormat = TexHeaderV9.Format;
 		TexHeader.dataSize = TexHeaderV9.DataSize;
+		TexHeader.streamedMipCount = TexHeaderV9.MipLevelsStreamed;
+		TexHeader.optStreamedMipCount = TexHeaderV9.MipLevelsStreamedOpt;
+		TexHeader.permanentMipCount = TexHeaderV9.MipLevels;
+		TexHeader.arraySize = TexHeaderV9.ArraySize;
 	}
 
 	Assets::DDSFormat Fmt;
@@ -276,11 +318,10 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		//
 		// All texture data is inline in rpak, we can calculate without anything else
 		//
-
 		if (Asset.AssetVersion < 9 && !TexHeader.unkMip)
 			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.dataSize - BlockSize);
 		else
-			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
+			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + CalculateHighestPermanentMipOffset(TexHeader);
 	}
 	else
 	{
