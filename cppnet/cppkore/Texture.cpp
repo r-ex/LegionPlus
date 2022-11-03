@@ -523,7 +523,12 @@ namespace Assets
 		case SaveFileType::Jxr:
 		case SaveFileType::Tga:
 			if (!IsValid32bppFormat(InternalScratchImage->GetMetadata().format))
-				this->ConvertToFormat(DXGI_FORMAT::DXGI_FORMAT_B8G8R8A8_UNORM);
+			{
+				if (DirectX::IsSRGB(InternalScratchImage->GetMetadata().format))
+					this->ConvertToFormat(DXGI_FORMAT::DXGI_FORMAT_B8G8R8A8_UNORM_SRGB);
+				else
+					this->ConvertToFormat(DXGI_FORMAT::DXGI_FORMAT_B8G8R8A8_UNORM);
+			}
 			break;
 			// This format requires either R32G32B32A32_FLOAT or R32G32B32_FLOAT
 		case SaveFileType::Hdr:

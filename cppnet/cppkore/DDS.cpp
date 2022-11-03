@@ -61,7 +61,7 @@ namespace Assets
 		MetaData.format = Format.Format;
 
 		size_t ResultSize = 0;
-		DirectX::EncodeDDSHeader(MetaData, 0, Buffer, sizeof(Buffer), ResultSize);
+		DirectX::EncodeDDSHeader(MetaData, DirectX::DDS_FLAGS::DDS_FLAGS_NONE, Buffer, sizeof(Buffer), ResultSize);
 
 		Stream->Write((uint8_t*)Buffer, 0, (uint64_t)ResultSize);
 	}
@@ -80,7 +80,7 @@ namespace Assets
 		MetaData.format = Format.Format;
 
 		size_t Result = 0;
-		DirectX::EncodeDDSHeader(MetaData, 0, Buffer, sizeof(Buffer), Result);
+		DirectX::EncodeDDSHeader(MetaData, DirectX::DDS_FLAGS::DDS_FLAGS_NONE, Buffer, sizeof(Buffer), Result);
 
 		ResultSize = (uint32_t)Result;
 	}
