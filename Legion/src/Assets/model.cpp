@@ -249,7 +249,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 	}
 	else
 	{
-		RpakStream->SetPosition(StudioOffset + (cpuData.dataSize - BoneRemapCount));
+		RpakStream->SetPosition(StudioOffset + offsetof(studiohdr_t_v16, boneremapindex) + BoneRemapOffset);
 		RpakStream->Read((uint8_t*)&BoneRemapTable[0], 0, BoneRemapCount);
 	}
 
@@ -852,6 +852,10 @@ void RpakLib::ExtractModelLod_V16(IO::BinaryReader& Reader, const std::unique_pt
 					{
 						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[1]], 1.0f - CurrentWeightTotal }, WeightsIndex);
 					}
+				}
+				else
+				{
+					Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[1]], 1.f }, 0);
 				}
 			}
 			else if (Model->Bones.Count() > 0)
@@ -1747,11 +1751,6 @@ List<Assets::Bone> RpakLib::ExtractSkeleton_V16(IO::BinaryReader& Reader, uint64
 
 	List<Assets::Bone> Result = List<Assets::Bone>(studiohdr.numbones);
 
-	size_t linearBoneOffset = baseOffset + studiohdr.linearboneindex;
-	RpakStream->SetPosition(linearBoneOffset);
-
-	mstudiolinearbone_t_v16 linearbone = Reader.Read<mstudiolinearbone_t_v16>();
-
 	for (uint32_t i = 0; i < studiohdr.numbones; i++)
 	{
 		uint64_t Position = baseOffset + studiohdr.boneindex + (i * (sizeof(mstudiobone_t_v16)));
@@ -1761,20 +1760,13 @@ List<Assets::Bone> RpakLib::ExtractSkeleton_V16(IO::BinaryReader& Reader, uint64
 
 		RpakStream->SetPosition(Position + bone.sznameindex);
 		string boneName = Reader.ReadCString();
-		
-		RpakStream->SetPosition(linearBoneOffset + linearbone.parentindex + (i * sizeof(short)));
-		short parent = Reader.Read<short>();
-		
 
-		RpakStream->SetPosition(linearBoneOffset + linearbone.posindex + (i * sizeof(Vector3)));
-		Vector3 pos = Reader.Read<Vector3>();
+		RpakStream->SetPosition(baseOffset + studiohdr.bonedataindex + (i * sizeof(mstudiobonedata_t_v16)));
+		mstudiobonedata_t_v16 boneData = Reader.Read<mstudiobonedata_t_v16>();
 
-		RpakStream->SetPosition(linearBoneOffset + linearbone.quatindex + (i * sizeof(Math::Quaternion)));
-		Math::Quaternion quat = Reader.Read<Math::Quaternion>();
+		//printf("%s %i %.3f %.3f %.3f\n", boneName.ToCString(), boneData.parent, boneData.pos.X, boneData.pos.Y, boneData.pos.Z);
 
-		//printf("%s %i %.3f %.3f %.3f\n", boneName.ToCString(), parent, pos.X, pos.Y, pos.Z);
-
-		Result.EmplaceBack(boneName, parent, pos, quat);
+		Result.EmplaceBack(boneName, boneData.parent, boneData.pos, boneData.quat);
 	}
 
 	if (studiohdr.numbones == 1)

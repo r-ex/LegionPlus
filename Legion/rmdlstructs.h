@@ -1601,6 +1601,11 @@ struct mstudiotexturev54_t
 	int sznameindex;
 	uint64_t guid;
 };
+
+struct mstudiotexture_t_v16
+{
+	uint64_t guid;
+};
 #pragma pack(pop)
 
 // Game helper structs
