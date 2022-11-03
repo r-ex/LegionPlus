@@ -131,39 +131,35 @@ uint64_t CalculateHighestMipOffset(const TextureHeader& TextureHeader)
 {
 	uint64_t retOffset = 0;
 
-	const int totalStreamedMips = TextureHeader.optStreamedMipCount + TextureHeader.streamedMipCount;
-	uint32_t mipLevel = TextureHeader.permanentMipCount + totalStreamedMips;
-	if (mipLevel != totalStreamedMips)
+	uint32_t mipLevel = TextureHeader.permanentMipCount;
+	for (int i = 1; i < TextureHeader.permanentMipCount; i++)
 	{
-		do
+		--mipLevel;
+		if (TextureHeader.arraySize)
 		{
-			--mipLevel;
-			if (TextureHeader.arraySize)
+			int mipWidth = 0;
+			if (TextureHeader.width >> mipLevel > 1)
+				mipWidth = (TextureHeader.width >> mipLevel) - 1;
+
+			int mipHeight = 0;
+			if (TextureHeader.height >> mipLevel > 1)
+				mipHeight = (TextureHeader.height >> mipLevel) - 1;
+
+			uint8_t x = s_pBytesPerPixel[TextureHeader.imageFormat].first;
+			uint8_t y = s_pBytesPerPixel[TextureHeader.imageFormat].second;
+
+			uint32_t bytesPerPixelWidth = (y + mipWidth) >> (y >> 1);
+			uint32_t bytesPerPixelHeight = (y + mipHeight) >> (y >> 1);
+			uint32_t sliceWidth = x * (y >> (y >> 1));
+
+			uint32_t rowPitch = sliceWidth * bytesPerPixelWidth;
+			uint32_t slicePitch = x * bytesPerPixelWidth * bytesPerPixelHeight;
+
+			for (int a = 0; a < TextureHeader.arraySize; a++)
 			{
-				int mipWidth = 0;
-				if (TextureHeader.width >> mipLevel > 1)
-					mipWidth = (TextureHeader.width >> mipLevel) - 1;
-
-				int mipHeight = 0;
-				if (TextureHeader.height >> mipLevel > 1)
-					mipHeight = (TextureHeader.height >> mipLevel) - 1;
-
-				uint8_t x = s_pBytesPerPixel[TextureHeader.imageFormat].first;
-				uint8_t y = s_pBytesPerPixel[TextureHeader.imageFormat].second;
-
-				uint32_t bytesPerPixelWidth = (y + mipWidth) >> (y >> 1);
-				uint32_t bytesPerPixelHeight = (y + mipHeight) >> (y >> 1);
-				uint32_t sliceWidth = x * (y >> (y >> 1));
-
-				uint32_t rowPitch = sliceWidth * bytesPerPixelWidth;
-				uint32_t slicePitch = x * bytesPerPixelWidth * bytesPerPixelHeight;
-
-				for (int i = 0; i < TextureHeader.arraySize; i++)
-				{
-					retOffset += ((uint64_t)(slicePitch + 15) & 0xFFFFFFF0);
-				}
+				retOffset += ((uint64_t)(slicePitch + 15) & 0xFFFFFFF0);
 			}
-		} while (mipLevel != totalStreamedMips && mipLevel > 1);
+		}
 	}
 
 	return retOffset;
