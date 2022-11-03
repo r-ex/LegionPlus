@@ -916,7 +916,7 @@ void RpakLib::ExtractAnimation_V11(const RpakLoadAsset& Asset, const List<Assets
 			ChunkDataOffset = animdesc.sectionindex + (2*sizeof(uint16)) * (uint64_t)ChunkTableIndex;
 
 			RpakStream->SetPosition(AnimHeaderPointer + ChunkDataOffset);
-			FirstChunk = Reader.Read<uint16>();
+			FirstChunk = Reader.Read<int16_t>();
 			IsChunkInStarpak = Reader.Read<short>(); // this name is definitely wrong but sure
 
 			if (IsChunkInStarpak > 0)
