@@ -822,7 +822,7 @@ void RpakLib::ExtractAnimation_V11(const RpakLoadAsset& Asset, const List<Assets
 	{
 		RpakStream->SetPosition(seqOffset + seqdesc.animindexindex + ((uint64_t)i * sizeof(uint32_t)));
 
-		int animindex = Reader.Read<int>();
+		uint16 animindex = Reader.Read<uint16>();
 
 		RpakStream->SetPosition(seqOffset + animindex);
 
@@ -867,37 +867,59 @@ void RpakLib::ExtractAnimation_V11(const RpakLoadAsset& Asset, const List<Assets
 			uint32_t FrameCountOneLess = 0;
 			uint32_t FirstChunk = animdesc.animindex;
 			uint64_t ChunkDataOffset = 0;
-			uint32_t IsChunkInStarpak = 0;
+			short IsChunkInStarpak = 0;
 			uint64_t ResultDataPtr = 0;
 
-			if (!animdesc.unk2)
+
+			//if (!animdesc.mediancount)
+			//{
+			//	// Nothing here
+			//	goto nomedian;
+			//}
+			//else if (ChunkFrame >= animdesc.sectionframes)
+			//{
+			//	uint32_t FrameCount = animdesc.numframes;
+			//	uint32_t ChunkFrameMinusSplitCount = ChunkFrame - animdesc.sectionframes;
+			//	if (FrameCount <= animdesc.sectionframes || ChunkFrame != FrameCount - 1)
+			//	{
+			//		ChunkTableIndex = ChunkFrameMinusSplitCount / animdesc.mediancount + 1;
+			//		ChunkFrame = ChunkFrame - (animdesc.mediancount * (ChunkFrameMinusSplitCount / animdesc.mediancount)) - animdesc.sectionframes;
+			//	}
+			//	else
+			//	{
+			//		ChunkFrame = 0;
+			//		ChunkTableIndex = (FrameCount - animdesc.sectionframes - 1) / animdesc.mediancount + 2;
+			//	}
+			//}
+
+			if (!animdesc.sectionframes)
 			{
 				// Nothing here
 				goto nomedian;
 			}
-			else if (ChunkFrame >= animdesc.sectionframes)
+			else if (ChunkFrame >= animdesc.unk2)
 			{
 				uint32_t FrameCount = animdesc.numframes;
-				uint32_t ChunkFrameMinusSplitCount = ChunkFrame - animdesc.sectionframes;
-				if (FrameCount <= animdesc.sectionframes || ChunkFrame != FrameCount - 1)
+				uint32_t ChunkFrameMinusSplitCount = ChunkFrame - animdesc.unk2;
+				if (FrameCount <= animdesc.unk2 || ChunkFrame != FrameCount - 1)
 				{
-					ChunkTableIndex = ChunkFrameMinusSplitCount / animdesc.unk2 + 1;
-					ChunkFrame = ChunkFrame - (animdesc.unk2 * (ChunkFrameMinusSplitCount / animdesc.unk2)) - animdesc.sectionframes;
+					ChunkTableIndex = ChunkFrameMinusSplitCount / animdesc.sectionframes + 1;
+					ChunkFrame = ChunkFrame - (animdesc.sectionframes * (ChunkFrameMinusSplitCount / animdesc.sectionframes)) - animdesc.unk2;
 				}
 				else
 				{
 					ChunkFrame = 0;
-					ChunkTableIndex = (FrameCount - animdesc.sectionframes - 1) / animdesc.unk2 + 2;
+					ChunkTableIndex = (FrameCount - animdesc.unk2 - 1) / animdesc.sectionframes + 2;
 				}
 			}
 
-			ChunkDataOffset = animdesc.sectionindex + 8 * (uint64_t)ChunkTableIndex;
+			ChunkDataOffset = animdesc.sectionindex + (2*sizeof(uint16)) * (uint64_t)ChunkTableIndex;
 
 			RpakStream->SetPosition(AnimHeaderPointer + ChunkDataOffset);
-			FirstChunk = Reader.Read<uint32_t>();
-			IsChunkInStarpak = Reader.Read<uint32_t>(); // this name is definitely wrong but sure
+			FirstChunk = Reader.Read<uint16>();
+			IsChunkInStarpak = Reader.Read<short>(); // this name is definitely wrong but sure
 
-			if (IsChunkInStarpak)
+			if (IsChunkInStarpak > 0)
 			{
 				uint64_t v13 = 0;// animdesc.somedataoffset;
 				if (v13)
