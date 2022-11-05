@@ -114,26 +114,26 @@ void RpakLib::ExportTexture(const RpakLoadAsset& Asset, const string& Path, bool
 	}
 }
 
-uint64_t CalculateHighestMipOffset(const TextureHeader& TextureHeader, const uint8_t& MipCount)
+uint64_t CalculateHighestMipOffset(const TextureHeader& txtrHdr, const uint8_t& mipCount)
 {
 	uint64_t retOffset = 0;
 
-	uint32_t mipLevel = MipCount;
-	for (int i = 1; i < MipCount; i++)
+	uint32_t mipLevel = mipCount;
+	for (int i = 1; i < mipCount; i++)
 	{
 		--mipLevel;
-		if (TextureHeader.arraySize)
+		if (txtrHdr.arraySize)
 		{
 			int mipWidth = 0;
-			if (TextureHeader.width >> mipLevel > 1)
-				mipWidth = (TextureHeader.width >> mipLevel) - 1;
+			if (txtrHdr.width >> mipLevel > 1)
+				mipWidth = (txtrHdr.width >> mipLevel) - 1;
 
 			int mipHeight = 0;
-			if (TextureHeader.height >> mipLevel > 1)
-				mipHeight = (TextureHeader.height >> mipLevel) - 1;
+			if (txtrHdr.height >> mipLevel > 1)
+				mipHeight = (txtrHdr.height >> mipLevel) - 1;
 
-			uint8_t x = s_pBytesPerPixel[TextureHeader.imageFormat].first;
-			uint8_t y = s_pBytesPerPixel[TextureHeader.imageFormat].second;
+			uint8_t x = s_pBytesPerPixel[txtrHdr.imageFormat].first;
+			uint8_t y = s_pBytesPerPixel[txtrHdr.imageFormat].second;
 
 			uint32_t bytesPerPixelWidth = (y + mipWidth) >> (y >> 1);
 			uint32_t bytesPerPixelHeight = (y + mipHeight) >> (y >> 1);
@@ -142,7 +142,7 @@ uint64_t CalculateHighestMipOffset(const TextureHeader& TextureHeader, const uin
 			uint32_t rowPitch = sliceWidth * bytesPerPixelWidth;
 			uint32_t slicePitch = x * bytesPerPixelWidth * bytesPerPixelHeight;
 
-			for (int a = 0; a < TextureHeader.arraySize; a++)
+			for (int a = 0; a < txtrHdr.arraySize; a++)
 			{
 				retOffset += ((uint64_t)(slicePitch + 15) & 0xFFFFFFF0);
 			}
