@@ -825,10 +825,10 @@ void RpakLib::ExtractAnimation_V11(const RpakLoadAsset& Asset, const List<Assets
 
 		RpakStream->SetPosition(seqOffset + animindex);
 
-		mstudioanimdesc_t_v16 animdesc = Reader.Read<mstudioanimdesc_t_v16>();
+		mstudioanimdesc_t_v16 animDesc = Reader.Read<mstudioanimdesc_t_v16>();
 
 		// unsure what this flag is
-		if (!(animdesc.flags & 0x20000))
+		if (!(animDesc.flags & 0x20000))
 			continue;
 
 		std::unique_ptr<Assets::Animation> Anim = std::make_unique<Assets::Animation>(Skeleton.Count());
@@ -836,7 +836,7 @@ void RpakLib::ExtractAnimation_V11(const RpakLoadAsset& Asset, const List<Assets
 		Assets::AnimationCurveMode AnimCurveType = Assets::AnimationCurveMode::Absolute;
 
 		// anim is delta
-		if (animdesc.flags & STUDIO_DELTA)
+		if (animDesc.flags & STUDIO_DELTA)
 			AnimCurveType = Assets::AnimationCurveMode::Additive;
 
 		for (auto& Bone : Skeleton)
@@ -855,67 +855,43 @@ void RpakLib::ExtractAnimation_V11(const RpakLoadAsset& Asset, const List<Assets
 			CurveNodes.EmplaceBack(Bone.Name(), Assets::CurveProperty::ScaleZ, AnimCurveType);
 		}
 
-		const uint64_t AnimHeaderPointer = seqOffset + animindex;
+		const uint64_t animDescPtr = seqOffset + animindex;
 
-		// commented for now due to struct being updated
-		// 
-		for (uint32_t Frame = 0; Frame < animdesc.numframes; Frame++)
+		for (uint32_t Frame = 0; Frame < animDesc.numframes; Frame++)
 		{
 			uint32_t ChunkTableIndex = 0;
 			uint32_t ChunkFrame = Frame;
 			uint32_t FrameCountOneLess = 0;
 			uint64_t ChunkDataOffset = 0;
 			uint64_t ResultDataPtr = 0;
-			int AnimIndex = animdesc.animindex;
+			int AnimIndex = animDesc.animindex;
 			bool IsExternal = false;
 
-
-			//if (!animdesc.mediancount)
-			//{
-			//	// Nothing here
-			//	goto nomedian;
-			//}
-			//else if (ChunkFrame >= animdesc.sectionframes)
-			//{
-			//	uint32_t FrameCount = animdesc.numframes;
-			//	uint32_t ChunkFrameMinusSplitCount = ChunkFrame - animdesc.sectionframes;
-			//	if (FrameCount <= animdesc.sectionframes || ChunkFrame != FrameCount - 1)
-			//	{
-			//		ChunkTableIndex = ChunkFrameMinusSplitCount / animdesc.mediancount + 1;
-			//		ChunkFrame = ChunkFrame - (animdesc.mediancount * (ChunkFrameMinusSplitCount / animdesc.mediancount)) - animdesc.sectionframes;
-			//	}
-			//	else
-			//	{
-			//		ChunkFrame = 0;
-			//		ChunkTableIndex = (FrameCount - animdesc.sectionframes - 1) / animdesc.mediancount + 2;
-			//	}
-			//}
-
-			if (!animdesc.sectionframes)
+			if (!animDesc.sectionframes)
 			{
 				// Nothing here
 				goto nomedian;
 			}
-			else if (ChunkFrame >= animdesc.unk2)
+			else if (ChunkFrame >= animDesc.unk2)
 			{
-				uint32_t FrameCount = animdesc.numframes;
-				uint32_t ChunkFrameMinusSplitCount = ChunkFrame - animdesc.unk2;
-				if (FrameCount <= animdesc.unk2 || ChunkFrame != FrameCount - 1)
+				uint32_t FrameCount = animDesc.numframes;
+				uint32_t ChunkFrameMinusSplitCount = ChunkFrame - animDesc.unk2;
+				if (FrameCount <= animDesc.unk2 || ChunkFrame != FrameCount - 1)
 				{
-					ChunkTableIndex = ChunkFrameMinusSplitCount / animdesc.sectionframes + 1;
-					ChunkFrame = ChunkFrame - (animdesc.sectionframes * (ChunkFrameMinusSplitCount / animdesc.sectionframes)) - animdesc.unk2;
+					ChunkTableIndex = ChunkFrameMinusSplitCount / animDesc.sectionframes + 1;
+					ChunkFrame = ChunkFrame - (animDesc.sectionframes * (ChunkFrameMinusSplitCount / animDesc.sectionframes)) - animDesc.unk2;
 				}
 				else
 				{
 					ChunkFrame = 0;
-					ChunkTableIndex = (FrameCount - animdesc.unk2 - 1) / animdesc.sectionframes + 2;
+					ChunkTableIndex = (FrameCount - animDesc.unk2 - 1) / animDesc.sectionframes + 2;
 				}
 			}
 
 			// Make sure sizeof(VAR) is right datatype!!!
-			ChunkDataOffset = animdesc.sectionindex + ( 2 * sizeof(uint16))  * (uint64_t)ChunkTableIndex;
+			ChunkDataOffset = animDesc.sectionindex + ( 2 * sizeof(uint16))  * (uint64_t)ChunkTableIndex;
 
-			RpakStream->SetPosition(AnimHeaderPointer + ChunkDataOffset);
+			RpakStream->SetPosition(animDescPtr + ChunkDataOffset);
 			AnimIndex = Reader.Read<int>();
 
 			if (AnimIndex < 0 && StarpakStream)
@@ -929,12 +905,12 @@ void RpakLib::ExtractAnimation_V11(const RpakLoadAsset& Asset, const List<Assets
 			{
 			nomedian:
 				IsExternal = false;
-				ResultDataPtr = AnimHeaderPointer + AnimIndex;
+				ResultDataPtr = animDescPtr + AnimIndex;
 			}
 
 			char BoneFlags[256]{};
 
-			if (IsExternal && Asset.AssetVersion > 7)
+			if (IsExternal)
 			{
 				StarpakStream->SetPosition(ResultDataPtr);
 				StarpakStream->Read((uint8_t*)BoneFlags, 0, ((4 * (uint64_t)Skeleton.Count() + 7) / 8 + 1) & 0xFFFFFFFFFFFFFFFE);
