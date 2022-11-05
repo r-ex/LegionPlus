@@ -320,9 +320,9 @@ struct mstudioanimdesc_t_v16
 
 	uint16 compressedikerrorindex;
 
-	uint16 animindex; // non-zero when anim data isn't in sections
+	int animindex; // non-zero when anim data isn't in sections
 
-	short unk;
+	//short unk;
 
 	short numikrules;
 	uint16 ikruleindex; // non-zero when IK data is stored in the mdl

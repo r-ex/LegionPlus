@@ -780,14 +780,12 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 
 void RpakLib::ExtractAnimation_V11(const RpakLoadAsset& Asset, const List<Assets::Bone>& Skeleton, const string& Path)
 {
-	g_Logger.Info("anim v11 export may not work currently\n");
-
 	auto RpakStream = this->GetFileStream(Asset);
 	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	ASeqHeader animHeader = Reader.Read<ASeqHeader>();
+	ASeqHeaderV10 animHeader = Reader.Read<ASeqHeaderV10>();
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, animHeader.pName.Index, animHeader.pName.Offset));
 
@@ -820,7 +818,8 @@ void RpakLib::ExtractAnimation_V11(const RpakLoadAsset& Asset, const List<Assets
 
 	for (uint32_t i = 0; i < seqdesc.numblends; i++)
 	{
-		RpakStream->SetPosition(seqOffset + seqdesc.animindexindex + ((uint64_t)i * sizeof(uint32_t)));
+		// sizeof(VAR) needs to match animindex!!!!!!
+		RpakStream->SetPosition(seqOffset + seqdesc.animindexindex + ((uint64_t)i * sizeof(short)));
 
 		uint16 animindex = Reader.Read<uint16>();
 
@@ -865,10 +864,10 @@ void RpakLib::ExtractAnimation_V11(const RpakLoadAsset& Asset, const List<Assets
 			uint32_t ChunkTableIndex = 0;
 			uint32_t ChunkFrame = Frame;
 			uint32_t FrameCountOneLess = 0;
-			uint32_t FirstChunk = animdesc.animindex;
 			uint64_t ChunkDataOffset = 0;
-			short IsChunkInStarpak = 0;
 			uint64_t ResultDataPtr = 0;
+			int AnimIndex = animdesc.animindex;
+			bool IsExternal = false;
 
 
 			//if (!animdesc.mediancount)
@@ -913,33 +912,29 @@ void RpakLib::ExtractAnimation_V11(const RpakLoadAsset& Asset, const List<Assets
 				}
 			}
 
-			ChunkDataOffset = animdesc.sectionindex + (2*sizeof(uint16)) * (uint64_t)ChunkTableIndex;
+			// Make sure sizeof(VAR) is right datatype!!!
+			ChunkDataOffset = animdesc.sectionindex + ( 2 * sizeof(uint16))  * (uint64_t)ChunkTableIndex;
 
 			RpakStream->SetPosition(AnimHeaderPointer + ChunkDataOffset);
-			FirstChunk = Reader.Read<int16_t>();
-			IsChunkInStarpak = Reader.Read<short>(); // this name is definitely wrong but sure
+			AnimIndex = Reader.Read<int>();
 
-			if (IsChunkInStarpak > 0)
+			if (AnimIndex < 0 && StarpakStream)
 			{
-				uint64_t v13 = 0;// animdesc.somedataoffset;
-				if (v13)
-				{
-					ResultDataPtr = v13 + FirstChunk;
-				}
-				else
-				{
-					ResultDataPtr = starpakDataOffset + FirstChunk;
-				}
+				AnimIndex = abs(AnimIndex) - 1;
+
+				ResultDataPtr = starpakDataOffset + AnimIndex;
+				IsExternal = true;
 			}
 			else
 			{
 			nomedian:
-				ResultDataPtr = AnimHeaderPointer + FirstChunk;
+				IsExternal = false;
+				ResultDataPtr = AnimHeaderPointer + AnimIndex;
 			}
 
 			char BoneFlags[256]{};
 
-			if (IsChunkInStarpak && Asset.AssetVersion > 7)
+			if (IsExternal && Asset.AssetVersion > 7)
 			{
 				StarpakStream->SetPosition(ResultDataPtr);
 				StarpakStream->Read((uint8_t*)BoneFlags, 0, ((4 * (uint64_t)Skeleton.Count() + 7) / 8 + 1) & 0xFFFFFFFFFFFFFFFE);
@@ -959,8 +954,8 @@ void RpakLib::ExtractAnimation_V11(const RpakLoadAsset& Asset, const List<Assets
 				{
 					uint64_t TrackDataRead = 0;
 
-					RAnimBoneFlag BoneDataFlags = IsChunkInStarpak ? StarpakReader.Read<RAnimBoneFlag>() : Reader.Read<RAnimBoneFlag>();
-					auto BoneTrackData = IsChunkInStarpak ? StarpakReader.Read((BoneDataFlags.Size > 0) ? BoneDataFlags.Size - sizeof(uint16_t) : 0, TrackDataRead) : Reader.Read((BoneDataFlags.Size > 0) ? BoneDataFlags.Size - sizeof(uint16_t) : 0, TrackDataRead);
+					RAnimBoneFlag BoneDataFlags = IsExternal ? StarpakReader.Read<RAnimBoneFlag>() : Reader.Read<RAnimBoneFlag>();
+					auto BoneTrackData = IsExternal ? StarpakReader.Read((BoneDataFlags.Size > 0) ? BoneDataFlags.Size - sizeof(uint16_t) : 0, TrackDataRead) : Reader.Read((BoneDataFlags.Size > 0) ? BoneDataFlags.Size - sizeof(uint16_t) : 0, TrackDataRead);
 
 					uint16_t* BoneTrackDataPtr = (uint16_t*)BoneTrackData.get();
 
