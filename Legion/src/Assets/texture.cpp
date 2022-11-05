@@ -223,14 +223,14 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& asset, std::unique_ptr<Assets:
 	{
 		auto decompressBuffer = [](std::unique_ptr<IO::FileStream>& starpakStream, uint64_t bufferSize, uint64_t starpakOffset, uint64_t blockSize) -> std::unique_ptr<IO::MemoryStream>
 		{
-			auto Buffer = std::make_unique<uint8_t[]>(bufferSize);
+			auto Buffer = new uint8_t[bufferSize];
 
 			// Get location of compress starpakstream buffer.
 			starpakStream->SetPosition(starpakOffset);
-			starpakStream->Read(Buffer.get(), 0, bufferSize);
+			starpakStream->Read(Buffer, 0, bufferSize);
 
 			// Decompress starpak texture.
-			return RTech::DecompressStreamedBuffer(Buffer.get(), blockSize, (uint8_t)CompressionType::OODLE);
+			return RTech::DecompressStreamedBuffer(Buffer, blockSize, (uint8_t)CompressionType::OODLE);
 		};
 
 		if (asset.OptimalStarpakOffset != -1) // Is txtr data in opt starpak?

@@ -2770,6 +2770,7 @@ std::unique_ptr<IO::MemoryStream> RTech::DecompressStreamedBuffer(const uint8_t*
 		}
 
 		delete[] Decoder;
+		delete[] Data;
 		return std::make_unique<IO::MemoryStream>(OutBuf, 0, DataSize, true, false);
 	}
 	default:

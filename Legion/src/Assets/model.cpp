@@ -324,8 +324,6 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 
 			lodSize = lod0.vgsize;
 			vgStream = RTech::DecompressStreamedBuffer((uint8_t*)cmpBuf, lodSize, (uint8_t)CompressionType::OODLE);
-
-			delete[] cmpBuf;
 		}
 	}
 	else {
@@ -345,6 +343,8 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 
 	if(lod0.numMeshes > 0)
 		this->ExtractModelLod_V16(vgReader, RpakStream, ModelName, vgStream->GetPosition(), Model, Fixups, Asset.AssetVersion, IncludeMaterials);
+
+	vgStream->Close();
 
 	return std::move(Model);
 }
