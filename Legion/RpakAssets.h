@@ -28,21 +28,19 @@ enum class CompressionType : uint8_t
 	OODLE = 0x3
 };
 
-struct TextureHeader
+struct TextureHeaderV8
 {
-	uint64_t Guid;
-
-	RPakPtr pName;
+	uint64_t guid;
+	RPakPtr name;
 
 	uint16_t width;
 	uint16_t height;
 	uint16_t depth;
-	uint16_t imageFormat;  // Maps to a DXGI format
 
+	uint16_t imageFormat;  // Maps to a DXGI format
 	uint32_t dataSize;	// This is the total amount of image data across all banks
 
 	uint8_t unk; // 8 PS4, 9 Switch
-
 	uint8_t optStreamedMipCount; // r5 only
 
 	uint8_t arraySize;
@@ -59,20 +57,57 @@ struct TextureHeader
 
 struct TextureHeaderV9
 {
-	uint32_t NameIndex;
-	uint32_t NameOffset;
-	uint16_t Format;
-	uint16_t Width;
-	uint16_t Height;
-	uint16_t Un1;
-	uint8_t ArraySize;
+	RPakPtr name;
+
+	uint16_t imageFormat;
+	uint16_t width;
+	uint16_t height;
+	uint16_t depth;
+
+	uint8_t arraySize;
+
 	uint8_t byte11;
 	uint8_t gap12;
 	uint8_t char13;
-	uint32_t DataSize;
-	uint8_t MipLevels;
-	uint8_t MipLevelsStreamed;
-	uint8_t MipLevelsStreamedOpt;
+
+	uint32_t dataSize;
+	uint8_t permanentMipCount;
+	uint8_t streamedMipCount;
+	uint8_t optStreamedMipCount;
+};
+
+struct TextureHeader
+{
+	RPakPtr name;
+	uint16_t width;
+	uint16_t height;
+	uint16_t imageFormat;  // Maps to a DXGI format
+	uint32_t dataSize;	// This is the total amount of image data across all banks
+	uint8_t unk; // 8 PS4, 9 Switch
+	uint8_t optStreamedMipCount; // r5 only
+
+	uint8_t arraySize;
+	uint8_t unkMip; // 0x1 inverted, 0x2 ???
+	uint8_t permanentMipCount;
+	uint8_t streamedMipCount;
+
+	void ReadFromAssetStream(std::unique_ptr<IO::MemoryStream>* RpakStream, int assetVersion)
+	{
+		IO::BinaryReader Reader = IO::BinaryReader(RpakStream->get(), true);
+		
+		if (assetVersion >= 9)
+		{
+			TextureHeaderV9 txtrHdr = Reader.Read<TextureHeaderV9>();
+			width = txtrHdr.width;
+			height = txtrHdr.height;
+		}
+		else
+		{
+			TextureHeaderV8 txtrHdr = Reader.Read<TextureHeaderV8>();
+			width = txtrHdr.width;
+			height = txtrHdr.height;
+		}
+	}
 };
 
 // --- txan ---
@@ -1476,7 +1511,6 @@ struct RuiArg
 
 // Validate all game structures
 // APEX
-ASSERT_SIZE(TextureHeader, 0x38);
 ASSERT_SIZE(DataTableHeader, 0x28);
 ASSERT_SIZE(DataTableColumn, 0x18);
 ASSERT_SIZE(SubtitleHeader, 0x18);

@@ -16,11 +16,11 @@ void RpakLib::ExtractTextureName(const RpakLoadAsset& Asset, string& Name)
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	TextureHeader TexHeader = Reader.Read<TextureHeader>();
+	TextureHeaderV8 txtrHdr = Reader.Read<TextureHeaderV8>();
 
-	if (TexHeader.pName.Index || TexHeader.pName.Offset)
+	if (txtrHdr.name.Index || txtrHdr.name.Offset)
 	{
-		RpakStream->SetPosition(this->GetFileOffset(Asset, TexHeader.pName.Index, TexHeader.pName.Offset));
+		RpakStream->SetPosition(this->GetFileOffset(Asset, txtrHdr.name.Index, txtrHdr.name.Offset));
 
 		Name = Reader.ReadCString();
 	}
@@ -33,51 +33,38 @@ void RpakLib::BuildTextureInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	TextureHeader TexHeader = Reader.Read<TextureHeader>();
-
-	string Name = "";
-
-	uint16_t TextureWidth = 0;
-	uint16_t TextureHeight = 0;
-	uint32_t NameIndex = 0;
-	uint32_t NameOffset = 0;
-
-	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
+	TextureHeader txtrHdr;
 
 	if (Asset.AssetVersion >= 9)
 	{
-		auto TexHeader = Reader.Read<TextureHeaderV9>();
-
-		TextureWidth = TexHeader.Width;
-		TextureHeight = TexHeader.Height;
-		NameIndex = TexHeader.NameIndex;
-		NameOffset = TexHeader.NameOffset;
+		TextureHeaderV9 txtrHdrV9 = Reader.Read<TextureHeaderV9>();
+		txtrHdr.name = txtrHdrV9.name;
+		txtrHdr.width = txtrHdrV9.width;
+		txtrHdr.height = txtrHdrV9.height;
 	}
 	else
 	{
-		auto TexHeader = Reader.Read<TextureHeader>();
-
-		TextureWidth = TexHeader.width;
-		TextureHeight = TexHeader.height;
-		NameIndex = TexHeader.pName.Index;
-		NameOffset = TexHeader.pName.Offset;
+		TextureHeaderV8 txtrHdrV8 = Reader.Read<TextureHeaderV8>();
+		txtrHdr.name = txtrHdrV8.name;
+		txtrHdr.width = txtrHdrV8.width;
+		txtrHdr.height = txtrHdrV8.height;
 	}
 
-	if (NameIndex || NameOffset)
+	string txtrName = "";
+	if (txtrHdr.name.Value)
 	{
-		RpakStream->SetPosition(this->GetFileOffset(Asset, NameIndex, NameOffset));
-
-		Name = Reader.ReadCString();
+		RpakStream->SetPosition(this->GetFileOffset(Asset, txtrHdr.name));
+		txtrName = Reader.ReadCString();
 	}
 
-	if (Name.Length() > 0)
-		Info.Name = ExportManager::Config.GetBool("UseFullPaths") ? Name : IO::Path::GetFileNameWithoutExtension(Name);
+	if (txtrName.Length() > 0)
+		Info.Name = ExportManager::Config.GetBool("UseFullPaths") ? txtrName : IO::Path::GetFileNameWithoutExtension(txtrName);
 	else
 		Info.Name = string::Format("texture_0x%llx", Asset.NameHash);
 
 	Info.Type = ApexAssetType::Image;
 	Info.Status = ApexAssetStatus::Loaded;
-	Info.Info = string::Format("Width: %d Height %d", TextureWidth, TextureHeight);
+	Info.Info = string::Format("Width: %d Height %d", txtrHdr.width, txtrHdr.height);
 }
 
 void RpakLib::ExportTexture(const RpakLoadAsset& Asset, const string& Path, bool IncludeImageNames, string NameOverride, bool NormalRecalculate)
@@ -127,12 +114,12 @@ void RpakLib::ExportTexture(const RpakLoadAsset& Asset, const string& Path, bool
 	}
 }
 
-uint64_t CalculateHighestPermanentMipOffset(const TextureHeader& TextureHeader)
+uint64_t CalculateHighestMipOffset(const TextureHeader& TextureHeader, const uint8_t& MipCount)
 {
 	uint64_t retOffset = 0;
 
-	uint32_t mipLevel = TextureHeader.permanentMipCount;
-	for (int i = 1; i < TextureHeader.permanentMipCount; i++)
+	uint32_t mipLevel = MipCount;
+	for (int i = 1; i < MipCount; i++)
 	{
 		--mipLevel;
 		if (TextureHeader.arraySize)
@@ -172,32 +159,39 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	TextureHeader TexHeader = Reader.Read<TextureHeader>();
+	TextureHeader txtrHdr;
 
 	if (Asset.AssetVersion >= 9)
 	{
-		RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
-		auto TexHeaderV9 = Reader.Read<TextureHeaderV9>();
+		TextureHeaderV9 txtrHdrV9 = Reader.Read<TextureHeaderV9>();
 
-		TexHeader.pName.Index = TexHeaderV9.NameIndex;
-		TexHeader.pName.Offset = TexHeaderV9.NameOffset;
-		TexHeader.width = TexHeaderV9.Width;
-		TexHeader.height = TexHeaderV9.Height;
-		TexHeader.imageFormat = TexHeaderV9.Format;
-		TexHeader.dataSize = TexHeaderV9.DataSize;
-		TexHeader.streamedMipCount = TexHeaderV9.MipLevelsStreamed;
-		TexHeader.optStreamedMipCount = TexHeaderV9.MipLevelsStreamedOpt;
-		TexHeader.permanentMipCount = TexHeaderV9.MipLevels;
-		TexHeader.arraySize = TexHeaderV9.ArraySize;
+		txtrHdr.name = txtrHdrV9.name;
+		txtrHdr.width = txtrHdrV9.width;
+		txtrHdr.height = txtrHdrV9.height;
+		txtrHdr.imageFormat = txtrHdrV9.imageFormat;
+		txtrHdr.dataSize = txtrHdrV9.dataSize;
+		txtrHdr.permanentMipCount = txtrHdrV9.permanentMipCount;
+		txtrHdr.streamedMipCount = txtrHdrV9.streamedMipCount;
+		txtrHdr.optStreamedMipCount = txtrHdrV9.optStreamedMipCount;
+	}
+	else
+	{
+		TextureHeaderV8 txtrHdrV8 = Reader.Read<TextureHeaderV8>();
+
+		txtrHdr.name = txtrHdrV8.name;
+		txtrHdr.width = txtrHdrV8.width;
+		txtrHdr.height = txtrHdrV8.height;
+		txtrHdr.imageFormat = txtrHdrV8.imageFormat;
+		txtrHdr.dataSize = txtrHdrV8.dataSize;
+		txtrHdr.permanentMipCount = txtrHdrV8.permanentMipCount;
+		txtrHdr.streamedMipCount = txtrHdrV8.streamedMipCount;
+		txtrHdr.optStreamedMipCount = txtrHdrV8.optStreamedMipCount;
+		txtrHdr.unkMip = txtrHdrV8.unkMip;
 	}
 
-	Assets::DDSFormat Fmt;
-	
-	Fmt.Format = TxtrFormatToDXGI[TexHeader.imageFormat];
-
-	if (TexHeader.pName.Index || TexHeader.pName.Offset)
+	if (txtrHdr.name.Value)
 	{
-		uint64_t NameOffset = this->GetFileOffset(Asset, TexHeader.pName.Index, TexHeader.pName.Offset);
+		uint64_t NameOffset = this->GetFileOffset(Asset, txtrHdr.name);
 
 		RpakStream->SetPosition(NameOffset);
 
@@ -207,142 +201,158 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		Name = "";
 	}
 
-	Texture = std::make_unique<Assets::Texture>(TexHeader.width, TexHeader.height, Fmt.Format);
+	Assets::DDSFormat ddsFormat;
 
-	uint64_t BlockSize = Texture->BlockSize();
+	ddsFormat.Format = TxtrFormatToDXGI[txtrHdr.imageFormat];
 
-	uint64_t ActualStarpakOffset = Asset.StarpakOffset & 0xFFFFFFFFFFFFFF00;
-	uint64_t ActualOptStarpakOffset = Asset.OptimalStarpakOffset & 0xFFFFFFFFFFFFFF00;
+	Texture = std::make_unique<Assets::Texture>(txtrHdr.width, txtrHdr.height, ddsFormat.Format);
 
-	uint64_t Offset = 0;
-	std::unique_ptr<IO::FileStream> StarpakStream = nullptr;
-	bool bStreamed = false;
+	std::unique_ptr<IO::FileStream> starpakStream = nullptr;
+	uint64_t starpakOffset = Asset.StarpakOffset & 0xFFFFFFFFFFFFFF00;
+	uint64_t optStarpakOffset = Asset.OptimalStarpakOffset & 0xFFFFFFFFFFFFFF00;
 
-	if (Asset.OptimalStarpakOffset != -1)
+	std::unique_ptr<IO::MemoryStream> decompStarpakStream = nullptr;
+	uint64_t highestMipOffset = 0;
+	uint64_t blockSize = Texture->BlockSize();
+
+	bool isVersionWithCompression = Asset.AssetVersion >= 9;
+
+	if (isVersionWithCompression)
 	{
-		Offset = ActualOptStarpakOffset;
-		StarpakStream = this->GetStarpakStream(Asset, true);
-
-		if (this->LoadedFiles[Asset.FileIndex].OptimalStarpakMap.ContainsKey(Asset.OptimalStarpakOffset))
+		auto decompressBuffer = [](std::unique_ptr<IO::FileStream>& starpakStream, uint64_t bufferSize, uint64_t starpakOffset, uint64_t blockSize) -> std::unique_ptr<IO::MemoryStream>
 		{
-			if (Asset.AssetVersion < 9)
-			{
-				if(!TexHeader.unkMip)
-					Offset += (this->LoadedFiles[Asset.FileIndex].OptimalStarpakMap[Asset.OptimalStarpakOffset] - BlockSize);
+			auto Buffer = std::make_unique<uint8_t[]>(bufferSize);
 
-				bStreamed = true;
+			// Get location of compress starpakstream buffer.
+			starpakStream->SetPosition(starpakOffset);
+			starpakStream->Read(Buffer.get(), 0, bufferSize);
+
+			// Decompress starpak texture.
+			return RTech::DecompressStreamedBuffer(Buffer.get(), blockSize, (uint8_t)CompressionType::OODLE);
+		};
+
+		if (Asset.OptimalStarpakOffset != -1) // Is txtr data in opt starpak?
+		{
+			starpakStream = this->GetStarpakStream(Asset, true);
+			highestMipOffset = optStarpakOffset;
+
+			if (this->LoadedFiles[Asset.FileIndex].OptimalStarpakMap.ContainsKey(Asset.OptimalStarpakOffset))
+			{
+				decompStarpakStream = std::move(decompressBuffer(starpakStream, this->LoadedFiles[Asset.FileIndex].OptimalStarpakMap[Asset.OptimalStarpakOffset], optStarpakOffset, blockSize));
 			}
 			else
 			{
-				auto BufferSize = this->LoadedFiles[Asset.FileIndex].OptimalStarpakMap[Asset.OptimalStarpakOffset];
-				auto Buffer = std::make_unique<uint8_t[]>(BufferSize);
+				///
+				// Support for finding the next highest quality mip that has a valid data source (i.e. no missing starpak)
+				// This should be relatively easy
+				///
+				g_Logger.Warning("OptStarpak for asset 0x%llx is not loaded. Output may be incorrect/weird\n", Asset.NameHash);
 
-				// Get location of compress starpakstream buffer.
-				auto TempStream = this->GetStarpakStream(Asset, true);
-				TempStream->SetPosition(ActualOptStarpakOffset);
-				TempStream->Read(Buffer.get(), 0, BufferSize);
+				///
+				// Use non-streamed data instead to make up for the missing starpak this data WILL NOT fit the intended higher quality image size
+				// so the resulting image will be totally messed up
+				//
+				// ???: why didnt this originally just check if it also had non-opt starpak offsets and use that for the image?
+				//      then at least the image would be higher quality than the highest permanent mip
+				///
 
-				// Decompress starpak texture.
-				auto BufferResult = RTech::DecompressStreamedBuffer(Buffer.get(), BlockSize, (uint8_t)CompressionType::OODLE);
-				BufferResult->Read(Texture->GetPixels(), 0, BlockSize);
-				BufferResult.get()->Close();
-
-				return;
+				// FIX FIX FIX
+				highestMipOffset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
 			}
+		}
+		else if (Asset.StarpakOffset != -1) // Is txtr data in starpak?
+		{
+			starpakStream = this->GetStarpakStream(Asset, false);
+			highestMipOffset = starpakOffset;
+
+			if (this->LoadedFiles[Asset.FileIndex].StarpakMap.ContainsKey(Asset.StarpakOffset))
+			{
+				decompStarpakStream = std::move(decompressBuffer(starpakStream, this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset], optStarpakOffset, blockSize));
+			}
+			else
+			{
+				g_Logger.Warning("Starpak for asset 0x%llx is not loaded. Output may be incorrect/weird\n", Asset.NameHash);
+
+				// FIX FIX FIX
+				highestMipOffset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
+			}
+		}
+		else if (Asset.RawDataIndex != -1 && Asset.RawDataIndex >= this->LoadedFiles[Asset.FileIndex].StartSegmentIndex) // Is txtr data in RPak?
+		{
+			highestMipOffset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + CalculateHighestMipOffset(txtrHdr, txtrHdr.permanentMipCount);
 		}
 		else
 		{
-			///
-			// Support for finding the next highest quality mip that has a valid data source (i.e. no missing starpak)
-			// This should be relatively easy
-			///
-			g_Logger.Warning("OptStarpak for asset 0x%llx is not loaded. Output may be incorrect/weird\n", Asset.NameHash);
-
-			///
-			// Use non-streamed data instead to make up for the missing starpak this data WILL NOT fit the intended higher quality image size
-			// so the resulting image will be totally messed up
-			//
-			// ???: why didnt this originally just check if it also had non-opt starpak offsets and use that for the image?
-			//      then at least the image would be higher quality than the highest permanent mip
-			///
-			if (Asset.AssetVersion < 9 && !TexHeader.unkMip)
-				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.dataSize - BlockSize);
-			else
-				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
+			g_Logger.Warning("Asset 0x%llx has no valid data.\n", Asset.NameHash);
+			return;
 		}
-	}
-	else if (Asset.StarpakOffset != -1)
-	{
-		Offset = ActualStarpakOffset;
-		StarpakStream = this->GetStarpakStream(Asset, false);
-
-		if (this->LoadedFiles[Asset.FileIndex].StarpakMap.ContainsKey(Asset.StarpakOffset))
-		{
-			if (Asset.AssetVersion < 9)
-			{
-				if(!TexHeader.unkMip)
-					Offset += (this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset] - BlockSize);
-
-				bStreamed = true;
-			}
-			else
-			{
-				auto BufferSize = this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset];
-				auto Buffer = std::make_unique<uint8_t[]>(BufferSize);
-
-				// Get location of compress starpakstream buffer.
-				auto TempStream = this->GetStarpakStream(Asset, false);
-				TempStream->SetPosition(ActualStarpakOffset);
-				TempStream->Read(Buffer.get(), 0, BufferSize);
-
-				// Decompress starpak texture.
-				auto BufferResult = RTech::DecompressStreamedBuffer(Buffer.get(), BlockSize, (uint8_t)CompressionType::OODLE);
-				BufferResult->Read(Texture->GetPixels(), 0, BlockSize);
-				BufferResult.get()->Close();
-
-				return;
-			}
-		}
-		else
-		{
-			g_Logger.Warning("Starpak for asset 0x%llx is not loaded. Output may be incorrect/weird\n", Asset.NameHash);
-
-			if (Asset.AssetVersion < 9 && !TexHeader.unkMip)
-				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.dataSize - BlockSize);
-			else
-				Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset);
-		}
-	}
-	else if (Asset.RawDataIndex != -1 && Asset.RawDataIndex >= this->LoadedFiles[Asset.FileIndex].StartSegmentIndex)
-	{
-		//
-		// All texture data is inline in rpak, we can calculate without anything else
-		//
-		if (Asset.AssetVersion < 9 && !TexHeader.unkMip)
-			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (TexHeader.dataSize - BlockSize);
-		else
-			Offset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + CalculateHighestPermanentMipOffset(TexHeader);
 	}
 	else
 	{
-		// No bank found
-		return;
+		if (Asset.OptimalStarpakOffset != -1) // Is txtr data in opt starpak?
+		{
+			starpakStream = this->GetStarpakStream(Asset, true);
+			highestMipOffset = optStarpakOffset;
+
+			if (this->LoadedFiles[Asset.FileIndex].OptimalStarpakMap.ContainsKey(Asset.OptimalStarpakOffset))
+			{
+				if (!txtrHdr.unkMip)
+					highestMipOffset += (this->LoadedFiles[Asset.FileIndex].OptimalStarpakMap[Asset.OptimalStarpakOffset] - blockSize);
+			}
+			else
+			{
+				g_Logger.Warning("OptStarpak for asset 0x%llx is not loaded. Output may be incorrect/weird\n", Asset.NameHash);
+				highestMipOffset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (txtrHdr.dataSize - blockSize);
+			}
+		}
+		else if (Asset.StarpakOffset != -1) // Is txtr data in starpak?
+		{
+			starpakStream = this->GetStarpakStream(Asset, false);
+			highestMipOffset = starpakOffset;
+
+			if (this->LoadedFiles[Asset.FileIndex].StarpakMap.ContainsKey(Asset.StarpakOffset))
+			{
+				if (!txtrHdr.unkMip)
+					highestMipOffset += (this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset] - blockSize);
+			}
+			else
+			{
+				g_Logger.Warning("Starpak for asset 0x%llx is not loaded. Output may be incorrect/weird\n", Asset.NameHash);
+				highestMipOffset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (txtrHdr.dataSize - blockSize);
+			}
+		}
+		else if (Asset.RawDataIndex != -1 && Asset.RawDataIndex >= this->LoadedFiles[Asset.FileIndex].StartSegmentIndex) // Is txtr data in RPak?
+		{
+			if (!txtrHdr.unkMip)
+				highestMipOffset = this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset) + (txtrHdr.dataSize - blockSize);
+		}
+		else
+		{
+			g_Logger.Warning("Asset 0x%llx has no valid data.\n", Asset.NameHash);
+			return;
+		}
 	}
 
-	if (bStreamed)
+	if (decompStarpakStream)
 	{
-		StarpakStream->SetPosition(Offset);
-		StarpakStream->Read(Texture->GetPixels(), 0, BlockSize);
+		decompStarpakStream->Read(Texture->GetPixels(), 0, blockSize);
+		decompStarpakStream->Close();
 	}
-	else {
-		RpakStream->SetPosition(Offset);
-		RpakStream->Read(Texture->GetPixels(), 0, BlockSize);
+	else if (starpakStream)
+	{
+		starpakStream->SetPosition(highestMipOffset);
+		starpakStream->Read(Texture->GetPixels(), 0, blockSize);
+	}
+	else 
+	{
+		RpakStream->SetPosition(highestMipOffset);
+		RpakStream->Read(Texture->GetPixels(), 0, blockSize);
 	}
 
 	// unswizzle ps4 textures
-	if (TexHeader.unk == 8)
+	if (txtrHdr.unk == 8)
 	{
-		auto UTexture = std::make_unique<Assets::Texture>(TexHeader.width, TexHeader.height, Fmt.Format);
+		auto UTexture = std::make_unique<Assets::Texture>(txtrHdr.width, txtrHdr.height, ddsFormat.Format);
 
 		uint8_t bpp = Texture->GetBpp();
 		int vp = (bpp * 2);
@@ -351,8 +361,8 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets:
 		if (pixbl == 1)
 			vp = bpp / 8;
 
-		int blocksY = TexHeader.height / pixbl;
-		int blocksX = TexHeader.width / pixbl;
+		int blocksY = txtrHdr.height / pixbl;
+		int blocksX = txtrHdr.width / pixbl;
 
 		uint8_t tempArray[16]{};
 		int tmp = 0;
