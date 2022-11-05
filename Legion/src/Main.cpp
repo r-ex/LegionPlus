@@ -381,7 +381,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 #endif
 		}
 	}
-	g_Logger.InitializeLogFile();
 
 	if (ShowGUI)
 	{
