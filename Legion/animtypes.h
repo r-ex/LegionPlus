@@ -234,6 +234,7 @@ struct mstudioanimdesc_t_mod
 };
 
 
+// this struct is the wrong size
 struct mstudioanimdescv54_t
 {
 	int baseptr;
@@ -303,8 +304,6 @@ struct mstudioanimdescv54_t_v121
 
 struct mstudioanimdesc_t_v16
 {
-	//int baseptr;
-
 	float fps; // frames per second	
 	int flags; // looping/non-looping flags
 
@@ -321,8 +320,6 @@ struct mstudioanimdesc_t_v16
 	uint16 compressedikerrorindex;
 
 	int animindex; // non-zero when anim data isn't in sections
-
-	//short unk;
 
 	short numikrules;
 	uint16 ikruleindex; // non-zero when IK data is stored in the mdl

@@ -825,10 +825,10 @@ void RpakLib::ExtractAnimation_V11(const RpakLoadAsset& Asset, const List<Assets
 
 		RpakStream->SetPosition(seqOffset + animindex);
 
-		mstudioanimdesc_t_v16 animDesc = Reader.Read<mstudioanimdesc_t_v16>();
+		mstudioanimdesc_t_v16 animdesc = Reader.Read<mstudioanimdesc_t_v16>(); // lower case because normal source is like this :)
 
 		// unsure what this flag is
-		if (!(animDesc.flags & 0x20000))
+		if (!(animdesc.flags & 0x20000))
 			continue;
 
 		std::unique_ptr<Assets::Animation> Anim = std::make_unique<Assets::Animation>(Skeleton.Count());
@@ -836,7 +836,7 @@ void RpakLib::ExtractAnimation_V11(const RpakLoadAsset& Asset, const List<Assets
 		Assets::AnimationCurveMode AnimCurveType = Assets::AnimationCurveMode::Absolute;
 
 		// anim is delta
-		if (animDesc.flags & STUDIO_DELTA)
+		if (animdesc.flags & STUDIO_DELTA)
 			AnimCurveType = Assets::AnimationCurveMode::Additive;
 
 		for (auto& Bone : Skeleton)
@@ -857,41 +857,39 @@ void RpakLib::ExtractAnimation_V11(const RpakLoadAsset& Asset, const List<Assets
 
 		const uint64_t animDescPtr = seqOffset + animindex;
 
-		for (uint32_t Frame = 0; Frame < animDesc.numframes; Frame++)
+		for (uint32_t frameIdx = 0; frameIdx < animdesc.numframes; frameIdx++)
 		{
-			uint32_t ChunkTableIndex = 0;
-			uint32_t ChunkFrame = Frame;
-			uint32_t FrameCountOneLess = 0;
-			uint64_t ChunkDataOffset = 0;
-			uint64_t ResultDataPtr = 0;
-			int AnimIndex = animDesc.animindex;
-			bool IsExternal = false;
+			int sectionIdx = 0; // the index of the section we are in
+			short sectionFrameIdx = frameIdx; // frame index for sections
+			int sectionOffset = 0; // offset into current section
+			uint64_t ResultDataPtr = 0; // ptr to the data
+			int AnimIndex = animdesc.animindex; // offset to animation or first section if section animation
+			bool IsExternal = false; // if this is a section, is the section outside of the actual sequence
 
-			if (!animDesc.sectionframes)
+			if (!animdesc.sectionframes)
 			{
 				// Nothing here
 				goto nomedian;
 			}
-			else if (ChunkFrame >= animDesc.unk2)
+			else if (sectionFrameIdx >= animdesc.unk2)
 			{
-				uint32_t FrameCount = animDesc.numframes;
-				uint32_t ChunkFrameMinusSplitCount = ChunkFrame - animDesc.unk2;
-				if (FrameCount <= animDesc.unk2 || ChunkFrame != FrameCount - 1)
+				uint32_t sectionFrameMinusSplitCount = sectionFrameIdx - animdesc.unk2; // I don't really know what unk2 is for but porter uses it so *shrug*
+				if (animdesc.numframes <= animdesc.unk2 || sectionFrameIdx != animdesc.numframes - 1)
 				{
-					ChunkTableIndex = ChunkFrameMinusSplitCount / animDesc.sectionframes + 1;
-					ChunkFrame = ChunkFrame - (animDesc.sectionframes * (ChunkFrameMinusSplitCount / animDesc.sectionframes)) - animDesc.unk2;
+					sectionIdx = sectionFrameMinusSplitCount / animdesc.sectionframes + 1;
+					sectionFrameIdx = sectionFrameIdx - (animdesc.sectionframes * (sectionFrameMinusSplitCount / animdesc.sectionframes)) - animdesc.unk2;
 				}
 				else
 				{
-					ChunkFrame = 0;
-					ChunkTableIndex = (FrameCount - animDesc.unk2 - 1) / animDesc.sectionframes + 2;
+					sectionFrameIdx = 0;
+					sectionIdx = (animdesc.numframes - animdesc.unk2 - 1) / animdesc.sectionframes + 2;
 				}
 			}
 
 			// Make sure sizeof(VAR) is right datatype!!!
-			ChunkDataOffset = animDesc.sectionindex + ( 2 * sizeof(uint16))  * (uint64_t)ChunkTableIndex;
+			sectionOffset = animdesc.sectionindex + sizeof(int) * sectionIdx;
 
-			RpakStream->SetPosition(animDescPtr + ChunkDataOffset);
+			RpakStream->SetPosition(animDescPtr + sectionOffset);
 			AnimIndex = Reader.Read<int>();
 
 			if (AnimIndex < 0 && StarpakStream)
@@ -908,6 +906,7 @@ void RpakLib::ExtractAnimation_V11(const RpakLoadAsset& Asset, const List<Assets
 				ResultDataPtr = animDescPtr + AnimIndex;
 			}
 
+			// I have a really bad feeling we will see 256< bones sooner than later
 			char BoneFlags[256]{};
 
 			if (IsExternal)
@@ -939,11 +938,11 @@ void RpakLib::ExtractAnimation_V11(const RpakLoadAsset& Asset, const List<Assets
 					BoneDataFlags.bAdditiveCustom = (AnimCurveType == Assets::AnimationCurveMode::Additive);
 
 					if (BoneTrackFlags & 0x1)
-						ParseRAnimBoneTranslationTrack(BoneDataFlags, &BoneTrackDataPtr, Anim, b, ChunkFrame, Frame);
+						ParseRAnimBoneTranslationTrack(BoneDataFlags, &BoneTrackDataPtr, Anim, b, sectionFrameIdx, frameIdx);
 					if (BoneTrackFlags & 0x2)
-						ParseRAnimBoneRotationTrack(BoneDataFlags, &BoneTrackDataPtr, Anim, b, ChunkFrame, Frame);
+						ParseRAnimBoneRotationTrack(BoneDataFlags, &BoneTrackDataPtr, Anim, b, sectionFrameIdx, frameIdx);
 					if (BoneTrackFlags & 0x4)
-						ParseRAnimBoneScaleTrack(BoneDataFlags, &BoneTrackDataPtr, Anim, b, ChunkFrame, Frame);
+						ParseRAnimBoneScaleTrack(BoneDataFlags, &BoneTrackDataPtr, Anim, b, sectionFrameIdx, frameIdx);
 				}
 			}
 		}
