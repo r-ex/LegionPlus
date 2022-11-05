@@ -559,11 +559,27 @@ struct ModelHeaderV16
 {
 	RPakPtr studioData;
 	RPakPtr name;
-	char unk[0x1c];
-	int unk1;
+
+	char unk[8];
+
+	RPakPtr vgCacheData;
+
+	RPakPtr animRigs;
+	int animRigCount;
+
+	int alignedStreamingSize;
+
 	Vector3 bbox_min;
 	Vector3 bbox_max;
-	char unk2[0x18];
+
+	short unk1; // count for unk3 if unk3 is a ptr?
+	short animSeqCount;
+
+	char unk2[4];
+
+	RPakPtr animSeqs;
+
+	char unk3[8];
 };
 
 struct ModelHeader
@@ -708,8 +724,14 @@ public:
 			ModelHeaderV16 mht = Reader.Read<ModelHeaderV16>();
 			studioData = mht.studioData;
 			pName = mht.name;
+			vgCacheData = mht.vgCacheData;
+			animRigs = mht.animRigs;
+			animSeqs = mht.animSeqs;
+			animRigCount = mht.animRigCount;
+			animSeqCount = mht.animSeqCount;
 			bbox_min = mht.bbox_min;
 			bbox_max = mht.bbox_max;
+			alignedStreamingSize = mht.alignedStreamingSize;
 
 			SetVersion(assetVersion);
 		}
