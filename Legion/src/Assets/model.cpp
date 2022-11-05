@@ -42,7 +42,14 @@ void RpakLib::BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	{
 		studiohdr_t_v16 studiohdr = Reader.Read<studiohdr_t_v16>();
 
-		Info.Info = string::Format("Bones: %d, Parts: %d", studiohdr.numbones, studiohdr.numbodyparts);
+		if (mdlHdr.animSeqCount > 0)
+		{
+			Info.Info = string::Format("Bones: %d, Parts: %d, Animations: %d", studiohdr.numbones, studiohdr.numbodyparts, mdlHdr.animSeqCount);
+		}
+		else
+		{
+			Info.Info = string::Format("Bones: %d, Parts: %d", studiohdr.numbones, studiohdr.numbodyparts);
+		}
 	}
 
 }
@@ -212,7 +219,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 
 			// We need to make sure the skeleton is kept alive (copied) here...
 			if (!bExportingRawRMdl)
-				this->ExtractAnimation(Assets[AnimHash], Model->Bones, AnimationPath);
+				this->ExtractAnimation_V11(Assets[AnimHash], Model->Bones, AnimationPath);
 			else
 				this->ExportAnimationSeq(Assets[AnimHash], AnimationPath);
 		}
