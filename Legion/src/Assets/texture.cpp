@@ -118,8 +118,8 @@ uint64_t CalculateHighestMipOffset(const TextureHeader& txtrHdr, const uint8_t& 
 {
 	uint64_t retOffset = 0;
 
-	uint32_t mipLevel = txtrHdr.permanentMipCount;
-	for (int i = 1; i < txtrHdr.permanentMipCount; i++)
+	uint32_t mipLevel = mipCount;
+	for (int i = 1; i < mipCount; i++)
 	{
 		--mipLevel;
 		if (txtrHdr.arraySize)
