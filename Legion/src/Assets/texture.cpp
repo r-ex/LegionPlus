@@ -259,6 +259,7 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& asset, std::unique_ptr<Assets:
 				///
 
 				// FIX FIX FIX
+				starpakStream.release();
 				highestMipOffset = this->GetFileOffset(asset, asset.RawDataIndex, asset.RawDataOffset);
 			}
 		}
@@ -276,6 +277,7 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& asset, std::unique_ptr<Assets:
 				g_Logger.Warning("Starpak for asset 0x%llx is not loaded. Output may be incorrect/weird\n", asset.NameHash);
 
 				// FIX FIX FIX
+				starpakStream.release();
 				highestMipOffset = this->GetFileOffset(asset, asset.RawDataIndex, asset.RawDataOffset);
 			}
 		}
@@ -304,6 +306,7 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& asset, std::unique_ptr<Assets:
 			else
 			{
 				g_Logger.Warning("OptStarpak for asset 0x%llx is not loaded. Output may be incorrect/weird\n", asset.NameHash);
+				starpakStream.release();
 				highestMipOffset = this->GetFileOffset(asset, asset.RawDataIndex, asset.RawDataOffset) + (txtrHdr.dataSize - blockSize);
 			}
 		}
@@ -320,6 +323,7 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& asset, std::unique_ptr<Assets:
 			else
 			{
 				g_Logger.Warning("Starpak for asset 0x%llx is not loaded. Output may be incorrect/weird\n", asset.NameHash);
+				starpakStream.release();
 				highestMipOffset = this->GetFileOffset(asset, asset.RawDataIndex, asset.RawDataOffset) + (txtrHdr.dataSize - blockSize);
 			}
 		}
