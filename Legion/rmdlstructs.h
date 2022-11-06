@@ -1602,6 +1602,14 @@ struct mstudiotexturev54_t
 	uint64_t guid;
 };
 
+// fake studio struct
+struct mstudiomaterial_t
+{
+	uint64_t guid;
+	string name;
+
+};
+
 struct mstudiotexture_t_v16
 {
 	uint64_t guid;
@@ -1611,7 +1619,7 @@ struct mstudiotexture_t_v16
 // Game helper structs
 struct RMdlFixupPatches
 {
-	List<mstudiotexturev54_t>* Materials;
+	List<mstudiomaterial_t>* Materials;
 	List<uint8_t>* BoneRemaps;
 	string MaterialPath;
 
@@ -1623,6 +1631,7 @@ struct RMdlFixupPatches
 struct RMdlMaterial
 {
 	string MaterialName;
+	string FullMaterialName; // made another var so i dont break things somehow
 
 	string AlbedoMapName;
 	string NormalMapName;

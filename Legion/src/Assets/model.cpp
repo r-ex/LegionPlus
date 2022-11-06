@@ -260,13 +260,11 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 		RpakStream->Read((uint8_t*)&BoneRemapTable[0], 0, BoneRemapCount);
 	}
 
-	RpakStream->SetPosition(StudioOffset + meshOffset);
-
-	List<mstudiotexturev54_t> materials;
+	List<mstudiomaterial_t> materials;
 
 	for (int i = 0; i < studiohdr.numtextures; ++i)
 	{
-		materials.EmplaceBack(mstudiotexturev54_t{ 0, MaterialBuffer[i] });
+		materials.EmplaceBack(mstudiomaterial_t{ MaterialBuffer[i], ""});
 	}
 
 	RMdlFixupPatches Fixups{};
@@ -339,8 +337,97 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 		vgOut.close();
 		return nullptr;
 	}
-	IO::BinaryReader vgReader = IO::BinaryReader(vgStream.get(), true);
 
+	RpakStream->SetPosition(StudioOffset + meshOffset);
+	int maxMaterialLength = 0;
+
+	for (int i = 0; i < studiohdr.numtextures; ++i)
+	{
+		mstudiomaterial_t& material = materials[i];
+
+		if (Assets.ContainsKey(material.guid))
+		{
+			RpakLoadAsset& MaterialAsset = Assets[material.guid];
+
+			RMdlMaterial ParsedMaterial = this->ExtractMaterial(MaterialAsset, TexturePath, IncludeMaterials, false);
+			uint32_t MaterialIndex = Model->AddMaterial(ParsedMaterial.MaterialName, ParsedMaterial.AlbedoHash);
+
+			material.name = ParsedMaterial.MaterialName;
+
+			if (material.name.Length() > maxMaterialLength)
+				maxMaterialLength = material.name.Length();
+
+			Assets::Material& MaterialInstance = Model->Materials[MaterialIndex];
+
+			if (ParsedMaterial.AlbedoMapName != "")
+				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Albedo, { "_images\\" + ParsedMaterial.AlbedoMapName, ParsedMaterial.AlbedoHash });
+			if (ParsedMaterial.NormalMapName != "")
+				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Normal, { "_images\\" + ParsedMaterial.NormalMapName, ParsedMaterial.NormalHash });
+			if (ParsedMaterial.GlossMapName != "")
+				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Gloss, { "_images\\" + ParsedMaterial.GlossMapName, ParsedMaterial.GlossHash });
+			if (ParsedMaterial.SpecularMapName != "")
+				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Specular, { "_images\\" + ParsedMaterial.SpecularMapName, ParsedMaterial.SpecularHash });
+			if (ParsedMaterial.EmissiveMapName != "")
+				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Emissive, { "_images\\" + ParsedMaterial.EmissiveMapName, ParsedMaterial.EmissiveHash });
+			if (ParsedMaterial.AmbientOcclusionMapName != "")
+				MaterialInstance.Slots.Add(Assets::MaterialSlotType::AmbientOcclusion, { "_images\\" + ParsedMaterial.AmbientOcclusionMapName, ParsedMaterial.AmbientOcclusionHash });
+			if (ParsedMaterial.CavityMapName != "")
+				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Cavity, { "_images\\" + ParsedMaterial.CavityMapName, ParsedMaterial.CavityHash });
+		}
+		else {
+			Model->AddMaterial(string::Format("UNK_0x%llx"), 0);
+
+			material.name = string::Format("0x%llx", material.guid);
+
+			if (material.name.Length() > maxMaterialLength)
+				maxMaterialLength = material.name.Length();
+		}
+	}
+
+
+	if (studiohdr.numskinfamilies > 0)
+	{
+		int skinNameIndex = studiohdr.skinindex + (studiohdr.numtextures * studiohdr.numskinfamilies * sizeof(short));
+
+		List<string> skinNames;
+		List<int> skinMaterials;
+
+		skinNames.EmplaceBack("default");
+		for (int i = 0; i < (studiohdr.numskinfamilies - 1); ++i)
+		{
+			RpakStream->SetPosition(StudioOffset + skinNameIndex + (i * sizeof(short)));
+			short sznameindex = Reader.Read<short>();
+
+			RpakStream->SetPosition(StudioOffset + sznameindex);
+			skinNames.EmplaceBack(Reader.ReadCString());
+		}
+
+		RpakStream->SetPosition(StudioOffset + studiohdr.skinindex);
+
+		printf("skins:\n");
+		for (int i = 0; i < studiohdr.numskinfamilies; ++i)
+		{
+			printf("- '%s':\n", skinNames[i].ToCString());
+			for (int j = 0; j < studiohdr.numskinref; ++j)
+			{
+				mstudiomaterial_t& origMat = materials[j];
+				short newIdx = Reader.Read<short>();
+
+				mstudiomaterial_t& newMat = materials[newIdx];
+				skinMaterials.EmplaceBack((int)newIdx);
+
+				// :clueless:
+				printf(string::Format("  %%-%is -> %%s\n", maxMaterialLength), origMat.name.ToCString(), newMat.name.ToCString());
+			}
+			printf("\n");
+		}
+
+		Model->AddSkinMaterials(&skinMaterials);
+	}
+
+
+
+	IO::BinaryReader vgReader = IO::BinaryReader(vgStream.get(), true);
 	if(lod0.numMeshes > 0)
 		this->ExtractModelLod_V16(vgReader, RpakStream, ModelName, vgStream->GetPosition(), Model, Fixups, Asset.AssetVersion, IncludeMaterials);
 
@@ -552,11 +639,18 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 		RpakStream->Read((uint8_t*)&BoneRemapTable[0], 0, BoneRemapCount);
 	}
 
+	List<mstudiomaterial_t> materials;
+
+	for (int i = 0; i < TexturesCount; ++i)
+	{
+		materials.EmplaceBack(mstudiomaterial_t{ MaterialBuffer[i].guid, "" });
+	}
+
 	RpakStream->SetPosition(StudioOffset + SubmeshLodsOffset);
 
 	RMdlFixupPatches Fixups{};
 	Fixups.MaterialPath = TexturePath;
-	Fixups.Materials = &MaterialBuffer;
+	Fixups.Materials = &materials;
 	Fixups.BoneRemaps = &BoneRemapTable;
 	Fixups.MeshOffset = (StudioOffset + SubmeshLodsOffset);
 
@@ -889,9 +983,14 @@ void RpakLib::ExtractModelLod_V16(IO::BinaryReader& Reader, const std::unique_pt
 
 		IO::BinaryReader meshreader = IO::BinaryReader(RpakStream.get(), true);
 		mstudiomesh_t_v16 rmdlMesh = meshreader.Read<mstudiomesh_t_v16>();
-		mstudiotexturev54_t& Material = (*Fixup.Materials)[rmdlMesh.material];
+		mstudiomaterial_t& Material = (*Fixup.Materials)[rmdlMesh.material];
 
-		if (rmdlMesh.material < Fixup.Materials->Count() && Assets.ContainsKey(Material.guid))
+		if (Assets.ContainsKey(Material.guid))
+			NewMesh.MaterialIndices.EmplaceBack(rmdlMesh.material);
+		else
+			NewMesh.MaterialIndices.EmplaceBack(-1);
+
+		/*if (rmdlMesh.material < Fixup.Materials->Count() && Assets.ContainsKey(Material.guid))
 		{
 			RpakLoadAsset& MaterialAsset = Assets[Material.guid];
 
@@ -920,7 +1019,7 @@ void RpakLib::ExtractModelLod_V16(IO::BinaryReader& Reader, const std::unique_pt
 		else
 		{
 			NewMesh.MaterialIndices.EmplaceBack(-1);
-		}
+		}*/
 
 		// Add an extra slot for the extra UV Layer if present
 		if ((mesh.flags & 0x200000000) == 0x200000000)
@@ -1155,7 +1254,7 @@ void RpakLib::ExtractModelLod_V14(IO::BinaryReader& Reader, const std::unique_pt
 
 		IO::BinaryReader meshreader = IO::BinaryReader(RpakStream.get(), true);
 		mstudiomesh_v121_t rmdlMesh = meshreader.Read<mstudiomesh_v121_t>();
-		mstudiotexturev54_t& Material = (*Fixup.Materials)[rmdlMesh.material];
+		mstudiomaterial_t& Material = (*Fixup.Materials)[rmdlMesh.material];
 
 		if (rmdlMesh.material < Fixup.Materials->Count() && Assets.ContainsKey(Material.guid))
 		{
@@ -1412,7 +1511,7 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 
 		IO::BinaryReader meshreader = IO::BinaryReader(RpakStream.get(), true);
 		mstudiomesh_v121_t rmdlMesh = meshreader.Read<mstudiomesh_v121_t>();
-		mstudiotexturev54_t& Material = (*Fixup.Materials)[rmdlMesh.material];
+		mstudiomaterial_t& Material = (*Fixup.Materials)[rmdlMesh.material];
 
 		if (rmdlMesh.material < Fixup.Materials->Count() && Assets.ContainsKey(Material.guid))
 		{
@@ -1677,7 +1776,7 @@ void RpakLib::ExtractModelLodOld(IO::BinaryReader& Reader, const std::unique_ptr
 
 		auto meshreader = IO::BinaryReader(RpakStream.get(), true);
 		mstudiomesh_s3_t rmdlMesh = meshreader.Read<mstudiomesh_s3_t>();
-		mstudiotexturev54_t& Material = (*Fixup.Materials)[rmdlMesh.material];
+		mstudiomaterial_t& Material = (*Fixup.Materials)[rmdlMesh.material];
 
 		if (rmdlMesh.material < Fixup.Materials->Count() && Assets.ContainsKey(Material.guid))
 		{
