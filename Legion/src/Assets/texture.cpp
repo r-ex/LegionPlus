@@ -270,7 +270,7 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& asset, std::unique_ptr<Assets:
 
 			if (this->LoadedFiles[asset.FileIndex].StarpakMap.ContainsKey(asset.StarpakOffset))
 			{
-				decompStarpakStream = std::move(decompressBuffer(starpakStream, this->LoadedFiles[asset.FileIndex].StarpakMap[asset.StarpakOffset], optStarpakOffset, blockSize));
+				decompStarpakStream = std::move(decompressBuffer(starpakStream, this->LoadedFiles[asset.FileIndex].StarpakMap[asset.StarpakOffset], starpakOffset, blockSize));
 			}
 			else
 			{
