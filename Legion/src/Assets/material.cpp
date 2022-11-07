@@ -384,6 +384,11 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 			bindingIdx++;
 
 		}
+		else
+		{
+			if (Asset.Version == RpakGameVersion::Apex)
+				g_Logger.Info(">> %i: 0x0 - %s\n", i, "(no assigned name)");
+		}
 
 		// Extract to disk if need be
 		if (IncludeImages && Assets.ContainsKey(TextureHash))
