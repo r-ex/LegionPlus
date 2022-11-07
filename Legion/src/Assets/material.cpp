@@ -284,7 +284,9 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, hdr.pName.Index, hdr.pName.Offset));
 
-	Result.MaterialName = IO::Path::GetFileNameWithoutExtension(Reader.ReadCString());
+	string fullMaterialName = Reader.ReadCString();
+	Result.MaterialName = IO::Path::GetFileNameWithoutExtension(fullMaterialName);
+	Result.FullMaterialName = fullMaterialName;
 
 	List<ShaderResBinding> PixelShaderResBindings;
 
