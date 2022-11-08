@@ -187,21 +187,28 @@ void LegionMain::LoadApexFile(const List<string>& File)
 			auto BspLib = std::make_unique<RBspLib>();
 			try
 			{
+				// force short paths, Cast and Pngs when exporting bsp
+				bool useFullPaths = ExportManager::Config.GetBool("UseFullPaths");
+				bool modelFormat = ExportManager::Config.GetBool("ModelFormat");
+				bool imageFormat = ExportManager::Config.GetBool("ImageFormat");
+
+				ExportManager::Config.SetBool("UseFullPaths", false);
+				ExportManager::Config.SetInt("ModelFormat", (uint32_t)ModelExportFormat_t::Cast);
+				ExportManager::Config.SetInt("ImageFormat", (uint32_t)ImageExportFormat_t::Png);
+
 				if (Main->RpakFileSystem != nullptr)
 				{
 					Main->RpakFileSystem->InitializeImageExporter((ImageExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat"));
 					Main->RpakFileSystem->InitializeModelExporter((ModelExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"));
 				}
-				
-				// force short paths when exporting bsp
-				bool useFullPaths = ExportManager::Config.GetBool("UseFullPaths");
-				ExportManager::Config.SetBool("UseFullPaths", false);
 
 				BspLib->InitializeModelExporter((ModelExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"));
 				BspLib->ExportBsp(Main->RpakFileSystem, Main->LoadPath[0], ExportManager::GetMapExportPath());
 
 				// restore original setting
 				ExportManager::Config.SetBool("UseFullPaths", useFullPaths);
+				ExportManager::Config.SetInt("ModelFormat", (uint32_t)modelFormat);
+				ExportManager::Config.SetInt("ImageFormat", (uint32_t)imageFormat);
 
 				Main->Invoke([]()
 				{
