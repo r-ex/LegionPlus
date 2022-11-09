@@ -197,6 +197,30 @@ void LegionMain::LoadApexFile(const List<string>& File)
 				bool useFullPaths = ExportManager::Config.GetBool("UseFullPaths");
 				ExportManager::Config.SetBool("UseFullPaths", false);
 
+				if ((ModelExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat") != ModelExportFormat_t::Cast)
+				{
+					auto msgAnswer = MessageBox::Show("You are about to export a bsp file with a different model format selected than 'Cast'. Continue?", "Legion+", Forms::MessageBoxButtons::YesNo, Forms::MessageBoxIcon::Question);
+					if (msgAnswer == DialogResult::No)
+					{
+						Main->StatusLabel->SetText("Idle");
+						Main->LoadRPakButton->SetEnabled(true);
+						Main->RefreshView();
+						return;
+					}
+				}
+
+				if ((ImageExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ImageFormat") != ImageExportFormat_t::Png)
+				{
+					auto msgAnswer = MessageBox::Show("You are about to export a bsp file with a different image format selected than 'PNG'. Continue?", "Legion+", Forms::MessageBoxButtons::YesNo, Forms::MessageBoxIcon::Question);
+					if (msgAnswer == DialogResult::No)
+					{
+						Main->StatusLabel->SetText("Idle");
+						Main->LoadRPakButton->SetEnabled(true);
+						Main->RefreshView();
+						return;
+					}
+				}
+
 				BspLib->InitializeModelExporter((ModelExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("ModelFormat"));
 				BspLib->ExportBsp(Main->RpakFileSystem, Main->LoadPath[0], ExportManager::GetMapExportPath());
 
