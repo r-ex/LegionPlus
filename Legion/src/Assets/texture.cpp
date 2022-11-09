@@ -188,6 +188,7 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& asset, std::unique_ptr<Assets:
 		txtrHdr.streamedMipCount = txtrHdrV8.streamedMipCount;
 		txtrHdr.optStreamedMipCount = txtrHdrV8.optStreamedMipCount;
 		txtrHdr.unkMip = txtrHdrV8.unkMip;
+		txtrHdr.unk = txtrHdrV8.unk;
 		txtrHdr.arraySize = txtrHdrV8.arraySize;
 	}
 
@@ -300,8 +301,7 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& asset, std::unique_ptr<Assets:
 
 			if (this->LoadedFiles[asset.FileIndex].OptimalStarpakMap.ContainsKey(asset.OptimalStarpakOffset))
 			{
-				if (!txtrHdr.unkMip)
-					highestMipOffset += (this->LoadedFiles[asset.FileIndex].OptimalStarpakMap[asset.OptimalStarpakOffset] - blockSize);
+				highestMipOffset += (this->LoadedFiles[asset.FileIndex].OptimalStarpakMap[asset.OptimalStarpakOffset] - blockSize);
 			}
 			else
 			{
@@ -317,8 +317,7 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& asset, std::unique_ptr<Assets:
 
 			if (this->LoadedFiles[asset.FileIndex].StarpakMap.ContainsKey(asset.StarpakOffset))
 			{
-				if (!txtrHdr.unkMip)
-					highestMipOffset += (this->LoadedFiles[asset.FileIndex].StarpakMap[asset.StarpakOffset] - blockSize);
+				highestMipOffset += (this->LoadedFiles[asset.FileIndex].StarpakMap[asset.StarpakOffset] - blockSize);
 			}
 			else
 			{
@@ -329,8 +328,7 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& asset, std::unique_ptr<Assets:
 		}
 		else if (asset.RawDataIndex != -1 && asset.RawDataIndex >= this->LoadedFiles[asset.FileIndex].StartSegmentIndex) // Is txtr data in RPak?
 		{
-			if (!txtrHdr.unkMip)
-				highestMipOffset = this->GetFileOffset(asset, asset.RawDataIndex, asset.RawDataOffset) + (txtrHdr.dataSize - blockSize);
+			highestMipOffset = this->GetFileOffset(asset, asset.RawDataIndex, asset.RawDataOffset) + (txtrHdr.dataSize - blockSize);
 		}
 		else
 		{
