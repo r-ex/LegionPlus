@@ -328,7 +328,10 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& asset, std::unique_ptr<Assets:
 		}
 		else if (asset.RawDataIndex != -1 && asset.RawDataIndex >= this->LoadedFiles[asset.FileIndex].StartSegmentIndex) // Is txtr data in RPak?
 		{
-			highestMipOffset = this->GetFileOffset(asset, asset.RawDataIndex, asset.RawDataOffset) + (txtrHdr.dataSize - blockSize);
+			if (!txtrHdr.unkMip)
+				highestMipOffset = this->GetFileOffset(asset, asset.RawDataIndex, asset.RawDataOffset) + (txtrHdr.dataSize - blockSize);
+			else
+				highestMipOffset = this->GetFileOffset(asset, asset.RawDataIndex, asset.RawDataOffset) + CalculateHighestMipOffset(txtrHdr, txtrHdr.permanentMipCount);
 		}
 		else
 		{
