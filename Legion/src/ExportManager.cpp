@@ -50,7 +50,7 @@ void ExportManager::InitializeExporter()
 	// init settings if they don't already exist
 	INIT_SETTING(Integer, "ModelFormat", (uint32_t)ModelExportFormat_t::Cast);
 	INIT_SETTING(Integer, "AnimFormat", (uint32_t)AnimExportFormat_t::Cast);
-	INIT_SETTING(Integer, "ImageFormat", (uint32_t)ImageExportFormat_t::Dds);
+	INIT_SETTING(Integer, "ImageFormat", (uint32_t)ImageExportFormat_t::Png);
 
 	INIT_SETTING(Boolean, "LoadModels", true);
 	INIT_SETTING(Boolean, "LoadAnimations", true);

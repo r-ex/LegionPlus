@@ -396,8 +396,8 @@ void LegionSettings::InitializeComponent()
 	this->ImageExportFormat->SetTabIndex(0);
 	this->ImageExportFormat->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->ImageExportFormat->SetDropDownStyle(Forms::ComboBoxStyle::DropDownList);
-	this->ImageExportFormat->Items.Add("DDS");
 	this->ImageExportFormat->Items.Add("PNG");
+	this->ImageExportFormat->Items.Add("DDS");
 	this->ImageExportFormat->Items.Add("TIFF");
 	this->ImageExportFormat->Items.Add("TGA");
 	this->groupBox5->AddControl(this->ImageExportFormat);
@@ -547,10 +547,10 @@ void LegionSettings::LoadSettings()
 
 	switch (ImageFormat)
 	{
-	case ImageExportFormat_t::Dds:
+	case ImageExportFormat_t::Png:
 		this->ImageExportFormat->SetSelectedIndex(0);
 		break;
-	case ImageExportFormat_t::Png:
+	case ImageExportFormat_t::Dds:
 		this->ImageExportFormat->SetSelectedIndex(1);
 		break;
 	case ImageExportFormat_t::Tiff:
@@ -643,7 +643,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	// Fetch settings from controls
 	auto ModelExportFormat = ModelExportFormat_t::Cast;
 	auto AnimExportFormat = AnimExportFormat_t::Cast;
-	auto ImageExportFormat = ImageExportFormat_t::Dds;
+	auto ImageExportFormat = ImageExportFormat_t::Png;
 	auto TextExportFormat = TextExportFormat_t::CSV;
 	auto NormalRecalcType = NormalRecalcType_t::OpenGl;
 	auto AudioLanguage = MilesLanguageID::English;
@@ -702,7 +702,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		switch (ThisPtr->ImageExportFormat->SelectedIndex())
 		{
 		case 1:
-			ImageExportFormat = ImageExportFormat_t::Png;
+			ImageExportFormat = ImageExportFormat_t::Dds;
 			break;
 		case 2:
 			ImageExportFormat = ImageExportFormat_t::Tiff;
