@@ -33,6 +33,9 @@ namespace Assets
 		// The name of the model
 		string Name;
 
+		// The internal path of the model
+		string EnginePath{};
+
 		// Ensure that our model is not copied or assigned to for performance reasons.
 		Model(const Model&) = delete;
 		Model& operator=(Model const&) = delete;

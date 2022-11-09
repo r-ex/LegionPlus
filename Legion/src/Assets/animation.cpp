@@ -103,7 +103,11 @@ void RpakLib::ExportAnimationRig_V5(const RpakLoadAsset& Asset, const string& Pa
 
 	string FullAnimSetName = Reader.ReadCString();
 	string AnimSetName = IO::Path::GetFileNameWithoutExtension(FullAnimSetName);
-	string AnimSetPath = IO::Path::Combine(Path, AnimSetName);
+	string AnimSetPath{};
+	if (ExportManager::Config.GetBool("UseFullPaths"))
+		AnimSetPath = IO::Path::Combine(Path, IO::Path::Combine(IO::Path::GetDirectoryName(FullAnimSetName), AnimSetName));
+	else
+		AnimSetPath = IO::Path::Combine(Path, AnimSetName);
 
 	IO::Directory::CreateDirectory(AnimSetPath);
 
@@ -599,7 +603,10 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, animHeader.pName.Index, animHeader.pName.Offset));
 
-	string animName = IO::Path::GetFileNameWithoutExtension(Reader.ReadCString());
+	string AnimRawStream = Reader.ReadCString();
+
+	string animName = IO::Path::GetFileNameWithoutExtension(AnimRawStream);
+	string AnimPath = IO::Path::GetDirectoryName(AnimRawStream);
 
 	const uint64_t seqOffset = this->GetFileOffset(Asset, animHeader.pAnimation.Index, animHeader.pAnimation.Offset);
 
