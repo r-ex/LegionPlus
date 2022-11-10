@@ -29,6 +29,26 @@ void RpakLib::BuildEffectInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 		RpakStream->SetPosition(this->GetFileOffset(Asset, effectData.effectPath));
 		path = Reader.ReadCString();
 	}
+	else if (Asset.AssetVersion == 4)
+	{
+		EffectDataV10 effectData = Reader.Read<EffectDataV10>();
+
+		// .. Don't ask, that is one way to get the name in V4..
+		RpakStream->SetPosition(this->GetFileOffset(Asset, effectData.effectName));
+		RPakPtr ptr = Reader.Read<RPakPtr>();
+		RpakStream->SetPosition(this->GetFileOffset(Asset, ptr));
+		ptr = Reader.Read<RPakPtr>();
+		RpakStream->SetPosition(this->GetFileOffset(Asset, ptr));
+		name = Reader.ReadCString();
+
+		// Last ptr in chain decides to become sentinent sometimes and turn into different data.
+		//RpakStream->SetPosition(this->GetFileOffset(Asset, effectData.effectPath));
+		//ptr = Reader.Read<RPakPtr>();
+		//RpakStream->SetPosition(this->GetFileOffset(Asset, ptr));
+		//ptr = Reader.Read<RPakPtr>();
+		//RpakStream->SetPosition(this->GetFileOffset(Asset, ptr));
+		//path = Reader.ReadCString();
+	}
 	else
 	{
 		EffectHeaderV3 effectHdr = Reader.Read<EffectHeaderV3>();
