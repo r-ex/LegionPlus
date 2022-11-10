@@ -1394,21 +1394,34 @@ struct UIAtlasImage // uiai wen
 };
 
 // --- efct ---
-struct EffectHeader
+struct EffectHeaderV3
 {
-	RPakPtr EffectData;
-	uint32_t unk2;
-	uint32_t unk3;
+	RPakPtr effectData;
+	RPakPtr unk2;
 };
 
-struct EffectData
+// --- efct ---
+struct EffectHeaderV10
 {
-	RPakPtr PCF;
-	RPakPtr EffectName; // Double ptr to effect name
+	RPakPtr effectData;
 	RPakPtr unk2;
-	RPakPtr ParticleSystemOperator; // Double ptr to pso name
+};
+
+struct EffectDataV3
+{
+	RPakPtr pcf;
+	RPakPtr effectName; // Double ptr to effect name
+	RPakPtr unk2;
+	RPakPtr particleSystemOperator; // Double ptr to pso name
 	RPakPtr unk3;
 	RPakPtr unk4;
+};
+
+struct EffectDataV10
+{
+	RPakPtr effectName;
+	char pad_0008[40];
+	RPakPtr effectPath;
 };
 
 // --- rson ---

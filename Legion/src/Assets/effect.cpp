@@ -12,35 +12,53 @@ void RpakLib::BuildEffectInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 
-	EffectHeader EffectHdr = Reader.Read<EffectHeader>();
+	string name;
+	string path;
 
-	string Name;
-	string PCFPath;
-	if (EffectHdr.EffectData.Index || EffectHdr.EffectData.Offset)
+	if (Asset.AssetVersion >= 10)
 	{
-		RpakStream->SetPosition(this->GetFileOffset(Asset, EffectHdr.EffectData.Index, EffectHdr.EffectData.Offset));
-		EffectData Data = Reader.Read<EffectData>();
+		EffectHeaderV10 effectHdr = Reader.Read<EffectHeaderV10>();
 
-		RpakStream->SetPosition(this->GetFileOffset(Asset, Data.PCF.Index, Data.PCF.Offset));
-		PCFPath = Reader.ReadCString();
+		RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset));
 
-		RpakStream->SetPosition(this->GetFileOffset(Asset, Data.EffectName.Index, Data.EffectName.Offset));
-		RPakPtr Ptr = Reader.Read<RPakPtr>();
-		RpakStream->SetPosition(this->GetFileOffset(Asset, Ptr.Index, Ptr.Offset));
-		Name = Reader.ReadCString();
+		EffectDataV10 effectData = Reader.Read<EffectDataV10>();
 
-		RpakStream->SetPosition(this->GetFileOffset(Asset, Data.ParticleSystemOperator.Index, Data.ParticleSystemOperator.Offset));
-		Ptr = Reader.Read<RPakPtr>();
-		RpakStream->SetPosition(this->GetFileOffset(Asset, Ptr.Index, Ptr.Offset));
-		string PSOName = Reader.ReadCString();
+		RpakStream->SetPosition(this->GetFileOffset(Asset, effectData.effectName));
+		name = Reader.ReadCString();
+
+		RpakStream->SetPosition(this->GetFileOffset(Asset, effectData.effectPath));
+		path = Reader.ReadCString();
+	}
+	else
+	{
+		EffectHeaderV3 effectHdr = Reader.Read<EffectHeaderV3>();
+
+		if (effectHdr.effectData.Index || effectHdr.effectData.Offset)
+		{
+			RpakStream->SetPosition(this->GetFileOffset(Asset, effectHdr.effectData.Index, effectHdr.effectData.Offset));
+			EffectDataV3 effectData = Reader.Read<EffectDataV3>();
+
+			RpakStream->SetPosition(this->GetFileOffset(Asset, effectData.pcf));
+			path = Reader.ReadCString();
+
+			RpakStream->SetPosition(this->GetFileOffset(Asset, effectData.effectName));
+			RPakPtr ptr = Reader.Read<RPakPtr>();
+			RpakStream->SetPosition(this->GetFileOffset(Asset, ptr));
+			name = Reader.ReadCString();
+
+			RpakStream->SetPosition(this->GetFileOffset(Asset, effectData.particleSystemOperator));
+			ptr = Reader.Read<RPakPtr>();
+			RpakStream->SetPosition(this->GetFileOffset(Asset, ptr));
+			string PSOName = Reader.ReadCString();
+		}
 	}
 
 	if (ExportManager::Config.GetBool("UseFullPaths"))
-		Info.Name = Name;
+		Info.Name = name;
 	else
-		Info.Name = IO::Path::GetFileNameWithoutExtension(Name).ToLower();
+		Info.Name = IO::Path::GetFileNameWithoutExtension(name).ToLower();
 
 	Info.Type = ApexAssetType::Effect;
 	Info.Status = ApexAssetStatus::Loaded;
-	Info.Info = PCFPath;
+	Info.Info = path;
 }
