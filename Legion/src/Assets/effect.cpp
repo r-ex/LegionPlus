@@ -15,7 +15,7 @@ void RpakLib::BuildEffectInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	string name;
 	string path;
 
-	if (Asset.AssetVersion >= 10)
+	if (Asset.AssetVersion >= 5)
 	{
 		EffectHeaderV10 effectHdr = Reader.Read<EffectHeaderV10>();
 

@@ -660,8 +660,7 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 		}
 		case (uint32_t)AssetType_t::Effect:
 		{
-			// Changed at unknown version.
-			return Asset.AssetVersion <= 3 || Asset.AssetVersion >= 10;
+			return Asset.AssetVersion <= 3 || Asset.AssetVersion >= 5; // V4 decides to completely different from <= 3 and >= 5, which means I won't support it.
 		}
 		case (uint32_t)AssetType_t::Shader:
 		case (uint32_t)AssetType_t::ShaderSet:
