@@ -250,16 +250,8 @@ namespace Assets
 		}
 	}
 
-	void AssetRenderer::CycleSkinIndex()
+	void AssetRenderer::RefreshSetSkin()
 	{
-		if (this->_MaterialSkinList.Count() < 2)
-			return;
-
-		this->_SelectedSkinIndex++;
-
-		if (this->_SelectedSkinIndex >= this->_MaterialSkinList.Count())
-			this->_SelectedSkinIndex = 0;
-
 		for (int i = 0; i < this->_DrawObjects.Count(); i++)
 		{
 			if (this->_SubmeshMaterialIndices[i] == -1) // TODO: matIdx is -1 if other UV layer is used
@@ -400,21 +392,36 @@ namespace Assets
 
 	void AssetRenderer::OnKeyUp(const std::unique_ptr<Forms::KeyEventArgs>& EventArgs)
 	{
-		if (EventArgs->KeyCode() == Forms::Keys::W)
+		auto Key = EventArgs->KeyCode();
+
+		switch (Key)
 		{
+		case Forms::Keys::W:
 			this->SetUseWireframe(!this->_UseWireframe);
-		}
-		else if (EventArgs->KeyCode() == Forms::Keys::B)
-		{
+			break;
+		case Forms::Keys::B:
 			this->SetShowBones(!this->_ShowBones);
-		}
-		else if (EventArgs->KeyCode() == Forms::Keys::T)
-		{
+			break;
+		case Forms::Keys::T:
 			this->SetShowMaterials(!this->_ShowMaterials);
-		}
-		else if (EventArgs->KeyCode() == Forms::Keys::S)
-		{
-			this->CycleSkinIndex();
+			break;
+		case Forms::Keys::S:
+		case Forms::Keys::D:
+			if (_MaterialSkinList.Count() > 1)
+			{
+				if (Key == Forms::Keys::S)
+				{
+					if (--_SelectedSkinIndex < 0)
+						_SelectedSkinIndex = _MaterialSkinList.Count() - 1;
+				}
+				else
+				{
+					if (++_SelectedSkinIndex >= _MaterialSkinList.Count())
+						_SelectedSkinIndex = 0;
+				}
+				this->RefreshSetSkin();
+			}
+			break;
 		}
 
 		OpenGLViewport::OnKeyUp(EventArgs);
@@ -716,7 +723,7 @@ namespace Assets
 
 			glColor4f(35 / 255.f, 206 / 255.f, 107 / 255.f, 1);
 
-			_RenderFont.RenderString(string((this->_ShowBones) ? "Hide Bones (b), " : "Draw Bones (b), ") + string((this->_ShowMaterials) ? "Shaded View (t), " : "Material View (t), ") + string((this->_UseWireframe) ? "Hide Wireframe (w)" : "Draw Wireframe (w)") + string((this->_MaterialSkinList.Count() > 1) ? ", Cycle Skin (s)" : ""), 22, this->_Height - 44.f, FontScale);
+			_RenderFont.RenderString(string((this->_ShowBones) ? "Hide Bones (b), " : "Draw Bones (b), ") + string((this->_ShowMaterials) ? "Shaded View (t), " : "Material View (t), ") + string((this->_UseWireframe) ? "Hide Wireframe (w)" : "Draw Wireframe (w)") + string((this->_MaterialSkinList.Count() > 1) ? ", Cycle Skin (s, d)" : ""), 22, this->_Height - 44.f, FontScale);
 
 			glColor4f(0.9f, 0.9f, 0.9f, 1);
 

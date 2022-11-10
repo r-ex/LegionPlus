@@ -82,7 +82,7 @@ namespace Assets
 		void SetShowMaterials(bool Value);
 
 		// Cycle skin index for skin preview
-		void CycleSkinIndex();
+		void RefreshSetSkin();
 
 		void SetDebugVersion(uint64_t Version);
 
@@ -119,7 +119,7 @@ namespace Assets
 		// Internal buffer for submesh material indices
 		List<int32_t> _SubmeshMaterialIndices;
 		// Internal buffer for selected skin index
-		uint32_t _SelectedSkinIndex;
+		int32_t _SelectedSkinIndex;
 
 		// Internal bone point buffer
 		uint32_t _BonePointBuffer;
