@@ -262,7 +262,7 @@ namespace Assets
 
 		for (int i = 0; i < this->_DrawObjects.Count(); i++)
 		{
-			if (!this->_DrawObjects[i].LoadedMaterial || this->_SubmeshMaterialIndices[i] == -1) // TODO: matIdx is -1 if other UV layer is used
+			if (this->_SubmeshMaterialIndices[i] == -1) // TODO: matIdx is -1 if other UV layer is used
 				continue;
 
 			Assets::Material& Material = this->_MaterialList[this->_MaterialSkinList[this->_SelectedSkinIndex][this->_SubmeshMaterialIndices[i]]];
