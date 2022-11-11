@@ -51,7 +51,6 @@ void RpakLib::BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 			Info.Info = string::Format("Bones: %d, Parts: %d", studiohdr.numbones, studiohdr.numbodyparts);
 		}
 	}
-
 }
 
 void RpakLib::ExportModel(const RpakLoadAsset& Asset, const string& Path, const string& AnimPath)
@@ -89,6 +88,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 
 	mdlHdr.name = this->ReadStringFromPointer(Asset, mdlHdr.pName);
 
+#if _DEBUG
 	if (mdlHdr.animRigCount > 0)
 	{
 		g_Logger.Info("====================== RIGS\n");
@@ -120,6 +120,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 		}
 		g_Logger.Info("======================\n");
 	}
+#endif
 
 	string RawModelName = mdlHdr.name;
 	string ModelName = IO::Path::GetFileNameWithoutExtension(RawModelName);
@@ -390,9 +391,8 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 		int skinNameIndex = studiohdr.skinindex + (studiohdr.numtextures * studiohdr.numskinfamilies * sizeof(short));
 
 		List<string> skinNames;
-		List<int> skinMaterials;
-
 		skinNames.EmplaceBack("default");
+
 		for (int i = 0; i < (studiohdr.numskinfamilies - 1); ++i)
 		{
 			RpakStream->SetPosition(StudioOffset + skinNameIndex + (i * sizeof(short)));
@@ -401,13 +401,14 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 			RpakStream->SetPosition(StudioOffset + sznameindex);
 			skinNames.EmplaceBack(Reader.ReadCString());
 		}
+		Model->AddSkinMaterialNames(&skinNames);
 
 		RpakStream->SetPosition(StudioOffset + studiohdr.skinindex);
-
-		printf("skins:\n");
+		//printf("skins:\n");
 		for (int i = 0; i < studiohdr.numskinfamilies; ++i)
 		{
-			printf("- '%s':\n", skinNames[i].ToCString());
+			//printf("- '%s':\n", skinNames[i].ToCString());
+			List<int> skinMaterials;
 			for (int j = 0; j < studiohdr.numskinref; ++j)
 			{
 				mstudiomaterial_t& origMat = materials[j];
@@ -416,13 +417,11 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 				mstudiomaterial_t& newMat = materials[newIdx];
 				skinMaterials.EmplaceBack((int)newIdx);
 
-				// :clueless:
-				printf(string::Format("  %%-%is -> %%s\n", maxMaterialLength), origMat.name.ToCString(), newMat.name.ToCString());
+				//printf(string::Format("  %%-%is -> %%s\n", maxMaterialLength), origMat.name.ToCString(), newMat.name.ToCString());
 			}
-			printf("\n");
+			Model->AddSkinMaterials(&skinMaterials);
+			//printf("\n");
 		}
-
-		Model->AddSkinMaterials(&skinMaterials);
 	}
 
 
