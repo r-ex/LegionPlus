@@ -733,7 +733,9 @@ namespace Assets
 			_RenderFont.RenderString(string::Format("%d", this->_DrawInformation.TriangleCount), 96, 70, FontScale);
 			_RenderFont.RenderString(string::Format("%d", this->_DrawInformation.BoneCount), 96, 86, FontScale);
 			_RenderFont.RenderString(string::Format("%llx", this->_DrawInformation.DebugVersion), 96, 102, FontScale);
-			_RenderFont.RenderString(string::Format("%d/%d ", this->_SelectedSkinIndex+1, this->_MaterialSkinList.Count()) + this->_MaterialSkinNameList[this->_SelectedSkinIndex], 96, 118, FontScale);
+
+			if (this->_MaterialSkinList.Count() > 0)
+				_RenderFont.RenderString(string::Format("%d/%d ", this->_SelectedSkinIndex + 1, this->_MaterialSkinList.Count()) + this->_MaterialSkinNameList[this->_SelectedSkinIndex], 96, 118, FontScale);
 			break;
 		case DrawMode::Texture:
 			glColor4f(3 / 255.f, 169 / 255.f, 244 / 255.f, 1);
