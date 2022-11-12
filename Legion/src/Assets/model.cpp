@@ -27,29 +27,24 @@ void RpakLib::BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	if (Asset.AssetVersion < 16)
 	{
-		studiohdr_t SkeletonHeader = Reader.Read<studiohdr_t>();
+		studiohdr_t studiohdr = Reader.Read<studiohdr_t>();
+
+		Info.Info = string::Format("Bones: %d, Parts: %d", studiohdr.BoneCount, studiohdr.BodyPartCount);
 
 		if (mdlHdr.animSeqCount > 0)
-		{
-			Info.Info = string::Format("Bones: %d, Parts: %d, Animations: %d", SkeletonHeader.BoneCount, SkeletonHeader.BodyPartCount, mdlHdr.animSeqCount);
-		}
-		else
-		{
-			Info.Info = string::Format("Bones: %d, Parts: %d", SkeletonHeader.BoneCount, SkeletonHeader.BodyPartCount);
-		}
+			Info.Info += string::Format(", Animations: %d", mdlHdr.animSeqCount);
 	}
 	else
 	{
 		studiohdr_t_v16 studiohdr = Reader.Read<studiohdr_t_v16>();
 
+		Info.Info = string::Format("Bones: %d, Parts: %d", studiohdr.numbones, studiohdr.numbodyparts);
+
 		if (mdlHdr.animSeqCount > 0)
-		{
-			Info.Info = string::Format("Bones: %d, Parts: %d, Animations: %d", studiohdr.numbones, studiohdr.numbodyparts, mdlHdr.animSeqCount);
-		}
-		else
-		{
-			Info.Info = string::Format("Bones: %d, Parts: %d", studiohdr.numbones, studiohdr.numbodyparts);
-		}
+			Info.Info += string::Format(", Animations: %d", mdlHdr.animSeqCount);
+
+		if (studiohdr.numskinfamilies > 1)
+			Info.Info += string::Format(", Skins: %d", studiohdr.numskinfamilies);
 	}
 }
 
