@@ -29,7 +29,7 @@ void RpakLib::BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	{
 		studiohdr_t studiohdr = Reader.Read<studiohdr_t>();
 
-		if (mdlHdr.animSeqCount > 0 && studiohdr.SkinFamilyCount > 2)
+		if (mdlHdr.animSeqCount > 0 && studiohdr.SkinFamilyCount > 1)
 		{
 			Info.Info = string::Format("Bones: %d, Parts: %d, Animations: %d, Skins: %d", studiohdr.BoneCount, studiohdr.BodyPartCount, mdlHdr.animSeqCount, studiohdr.SkinFamilyCount);
 		}
@@ -50,7 +50,7 @@ void RpakLib::BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	{
 		studiohdr_t_v16 studiohdr = Reader.Read<studiohdr_t_v16>();
 
-		if (mdlHdr.animSeqCount > 0 && studiohdr.numskinfamilies > 2)
+		if (mdlHdr.animSeqCount > 0 && studiohdr.numskinfamilies > 1)
 		{
 			Info.Info = string::Format("Bones: %d, Parts: %d, Animations: %d, Skins: %d", studiohdr.numbones, studiohdr.numbodyparts, mdlHdr.animSeqCount, studiohdr.numskinfamilies);
 		}
