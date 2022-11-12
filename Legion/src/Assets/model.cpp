@@ -29,43 +29,22 @@ void RpakLib::BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	{
 		studiohdr_t studiohdr = Reader.Read<studiohdr_t>();
 
-		if (mdlHdr.animSeqCount > 0 && studiohdr.SkinFamilyCount > 1)
-		{
-			Info.Info = string::Format("Bones: %d, Parts: %d, Animations: %d, Skins: %d", studiohdr.BoneCount, studiohdr.BodyPartCount, mdlHdr.animSeqCount, studiohdr.SkinFamilyCount);
-		}
-		else if (mdlHdr.animSeqCount > 0)
-		{
-			Info.Info = string::Format("Bones: %d, Parts: %d, Animations: %d", studiohdr.BoneCount, studiohdr.BodyPartCount, mdlHdr.animSeqCount);
-		}
-		else if (studiohdr.SkinFamilyCount > 1)
-		{
-			Info.Info = string::Format("Bones: %d, Parts: %d, Skins: %d", studiohdr.BoneCount, studiohdr.BodyPartCount, studiohdr.SkinFamilyCount);
-		}
-		else
-		{
-			Info.Info = string::Format("Bones: %d, Parts: %d", studiohdr.BoneCount, studiohdr.BodyPartCount);
-		}
+		Info.Info = string::Format("Bones: %d, Parts: %d", studiohdr.BoneCount, studiohdr.BodyPartCount);
+
+		if (mdlHdr.animSeqCount > 0)
+			Info.Info += string::Format(", Animations: %d", mdlHdr.animSeqCount);
 	}
 	else
 	{
 		studiohdr_t_v16 studiohdr = Reader.Read<studiohdr_t_v16>();
 
-		if (mdlHdr.animSeqCount > 0 && studiohdr.numskinfamilies > 1)
-		{
-			Info.Info = string::Format("Bones: %d, Parts: %d, Animations: %d, Skins: %d", studiohdr.numbones, studiohdr.numbodyparts, mdlHdr.animSeqCount, studiohdr.numskinfamilies);
-		}
-		else if (mdlHdr.animSeqCount > 0)
-		{
-			Info.Info = string::Format("Bones: %d, Parts: %d, Animations: %d", studiohdr.numbones, studiohdr.numbodyparts, mdlHdr.animSeqCount);
-		}
-		else if (studiohdr.numskinfamilies > 1)
-		{
-			Info.Info = string::Format("Bones: %d, Parts: %d, Skins: %d", studiohdr.numbones, studiohdr.numbodyparts, studiohdr.numskinfamilies);
-		}
-		else
-		{
-			Info.Info = string::Format("Bones: %d, Parts: %d", studiohdr.numbones, studiohdr.numbodyparts);
-		}
+		Info.Info = string::Format("Bones: %d, Parts: %d", studiohdr.numbones, studiohdr.numbodyparts);
+
+		if (mdlHdr.animSeqCount > 0)
+			Info.Info += string::Format(", Animations: %d", mdlHdr.animSeqCount);
+
+		if (studiohdr.numskinfamilies > 1)
+			Info.Info += string::Format(", Skins: %d", studiohdr.numskinfamilies);
 	}
 }
 
