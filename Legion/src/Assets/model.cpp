@@ -27,24 +27,40 @@ void RpakLib::BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	if (Asset.AssetVersion < 16)
 	{
-		studiohdr_t SkeletonHeader = Reader.Read<studiohdr_t>();
+		studiohdr_t studiohdr = Reader.Read<studiohdr_t>();
 
-		if (mdlHdr.animSeqCount > 0)
+		if (mdlHdr.animSeqCount > 0 && studiohdr.SkinFamilyCount > 2)
 		{
-			Info.Info = string::Format("Bones: %d, Parts: %d, Animations: %d", SkeletonHeader.BoneCount, SkeletonHeader.BodyPartCount, mdlHdr.animSeqCount);
+			Info.Info = string::Format("Bones: %d, Parts: %d, Animations: %d, Skins: %d", studiohdr.BoneCount, studiohdr.BodyPartCount, mdlHdr.animSeqCount, studiohdr.SkinFamilyCount);
+		}
+		else if (mdlHdr.animSeqCount > 0)
+		{
+			Info.Info = string::Format("Bones: %d, Parts: %d, Animations: %d", studiohdr.BoneCount, studiohdr.BodyPartCount, mdlHdr.animSeqCount);
+		}
+		else if (studiohdr.SkinFamilyCount > 2)
+		{
+			Info.Info = string::Format("Bones: %d, Parts: %d, Skins: %d", studiohdr.BoneCount, studiohdr.BodyPartCount, studiohdr.SkinFamilyCount);
 		}
 		else
 		{
-			Info.Info = string::Format("Bones: %d, Parts: %d", SkeletonHeader.BoneCount, SkeletonHeader.BodyPartCount);
+			Info.Info = string::Format("Bones: %d, Parts: %d", studiohdr.BoneCount, studiohdr.BodyPartCount);
 		}
 	}
 	else
 	{
 		studiohdr_t_v16 studiohdr = Reader.Read<studiohdr_t_v16>();
 
-		if (mdlHdr.animSeqCount > 0)
+		if (mdlHdr.animSeqCount > 0 && studiohdr.numskinfamilies > 2)
+		{
+			Info.Info = string::Format("Bones: %d, Parts: %d, Animations: %d, Skins: %d", studiohdr.numbones, studiohdr.numbodyparts, mdlHdr.animSeqCount, studiohdr.numskinfamilies);
+		}
+		else if (mdlHdr.animSeqCount > 0)
 		{
 			Info.Info = string::Format("Bones: %d, Parts: %d, Animations: %d", studiohdr.numbones, studiohdr.numbodyparts, mdlHdr.animSeqCount);
+		}
+		else if (studiohdr.numskinfamilies > 2)
+		{
+			Info.Info = string::Format("Bones: %d, Parts: %d, Skins: %d", studiohdr.numbones, studiohdr.numbodyparts, studiohdr.numskinfamilies);
 		}
 		else
 		{

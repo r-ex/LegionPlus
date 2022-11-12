@@ -125,8 +125,8 @@ void LegionMain::InitializeComponent()
 	this->AssetsListView->Columns.Add({ "Name", 250 });
 	this->AssetsListView->Columns.Add({ "Type", 100 });
 	this->AssetsListView->Columns.Add({ "Status", 100 });
-	this->AssetsListView->Columns.Add({ "Info", 200 });
-	this->AssetsListView->Columns.Add({ "Debug Info", 150 });
+	this->AssetsListView->Columns.Add({ "Info", 220 });
+	this->AssetsListView->Columns.Add({ "Debug Info", 130 });
 	this->AssetsListView->SetVirtualMode(true);
 	this->AssetsListView->SetFullRowSelect(true);
 	this->AssetsListView->VirtualItemsSelectionRangeChanged += &OnSelectedIndicesChanged;
