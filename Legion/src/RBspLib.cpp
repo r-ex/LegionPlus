@@ -231,7 +231,7 @@ void RBspLib::ExportPropContainer(std::unique_ptr<IO::MemoryStream>& Stream, con
 }
 
 #define READ_LUMP(X, D) \
-			if (Header.IsEntirelyStreamed) { \
+			if (Header.bExternal) { \
 				ReadExternalLumpFile(BasePath, D, Lumps[D].DataSize, X); \
 			} else { \
 				Stream->SetPosition(Lumps[D].Offset); \
@@ -270,26 +270,26 @@ void RBspLib::ExportBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, const st
 {
 	std::unique_ptr<IO::FileStream> Stream = IO::File::OpenRead(Asset);
 	IO::BinaryReader Reader = IO::BinaryReader(Stream.get(), true);
-	RBspHeader Header = Reader.Read<RBspHeader>();
+	BSPHeader_t Header = Reader.Read<BSPHeader_t>();
 
-	if (Header.Magic != 0x50534272) // rBSP
+	if (Header.ident != 0x50534272) // rBSP
 		throw std::exception("Invalid bsp file magic. Expected 'rBSP'");
 
-	switch (Header.Version)
+	switch (Header.version)
 	{
 	case 0x25:
 		ExportTitanfall2Bsp(RpakFileSystem, Stream, Header, Asset, Path);
 		break;
 	default:
-		if (Header.Version < 0x2F)
-			throw std::exception(string::Format("Unsupported bsp version: %i", Header.Version));
+		if (Header.version < 0x2F)
+			throw std::exception(string::Format("Unsupported bsp version: %i", Header.version));
 
 		ExportApexBsp(RpakFileSystem, Stream, Header, Asset, Path);
 		break;
 	}
 }
 
-void RBspLib::ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std::unique_ptr<IO::FileStream>& Stream, RBspHeader Header, const string& Asset, const string& Path)
+void RBspLib::ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std::unique_ptr<IO::FileStream>& Stream, BSPHeader_t Header, const string& Asset, const string& Path)
 {
 	auto Model = std::make_unique<Assets::Model>(0, 0);
 
@@ -316,8 +316,8 @@ void RBspLib::ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std:
 	const uint32_t MESHES = 0x50;
 	const uint32_t MATERIALS = 0x52;
 
-	auto Lumps = List<RBspLumpHeader>(Header.NumLumpsMinusOne + 1, true);
-	Stream->Read((uint8_t*)&Lumps[0], 0, sizeof(RBspLumpHeader) * (Header.NumLumpsMinusOne + 1));
+	auto Lumps = List<RBspLumpHeader>(Header.lastLump + 1, true);
+	Stream->Read((uint8_t*)&Lumps[0], 0, sizeof(RBspLumpHeader) * (Header.lastLump + 1));
 
 	auto Models = List<RBspModel>(Lumps[MODELS].DataSize / sizeof(RBspModel), true);
 	READ_LUMP(Models, MODELS);
@@ -501,7 +501,7 @@ void RBspLib::ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std:
 	this->ModelExporter->ExportModel(*Model.get(), IO::Path::Combine(ModelPath, Model->Name + "_LOD0" + (const char*)ModelExporter->ModelExtension()));
 
 	auto Buffer = new uint8_t[Lumps[GAME_LUMPS].DataSize];
-	if (Header.IsEntirelyStreamed)
+	if (Header.bExternal)
 	{
 		ReadExternalLumpArrayFile(BasePath, GAME_LUMPS, Lumps[GAME_LUMPS].DataSize, &Buffer[0]);
 	}
@@ -554,7 +554,7 @@ void RBspLib::ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std:
 	}
 }
 
-void RBspLib::ExportTitanfall2Bsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std::unique_ptr<IO::FileStream>& Stream, RBspHeader Header, const string& Asset, const string& Path)
+void RBspLib::ExportTitanfall2Bsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std::unique_ptr<IO::FileStream>& Stream, BSPHeader_t Header, const string& Asset, const string& Path)
 {
 	auto Model = std::make_unique<Assets::Model>(0, 0);
 
@@ -581,8 +581,8 @@ void RBspLib::ExportTitanfall2Bsp(const std::unique_ptr<RpakLib>& RpakFileSystem
 	const uint32_t MESHES = 0x50;
 	const uint32_t MATERIALS = 0x52;
 
-	auto Lumps = List<RBspLumpHeader>(Header.NumLumpsMinusOne + 1, true);
-	Stream->Read((uint8_t*)&Lumps[0], 0, sizeof(RBspLumpHeader) * (Header.NumLumpsMinusOne + 1));
+	auto Lumps = List<RBspLumpHeader>(Header.lastLump + 1, true);
+	Stream->Read((uint8_t*)&Lumps[0], 0, sizeof(RBspLumpHeader) * (Header.lastLump + 1));
 
 	auto Models = List<TFRBspModel>(Lumps[MODELS].DataSize / sizeof(TFRBspModel), true);
 	READ_LUMP(Models, MODELS);
@@ -779,7 +779,7 @@ void RBspLib::ExportTitanfall2Bsp(const std::unique_ptr<RpakLib>& RpakFileSystem
 	this->ModelExporter->ExportModel(*Model.get(), IO::Path::Combine(ModelPath, Model->Name + "_LOD0" + (const char*)ModelExporter->ModelExtension()));
 
 	auto Buffer = new uint8_t[Lumps[GAME_LUMPS].DataSize];
-	if (Header.IsEntirelyStreamed)
+	if (Header.bExternal)
 	{
 		ReadExternalLumpArrayFile(BasePath, GAME_LUMPS, Lumps[GAME_LUMPS].DataSize, &Buffer[0]);
 	}

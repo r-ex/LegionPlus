@@ -15,13 +15,13 @@
 #include "RpakLib.h"
 
 #pragma pack(push, 1)
-struct RBspHeader
+struct BSPHeader_t
 {
-	uint32_t Magic;
-	uint16_t Version;
-	uint16_t IsEntirelyStreamed;
-	uint32_t Revision;
-	uint32_t NumLumpsMinusOne;
+	int ident;
+	short version;
+	short bExternal; // yea this would be better as a bool and char padding but idc so cry about it
+	int mapRevision;
+	int lastLump;
 };
 #pragma pack(pop)
 
@@ -81,6 +81,6 @@ public:
 private:
 	List<string> PropModelNames;
 
-	void ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std::unique_ptr<IO::FileStream>& Stream, RBspHeader Header, const string& Asset, const string& Path);
-	void ExportTitanfall2Bsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std::unique_ptr<IO::FileStream>& Stream, RBspHeader Header, const string& Asset, const string& Path);
+	void ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std::unique_ptr<IO::FileStream>& Stream, BSPHeader_t Header, const string& Asset, const string& Path);
+	void ExportTitanfall2Bsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std::unique_ptr<IO::FileStream>& Stream, BSPHeader_t Header, const string& Asset, const string& Path);
 };
