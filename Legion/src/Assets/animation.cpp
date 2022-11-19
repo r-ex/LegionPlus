@@ -31,9 +31,9 @@ void RpakLib::BuildAnimInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	if (Asset.AssetVersion < 5)
 	{
-		studiohdr_t SkeletonHeader = Reader.Read<studiohdr_t>();
+		studiohdr_t studiohdr = Reader.Read<studiohdr_t>();
 
-		Info.Info = string::Format("Animations: %d, Bones: %d", RigHeader.animSeqCount, SkeletonHeader.BoneCount);
+		Info.Info = string::Format("Animations: %d, Bones: %d", RigHeader.animSeqCount, studiohdr.numbones);
 	}
 	else {
 		studiohdr_t_v16 studiohdr = Reader.Read<studiohdr_t_v16>();
@@ -114,15 +114,15 @@ void RpakLib::ExportAnimationRig_V5(const RpakLoadAsset& Asset, const string& Pa
 		uint64_t SkeletonOffset = this->GetFileOffset(Asset, RigHeader.studioData);
 		RpakStream->SetPosition(SkeletonOffset);
 
-		studiohdr_t_v16 SkeletonHeader = Reader.Read<studiohdr_t_v16>();
+		studiohdr_t_v16 studiohdr = Reader.Read<studiohdr_t_v16>();
 
 		RpakStream->SetPosition(SkeletonOffset);
 
-		char* skelBuf = new char[SkeletonHeader.bonedataindex + (sizeof(mstudiobonedata_t_v16) * SkeletonHeader.numbones)];
-		Reader.Read(skelBuf, 0, SkeletonHeader.bonedataindex + (sizeof(mstudiobonedata_t_v16) * SkeletonHeader.numbones));
+		char* skelBuf = new char[studiohdr.bonedataindex + (sizeof(mstudiobonedata_t_v16) * studiohdr.numbones)];
+		Reader.Read(skelBuf, 0, studiohdr.bonedataindex + (sizeof(mstudiobonedata_t_v16) * studiohdr.numbones));
 
 		std::ofstream skelOut(IO::Path::Combine(AnimSetPath, AnimSetName + ".rrig"), std::ios::out | std::ios::binary);
-		skelOut.write(skelBuf, SkeletonHeader.bonedataindex + (sizeof(mstudiobonedata_t_v16) * SkeletonHeader.numbones));
+		skelOut.write(skelBuf, studiohdr.bonedataindex + (sizeof(mstudiobonedata_t_v16) * studiohdr.numbones));
 		skelOut.close();
 
 		// ignore for now
@@ -226,15 +226,15 @@ void RpakLib::ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path)
 		uint64_t SkeletonOffset = this->GetFileOffset(Asset, RigHeader.studioData);
 		RpakStream->SetPosition(SkeletonOffset);
 
-		studiohdr_t SkeletonHeader = Reader.Read<studiohdr_t>();
+		studiohdr_t studiohdr = Reader.Read<studiohdr_t>();
 
 		RpakStream->SetPosition(SkeletonOffset);
 
-		char* skelBuf = new char[SkeletonHeader.DataSize];
-		Reader.Read(skelBuf, 0, SkeletonHeader.DataSize);
+		char* skelBuf = new char[studiohdr.length];
+		Reader.Read(skelBuf, 0, studiohdr.length);
 
 		std::ofstream skelOut(IO::Path::Combine(AnimSetPath, AnimSetName + ".rrig"), std::ios::out | std::ios::binary);
-		skelOut.write(skelBuf, SkeletonHeader.DataSize);
+		skelOut.write(skelBuf, studiohdr.length);
 		skelOut.close();
 
 		const uint64_t ReferenceOffset = this->GetFileOffset(Asset, RigHeader.animSeqs);

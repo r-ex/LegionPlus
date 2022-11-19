@@ -29,7 +29,7 @@ void RpakLib::BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	{
 		studiohdr_t studiohdr = Reader.Read<studiohdr_t>();
 
-		Info.Info = string::Format("Bones: %d, Parts: %d", studiohdr.BoneCount, studiohdr.BodyPartCount);
+		Info.Info = string::Format("Bones: %d, Parts: %d", studiohdr.numbones, studiohdr.numbodyparts);
 
 		if (mdlHdr.animSeqCount > 0)
 			Info.Info += string::Format(", Animations: %d", mdlHdr.animSeqCount);
@@ -506,9 +506,9 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 	RpakStream->SetPosition(StudioOffset);
 
-	std::unique_ptr<char[]> studioBuf(new char[studiohdr.DataSize]);
+	std::unique_ptr<char[]> studioBuf(new char[studiohdr.length]);
 
-	Reader.Read(studioBuf.get(), 0, studiohdr.DataSize);
+	Reader.Read(studioBuf.get(), 0, studiohdr.length);
 
 	// write QC file when exporting as SMD
 	if (Path != "" && AnimPath != "" && ModelFormat == ModelExportFormat_t::SMD)
@@ -552,7 +552,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 		std::ofstream rmdlOut(BaseFileName + ".rmdl", std::ios::out | std::ios::binary);
 
-		rmdlOut.write(studioBuf.get(), studiohdr.DataSize);
+		rmdlOut.write(studioBuf.get(), studiohdr.length);
 		rmdlOut.close();
 	}
 
@@ -600,16 +600,16 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 	}
 
 	uint32_t SubmeshLodsOffset = SkeletonHeader.SubmeshLodsOffset;
-	uint32_t TexturesOffset = SkeletonHeader.TextureOffset;
-	uint32_t TexturesCount = SkeletonHeader.TextureCount;
+	uint32_t TexturesOffset = SkeletonHeader.textureindex;
+	uint32_t TexturesCount = SkeletonHeader.numtextures;
 	uint32_t BoneRemapCount = SkeletonHeader.BoneRemapCount;
 	uint32_t BoneRemapOffset = SkeletonHeader.OffsetToBoneRemapInfo;
 
 	if (Asset.AssetVersion >= 14)
 	{
 		SubmeshLodsOffset = SkeletonHeader.SubmeshLodsOffset_V14;
-		TexturesOffset = SkeletonHeader.TextureDirOffset;
-		TexturesCount = SkeletonHeader.TextureDirCount;
+		TexturesOffset = SkeletonHeader.cdtextureindex;
+		TexturesCount = SkeletonHeader.numcdtextures;
 		BoneRemapCount = SkeletonHeader.BoneRemapCount_V14;
 	}
 
@@ -629,7 +629,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 	}
 	else
 	{
-		RpakStream->SetPosition(StudioOffset + (SkeletonHeader.DataSize - BoneRemapCount));
+		RpakStream->SetPosition(StudioOffset + (SkeletonHeader.length - BoneRemapCount));
 		RpakStream->Read((uint8_t*)&BoneRemapTable[0], 0, BoneRemapCount);
 	}
 
@@ -711,6 +711,15 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 				vvcOut.write(streamBuf + hdr.vvcindex, hdr.vvcsize);
 				vvcOut.close();
+			}
+
+			// probably not the real file extension
+			if (hdr.weightsize != 0 && hdr.weightindex > 0)
+			{
+				std::ofstream vvwOut(BaseFileName + ".vvw", std::ios::out | std::ios::binary);
+
+				vvwOut.write(streamBuf + hdr.weightindex, hdr.weightsize);
+				vvwOut.close();
 			}
 		}
 		else if ((Asset.AssetVersion >= 9 && Asset.AssetVersion <= 11) || (Asset.AssetVersion == 12 && Asset.SubHeaderSize == 0x78)) // s2-s6
@@ -1819,12 +1828,12 @@ List<Assets::Bone> RpakLib::ExtractSkeleton(IO::BinaryReader& Reader, uint64_t S
 
 	studiohdr_t SkeletonHeader = Reader.Read<studiohdr_t>();
 
-	List<Assets::Bone> Result = List<Assets::Bone>(SkeletonHeader.BoneCount);
+	List<Assets::Bone> Result = List<Assets::Bone>(SkeletonHeader.numbones);
 
-	for (uint32_t i = 0; i < SkeletonHeader.BoneCount; i++)
+	for (uint32_t i = 0; i < SkeletonHeader.numbones; i++)
 	{
 		bool bIsOldModel = (Version >= 8 && Version < 12) || (Version == 12 && mdlHeaderSize == 0x78);
-		uint64_t Position = SkeletonOffset + SkeletonHeader.BoneDataOffset + (i * (sizeof(mstudiobone_t) + (bIsOldModel ? 4 : 0)));
+		uint64_t Position = SkeletonOffset + SkeletonHeader.boneindex + (i * (sizeof(mstudiobone_t) + (bIsOldModel ? 4 : 0)));
 
 		RpakStream->SetPosition(Position);
 		mstudiobone_t Bone = Reader.Read<mstudiobone_t>();
@@ -1835,7 +1844,7 @@ List<Assets::Bone> RpakLib::ExtractSkeleton(IO::BinaryReader& Reader, uint64_t S
 		Result.EmplaceBack(TagName, Bone.ParentIndex, Bone.Position, Bone.Rotation);
 	}
 
-	if (SkeletonHeader.BoneCount == 1)
+	if (SkeletonHeader.numbones == 1)
 		Result[0].SetParent(-1);
 
 	return Result;

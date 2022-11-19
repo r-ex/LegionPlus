@@ -19,7 +19,7 @@ void RpakLib::ExportQC(int assetVersion, const string& Path, const string& model
 
 		qc.WriteFmt("$contents \"%s\"\n\n", (hdr.contents & 1) == 1 ? "solid" : "notsolid");
 
-		if (hdr.flags.STUDIOHDR_FLAGS_FORCE_OPAQUE)
+		if (hdr.flags & STUDIOHDR_FLAGS_FORCE_OPAQUE)
 			qc.Write("$opaque\n\n");
 
 		qc.WriteFmt("$eyeposition %f %f %f\n", hdr.eyeposition.X, hdr.eyeposition.Y, hdr.eyeposition.Z);
