@@ -1,8 +1,6 @@
 #include "pch.h"
-#include "pch.h"
 #include "bsplib.h"
 
-#include "pch.h"
 #include "MdlLib.h"
 #include "File.h"
 #include "Directory.h"
