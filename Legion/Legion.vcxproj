@@ -175,6 +175,8 @@
     <ClCompile Include="src\Assets\texture.cpp" />
     <ClCompile Include="src\Assets\uiia.cpp" />
     <ClCompile Include="src\Assets\uimg.cpp" />
+    <ClCompile Include="src\bsplib\games\bsp_apexlegends.cpp" />
+    <ClCompile Include="src\bsplib\games\bsp_titanfall2.cpp" />
     <ClCompile Include="src\CommandLine.cpp" />
     <ClCompile Include="src\ExportManager.cpp" />
     <ClCompile Include="src\LegionMain.cpp" />
@@ -192,7 +194,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\RBspLib.cpp" />
+    <ClCompile Include="src\bsplib.cpp" />
     <ClCompile Include="src\RpakAssetPreview.cpp" />
     <ClCompile Include="src\RpakLib.cpp" />
     <ClCompile Include="src\rtech.cpp" />
@@ -203,6 +205,7 @@
     <ClInclude Include="animtypes.h" />
     <ClInclude Include="ApexAsset.h" />
     <ClInclude Include="basetypes.h" />
+    <ClInclude Include="bsplib.h" />
     <ClInclude Include="CommandLine.h" />
     <ClInclude Include="ExportAsset.h" />
     <ClInclude Include="ExportManager.h" />
@@ -216,7 +219,6 @@
     <ClInclude Include="Logger.h" />
     <ClInclude Include="MilesLib.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="RBspLib.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="rmdlstructs.h" />
     <ClInclude Include="RpakAssets.h" />

@@ -13,9 +13,6 @@
     <Filter Include="Legion\UI">
       <UniqueIdentifier>{67f8e4f0-3227-4208-bbce-8d0ef26dc57a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="BSP">
-      <UniqueIdentifier>{f59c98a7-f049-459a-b95c-b439ba81ba60}</UniqueIdentifier>
-    </Filter>
     <Filter Include="VPK">
       <UniqueIdentifier>{170ac90b-2b2a-4217-8d72-626bc1a423c4}</UniqueIdentifier>
     </Filter>
@@ -33,6 +30,12 @@
     </Filter>
     <Filter Include="RPak\Assets">
       <UniqueIdentifier>{1d655a94-b625-497a-ac5a-d9484a7c36c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="bsplib">
+      <UniqueIdentifier>{f59c98a7-f049-459a-b95c-b439ba81ba60}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="bsplib\games">
+      <UniqueIdentifier>{ea19d614-6142-4a5f-a7c6-8d36427be121}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -93,8 +96,8 @@
     <ClCompile Include="src\VpkLib.cpp">
       <Filter>VPK</Filter>
     </ClCompile>
-    <ClCompile Include="src\RBspLib.cpp">
-      <Filter>BSP</Filter>
+    <ClCompile Include="src\bsplib.cpp">
+      <Filter>bsplib</Filter>
     </ClCompile>
     <ClCompile Include="src\MilesLib.cpp">
       <Filter>Miles</Filter>
@@ -144,6 +147,12 @@
     <ClCompile Include="src\Assets\effect.cpp">
       <Filter>RPak\Assets</Filter>
     </ClCompile>
+    <ClCompile Include="src\bsplib\games\bsp_apexlegends.cpp">
+      <Filter>bsplib\games</Filter>
+    </ClCompile>
+    <ClCompile Include="src\bsplib\games\bsp_titanfall2.cpp">
+      <Filter>bsplib\games</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MilesLib.h">
@@ -160,9 +169,6 @@
     </ClInclude>
     <ClInclude Include="RpakAssets.h">
       <Filter>RPak</Filter>
-    </ClInclude>
-    <ClInclude Include="RBspLib.h">
-      <Filter>BSP</Filter>
     </ClInclude>
     <ClInclude Include="CommandLine.h">
       <Filter>Legion\Main</Filter>
@@ -226,6 +232,9 @@
     </ClInclude>
     <ClInclude Include="animtypes.h">
       <Filter>MDL</Filter>
+    </ClInclude>
+    <ClInclude Include="bsplib.h">
+      <Filter>bsplib</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
