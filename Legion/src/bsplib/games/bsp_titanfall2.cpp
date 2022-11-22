@@ -281,7 +281,7 @@ void ExportTitanfall2Bsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std::un
 
 static game_t game_titanfall2{
 	"Titanfall 2",
-	37,
+	36,
 	37,
 	'PSBr',
 	ExportTitanfall2Bsp
