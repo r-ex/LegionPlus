@@ -64,8 +64,8 @@ void ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std::unique_p
 	auto vertUnlitLumpData = ReadLump<dvertUnlit>(helper, LUMP_VERTEX_UNLIT);
 	auto vertUnlitTSLumpData = ReadLump<dvertUnlitTS>(helper, LUMP_VERTEX_UNLIT_TS);
 
-	std::unique_ptr<List<ApexAsset>> RpakMaterials;
-	Dictionary<string, RpakLoadAsset> RpakMaterialLookup;
+	std::unique_ptr<List<ApexAsset>> assetList;
+	Dictionary<string, RpakLoadAsset> loadedMaterials;
 
 	// make sure that RpakFileSystem actually exists (i.e. an rpak is loaded)
 	if (RpakFileSystem)
@@ -84,11 +84,11 @@ void ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std::unique_p
 			false, // Effects
 		};
 
-		RpakMaterials = RpakFileSystem->BuildAssetList(bAssets);
+		assetList = RpakFileSystem->BuildAssetList(bAssets);
 
-		for (auto& Mat : *RpakMaterials)
+		for (auto& Mat : *assetList)
 		{
-			RpakMaterialLookup.Add(Mat.Name, RpakFileSystem->Assets[Mat.Hash]);
+			loadedMaterials.Add(Mat.Name, RpakFileSystem->Assets[Mat.Hash]);
 		}
 	}
 
@@ -96,25 +96,26 @@ void ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std::unique_p
 	{
 		for (uint32_t m = model.firstMesh; m < (model.firstMesh + model.meshCount); m++)
 		{
-			dmesh_t& BspMesh = meshesLumpData[m];
+			dmesh_t& mesh = meshesLumpData[m];
 
-			if (BspMesh.triCount <= 0)
+			if (mesh.triCount <= 0)
 				continue;
 
-			int FaceLump = BspMesh.flags & 0x600;
+			int meshVertType = mesh.flags & 0x600;
 
-			dmaterialsort_t& Material = materialsLumpData[BspMesh.mtlSortIdx];
+			dmaterialsort_t& material = materialsLumpData[mesh.mtlSortIdx];
 
-			dtexdata_t& tex = texLumpData[Material.texdata];
+			dtexdata_t& tex = texLumpData[material.texdata];
 			string MaterialName = string((const char*)&texStringLumpData[tex.nameStringTableID]);
 
 			string CleanedMaterialName = IO::Path::GetFileNameWithoutExtension(MaterialName).ToLower();
 
-			Assets::Mesh& Mesh = Model->Meshes.Emplace(0, 1);
-			if (RpakMaterialLookup.ContainsKey(CleanedMaterialName))
+			Assets::Mesh& newMesh = Model->Meshes.Emplace(0, 1);
+			if (loadedMaterials.ContainsKey(CleanedMaterialName))
 			{
 
-				RpakLoadAsset& MaterialAsset = RpakMaterialLookup[CleanedMaterialName];
+				RpakLoadAsset& MaterialAsset = loadedMaterials[CleanedMaterialName];
+
 				RMdlMaterial ParsedMaterial = RpakFileSystem->ExtractMaterial(MaterialAsset, TexturePath, true, false);
 				uint32_t MaterialIndex = Model->AddMaterial(ParsedMaterial.MaterialName, ParsedMaterial.AlbedoHash);
 
@@ -135,78 +136,89 @@ void ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std::unique_p
 				if (ParsedMaterial.CavityMapName != "")
 					MaterialInstance.Slots.Add(Assets::MaterialSlotType::Cavity, { "_images\\" + ParsedMaterial.CavityMapName, ParsedMaterial.CavityHash });
 
-				Mesh.MaterialIndices.EmplaceBack(MaterialIndex);
+				newMesh.MaterialIndices.EmplaceBack(MaterialIndex);
 			}
 			else
 			{
-				Mesh.MaterialIndices.EmplaceBack(Model->AddMaterial(CleanedMaterialName, 0xDEADBEEF));
+				newMesh.MaterialIndices.EmplaceBack(Model->AddMaterial(CleanedMaterialName, 0xDEADBEEF));
 			}
 
 			uint32_t FaceIndex = 0;
 
-			if (FaceLump == 0x000)
+			switch (meshVertType)
 			{
-				for (uint32_t v = BspMesh.firstIdx; v < (BspMesh.firstIdx + (BspMesh.triCount * 3)); v += 3)
+			case MESH_VERTEX_LIT_FLAT:
+			{
+				for (uint32_t v = mesh.firstIdx; v < (mesh.firstIdx + (mesh.triCount * 3)); v += 3)
 				{
-					dvertLitFlat& V1 = vertLitFlatLumpData[facesLumpData[v + 0] + Material.firstVertex];
-					dvertLitFlat& V2 = vertLitFlatLumpData[facesLumpData[v + 1] + Material.firstVertex];
-					dvertLitFlat& V3 = vertLitFlatLumpData[facesLumpData[v + 2] + Material.firstVertex];
+					dvertLitFlat& V1 = vertLitFlatLumpData[facesLumpData[v + 0] + material.firstVertex];
+					dvertLitFlat& V2 = vertLitFlatLumpData[facesLumpData[v + 1] + material.firstVertex];
+					dvertLitFlat& V3 = vertLitFlatLumpData[facesLumpData[v + 2] + material.firstVertex];
 
-					Mesh.Vertices.EmplaceBack(vertLumpData[V1.posIdx], vertNormalsLumpData[V1.nmlIdx], Assets::VertexColor(), V1.tex);
-					Mesh.Vertices.EmplaceBack(vertLumpData[V2.posIdx], vertNormalsLumpData[V2.nmlIdx], Assets::VertexColor(), V2.tex);
-					Mesh.Vertices.EmplaceBack(vertLumpData[V3.posIdx], vertNormalsLumpData[V3.nmlIdx], Assets::VertexColor(), V3.tex);
+					newMesh.Vertices.EmplaceBack(vertLumpData[V1.posIdx], vertNormalsLumpData[V1.nmlIdx], Assets::VertexColor(), V1.tex);
+					newMesh.Vertices.EmplaceBack(vertLumpData[V2.posIdx], vertNormalsLumpData[V2.nmlIdx], Assets::VertexColor(), V2.tex);
+					newMesh.Vertices.EmplaceBack(vertLumpData[V3.posIdx], vertNormalsLumpData[V3.nmlIdx], Assets::VertexColor(), V3.tex);
 
-					Mesh.Faces.EmplaceBack(FaceIndex, FaceIndex + 1, FaceIndex + 2);
+					newMesh.Faces.EmplaceBack(FaceIndex, FaceIndex + 1, FaceIndex + 2);
 					FaceIndex += 3;
 				}
+				break;
 			}
-			else if (FaceLump == 0x200)
+
+			case MESH_VERTEX_LIT_BUMP:
 			{
-				for (uint32_t v = BspMesh.firstIdx; v < (BspMesh.firstIdx + (BspMesh.triCount * 3)); v += 3)
+				for (uint32_t v = mesh.firstIdx; v < (mesh.firstIdx + (mesh.triCount * 3)); v += 3)
 				{
-					dvertLitBump& V1 = vertLitBumpLumpData[facesLumpData[v + 0] + Material.firstVertex];
-					dvertLitBump& V2 = vertLitBumpLumpData[facesLumpData[v + 1] + Material.firstVertex];
-					dvertLitBump& V3 = vertLitBumpLumpData[facesLumpData[v + 2] + Material.firstVertex];
+					dvertLitBump& V1 = vertLitBumpLumpData[facesLumpData[v + 0] + material.firstVertex];
+					dvertLitBump& V2 = vertLitBumpLumpData[facesLumpData[v + 1] + material.firstVertex];
+					dvertLitBump& V3 = vertLitBumpLumpData[facesLumpData[v + 2] + material.firstVertex];
 
-					Mesh.Vertices.EmplaceBack(vertLumpData[V1.posIdx], vertNormalsLumpData[V1.nmlIdx], Assets::VertexColor(), V1.tex);
-					Mesh.Vertices.EmplaceBack(vertLumpData[V2.posIdx], vertNormalsLumpData[V2.nmlIdx], Assets::VertexColor(), V2.tex);
-					Mesh.Vertices.EmplaceBack(vertLumpData[V3.posIdx], vertNormalsLumpData[V3.nmlIdx], Assets::VertexColor(), V3.tex);
+					newMesh.Vertices.EmplaceBack(vertLumpData[V1.posIdx], vertNormalsLumpData[V1.nmlIdx], Assets::VertexColor(), V1.tex);
+					newMesh.Vertices.EmplaceBack(vertLumpData[V2.posIdx], vertNormalsLumpData[V2.nmlIdx], Assets::VertexColor(), V2.tex);
+					newMesh.Vertices.EmplaceBack(vertLumpData[V3.posIdx], vertNormalsLumpData[V3.nmlIdx], Assets::VertexColor(), V3.tex);
 
-					Mesh.Faces.EmplaceBack(FaceIndex, FaceIndex + 1, FaceIndex + 2);
+					newMesh.Faces.EmplaceBack(FaceIndex, FaceIndex + 1, FaceIndex + 2);
 					FaceIndex += 3;
 				}
+				break;
 			}
-			else if (FaceLump == 0x400)
+
+			case MESH_VERTEX_UNLIT:
 			{
-				for (uint32_t v = BspMesh.firstIdx; v < (BspMesh.firstIdx + (BspMesh.triCount * 3)); v += 3)
+				for (uint32_t v = mesh.firstIdx; v < (mesh.firstIdx + (mesh.triCount * 3)); v += 3)
 				{
-					dvertUnlit& V1 = vertUnlitLumpData[facesLumpData[v + 0] + Material.firstVertex];
-					dvertUnlit& V2 = vertUnlitLumpData[facesLumpData[v + 1] + Material.firstVertex];
-					dvertUnlit& V3 = vertUnlitLumpData[facesLumpData[v + 2] + Material.firstVertex];
+					dvertUnlit& V1 = vertUnlitLumpData[facesLumpData[v + 0] + material.firstVertex];
+					dvertUnlit& V2 = vertUnlitLumpData[facesLumpData[v + 1] + material.firstVertex];
+					dvertUnlit& V3 = vertUnlitLumpData[facesLumpData[v + 2] + material.firstVertex];
 
-					Mesh.Vertices.EmplaceBack(vertLumpData[V1.posIdx], vertNormalsLumpData[V1.nmlIdx], Assets::VertexColor(), V1.tex);
-					Mesh.Vertices.EmplaceBack(vertLumpData[V2.posIdx], vertNormalsLumpData[V2.nmlIdx], Assets::VertexColor(), V2.tex);
-					Mesh.Vertices.EmplaceBack(vertLumpData[V3.posIdx], vertNormalsLumpData[V3.nmlIdx], Assets::VertexColor(), V3.tex);
+					newMesh.Vertices.EmplaceBack(vertLumpData[V1.posIdx], vertNormalsLumpData[V1.nmlIdx], Assets::VertexColor(), V1.tex);
+					newMesh.Vertices.EmplaceBack(vertLumpData[V2.posIdx], vertNormalsLumpData[V2.nmlIdx], Assets::VertexColor(), V2.tex);
+					newMesh.Vertices.EmplaceBack(vertLumpData[V3.posIdx], vertNormalsLumpData[V3.nmlIdx], Assets::VertexColor(), V3.tex);
 
-					Mesh.Faces.EmplaceBack(FaceIndex, FaceIndex + 1, FaceIndex + 2);
+					newMesh.Faces.EmplaceBack(FaceIndex, FaceIndex + 1, FaceIndex + 2);
 					FaceIndex += 3;
 				}
+				break;
 			}
-			else if (FaceLump == 0x600)
+
+			case MESH_VERTEX_UNLIT_TS:
 			{
-				for (uint32_t v = BspMesh.firstIdx; v < (BspMesh.firstIdx + (BspMesh.triCount * 3)); v += 3)
+				for (uint32_t v = mesh.firstIdx; v < (mesh.firstIdx + (mesh.triCount * 3)); v += 3)
 				{
-					dvertUnlitTS& V1 = vertUnlitTSLumpData[facesLumpData[v + 0] + Material.firstVertex];
-					dvertUnlitTS& V2 = vertUnlitTSLumpData[facesLumpData[v + 1] + Material.firstVertex];
-					dvertUnlitTS& V3 = vertUnlitTSLumpData[facesLumpData[v + 2] + Material.firstVertex];
+					dvertUnlitTS& V1 = vertUnlitTSLumpData[facesLumpData[v + 0] + material.firstVertex];
+					dvertUnlitTS& V2 = vertUnlitTSLumpData[facesLumpData[v + 1] + material.firstVertex];
+					dvertUnlitTS& V3 = vertUnlitTSLumpData[facesLumpData[v + 2] + material.firstVertex];
 
-					Mesh.Vertices.EmplaceBack(vertLumpData[V1.posIdx], vertNormalsLumpData[V1.nmlIdx], Assets::VertexColor(), V1.tex);
-					Mesh.Vertices.EmplaceBack(vertLumpData[V2.posIdx], vertNormalsLumpData[V2.nmlIdx], Assets::VertexColor(), V2.tex);
-					Mesh.Vertices.EmplaceBack(vertLumpData[V3.posIdx], vertNormalsLumpData[V3.nmlIdx], Assets::VertexColor(), V3.tex);
+					newMesh.Vertices.EmplaceBack(vertLumpData[V1.posIdx], vertNormalsLumpData[V1.nmlIdx], Assets::VertexColor(), V1.tex);
+					newMesh.Vertices.EmplaceBack(vertLumpData[V2.posIdx], vertNormalsLumpData[V2.nmlIdx], Assets::VertexColor(), V2.tex);
+					newMesh.Vertices.EmplaceBack(vertLumpData[V3.posIdx], vertNormalsLumpData[V3.nmlIdx], Assets::VertexColor(), V3.tex);
 
-					Mesh.Faces.EmplaceBack(FaceIndex, FaceIndex + 1, FaceIndex + 2);
+					newMesh.Faces.EmplaceBack(FaceIndex, FaceIndex + 1, FaceIndex + 2);
 					FaceIndex += 3;
 				}
+				break;
+			}
+
 			}
 		}
 	}

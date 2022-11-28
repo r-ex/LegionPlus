@@ -350,6 +350,11 @@ struct StaticPropLump_t
 };
 #pragma pack(pop)
 
+#define MESH_VERTEX_LIT_FLAT 0x000
+#define MESH_VERTEX_LIT_BUMP 0x200
+#define MESH_VERTEX_UNLIT    0x400
+#define MESH_VERTEX_UNLIT_TS 0x600
+
 // void ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std::unique_ptr<IO::FileStream>& Stream, BSPHeader_t& Header, const string& Asset, const string& Path);
 typedef void(*exportFunc_t)(const std::unique_ptr<RpakLib>& rpakFS, std::unique_ptr<IO::FileStream>& stream, BSPHeader_t& header, const string& bspPath, const string& exportPath);
 
