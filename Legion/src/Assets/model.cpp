@@ -497,6 +497,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 	string TexturePath = IO::Path::Combine(ModelPath, "_images");
 	string AnimationPath = IO::Path::Combine(AnimPath, ModelName);
 
+	Model->Name = ModelName;
 	Model->EnginePath = ModelInternalPath;
 
 	if (IncludeMaterials)
