@@ -316,16 +316,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 
 			printf("vgsize cmp: %i  dcmp: %i \n starpakoffset: %i \n", lodCmpSize, lodSize, Offset);
 
-			//StarpakStream->SetPosition(Offset);
 			cmpBuf = new char[lodSize];
-
-			//StarpakReader.Read(cmpBuf, 0, lodCmpSize);
-
-			//RpakStream->SetPosition(StudioOffset + offsetof(studiohdr_t_v16, vgloddataindex) + FIX_OFFSET(studiohdr.vgloddataindex));
-			//lod0 = Reader.Read<vgloddata_t_v16>();
-
-			//lodSize = lod0.vgsizedecompressed;
-			//vgStream = RTech::DecompressStreamedBuffer((uint8_t*)cmpBuf, lodSize, (uint8_t)CompressionType::OODLE);
 
 			size_t cmpSize = 0;
 			int decompOffset = 0;
@@ -358,8 +349,6 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 	if (bExportingRawRMdl)
 	{
 		std::ofstream vgOut(BaseFileName + ".vg", std::ios::out | std::ios::binary);
-		//char* dcmpBuf = new char[lodSize];
-		//vgStream->Read((uint8_t*)dcmpBuf, 0, lodSize);
 		vgOut.write(cmpBuf, lodSize);
 		vgOut.close();
 		return nullptr;
