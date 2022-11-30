@@ -611,8 +611,9 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 		}
 		case (uint32_t)AssetType_t::Texture:
 		{
-			TextureHeader SubHeader = Reader.Read<TextureHeader>();
-			return (SubHeader.dataSize > 0);
+			TextureHeader txtrHdr;
+			txtrHdr.ReadFromAssetStream(&RpakStream, Asset.AssetVersion);
+			return (txtrHdr.width > 0 && txtrHdr.height > 0);
 		}
 		case (uint32_t)AssetType_t::UIIA:
 		{

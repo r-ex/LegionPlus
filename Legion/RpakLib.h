@@ -444,7 +444,7 @@ public:
 	void ExportMaterialCPU(const RpakLoadAsset& Asset, const string& Path);
 	void ExportMatCPUAsStruct(const RpakLoadAsset& Asset, MaterialHeader& MatHdr, MaterialCPUHeader& MatCPUHdr, std::ofstream& oStream);
 	void ExportMatCPUAsRaw(const RpakLoadAsset& Asset, MaterialHeader& MatHdr, MaterialCPUHeader& MatCPUHdr, std::ofstream& oStream);
-	void ExportTexture(const RpakLoadAsset& Asset, const string& Path, bool IncludeImageNames, string NameOverride = "", bool NormalRecalculate = false);
+	void ExportTexture(const RpakLoadAsset& asset, const string& path, bool includeImageNames, string nameOverride = "", bool normalRecalculate = false);
 	void ExportUIIA(const RpakLoadAsset& Asset, const string& Path);
 	void ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path);
 	void ExportAnimationRig_V5(const RpakLoadAsset& Asset, const string& Path);
@@ -495,7 +495,7 @@ private:
 	void BuildAnimInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildRawAnimInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildMaterialInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
-	void BuildTextureInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
+	void BuildTextureInfo(const RpakLoadAsset& asset, ApexAsset& assetInfo);
 	void BuildUIIAInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildDataTableInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildSubtitleInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
@@ -514,7 +514,7 @@ private:
 	void ExtractModelLod_V14(IO::BinaryReader& Reader, const std::unique_ptr<IO::MemoryStream>& RpakStream, string Name, uint64_t Offset, const std::unique_ptr<Assets::Model>& Model, RMdlFixupPatches& Fixup, uint32_t Version, bool IncludeMaterials);
 	void ExtractModelLod_V16(IO::BinaryReader& Reader, const std::unique_ptr<IO::MemoryStream>& RpakStream, string Name, uint64_t Offset, const std::unique_ptr<Assets::Model>& Model, RMdlFixupPatches& Fixup, uint32_t Version, bool IncludeMaterials);
 	void ExtractModelLodOld(IO::BinaryReader& Reader, const std::unique_ptr<IO::MemoryStream>& RpakStream, string Name, uint64_t Offset, const std::unique_ptr<Assets::Model>& Model, RMdlFixupPatches& Fixup, uint32_t Version, bool IncludeMaterials);
-	void ExtractTexture(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Texture>& Texture, string& Name);
+	void ExtractTexture(const RpakLoadAsset& asset, std::unique_ptr<Assets::Texture>& texture, string& name);
 	void ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Texture>& Texture);
 	void ExtractAnimation_V11(const RpakLoadAsset& Asset, const List<Assets::Bone>& Skeleton, const string& Path);
 	void ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bone>& Skeleton, const string& Path);
@@ -534,7 +534,7 @@ private:
 	void ExtractRSON(const RpakLoadAsset& Asset, const string& Path);
 	void ExtractRUI(const RpakLoadAsset& Asset, const string& Path);
 
-	void ExtractTextureName(const RpakLoadAsset& Asset, string& Name);
+	void ExtractTextureName(const RpakLoadAsset& asset, string& name);
 
 	void R_WriteRSONFile(const RpakLoadAsset& Asset, std::ofstream& out, IO::BinaryReader & Reader, RSONNode node, int level);
 

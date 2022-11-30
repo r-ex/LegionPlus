@@ -284,9 +284,9 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, hdr.pName.Index, hdr.pName.Offset));
 
-	string MaterialRawStream = Reader.ReadCString();
-
-	Result.MaterialName = ExportManager::Config.GetBool("UseFullPaths") ? MaterialRawStream : IO::Path::GetFileNameWithoutExtension(MaterialRawStream);
+	string fullMaterialName = Reader.ReadCString();
+	Result.MaterialName = ExportManager::Config.GetBool("UseFullPaths") ? fullMaterialName : IO::Path::GetFileNameWithoutExtension(fullMaterialName);
+	Result.FullMaterialName = fullMaterialName;
 
 	List<ShaderResBinding> PixelShaderResBindings;
 
@@ -385,6 +385,11 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 			}
 			bindingIdx++;
 
+		}
+		else
+		{
+			if (Asset.Version == RpakGameVersion::Apex)
+				g_Logger.Info(">> %i: 0x0 - %s\n", i, "(no assigned name)");
 		}
 
 		// Extract to disk if need be
