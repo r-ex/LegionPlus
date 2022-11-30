@@ -302,7 +302,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 
 		if (streamedDataSize)
 		{
-			for (int i = 0; i < studiohdr.numvglodheader; i++)
+			for (int i = 0; i < studiohdr.numvgloddata; i++)
 			{
 				RpakStream->SetPosition(StudioOffset + offsetof(studiohdr_t_v16, vgloddataindex) + FIX_OFFSET(studiohdr.vgloddataindex) + (sizeof(vgloddata_t_v16) * i));
 				lod = Reader.Read<vgloddata_t_v16>();
@@ -321,7 +321,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 			size_t cmpSize = 0;
 			int decompOffset = 0;
 
-			for (int i = 0; i < studiohdr.numvglodheader; i++)
+			for (int i = 0; i < studiohdr.numvgloddata; i++)
 			{
 				RpakStream->SetPosition(StudioOffset + offsetof(studiohdr_t_v16, vgloddataindex) + FIX_OFFSET(studiohdr.vgloddataindex) + (sizeof(vgloddata_t_v16) * i));
 				lod = Reader.Read<vgloddata_t_v16>();
