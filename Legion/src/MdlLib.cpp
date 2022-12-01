@@ -72,7 +72,7 @@ void MdlLib::ExportRMdl(const string& Asset, const string& Path)
 {
 	IO::BinaryReader Reader = IO::BinaryReader(IO::File::OpenRead(Asset));
 	IO::Stream* Stream = Reader.GetBaseStream();
-	r2studiohdr_t hdr = Reader.Read<r2studiohdr_t>();
+	titanfall2::studiohdr_t hdr = Reader.Read<titanfall2::studiohdr_t>();
 
 	if (hdr.id != 0x54534449 || hdr.version != 0x35)
 		return;
@@ -80,19 +80,19 @@ void MdlLib::ExportRMdl(const string& Asset, const string& Path)
 	auto Model = std::make_unique<Assets::Model>(0, 0);
 	Model->Name = IO::Path::GetFileNameWithoutExtension(hdr.name);
 
-	List<r2mstudiobone_t> BoneBuffer;
+	List<titanfall2::mstudiobone_t> BoneBuffer;
 
 	for (int i = 0; i < hdr.numbones; i++)
 	{
-		uint64_t Position = hdr.boneindex + (i * sizeof(r2mstudiobone_t));
+		uint64_t Position = hdr.boneindex + (i * sizeof(titanfall2::mstudiobone_t));
 
 		Stream->SetPosition(Position);
-		r2mstudiobone_t bone = Reader.Read<r2mstudiobone_t>();
-		Stream->SetPosition(Position + bone.NameOffset);
+		titanfall2::mstudiobone_t bone = Reader.Read<titanfall2::mstudiobone_t>();
+		Stream->SetPosition(Position + bone.sznameindex);
 
 		string TagName = Reader.ReadCString();
 
-		Model->Bones.EmplaceBack(TagName, bone.ParentIndex, bone.Position, bone.Rotation);
+		Model->Bones.EmplaceBack(TagName, bone.parent, bone.pos, bone.quat);
 		BoneBuffer.EmplaceBack(bone);
 	}
 
@@ -103,10 +103,10 @@ void MdlLib::ExportRMdl(const string& Asset, const string& Path)
 		List<string> Materials;
 		for (int i = 0; i < hdr.numtextures; i++)
 		{
-			uint64_t Position = (uint64_t)hdr.textureindex + (i * 0x2C);
+			int Position = (int)hdr.textureindex + (i * sizeof(titanfall2::mstudiotexture_t));
 
 			Stream->SetPosition(Position);
-			uint32_t nameOffset = Reader.Read<uint32_t>();
+			int nameOffset = Reader.Read<int>();
 			Stream->SetPosition(Position + nameOffset);
 
 			Materials.EmplaceBack(IO::Path::GetFileNameWithoutExtension(Reader.ReadCString()));
@@ -118,25 +118,25 @@ void MdlLib::ExportRMdl(const string& Asset, const string& Path)
 
 		Stream->SetPosition(hdr.vvdindex + MeshHeader.fixupTableStart);
 
-		List<RMdlFixup> Fixups;
+		List<vertexFileFixup_t> Fixups;
 		for (uint32_t i = 0; i < MeshHeader.numFixups; i++)
-			Fixups.EmplaceBack(Reader.Read<RMdlFixup>());
+			Fixups.EmplaceBack(Reader.Read<vertexFileFixup_t>());
 
-		List<List<RMdlVertex>> VertexBuffers;
+		List<List<mstudiovertex_t>> VertexBuffers;
 		for (uint32_t i = 0; i < MeshHeader.numLODs; i++)
 		{
-			List<RMdlVertex>& Buffer = VertexBuffers.Emplace();
+			List<mstudiovertex_t>& Buffer = VertexBuffers.Emplace();
 
 			if (MeshHeader.numFixups)
 			{
 				for (uint32_t j = 0; j < MeshHeader.numFixups; j++)
 				{
-					if (Fixups[j].LodIndex >= i)
+					if (Fixups[j].lod >= i)
 					{
-						Stream->SetPosition(hdr.vvdindex + MeshHeader.vertexDataStart + Fixups[j].VertexIndex * sizeof(RMdlVertex));
+						Stream->SetPosition(hdr.vvdindex + MeshHeader.vertexDataStart + Fixups[j].sourceVertexID * sizeof(mstudiovertex_t));
 
-						for (uint32_t v = 0; v < Fixups[j].VertexCount; v++)
-							Buffer.EmplaceBack(Reader.Read<RMdlVertex>());
+						for (uint32_t v = 0; v < Fixups[j].numVertexes; v++)
+							Buffer.EmplaceBack(Reader.Read<mstudiovertex_t>());
 					}
 				}
 			}
@@ -145,14 +145,14 @@ void MdlLib::ExportRMdl(const string& Asset, const string& Path)
 				Stream->SetPosition(hdr.vvdindex + MeshHeader.vertexDataStart);
 
 				for (uint32_t v = 0; v < MeshHeader.numLODVertexes[i]; v++)
-					Buffer.EmplaceBack(Reader.Read<RMdlVertex>());
+					Buffer.EmplaceBack(Reader.Read<mstudiovertex_t>());
 			}
 		}
 
 		struct ModelSubmeshList
 		{
-			RMdlTitanfallModel Model;
-			List<RMdlTitanfallLodSubmesh> Meshes;
+			titanfall2::mstudiomodel_t Model;
+			List<titanfall2::mstudiomesh_t> Meshes;
 		};
 
 		List<List<ModelSubmeshList>> PartModelMeshes;
@@ -168,53 +168,53 @@ void MdlLib::ExportRMdl(const string& Asset, const string& Path)
 			for (uint32_t p = 0; p < Part.nummodels; p++)
 			{
 				ModelSubmeshList& NewModel = NewPart.Emplace();
-				uint64_t ModelPosition = Position + Part.modelindex + (p * sizeof(RMdlTitanfallModel));
+				uint64_t ModelPosition = Position + Part.modelindex + (p * sizeof(titanfall2::mstudiomodel_t));
 
 				Stream->SetPosition(ModelPosition);
-				NewModel.Model = Reader.Read<RMdlTitanfallModel>();
+				NewModel.Model = Reader.Read<titanfall2::mstudiomodel_t>();
 
 				for (uint32_t m = 0; m < NewModel.Model.nummeshes; m++)
 				{
-					uint64_t MeshPosition = ModelPosition + NewModel.Model.meshindex + (m * sizeof(RMdlTitanfallLodSubmesh));
+					uint64_t MeshPosition = ModelPosition + NewModel.Model.meshindex + (m * sizeof(titanfall2::mstudiomesh_t));
 
 					Stream->SetPosition(MeshPosition);
-					NewModel.Meshes.EmplaceBack(Reader.Read<RMdlTitanfallLodSubmesh>());
+					NewModel.Meshes.EmplaceBack(Reader.Read<titanfall2::mstudiomesh_t>());
 				}
 			}
 		}
 
 		Stream->SetPosition(hdr.vtxindex);
 
-		RMdlMeshStreamHeader LodHeader = Reader.Read<RMdlMeshStreamHeader>();
+		FileHeader_t vtxHeader = Reader.Read<FileHeader_t>();
 
-		for (uint32_t i = 0; i < LodHeader.NumBodyParts; i++)
+		for (int i = 0; i < vtxHeader.numBodyParts; i++)
 		{
-			uint64_t Position = (uint64_t)hdr.vtxindex + LodHeader.BodyPartOffset + (i * sizeof(mstudiobodyparts_short_t));
+			int Position = (int)hdr.vtxindex + vtxHeader.bodyPartOffset + (i * sizeof(BodyPartHeader_t));
 
 			Stream->SetPosition(Position);
-			mstudiobodyparts_short_t Part = Reader.Read<mstudiobodyparts_short_t>();
+			BodyPartHeader_t Part = Reader.Read<BodyPartHeader_t>();
 
-			for (uint32_t m = 0; m < Part.nummodels; m++)
+			for (int m = 0; m < Part.numModels; m++)
 			{
-				uint64_t ModelPosition = Position + Part.modelindex + (m * sizeof(RMdlModel));
+				int ModelPosition = Position + Part.modelOffset + (m * sizeof(ModelHeader_t));
 
 				Stream->SetPosition(ModelPosition);
-				RMdlModel RModel = Reader.Read<RMdlModel>();
+				ModelHeader_t RModel = Reader.Read<ModelHeader_t>();
 
-				uint64_t LodPosition = ModelPosition + RModel.LodOffset;
+				int LodPosition = ModelPosition + RModel.lodOffset;
 
 				Stream->SetPosition(LodPosition);
-				RMdlLod Lod = Reader.Read<RMdlLod>();
+				ModelLODHeader_t Lod = Reader.Read<ModelLODHeader_t>();
 
 				ModelSubmeshList& PartMesh = PartModelMeshes[i][m];
-				uint32_t VertexOffset = PartMesh.Model.vertexindex / sizeof(RMdlVertex);
+				int VertexOffset = PartMesh.Model.vertexindex / sizeof(mstudiovertex_t);
 
-				for (uint32_t s = 0; s < Lod.SubmeshCount; s++)
+				for (int s = 0; s < Lod.numMeshes; s++)
 				{
-					uint64_t SubmeshPosition = LodPosition + Lod.SubmeshOffset + (s * sizeof(RMdlSubmesh));
+					int SubmeshPosition = LodPosition + Lod.meshOffset + (s * sizeof(MeshHeader_t));
 
 					Stream->SetPosition(SubmeshPosition);
-					RMdlSubmesh Submesh = Reader.Read<RMdlSubmesh>();
+					MeshHeader_t Submesh = Reader.Read<MeshHeader_t>();
 
 					// there's a good chance that this isn't a good way of doing it, however:
 					// it works well enough for now so it will do.
@@ -225,33 +225,34 @@ void MdlLib::ExportRMdl(const string& Asset, const string& Path)
 					// todo: check this
 					Model->Meshes.EmplaceBack(m);
 
-					for (uint32_t g = 0; g < Submesh.NumStripGroups; g++)
+					for (int g = 0; g < Submesh.numStripGroups; g++)
 					{
-						uint64_t StripGroupPosition = SubmeshPosition + Submesh.StripGroupOffset + (g * sizeof(RMdlStripGroup));
+						int StripGroupPosition = SubmeshPosition + Submesh.stripGroupHeaderOffset + (g * sizeof(StripGroupHeader_t));
 
 						Stream->SetPosition(StripGroupPosition);
-						RMdlStripGroup StripGroup = Reader.Read<RMdlStripGroup>();
+						StripGroupHeader_t StripGroup = Reader.Read<StripGroupHeader_t>();
 
-						Stream->SetPosition(StripGroupPosition + StripGroup.VertexOffset);
+						Stream->SetPosition(StripGroupPosition + StripGroup.vertOffset);
 
-						for (uint32_t v = 0; v < StripGroup.VertexCount; v++)
+						for (uint32_t v = 0; v < StripGroup.numVerts; v++)
 						{
-							RMdlStripVert Vtx = Reader.Read<RMdlStripVert>();
-							RMdlVertex& Vertex = VertexBuffers[0][(uint64_t)Vtx.VertexIndex + VertexOffset];
+							Vertex_t Vtx = Reader.Read<Vertex_t>();
+							mstudiovertex_t& Vertex = VertexBuffers[0][(int)Vtx.origMeshVertID + VertexOffset];
 
+							VertexColor_t vertexColor;
 
 							// todo: check this
-							Assets::Vertex NewVertex = Model->Meshes[s].Vertices.Emplace(Vertex.Position, Vertex.Normal, Assets::VertexColor(), Vertex.UVs);
+							Assets::Vertex NewVertex = Model->Meshes[s].Vertices.Emplace(Vertex.m_vecPosition, Vertex.m_vecNormal, Assets::VertexColor(), Vertex.m_vecTexCoord);
 
-							for (uint8_t w = 0; w < Vertex.NumWeights; w++)
+							for (uint8_t w = 0; w < Vertex.m_BoneWeights.numbones; w++)
 							{
-								NewVertex.SetWeight({ Vertex.WeightIds[w], Vertex.SimpleWeights[w] }, w);
+								NewVertex.SetWeight({ Vertex.m_BoneWeights.bone[w], Vertex.m_BoneWeights.weight[w] }, w);
 							}
 						}
 
-						Stream->SetPosition(StripGroupPosition + StripGroup.IndexOffset);
+						Stream->SetPosition(StripGroupPosition + StripGroup.indexOffset);
 
-						for (uint32_t v = 0; v < (StripGroup.IndexCount / 3); v++)
+						for (uint32_t v = 0; v < (StripGroup.numIndices / 3); v++)
 						{
 							uint32_t i1 = Reader.Read<uint16_t>();
 							uint32_t i2 = Reader.Read<uint16_t>();
@@ -262,10 +263,10 @@ void MdlLib::ExportRMdl(const string& Asset, const string& Path)
 						}
 					}
 
-					VertexOffset += PartMesh.Meshes[s].LodVertCounts[0];
+					VertexOffset += PartMesh.Meshes[s].vertexloddata.numLODVertexes[0];
 
 					// todo: check this
-					Model->Meshes[s].MaterialIndices.EmplaceBack(Model->AddMaterial(Materials[PartMesh.Meshes[s].Index], ""));
+					Model->Meshes[s].MaterialIndices.EmplaceBack(Model->AddMaterial(Materials[PartMesh.Meshes[s].material], ""));
 				}
 			}
 		}
@@ -440,7 +441,7 @@ void MdlLib::ExportRMdl(const string& Asset, const string& Path)
 	}
 }
 
-void MdlLib::ParseRAnimBoneTranslationTrack(const RAnimBoneHeader& BoneFlags, const r2mstudiobone_t& Bone, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
+void MdlLib::ParseRAnimBoneTranslationTrack(const RAnimBoneHeader& BoneFlags, const titanfall2::mstudiobone_t& Bone, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
 {
 	printf("***** ParseRAnimBoneTranslationTrack is STUBBED.\n");
 
@@ -450,7 +451,7 @@ void MdlLib::ParseRAnimBoneTranslationTrack(const RAnimBoneHeader& BoneFlags, co
 
 	uint8_t* TranslationDataX = &DataPointer[BoneFlags.TranslationX - 0x10];
 
-	float Result[3]{ Bone.Position.X, Bone.Position.Y, Bone.Position.Z };
+	float Result[3]{ Bone.pos.X, Bone.pos.Y, Bone.pos.Z };
 
 	float v37 = 0, v34 = 0;
 
@@ -479,7 +480,7 @@ void MdlLib::ParseRAnimBoneTranslationTrack(const RAnimBoneHeader& BoneFlags, co
 	Curves[3].Keyframes.EmplaceBack(FrameIndex, Result[2]);
 }
 
-void MdlLib::ParseRAnimBoneRotationTrack(const RAnimBoneHeader& BoneFlags, const r2mstudiobone_t& Bone, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
+void MdlLib::ParseRAnimBoneRotationTrack(const RAnimBoneHeader& BoneFlags, const titanfall2::mstudiobone_t& Bone, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
 {
 	printf("ParseRAnimBoneRotationTrack is STUBBED.\n");
 
@@ -490,7 +491,7 @@ void MdlLib::ParseRAnimBoneRotationTrack(const RAnimBoneHeader& BoneFlags, const
 	uint8_t* TranslationDataY = &DataPointer[(BoneFlags.RotationInfo.OffsetY - 0x18)];
 	uint8_t* TranslationDataZ = &DataPointer[(BoneFlags.RotationInfo.OffsetZ - 0x18)];	
 
-	Vector3 BoneRotation = Bone.Rotation.ToEulerAngles();
+	Vector3 BoneRotation = Bone.quat.ToEulerAngles();
 
 	float EulerResult[4]{ Math::MathHelper::DegreesToRadians(BoneRotation.X),Math::MathHelper::DegreesToRadians(BoneRotation.Y),Math::MathHelper::DegreesToRadians(BoneRotation.Z),0 };
 
