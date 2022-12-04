@@ -705,7 +705,6 @@ bool MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 
 	hdr.fmt.channels = channels;
 	hdr.fmt.sampleRate = sample_rate;
-	hdr.fmt.avgBytesPerSecond = DataSize / ((float)samples_count / sample_rate);
 	hdr.fmt.blockAlign = DataSize / samples_count;
 	hdr.fmt.bitsPerSample = ((DataSize * 8) / samples_count)/channels;
 
@@ -717,6 +716,8 @@ bool MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 		hdr.fmt.blockAlign = 2 * channels;
 		hdr.fmt.bitsPerSample = 16;
 	}
+
+	hdr.fmt.avgBytesPerSecond = hdr.fmt.blockAlign * sample_rate;
 
 	Writer->Seek(0, IO::SeekOrigin::Begin);
 
