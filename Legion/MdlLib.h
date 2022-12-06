@@ -31,7 +31,7 @@ public:
 	void InitializeAnimExporter(AnimExportFormat_t Format = AnimExportFormat_t::SEAnim);
 
 	// Exports an on-disk mdl asset
-	void ExportRMdl(const string& Asset, const string& Path);
+	void ExportMDLv53(const string& Asset, const string& Path);
 
 private:
 	void ParseRAnimBoneTranslationTrack(const RAnimBoneHeader& BoneFlags, const titanfall2::mstudiobone_t& Bone, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex);

@@ -1220,350 +1220,13 @@ struct RMdlMaterial
 	uint64_t CavityHash;
 };
 
-
-//============
-// MDL (IDST)
-//============
-
-struct mstudio_meshvertexloddata_t
-{
-	int modelvertexdataUnusedPad; // likely has none of the funny stuff because unused
-
-	int numLODVertexes[MAX_NUM_LODS]; // depreciated starting with rmdl v14(?)
-};
-
-struct mstudiobodyparts_t
-{
-	int sznameindex;
-	int nummodels;
-	int base;
-	int modelindex;
-};
-
-namespace titanfall2
-{
-	struct studiohdr_t
-	{
-		int id; // Model format ID, such as "IDST" (0x49 0x44 0x53 0x54)
-		int version; // Format version number, such as 48 (0x30,0x00,0x00,0x00)
-		int checksum; // This has to be the same in the phy and vtx files to load!
-		int sznameindex; // This has been moved from studiohdr2 to the front of the main header.
-		char name[64]; // The internal name of the model, padding with null bytes.
-						// Typically "my_model.mdl" will have an internal name of "my_model"
-		int length; // Data size of MDL file in bytes.
-
-		Vector3 eyeposition;	// ideal eye position
-
-		Vector3 illumposition;	// illumination center
-
-		Vector3 hull_min;		// ideal movement hull size
-		Vector3 hull_max;
-
-		Vector3 view_bbmin;		// clipping bounding box
-		Vector3 view_bbmax;
-
-		int flags;
-
-		// highest observed: 250
-		// max is definitely 256 because 8bit uint limit
-		int numbones; // bones
-		int boneindex;
-
-		int numbonecontrollers; // bone controllers
-		int bonecontrollerindex;
-
-		int numhitboxsets;
-		int hitboxsetindex;
-
-		int numlocalanim; // animations/poses
-		int localanimindex; // animation descriptions
-
-		int numlocalseq; // sequences
-		int	localseqindex;
-
-		int activitylistversion; // initialization flag - have the sequences been indexed? set on load
-		int eventsindexed;
-
-		// mstudiotexture_t
-		// short rpak path
-		// raw textures
-		int numtextures; // the material limit exceeds 128, probably 256.
-		int textureindex;
-
-		// this should always only be one, unless using vmts.
-		// raw textures search paths
-		int numcdtextures;
-		int cdtextureindex;
-
-		// replaceable textures tables
-		int numskinref;
-		int numskinfamilies;
-		int skinindex;
-
-		int numbodyparts;
-		int bodypartindex;
-
-		int numlocalattachments;
-		int localattachmentindex;
-
-		int numlocalnodes;
-		int localnodeindex;
-		int localnodenameindex;
-
-		int deprecated_numflexdesc;
-		int deprecated_flexdescindex;
-
-		int deprecated_numflexcontrollers;
-		int deprecated_flexcontrollerindex;
-
-		int deprecated_numflexrules;
-		int deprecated_flexruleindex;
-
-		int numikchains;
-		int ikchainindex;
-
-		int numruimeshes;
-		int ruimeshindex;
-
-		int numlocalposeparameters;
-		int localposeparamindex;
-
-		int surfacepropindex;
-
-		int keyvalueindex;
-		int keyvaluesize;
-
-		int numlocalikautoplaylocks;
-		int localikautoplaylockindex;
-
-		float mass;
-		int contents;
-
-		// external animations, models, etc.
-		int numincludemodels;
-		int includemodelindex;
-
-		int virtualModel; // should be void
-
-		// animblock is either completely cut, this is because they no longer use .ani files.
-
-		int bonetablebynameindex;
-
-		// if STUDIOHDR_FLAGS_CONSTANT_DIRECTIONAL_LIGHT_DOT is set,
-		// this value is used to calculate directional components of lighting 
-		// on static props
-		byte constdirectionallightdot;
-
-		// set during load of mdl data to track *desired* lod configuration (not actual)
-		// the *actual* clamped root lod is found in studiohwdata
-		// this is stored here as a global store to ensure the staged loading matches the rendering
-		byte rootLOD;
-
-		// set in the mdl data to specify that lod configuration should only allow first numAllowRootLODs
-		// to be set as root LOD:
-		//	numAllowedRootLODs = 0	means no restriction, any lod can be set as root lod.
-		//	numAllowedRootLODs = N	means that lod0 - lod(N-1) can be set as root lod, but not lodN or lower.
-		byte numAllowedRootLODs;
-
-		byte unused;
-
-		float fadeDistance; // set to -1 to never fade. set above 0 if you want it to fade out, distance is in feet.
-							// player/titan models seem to inherit this value from the first model loaded in menus.
-							// works oddly on entities, probably only meant for static props
-
-		int deprecated_numflexcontrollerui;
-		int deprecated_flexcontrolleruiindex;
-
-		float flVertAnimFixedPointScale;
-		int surfacepropLookup; // this index must be cached by the loader, not saved in the file
-
-		// this is in all shipped models, probably part of their asset bakery. it should be 0x2CC.
-		// doesn't actually need to be written pretty sure, only four bytes when not present.
-		// this is not completely true as some models simply have nothing, such as animation models.
-		int sourceFilenameOffset;
-
-		int numsrcbonetransform;
-		int srcbonetransformindex;
-
-		int	illumpositionattachmentindex;
-
-		int linearboneindex;
-
-		int m_nBoneFlexDriverCount;
-		int m_nBoneFlexDriverIndex;
-
-		// for static props (and maybe others)
-		// Precomputed Per-Triangle AABB data
-		int m_nPerTriAABBIndex;
-		int m_nPerTriAABBNodeCount;
-		int m_nPerTriAABBLeafCount;
-		int m_nPerTriAABBVertCount;
-
-		// always "" or "Titan"
-		int unkstringindex;
-
-		// ANIs are no longer used and this is reflected in many structs
-		// Start of interal file data
-		int vtxindex; // VTX
-		int vvdindex; // VVD / IDSV
-		int vvcindex; // VVC / IDCV 
-		int vphyindex; // VPHY / IVPS
-
-		int vtxsize; // VTX
-		int vvdsize; // VVD / IDSV
-		int vvcsize; // VVC / IDCV 
-		int vphysize; // VPHY / IVPS
-
-		// this data block is related to the vphy, if it's not present the data will not be written
-		// definitely related to phy, apex phy has this merged into it
-		int unkmemberindex1; // section between vphy and vtx.?
-		int numunkmember1; // only seems to be used when phy has one solid
-
-		// only seen on '_animated' suffixed models so far
-		// probably added during titanfall 2's life cycle, later models have idx always, early/r2tt models do not
-		int unkcount3;
-		int unkindex3;
-
-		int unused1[60];
-
-	};
-
-	struct mstudiobone_t
-	{
-		int sznameindex;
-
-		int parent; // parent bone
-		int bonecontroller[6]; // bone controller index, -1 == none
-
-		// default values
-		Vector3 pos; // base bone position
-		Quaternion quat;
-		RadianEuler rot; // base bone rotation
-		Vector3 scale; // bone scale(?)
-
-		// compression scale
-		Vector3 posscale; // scale muliplier for bone position in animations. depreciated in v53, as the posscale is stored in anim bone headers
-		Vector3 rotscale; // scale muliplier for bone rotation in animations
-		Vector3 scalescale; // scale muliplier for scale
-
-		matrix3x4_t poseToBone;
-		Quaternion qAlignment;
-
-		int flags;
-		int proctype;
-		int procindex; // procedural rule offset
-		int physicsbone; // index into physically simulated bone
-
-		int surfacepropidx; // index into string tablefor property name
-
-		int contents; // See BSPFlags.h for the contents flags
-
-		int surfacepropLookup; // this index must be cached by the loader, not saved in the file
-
-		// unknown phy related section
-		short unkindex; // index into this section
-		short unkcount; // number of sections for this bone?? see: models\s2s\s2s_malta_gun_animated.mdl
-
-		int unused[7]; // remove as appropriate
-	};
-
-	struct mstudiomodel_t
-	{
-		char name[64];
-
-		int type;
-
-		float boundingradius;
-
-		int nummeshes;
-		int meshindex;
-
-		// cache purposes
-		int numvertices; // number of unique vertices/normals/texcoords
-		int vertexindex; // vertex Vector
-						 // offset by vertexindex number of bytes into vvd verts
-		int tangentsindex; // tangents Vector
-						   // offset by tangentsindex number of bytes into vvd tangents
-
-		int numattachments;
-		int attachmentindex;
-
-		int deprecated_numeyeballs;
-		int deprecated_eyeballindex;
-
-		int pad[4];
-
-		int colorindex; // vertex color
-						// offset by colorindex number of bytes into vvc vertex colors
-		int uv2index; // vertex second uv map
-					  // offset by uv2index number of bytes into vvc secondary uv map
-
-		int unused[4];
-	};
-
-	struct mstudiomesh_t
-	{
-		int material;
-
-		int modelindex;
-
-		int numvertices; // number of unique vertices/normals/texcoords
-		int vertexoffset; // vertex mstudiovertex_t
-						  // offset by vertexoffset number of verts into vvd vertexes, relative to the models offset
-
-		// Access thin/fat mesh vertex data (only one will return a non-NULL result)
-
-		int deprecated_numflexes; // vertex animation
-		int deprecated_flexindex;
-
-		// special codes for material operations
-		int deprecated_materialtype;
-		int deprecated_materialparam;
-
-		// a unique ordinal for this mesh
-		int meshid;
-
-		Vector3 center;
-
-		mstudio_meshvertexloddata_t vertexloddata;
-
-		int unk[2]; // set on load
-
-		int unused[6]; // remove as appropriate
-	};
-
-	struct mstudiotexture_t
-	{
-		int sznameindex;
-
-		int unused_flags;
-		int used;
-
-		int unused[8];
-	};
-}
-
-
 //============
 // VVD (IDSV)
 //============
 
-struct vertexFileHeader_t
+struct Vector4_t
 {
-	int id; // MODEL_VERTEX_FILE_ID
-	int version; // MODEL_VERTEX_FILE_VERSION
-	int checksum; // same as studiohdr_t, ensures sync
-
-	int numLODs; // num of valid lods
-	int numLODVertexes[MAX_NUM_LODS]; // num verts for desired root lod
-
-	// in vvc this is the offset to vertex color
-	int numFixups; // num of vertexFileFixup_t
-
-	// in vvc this is the offset into a second uv layer
-	int fixupTableStart; // offset from base to fixup table
-	int vertexDataStart; // offset from base to vertex block
-	int tangentDataStart; // offset from base to tangent block
+	float x, y, z, w;
 };
 
 struct vertexFileFixup_t
@@ -1586,6 +1249,37 @@ struct mstudiovertex_t
 	Vector3 m_vecPosition;
 	Vector3 m_vecNormal;
 	Vector2 m_vecTexCoord;
+};
+
+struct vertexFileHeader_t
+{
+	int id; // MODEL_VERTEX_FILE_ID
+	int version; // MODEL_VERTEX_FILE_VERSION
+	int checksum; // same as studiohdr_t, ensures sync
+
+	int numLODs; // num of valid lods
+	int numLODVertexes[MAX_NUM_LODS]; // num verts for desired root lod
+
+	int numFixups; // num of vertexFileFixup_t
+
+	int fixupTableStart; // offset from base to fixup table
+	int vertexDataStart; // offset from base to vertex block
+	int tangentDataStart; // offset from base to tangent block
+
+	vertexFileFixup_t* fixup(int i)
+	{
+		return reinterpret_cast<vertexFileFixup_t*>((char*)this + vertexDataStart) + i;
+	}
+
+	mstudiovertex_t* vertex(int i)
+	{
+		return reinterpret_cast<mstudiovertex_t*>((char*)this + vertexDataStart) + i;
+	}
+
+	Vector4_t* tangent(int i)
+	{
+		return reinterpret_cast<Vector4_t*>((char*)this + tangentDataStart) + i;
+	}
 };
 
 namespace apexlegends
@@ -1807,6 +1501,396 @@ struct Vertex_t
 // 'VG'
 //============
 
+
+
+//============
+// MDL (IDST)
+//============
+
+struct mstudiobodyparts_t
+{
+	int sznameindex;
+	int nummodels;
+	int base;
+	int modelindex;
+};
+
+struct mstudio_meshvertexloddata_t
+{
+	int modelvertexdataUnusedPad; // likely has none of the funny stuff because unused
+
+	int numLODVertexes[MAX_NUM_LODS]; // depreciated starting with rmdl v14(?)
+};
+
+namespace titanfall2
+{
+	struct mstudiotexture_t
+	{
+		int sznameindex;
+
+		char* textureName()
+		{
+			return reinterpret_cast<char*>((char*)this + sznameindex);
+		}
+
+		int unused_flags;
+		int used;
+
+		int unused[8];
+	};
+
+	struct mstudiomesh_t
+	{
+		int material;
+
+		int modelindex;
+
+		int numvertices; // number of unique vertices/normals/texcoords
+		int vertexoffset; // vertex mstudiovertex_t
+						  // offset by vertexoffset number of verts into vvd vertexes, relative to the models offset
+
+		// Access thin/fat mesh vertex data (only one will return a non-NULL result)
+
+		int deprecated_numflexes; // vertex animation
+		int deprecated_flexindex;
+
+		// special codes for material operations
+		int deprecated_materialtype;
+		int deprecated_materialparam;
+
+		// a unique ordinal for this mesh
+		int meshid;
+
+		Vector3 center;
+
+		mstudio_meshvertexloddata_t vertexloddata;
+
+		int unk[2]; // set on load
+
+		int unused[6]; // remove as appropriate
+	};
+
+	struct mstudiomodel_t
+	{
+		char name[64];
+
+		int type;
+
+		float boundingradius;
+
+		int nummeshes;
+		int meshindex;
+
+		titanfall2::mstudiomesh_t* mesh(int i)
+		{
+			return reinterpret_cast<titanfall2::mstudiomesh_t*>((char*)this + meshindex) + i;
+		}
+
+		// cache purposes
+		int numvertices; // number of unique vertices/normals/texcoords
+		int vertexindex; // vertex Vector
+						 // offset by vertexindex number of bytes into vvd verts
+		int tangentsindex; // tangents Vector
+						   // offset by tangentsindex number of bytes into vvd tangents
+
+		int numattachments;
+		int attachmentindex;
+
+		int deprecated_numeyeballs;
+		int deprecated_eyeballindex;
+
+		int pad[4];
+
+		int colorindex; // vertex color
+						// offset by colorindex number of bytes into vvc vertex colors
+		int uv2index; // vertex second uv map
+					  // offset by uv2index number of bytes into vvc secondary uv map
+
+		int unused[4];
+	};
+
+	struct mstudiobodyparts_t
+	{
+		int sznameindex;
+		int nummodels;
+		int base;
+		int modelindex;
+
+		titanfall2::mstudiomodel_t* model(int i)
+		{
+			return reinterpret_cast<titanfall2::mstudiomodel_t*>((char*)this + modelindex) + i;
+		}
+	};
+
+	struct mstudiobone_t
+	{
+		int sznameindex;
+
+		char* boneName()
+		{
+			return reinterpret_cast<char*>((char*)this + sznameindex);
+		}
+
+		int parent; // parent bone
+		int bonecontroller[6]; // bone controller index, -1 == none
+
+		// default values
+		Vector3 pos; // base bone position
+		Quaternion quat;
+		RadianEuler rot; // base bone rotation
+		Vector3 scale; // bone scale(?)
+
+		// compression scale
+		Vector3 posscale; // scale muliplier for bone position in animations. depreciated in v53, as the posscale is stored in anim bone headers
+		Vector3 rotscale; // scale muliplier for bone rotation in animations
+		Vector3 scalescale; // scale muliplier for scale
+
+		matrix3x4_t poseToBone;
+		Quaternion qAlignment;
+
+		int flags;
+		int proctype;
+		int procindex; // procedural rule offset
+		int physicsbone; // index into physically simulated bone
+
+		int surfacepropidx; // index into string tablefor property name
+
+		int contents; // See BSPFlags.h for the contents flags
+
+		int surfacepropLookup; // this index must be cached by the loader, not saved in the file
+
+		// unknown phy related section
+		short unkindex; // index into this section
+		short unkcount; // number of sections for this bone?? see: models\s2s\s2s_malta_gun_animated.mdl
+
+		int unused[7]; // remove as appropriate
+	};
+
+	struct studiohdr_t
+	{
+		int id; // Model format ID, such as "IDST" (0x49 0x44 0x53 0x54)
+		int version; // Format version number, such as 48 (0x30,0x00,0x00,0x00)
+		int checksum; // This has to be the same in the phy and vtx files to load!
+		int sznameindex; // This has been moved from studiohdr2 to the front of the main header.
+
+		char* modelName()
+		{
+			return reinterpret_cast<char*>((char*)this + sznameindex);
+		}
+
+		char name[64]; // The internal name of the model, padding with null bytes.
+						// Typically "my_model.mdl" will have an internal name of "my_model"
+		int length; // Data size of MDL file in bytes.
+
+		Vector3 eyeposition;	// ideal eye position
+
+		Vector3 illumposition;	// illumination center
+
+		Vector3 hull_min;		// ideal movement hull size
+		Vector3 hull_max;
+
+		Vector3 view_bbmin;		// clipping bounding box
+		Vector3 view_bbmax;
+
+		int flags;
+
+		// highest observed: 250
+		// max is definitely 256 because 8bit uint limit
+		int numbones; // bones
+		int boneindex;
+
+		titanfall2::mstudiobone_t* bone(int i)
+		{
+			return reinterpret_cast<titanfall2::mstudiobone_t*>((char*)this + boneindex) + i;
+		}
+
+		int numbonecontrollers; // bone controllers
+		int bonecontrollerindex;
+
+		int numhitboxsets;
+		int hitboxsetindex;
+
+		int numlocalanim; // animations/poses
+		int localanimindex; // animation descriptions
+
+		int numlocalseq; // sequences
+		int	localseqindex;
+
+		int activitylistversion; // initialization flag - have the sequences been indexed? set on load
+		int eventsindexed;
+
+		// mstudiotexture_t
+		// short rpak path
+		// raw textures
+		int numtextures; // the material limit exceeds 128, probably 256.
+		int textureindex;
+
+		titanfall2::mstudiotexture_t* texture(int i)
+		{
+			return reinterpret_cast<titanfall2::mstudiotexture_t*>((char*)this + textureindex) + i;
+		}
+
+		// this should always only be one, unless using vmts.
+		// raw textures search paths
+		int numcdtextures;
+		int cdtextureindex;
+
+		// replaceable textures tables
+		int numskinref;
+		int numskinfamilies;
+		int skinindex;
+
+		int numbodyparts;
+		int bodypartindex;
+
+		mstudiobodyparts_t* bodypart(int i)
+		{
+			return reinterpret_cast<mstudiobodyparts_t*>((char*)this + bodypartindex) + i;
+		}
+
+		int numlocalattachments;
+		int localattachmentindex;
+
+		int numlocalnodes;
+		int localnodeindex;
+		int localnodenameindex;
+
+		int deprecated_numflexdesc;
+		int deprecated_flexdescindex;
+
+		int deprecated_numflexcontrollers;
+		int deprecated_flexcontrollerindex;
+
+		int deprecated_numflexrules;
+		int deprecated_flexruleindex;
+
+		int numikchains;
+		int ikchainindex;
+
+		int numruimeshes;
+		int ruimeshindex;
+
+		int numlocalposeparameters;
+		int localposeparamindex;
+
+		int surfacepropindex;
+
+		int keyvalueindex;
+		int keyvaluesize;
+
+		int numlocalikautoplaylocks;
+		int localikautoplaylockindex;
+
+		float mass;
+		int contents;
+
+		// external animations, models, etc.
+		int numincludemodels;
+		int includemodelindex;
+
+		int virtualModel; // should be void
+
+		// animblock is either completely cut, this is because they no longer use .ani files.
+
+		int bonetablebynameindex;
+
+		// if STUDIOHDR_FLAGS_CONSTANT_DIRECTIONAL_LIGHT_DOT is set,
+		// this value is used to calculate directional components of lighting 
+		// on static props
+		byte constdirectionallightdot;
+
+		// set during load of mdl data to track *desired* lod configuration (not actual)
+		// the *actual* clamped root lod is found in studiohwdata
+		// this is stored here as a global store to ensure the staged loading matches the rendering
+		byte rootLOD;
+
+		// set in the mdl data to specify that lod configuration should only allow first numAllowRootLODs
+		// to be set as root LOD:
+		//	numAllowedRootLODs = 0	means no restriction, any lod can be set as root lod.
+		//	numAllowedRootLODs = N	means that lod0 - lod(N-1) can be set as root lod, but not lodN or lower.
+		byte numAllowedRootLODs;
+
+		byte unused;
+
+		float fadeDistance; // set to -1 to never fade. set above 0 if you want it to fade out, distance is in feet.
+							// player/titan models seem to inherit this value from the first model loaded in menus.
+							// works oddly on entities, probably only meant for static props
+
+		int deprecated_numflexcontrollerui;
+		int deprecated_flexcontrolleruiindex;
+
+		float flVertAnimFixedPointScale;
+		int surfacepropLookup; // this index must be cached by the loader, not saved in the file
+
+		// this is in all shipped models, probably part of their asset bakery. it should be 0x2CC.
+		// doesn't actually need to be written pretty sure, only four bytes when not present.
+		// this is not completely true as some models simply have nothing, such as animation models.
+		int sourceFilenameOffset;
+
+		int numsrcbonetransform;
+		int srcbonetransformindex;
+
+		int	illumpositionattachmentindex;
+
+		int linearboneindex;
+
+		int m_nBoneFlexDriverCount;
+		int m_nBoneFlexDriverIndex;
+
+		// for static props (and maybe others)
+		// Precomputed Per-Triangle AABB data
+		int m_nPerTriAABBIndex;
+		int m_nPerTriAABBNodeCount;
+		int m_nPerTriAABBLeafCount;
+		int m_nPerTriAABBVertCount;
+
+		// always "" or "Titan"
+		int unkstringindex;
+
+		// ANIs are no longer used and this is reflected in many structs
+		// Start of interal file data
+		int vtxindex; // VTX
+
+		FileHeader_t* vtx()
+		{
+			return reinterpret_cast<FileHeader_t*>((char*)this + vtxindex);
+		}
+
+		int vvdindex; // VVD / IDSV
+
+		vertexFileHeader_t* vvd()
+		{
+			return reinterpret_cast<vertexFileHeader_t*>((char*)this + vvdindex);
+		}
+
+		int vvcindex; // VVC / IDCV 
+
+		vertexColorFileHeader_t* vvc()
+		{
+			return reinterpret_cast<vertexColorFileHeader_t*>((char*)this + vvcindex);
+		}
+
+		int vphyindex; // VPHY / IVPS
+
+		int vtxsize; // VTX
+		int vvdsize; // VVD / IDSV
+		int vvcsize; // VVC / IDCV 
+		int vphysize; // VPHY / IVPS
+
+		// this data block is related to the vphy, if it's not present the data will not be written
+		// definitely related to phy, apex phy has this merged into it
+		int unkmemberindex1; // section between vphy and vtx.?
+		int numunkmember1; // only seems to be used when phy has one solid
+
+		// only seen on '_animated' suffixed models so far
+		// probably added during titanfall 2's life cycle, later models have idx always, early/r2tt models do not
+		int unkcount3;
+		int unkindex3;
+
+		int unused1[60];
+
+	};
+}
 
 
 //ASSERT_SIZE(mstudiobone_t, 0xB4);

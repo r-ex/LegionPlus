@@ -284,7 +284,7 @@ void ExportManager::ExportMdlAssets(const std::unique_ptr<MdlLib>& MdlFS, List<s
 				continue;
 
 			auto& Asset = ExportAssets[AssetToConvert];
-			MdlFS->ExportRMdl(Asset, ExportDirectory);
+			MdlFS->ExportMDLv53(Asset, ExportDirectory);
 		}
 
 		CoUninitialize();
