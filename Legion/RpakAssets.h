@@ -576,7 +576,7 @@ struct ModelHeaderV13
 	RPakPtr animRigs;
 
 	int animRigCount;
-	int unkDataSize; // this is the size of vvd, vvc, vvw, vtx
+	int unkDataSize;
 	int alignedStreamingSize;
 
 	Vector3 bbox_min;
@@ -782,9 +782,8 @@ public:
 
 struct ModelCPU
 {
-	RPakPtr phyData;
-	int phyDataSize;
-	int modelLength;
+	char unk[12];
+	int dataSize;
 };
 
 // MATERIALS

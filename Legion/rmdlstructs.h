@@ -757,8 +757,8 @@ struct mstudiolinearbone_t_v16
 struct vgloddata_t_v16
 {
 	int vgoffset; // offset to this section in vg
-	int vgsizecompressed;
-	int vgsizedecompressed; // decompressed size of data in vg
+	int unk;
+	int vgsize; // decompressed size of data in vg
 
 	byte numMeshes;
 
