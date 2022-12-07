@@ -343,13 +343,13 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 				decompOffset += lod.vgsizedecompressed;
 			}
 
+			// shitty way of reading used vg back into vg stream (I have a major skill issue)
 			char* tmpCmpBuf = new char[lods.at(0).vgsizecompressed];
 			cmpSize = lods.at(0).vgsizedecompressed;
 
 			StarpakStream->SetPosition(Offset + lods.at(0).vgoffset);
 			StarpakReader.Read(tmpCmpBuf, 0, lods.at(0).vgsizecompressed);
 
-			// read into vg stream and decompress
 			vgStream = RTech::DecompressStreamedBuffer((uint8_t*)tmpCmpBuf, cmpSize, (uint8_t)CompressionType::OODLE);
 		}
 	}
