@@ -288,12 +288,11 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 
 	IO::BinaryReader StarpakReader = IO::BinaryReader(StarpakStream.get(), true);
 
-
+	std::vector<vgloddata_t_v16> lods;
 	std::unique_ptr<IO::MemoryStream> vgStream = nullptr;
-	char* dcmpBuf = nullptr;
+	std::unique_ptr<uint8_t[]> dcmpBuf = nullptr;
 	size_t lodSize = 0;
 	size_t cmpSize = 0;
-	std::vector<vgloddata_t_v16> lods;
 
 	size_t streamedDataSize = this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset];
 
@@ -316,38 +315,35 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 			}
 
 			// load decompressed sections into this
-			dcmpBuf = new char[lodSize];
+			dcmpBuf = std::make_unique<uint8_t[]>(lodSize);
 
+			// dcmp offset
 			int decompOffset = 0;
 
 			// this is purely for getting the full vg, has nothing to do with actual model export
-
 			for (const auto& lod : lods)
 			{
-				// temp buffer for current lod to be decompressed 
-				char* tmpCmpBuf = new char[lod.vgsizecompressed];
-				cmpSize = lod.vgsizedecompressed; // could probably be done by casting in stream read
+				cmpSize = lod.vgsizedecompressed;
+
+				// DecompressStreamedBuffer deletes the buffer, no need to free it.
+				uint8_t* tmpCmpBuf = new uint8_t[cmpSize];
 
 				StarpakStream->SetPosition(Offset + lod.vgoffset);
 				StarpakReader.Read(tmpCmpBuf, 0, lod.vgsizecompressed);
 
 				// read into vg stream and decompress
-				vgStream = RTech::DecompressStreamedBuffer((uint8_t*)tmpCmpBuf, cmpSize, (uint8_t)CompressionType::OODLE);
-				vgStream->Read((uint8_t*)dcmpBuf, decompOffset, cmpSize);
+				vgStream = RTech::DecompressStreamedBuffer(tmpCmpBuf, cmpSize, (uint8_t)CompressionType::OODLE);
+				vgStream->Read(dcmpBuf.get(), decompOffset, cmpSize);
 
 				// add size for an offset so we can write from the stream into the dcmpBuf at the right pos
 				decompOffset += lod.vgsizedecompressed;
 			}
-			
+
+			vgStream.release();
+
 			if (!lods.empty())
 			{
-				char* tmpCmpBuf = new char[lods.front().vgsizecompressed];
-				cmpSize = lods.front().vgsizedecompressed;
-
-				StarpakStream->SetPosition(Offset + lods.front().vgoffset);
-				StarpakReader.Read(tmpCmpBuf, 0, lods.front().vgsizecompressed);
-
-				vgStream = RTech::DecompressStreamedBuffer((uint8_t*)tmpCmpBuf, cmpSize, (uint8_t)CompressionType::OODLE);
+				vgStream = std::move(std::make_unique<IO::MemoryStream>(dcmpBuf.get(), 0, lods.front().vgsizedecompressed, false, true));
 			}
 		}
 	}
@@ -364,7 +360,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 	if (bExportingRawRMdl)
 	{
 		std::ofstream vgOut(BaseFileName + ".vg", std::ios::out | std::ios::binary);
-		vgOut.write(dcmpBuf, lodSize);
+		vgOut.write((char*)dcmpBuf.get(), lodSize);
 		vgOut.close();
 		return nullptr;
 	}
