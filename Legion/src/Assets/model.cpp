@@ -315,7 +315,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 			}
 
 			//printf("vgsize cmp: %i  dcmp: %i \n starpakoffset: %i \n", lodCmpSize, lodSize, Offset);
-			printf("lod0: %i \n", lods.at(0).numMeshes);
+			//printf("lod0: %i \n", lods.at(0).numMeshes);
 
 			dcmpBuf = new char[lodSize];
 
