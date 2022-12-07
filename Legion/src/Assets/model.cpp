@@ -292,8 +292,8 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 	std::unique_ptr<IO::MemoryStream> vgStream = nullptr;
 	char* dcmpBuf = nullptr;
 	size_t lodSize = 0;
-	//size_t lodCmpSize = 0;
-	vgloddata_t_v16 lod{}, lod0{};
+	size_t cmpSize = 0;
+	std::vector<vgloddata_t_v16> lods;
 
 	if (this->LoadedFiles[Asset.FileIndex].StarpakMap.ContainsKey(Asset.StarpakOffset))
 	{
@@ -302,35 +302,28 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 		IO::Stream* StarpakStream = StarpakReader.GetBaseStream();
 
 		if (streamedDataSize)
-		{
-			// set lod0 for later usage
-			RpakStream->SetPosition(StudioOffset + offsetof(studiohdr_t_v16, vgloddataindex) + FIX_OFFSET(studiohdr.vgloddataindex));
-			lod0 = Reader.Read<vgloddata_t_v16>();
-
+		{	
 			// loop through all lods for full vg size
 			for (int i = 0; i < studiohdr.numvgloddata; i++)
 			{
 				RpakStream->SetPosition(StudioOffset + offsetof(studiohdr_t_v16, vgloddataindex) + FIX_OFFSET(studiohdr.vgloddataindex) + (sizeof(vgloddata_t_v16) * i));
-				lod = Reader.Read<vgloddata_t_v16>();
+				vgloddata_t_v16 lod = Reader.Read<vgloddata_t_v16>();
 
 				lodSize += lod.vgsizedecompressed;
-				//lodCmpSize += lod.vgsizecompressed;
 
-				//if (lod.vgsizecompressed % 16)
-				//	lodCmpSize += (16 - (lod.vgsizecompressed % 16));
+				lods.push_back(lod);
 			}
 
 			//printf("vgsize cmp: %i  dcmp: %i \n starpakoffset: %i \n", lodCmpSize, lodSize, Offset);
+			printf("lod0: %i \n", lods.at(0).numMeshes);
 
 			dcmpBuf = new char[lodSize];
 
-			size_t cmpSize = 0;
 			int decompOffset = 0;
 
 			for (int i = 0; i < studiohdr.numvgloddata; i++)
 			{
-				RpakStream->SetPosition(StudioOffset + offsetof(studiohdr_t_v16, vgloddataindex) + FIX_OFFSET(studiohdr.vgloddataindex) + (sizeof(vgloddata_t_v16) * i));
-				lod = Reader.Read<vgloddata_t_v16>();
+				vgloddata_t_v16 lod = lods.at(i);
 
 				// temp buffer for current lod to be decompressed 
 				char* tmpCmpBuf = new char[lod.vgsizecompressed];
@@ -344,12 +337,20 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 				// read into vg stream and decompress
 				vgStream = RTech::DecompressStreamedBuffer((uint8_t*)tmpCmpBuf, cmpSize, (uint8_t)CompressionType::OODLE);
 
-
 				vgStream->Read((uint8_t*)dcmpBuf, decompOffset, cmpSize);
 
 				// add size for an offset so we can write from the stream into the dcmpBuf at the right pos
 				decompOffset += lod.vgsizedecompressed;
 			}
+
+			char* tmpCmpBuf = new char[lods.at(0).vgsizecompressed];
+			cmpSize = lods.at(0).vgsizedecompressed;
+
+			StarpakStream->SetPosition(Offset + lods.at(0).vgoffset);
+			StarpakReader.Read(tmpCmpBuf, 0, lods.at(0).vgsizecompressed);
+
+			// read into vg stream and decompress
+			vgStream = RTech::DecompressStreamedBuffer((uint8_t*)tmpCmpBuf, cmpSize, (uint8_t)CompressionType::OODLE);
 		}
 	}
 	else {
@@ -452,7 +453,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 
 
 	IO::BinaryReader vgReader = IO::BinaryReader(vgStream.get(), true);
-	if(lod0.numMeshes > 0)
+	if(lods.at(0).numMeshes > 0)
 		this->ExtractModelLod_V16(vgReader, RpakStream, ModelName, vgStream->GetPosition(), Model, Fixups, Asset.AssetVersion, IncludeMaterials);
 
 	vgStream->Close();
