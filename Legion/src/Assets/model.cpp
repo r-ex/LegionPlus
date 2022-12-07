@@ -314,35 +314,33 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 				lods.push_back(lod);
 			}
 
-			// load decompressed sections into this
-			dcmpBuf = std::make_unique<uint8_t[]>(lodSize);
-
-			// dcmp offset
-			int decompOffset = 0;
-
-			// this is purely for getting the full vg, has nothing to do with actual model export
-			for (const auto& lod : lods)
-			{
-				cmpSize = lod.vgsizedecompressed;
-
-				// DecompressStreamedBuffer deletes the buffer, no need to free it.
-				uint8_t* tmpCmpBuf = new uint8_t[cmpSize];
-
-				StarpakStream->SetPosition(Offset + lod.vgoffset);
-				StarpakReader.Read(tmpCmpBuf, 0, lod.vgsizecompressed);
-
-				// read into vg stream and decompress
-				vgStream = RTech::DecompressStreamedBuffer(tmpCmpBuf, cmpSize, (uint8_t)CompressionType::OODLE);
-				vgStream->Read(dcmpBuf.get(), decompOffset, cmpSize);
-
-				// add size for an offset so we can write from the stream into the dcmpBuf at the right pos
-				decompOffset += lod.vgsizedecompressed;
-			}
-
-			vgStream.release();
-
 			if (!lods.empty())
 			{
+				// load decompressed sections into this
+				dcmpBuf = std::make_unique<uint8_t[]>(lodSize);
+
+				// dcmp offset
+				int decompOffset = 0;
+
+				// this is purely for getting the full vg, has nothing to do with actual model export
+				for (const auto& lod : lods)
+				{
+					cmpSize = lod.vgsizedecompressed;
+
+					// DecompressStreamedBuffer deletes the buffer, no need to free it.
+					uint8_t* tmpCmpBuf = new uint8_t[cmpSize];
+
+					StarpakStream->SetPosition(Offset + lod.vgoffset);
+					StarpakReader.Read(tmpCmpBuf, 0, lod.vgsizecompressed);
+
+					// read into vg stream and decompress
+					vgStream = RTech::DecompressStreamedBuffer(tmpCmpBuf, cmpSize, (uint8_t)CompressionType::OODLE);
+					vgStream->Read(dcmpBuf.get(), decompOffset, cmpSize);
+
+					// add size for an offset so we can write from the stream into the dcmpBuf at the right pos
+					decompOffset += lod.vgsizedecompressed;
+				}
+
 				vgStream = std::move(std::make_unique<IO::MemoryStream>(dcmpBuf.get(), 0, lods.front().vgsizedecompressed, false, true));
 			}
 		}
@@ -359,6 +357,12 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 
 	if (bExportingRawRMdl)
 	{
+		if (!dcmpBuf)
+		{
+			g_Logger.Warning("Exporting raw .rdml failed due to no LOD.\n");
+			return nullptr;
+		}
+
 		std::ofstream vgOut(BaseFileName + ".vg", std::ios::out | std::ios::binary);
 		vgOut.write((char*)dcmpBuf.get(), lodSize);
 		vgOut.close();
