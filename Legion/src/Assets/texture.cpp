@@ -114,38 +114,30 @@ void RpakLib::ExportTexture(const RpakLoadAsset& asset, const string& path, bool
 	}
 }
 
+#undef max
+constexpr uint32_t ALIGNMENT_SIZE = 15;
 uint64_t CalculateHighestMipOffset(const TextureHeader& txtrHdr, const uint8_t& mipCount)
 {
 	uint64_t retOffset = 0;
 
-	uint32_t mipLevel = mipCount;
-	for (int i = 1; i < mipCount; i++)
+	for (int mipLevel = mipCount - 1; mipLevel >= 1; mipLevel--)
 	{
-		--mipLevel;
-		if (txtrHdr.arraySize)
+		int mipWidth = std::max(0, (txtrHdr.width >> mipLevel) - 1);
+		int mipHeight = std::max(0, (txtrHdr.height >> mipLevel) - 1);
+
+		const uint8_t x = s_pBytesPerPixel[txtrHdr.imageFormat].first;
+		const uint8_t y = s_pBytesPerPixel[txtrHdr.imageFormat].second;
+
+		uint32_t bppWidth = (y + mipWidth) >> (y >> 1);
+		uint32_t bppHeight = (y + mipHeight) >> (y >> 1);
+		uint32_t sliceWidth = x * (y >> (y >> 1));
+
+		uint32_t rowPitch = sliceWidth * bppWidth;
+		uint32_t slicePitch = x * bppWidth * bppHeight;
+
+		for (int a = 0; a < txtrHdr.arraySize; a++)
 		{
-			int mipWidth = 0;
-			if (txtrHdr.width >> mipLevel > 1)
-				mipWidth = (txtrHdr.width >> mipLevel) - 1;
-
-			int mipHeight = 0;
-			if (txtrHdr.height >> mipLevel > 1)
-				mipHeight = (txtrHdr.height >> mipLevel) - 1;
-
-			uint8_t x = s_pBytesPerPixel[txtrHdr.imageFormat].first;
-			uint8_t y = s_pBytesPerPixel[txtrHdr.imageFormat].second;
-
-			uint32_t bytesPerPixelWidth = (y + mipWidth) >> (y >> 1);
-			uint32_t bytesPerPixelHeight = (y + mipHeight) >> (y >> 1);
-			uint32_t sliceWidth = x * (y >> (y >> 1));
-
-			uint32_t rowPitch = sliceWidth * bytesPerPixelWidth;
-			uint32_t slicePitch = x * bytesPerPixelWidth * bytesPerPixelHeight;
-
-			for (int a = 0; a < txtrHdr.arraySize; a++)
-			{
-				retOffset += ((uint64_t)(slicePitch + 15) & 0xFFFFFFF0);
-			}
+			retOffset += ((uint64_t)(slicePitch + ALIGNMENT_SIZE) & ~ALIGNMENT_SIZE);
 		}
 	}
 

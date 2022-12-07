@@ -145,9 +145,9 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 
 	RpakStream->SetPosition(StudioOffset);
 
-	std::unique_ptr<char[]> studioBuf(new char[cpuData.dataSize]);
+	std::unique_ptr<char[]> studioBuf(new char[cpuData.modelLength]);
 
-	Reader.Read(studioBuf.get(), 0, cpuData.dataSize);
+	Reader.Read(studioBuf.get(), 0, cpuData.modelLength);
 
 	// write QC file when exporting as SMD
 	if (Path != "" && AnimPath != "" && ModelFormat == ModelExportFormat_t::SMD)
@@ -162,21 +162,14 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 
 		uint64_t PhyOffset = 0;
 
-		if (mdlHdr.IsFlagSet(MODEL_HAS_PHYSICS))
-			PhyOffset = this->GetFileOffset(Asset, mdlHdr.phyData.Index, mdlHdr.phyData.Offset);
+		// phy is in cpu now, no ptr in header as far as I know
+		if (cpuData.phyDataSize)
+			PhyOffset = this->GetFileOffset(Asset, cpuData.phyData.Index, cpuData.phyData.Offset);
 
 		// check if this model has a phy segment
 		if (PhyOffset)
 		{
-			RpakStream->SetPosition(PhyOffset);
-
-			auto PhyHeader = Reader.Read<RMdlPhyHeader>();
-
-			RpakStream->SetPosition(PhyOffset + PhyHeader.TextOffset);
-
-			string Text = Reader.ReadCString();
-
-			uint64_t PhySize = PhyHeader.TextOffset + Text.Length();
+			int PhySize = cpuData.phyDataSize; // handily provided size
 
 			RpakStream->SetPosition(PhyOffset);
 
@@ -191,7 +184,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 
 		std::ofstream rmdlOut(BaseFileName + ".rmdl", std::ios::out | std::ios::binary);
 
-		rmdlOut.write(studioBuf.get(), cpuData.dataSize);
+		rmdlOut.write(studioBuf.get(), cpuData.modelLength);
 		rmdlOut.close();
 	}
 
@@ -295,41 +288,83 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 
 	IO::BinaryReader StarpakReader = IO::BinaryReader(StarpakStream.get(), true);
 
-
+	std::vector<vgloddata_t_v16> lods;
 	std::unique_ptr<IO::MemoryStream> vgStream = nullptr;
+	std::unique_ptr<uint8_t[]> dcmpBuf = nullptr;
 	size_t lodSize = 0;
-	vgloddata_t_v16 lod0{};
+	size_t cmpSize = 0;
+
+	size_t streamedDataSize = this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset];
 
 	if (this->LoadedFiles[Asset.FileIndex].StarpakMap.ContainsKey(Asset.StarpakOffset))
 	{
-		size_t streamedDataSize = this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset];
-
 		IO::Stream* StarpakStream = StarpakReader.GetBaseStream();
 
 		if (streamedDataSize)
-		{
-			StarpakStream->SetPosition(Offset);
-			char* cmpBuf = new char[streamedDataSize];
+		{	
+			// loop through all lods for full vg size
+			for (int i = 0; i < studiohdr.numvgloddata; i++)
+			{
+				RpakStream->SetPosition(StudioOffset + offsetof(studiohdr_t_v16, vgloddataindex) + FIX_OFFSET(studiohdr.vgloddataindex) + (sizeof(vgloddata_t_v16) * i));
+				vgloddata_t_v16 lod = Reader.Read<vgloddata_t_v16>();
 
-			StarpakReader.Read(cmpBuf, 0, streamedDataSize);
+				// full size of vg buffer
+				lodSize += lod.vgsizedecompressed;
 
-			RpakStream->SetPosition(StudioOffset + offsetof(studiohdr_t_v16, vgloddataindex) + FIX_OFFSET(studiohdr.vgloddataindex));
-			lod0 = Reader.Read<vgloddata_t_v16>();
+				lods.push_back(lod);
+			}
 
-			lodSize = lod0.vgsize;
-			vgStream = RTech::DecompressStreamedBuffer((uint8_t*)cmpBuf, lodSize, (uint8_t)CompressionType::OODLE);
+			if (!lods.empty())
+			{
+				// load decompressed sections into this
+				dcmpBuf = std::make_unique<uint8_t[]>(lodSize);
+
+				// dcmp offset
+				int decompOffset = 0;
+
+				// this is purely for getting the full vg, has nothing to do with actual model export
+				for (const auto& lod : lods)
+				{
+					cmpSize = lod.vgsizedecompressed;
+
+					// DecompressStreamedBuffer deletes the buffer, no need to free it.
+					uint8_t* tmpCmpBuf = new uint8_t[cmpSize];
+
+					StarpakStream->SetPosition(Offset + lod.vgoffset);
+					StarpakReader.Read(tmpCmpBuf, 0, lod.vgsizecompressed);
+
+					// read into vg stream and decompress
+					vgStream = RTech::DecompressStreamedBuffer(tmpCmpBuf, cmpSize, (uint8_t)CompressionType::OODLE);
+					vgStream->Read(dcmpBuf.get(), decompOffset, cmpSize);
+
+					// add size for an offset so we can write from the stream into the dcmpBuf at the right pos
+					decompOffset += lod.vgsizedecompressed;
+				}
+
+				vgStream = std::move(std::make_unique<IO::MemoryStream>(dcmpBuf.get(), 0, lods.front().vgsizedecompressed, false, true));
+			}
 		}
 	}
 	else {
 		return std::move(Model);
 	}
 
+	if (!vgStream && streamedDataSize)
+	{
+		g_Logger.Warning("VG is streamed but stream was invalid.\n");
+		return nullptr;
+	}
+
 	if (bExportingRawRMdl)
 	{
+		if (!dcmpBuf)
+		{
+			g_Logger.Warning("Exporting raw .rmdl failed due to no LOD.\n");
+			return nullptr;
+		}
+
 		std::ofstream vgOut(BaseFileName + ".vg", std::ios::out | std::ios::binary);
-		char* dcmpBuf = new char[lodSize];
-		vgStream->Read((uint8_t*)dcmpBuf, 0, lodSize);
-		vgOut.write(dcmpBuf, lodSize);
+		vgOut.write((char*)dcmpBuf.get(), lodSize);
 		vgOut.close();
 		return nullptr;
 	}
@@ -419,10 +454,8 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 		}
 	}
 
-
-
 	IO::BinaryReader vgReader = IO::BinaryReader(vgStream.get(), true);
-	if(lod0.numMeshes > 0)
+	if(lods.front().numMeshes > 0)
 		this->ExtractModelLod_V16(vgReader, RpakStream, ModelName, vgStream->GetPosition(), Model, Fixups, Asset.AssetVersion, IncludeMaterials);
 
 	vgStream->Close();
@@ -537,7 +570,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 			string Text = Reader.ReadCString();
 
-			uint64_t PhySize = PhyHeader.TextOffset + Text.Length();
+			uint64_t PhySize = PhyHeader.TextOffset + Text.Length() + 1; // add null terminator because it's missing otherwise
 
 			RpakStream->SetPosition(PhyOffset);
 
