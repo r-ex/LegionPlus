@@ -51,7 +51,7 @@ namespace IO
 
 	MemoryStream::~MemoryStream()
 	{
-		//this->Close();
+		this->Close();
 	}
 
 	bool MemoryStream::CanRead()
