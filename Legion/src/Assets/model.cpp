@@ -295,10 +295,10 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 	size_t cmpSize = 0;
 	std::vector<vgloddata_t_v16> lods;
 
+	size_t streamedDataSize = this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset];
+
 	if (this->LoadedFiles[Asset.FileIndex].StarpakMap.ContainsKey(Asset.StarpakOffset))
 	{
-		size_t streamedDataSize = this->LoadedFiles[Asset.FileIndex].StarpakMap[Asset.StarpakOffset];
-
 		IO::Stream* StarpakStream = StarpakReader.GetBaseStream();
 
 		if (streamedDataSize)
@@ -315,19 +315,15 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 				lods.push_back(lod);
 			}
 
-			//printf("vgsize cmp: %i  dcmp: %i \n starpakoffset: %i \n", lodCmpSize, lodSize, Offset);
-			//printf("lod0: %i \n", lods.at(0).numMeshes);
-
 			// load decompressed sections into this
 			dcmpBuf = new char[lodSize];
 
 			int decompOffset = 0;
 
 			// this is purely for getting the full vg, has nothing to do with actual model export
-			for (int i = 0; i < lods.size(); i++)
-			{
-				vgloddata_t_v16 lod = lods.at(i);
 
+			for (const auto& lod : lods)
+			{
 				// temp buffer for current lod to be decompressed 
 				char* tmpCmpBuf = new char[lod.vgsizecompressed];
 				cmpSize = lod.vgsizedecompressed; // could probably be done by casting in stream read
@@ -343,15 +339,13 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 				decompOffset += lod.vgsizedecompressed;
 			}
 			
-			// check for this just in case
 			if (!lods.empty())
 			{
-				// shitty way of reading used vg back into vg stream (I have a major skill issue)
-				char* tmpCmpBuf = new char[lods.at(0).vgsizecompressed];
-				cmpSize = lods.at(0).vgsizedecompressed;
+				char* tmpCmpBuf = new char[lods.front().vgsizecompressed];
+				cmpSize = lods.front().vgsizedecompressed;
 
-				StarpakStream->SetPosition(Offset + lods.at(0).vgoffset);
-				StarpakReader.Read(tmpCmpBuf, 0, lods.at(0).vgsizecompressed);
+				StarpakStream->SetPosition(Offset + lods.front().vgoffset);
+				StarpakReader.Read(tmpCmpBuf, 0, lods.front().vgsizecompressed);
 
 				vgStream = RTech::DecompressStreamedBuffer((uint8_t*)tmpCmpBuf, cmpSize, (uint8_t)CompressionType::OODLE);
 			}
@@ -359,6 +353,12 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 	}
 	else {
 		return std::move(Model);
+	}
+
+	if (!vgStream && streamedDataSize)
+	{
+		g_Logger.Warning("VG is streamed but stream was invalid.\n");
+		return nullptr;
 	}
 
 	if (bExportingRawRMdl)
@@ -454,10 +454,8 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 		}
 	}
 
-
-
 	IO::BinaryReader vgReader = IO::BinaryReader(vgStream.get(), true);
-	if(lods.at(0).numMeshes > 0)
+	if(lods.front().numMeshes > 0)
 		this->ExtractModelLod_V16(vgReader, RpakStream, ModelName, vgStream->GetPosition(), Model, Fixups, Asset.AssetVersion, IncludeMaterials);
 
 	vgStream->Close();
