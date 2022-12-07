@@ -309,6 +309,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 				RpakStream->SetPosition(StudioOffset + offsetof(studiohdr_t_v16, vgloddataindex) + FIX_OFFSET(studiohdr.vgloddataindex) + (sizeof(vgloddata_t_v16) * i));
 				vgloddata_t_v16 lod = Reader.Read<vgloddata_t_v16>();
 
+				// full size of vg buffer
 				lodSize += lod.vgsizedecompressed;
 
 				lods.push_back(lod);
@@ -317,40 +318,43 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 			//printf("vgsize cmp: %i  dcmp: %i \n starpakoffset: %i \n", lodCmpSize, lodSize, Offset);
 			//printf("lod0: %i \n", lods.at(0).numMeshes);
 
+			// load decompressed sections into this
 			dcmpBuf = new char[lodSize];
 
 			int decompOffset = 0;
 
-			for (int i = 0; i < studiohdr.numvgloddata; i++)
+			// this is purely for getting the full vg, has nothing to do with actual model export
+			for (int i = 0; i < lods.size(); i++)
 			{
 				vgloddata_t_v16 lod = lods.at(i);
 
 				// temp buffer for current lod to be decompressed 
 				char* tmpCmpBuf = new char[lod.vgsizecompressed];
+				cmpSize = lod.vgsizedecompressed; // could probably be done by casting in stream read
 
 				StarpakStream->SetPosition(Offset + lod.vgoffset);
 				StarpakReader.Read(tmpCmpBuf, 0, lod.vgsizecompressed);
 
-				// could probably be done by casting in stream read
-				cmpSize = lod.vgsizedecompressed;
-
 				// read into vg stream and decompress
 				vgStream = RTech::DecompressStreamedBuffer((uint8_t*)tmpCmpBuf, cmpSize, (uint8_t)CompressionType::OODLE);
-
 				vgStream->Read((uint8_t*)dcmpBuf, decompOffset, cmpSize);
 
 				// add size for an offset so we can write from the stream into the dcmpBuf at the right pos
 				decompOffset += lod.vgsizedecompressed;
 			}
+			
+			// check for this just in case
+			if (!lods.empty())
+			{
+				// shitty way of reading used vg back into vg stream (I have a major skill issue)
+				char* tmpCmpBuf = new char[lods.at(0).vgsizecompressed];
+				cmpSize = lods.at(0).vgsizedecompressed;
 
-			// shitty way of reading used vg back into vg stream (I have a major skill issue)
-			char* tmpCmpBuf = new char[lods.at(0).vgsizecompressed];
-			cmpSize = lods.at(0).vgsizedecompressed;
+				StarpakStream->SetPosition(Offset + lods.at(0).vgoffset);
+				StarpakReader.Read(tmpCmpBuf, 0, lods.at(0).vgsizecompressed);
 
-			StarpakStream->SetPosition(Offset + lods.at(0).vgoffset);
-			StarpakReader.Read(tmpCmpBuf, 0, lods.at(0).vgsizecompressed);
-
-			vgStream = RTech::DecompressStreamedBuffer((uint8_t*)tmpCmpBuf, cmpSize, (uint8_t)CompressionType::OODLE);
+				vgStream = RTech::DecompressStreamedBuffer((uint8_t*)tmpCmpBuf, cmpSize, (uint8_t)CompressionType::OODLE);
+			}
 		}
 	}
 	else {
