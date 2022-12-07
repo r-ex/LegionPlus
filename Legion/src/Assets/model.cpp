@@ -359,7 +359,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 	{
 		if (!dcmpBuf)
 		{
-			g_Logger.Warning("Exporting raw .rdml failed due to no LOD.\n");
+			g_Logger.Warning("Exporting raw .rmdl failed due to no LOD.\n");
 			return nullptr;
 		}
 
