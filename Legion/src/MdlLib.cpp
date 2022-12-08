@@ -84,16 +84,11 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 
 	// id = IDST or version = 53
 	if (mdl->id != 0x54534449 || mdl->version != 0x35)
-	{
-		//printf("I ate ass");
 		return;
-	}
 	
 	auto Model = std::make_unique<Assets::Model>(0, 0);
 
 	// get name from sznameindex incase it exceeds 64 bytes (for whatever reason)
-	//Stream->SetPosition(hdr.sznameindex);
-	//string modelName = Reader.ReadCString();
 	Model->Name = IO::Path::GetFileNameWithoutExtension(mdl->mdlName());
 
 	std::vector<titanfall2::mstudiobone_t> bones;
@@ -114,20 +109,6 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 	{
 		string ExportModelPath = IO::Path::Combine(Path, "models");
 
-		// do materials
-		std::vector<string> materialNames;
-
-		for (int i = 0; i < mdl->numtextures; i++)
-		{
-			titanfall2::mstudiotexture_t* texture = mdl->texture(i);
-
-			materialNames.push_back(IO::Path::GetFileNameWithoutExtension(texture->textureName()));
-		}
-
-		//printf("vtx idx: %i size: %i \n", mdl->vtxindex, mdl->vtxsize);
-		//printf("vvd idx: %i size: %i \n", mdl->vvdindex, mdl->vvdsize);
-		//printf("vvc idx: %i size: %i \n", mdl->vvcindex, mdl->vvcsize);
-
 		// we should run a checksum check here just in case someone tries to do funny business
 		FileHeader_t* fileHeader = mdl->vtx();
 		vertexFileHeader_t* vertexFileHeader = mdl->vvd(); // actually vvd file header
@@ -136,8 +117,6 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 		// if vvc exists
 		if (mdl->vvcsize)
 			vertexColorFileHeader = mdl->vvc();
-
-		//printf("num verts %i num fixups %i \n", vertexFileHeader->numLODVertexes[0], vertexFileHeader->numFixups);
 
 		// hard code to one for now
 		for (int i = 0; i < fileHeader->numLODs; i++)
@@ -212,13 +191,7 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 			//printf("num verts in vector %i \n", vvdVerts.size());
 
 			// some basic error checks to avoid crashes
-			if (vvdVerts.empty())
-				return;
-
-			if (vvcColors.empty() && (mdl->flags & STUDIOHDR_FLAGS_USES_VERTEX_COLOR))
-				return;
-
-			if (vvcUV2s.empty() && (mdl->flags & STUDIOHDR_FLAGS_USES_UV2))
+			if (vvdVerts.empty() || (vvcColors.empty() && (mdl->flags & STUDIOHDR_FLAGS_USES_VERTEX_COLOR)) || (vvcUV2s.empty() && (mdl->flags & STUDIOHDR_FLAGS_USES_UV2)))
 				return;
 
 			// eventually we should do checks on all of these to confirm they match
