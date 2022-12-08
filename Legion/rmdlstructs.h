@@ -96,6 +96,12 @@ typedef Math::Vector3 RadianEuler;
 // studiohdr_t::VertAnimFixedPointScale() to always retrieve the scale value
 #define STUDIOHDR_FLAGS_VERT_ANIM_FIXED_POINT_SCALE	0x200000
 
+// added in v54
+#define STUDIOHDR_FLAGS_COMPLEX_WEIGHTS		        0x4000 // don't really know what to name this one
+
+#define STUDIOHDR_FLAGS_USES_VERTEX_COLOR	        0x1000000 // model has/uses vertex color
+#define STUDIOHDR_FLAGS_USES_UV2			        0x2000000 // model has/uses secondary uv layer
+
 #pragma pack(push, 1)
 struct matrix3x4_t
 {
@@ -1220,6 +1226,7 @@ struct RMdlMaterial
 	uint64_t CavityHash;
 };
 
+
 //============
 // VVD (IDSV)
 //============
@@ -1268,7 +1275,7 @@ struct vertexFileHeader_t
 
 	vertexFileFixup_t* fixup(int i)
 	{
-		return reinterpret_cast<vertexFileFixup_t*>((char*)this + vertexDataStart) + i;
+		return reinterpret_cast<vertexFileFixup_t*>((char*)this + fixupTableStart) + i;
 	}
 
 	mstudiovertex_t* vertex(int i)
@@ -1321,6 +1328,12 @@ namespace apexlegends
 // VVC (IDCV)
 //============
 
+struct VertexColor_t
+{
+	uint8 r, g, b, a;
+};
+
+
 struct vertexColorFileHeader_t
 {
 	int id; // MODEL_VERTEX_FILE_ID
@@ -1332,17 +1345,28 @@ struct vertexColorFileHeader_t
 
 	int colorDataStart;
 	int uv2DataStart;
-};
 
-struct VertexColor_t
-{
-	uint8 r, g, b, a;
+	VertexColor_t* color(int i)
+	{
+		return reinterpret_cast<VertexColor_t*>((char*)this + colorDataStart) + i;
+	}
+
+	Vector2* uv2(int i)
+	{
+		return reinterpret_cast<Vector2*>((char*)this + uv2DataStart) + i;
+	}
 };
 
 
 //============
 // 'VVW'
 //============
+
+struct mstudioexternalboneweight_t
+{
+	short	weight; // value divided by 32767.0
+	short	bone;
+};
 
 struct vertexWeightFileHeader_t
 {
@@ -1352,12 +1376,12 @@ struct vertexWeightFileHeader_t
 	int numLODVertexes[MAX_NUM_LODS]; // maybe this but the others don't get filled?
 
 	int weightDataStart; // index into mstudioexternalboneweight_t array
-};
 
-struct mstudioexternalboneweight_t
-{
-	short	weight; // value divided by 32767.0
-	short	bone;
+	// useful for s0/1 rmdl
+	mstudioexternalboneweight_t* weight(int i)
+	{
+		return reinterpret_cast<mstudioexternalboneweight_t*>((char*)this + weightDataStart) + i;
+	}
 };
 
 
@@ -1365,93 +1389,20 @@ struct mstudioexternalboneweight_t
 // VTX
 //============
 
-struct FileHeader_t
+// we have odd sized structs
+#pragma pack(push, 1)
+
+struct Vertex_t
 {
-	// file version as defined by OPTIMIZED_MODEL_FILE_VERSION (currently 7)
-	int version;
+	// these index into the mesh's vert[origMeshVertID]'s bones
+	unsigned char boneWeightIndex[MAX_NUM_BONES_PER_VERT];
+	unsigned char numBones;
 
-	// hardware params that affect how the model is to be optimized.
-	int vertCacheSize;
-	unsigned short maxBonesPerStrip;
-	unsigned short maxBonesPerFace;
-	int maxBonesPerVert;
+	unsigned short origMeshVertID;
 
-	// must match checkSum in the .mdl
-	int checkSum;
-
-	int numLODs; // Also specified in ModelHeader_t's and should match
-
-	// Offset to materialReplacementList Array. one of these for each LOD, 8 in total
-	int materialReplacementListOffset;
-
-	// Defines the size and location of the body part array
-	int numBodyParts;
-	int bodyPartOffset;
-};
-
-struct BodyPartHeader_t
-{
-	// Model array
-	int numModels;
-	int modelOffset;
-};
-
-struct ModelHeader_t
-{
-	//LOD mesh array
-	int numLODs;   //This is also specified in FileHeader_t
-	int lodOffset;
-};
-
-struct ModelLODHeader_t
-{
-	//Mesh array
-	int numMeshes;
-	int meshOffset;
-
-	float switchPoint;
-};
-
-enum MeshFlags_t
-{
-	// these are both material properties, and a mesh has a single material.
-	MESH_IS_TEETH = 0x01,
-	MESH_IS_EYES = 0x02
-};
-
-struct MeshHeader_t
-{
-	int numStripGroups;
-	int stripGroupHeaderOffset;
-
-	unsigned char flags;
-};
-
-enum StripGroupFlags_t
-{
-	STRIPGROUP_IS_HWSKINNED = 0x02,
-	STRIPGROUP_IS_DELTA_FLEXED = 0x04,
-	STRIPGROUP_SUPPRESS_HW_MORPH = 0x08,	// NOTE: This is a temporary flag used at run time.
-};
-
-struct StripGroupHeader_t
-{
-	// These are the arrays of all verts and indices for this mesh.  strips index into this.
-	int numVerts;
-	int vertOffset;
-
-	int numIndices;
-	int indexOffset;
-
-	int numStrips;
-	int stripOffset;
-
-	unsigned char flags;
-
-	// The following fields are only present if MDL version is >=49
-	// Points to an array of unsigned shorts (16 bits each)
-	int numTopologyIndices;
-	int topologyOffset;
+	// for sw skinned verts, these are indices into the global list of bones
+	// for hw skinned verts, these are hardware bone indices
+	char boneID[MAX_NUM_BONES_PER_VERT];
 };
 
 enum StripHeaderFlags_t
@@ -1483,24 +1434,135 @@ struct StripHeader_t
 	int topologyOffset;
 };
 
-struct Vertex_t
+enum StripGroupFlags_t
 {
-	// these index into the mesh's vert[origMeshVertID]'s bones
-	unsigned char boneWeightIndex[MAX_NUM_BONES_PER_VERT];
-	unsigned char numBones;
-
-	unsigned short origMeshVertID;
-
-	// for sw skinned verts, these are indices into the global list of bones
-	// for hw skinned verts, these are hardware bone indices
-	char boneID[MAX_NUM_BONES_PER_VERT];
+	STRIPGROUP_IS_HWSKINNED = 0x02,
+	STRIPGROUP_IS_DELTA_FLEXED = 0x04,
+	STRIPGROUP_SUPPRESS_HW_MORPH = 0x08,	// NOTE: This is a temporary flag used at run time.
 };
 
+struct StripGroupHeader_t
+{
+	// These are the arrays of all verts and indices for this mesh.  strips index into this.
+	int numVerts;
+	int vertOffset;
+
+	Vertex_t* vtxVert(int i)
+	{
+		return reinterpret_cast<Vertex_t*>((char*)this + vertOffset) + i;
+	}
+
+	int numIndices;
+	int indexOffset;
+
+	unsigned short* vtxIndice(int i)
+	{
+		return reinterpret_cast<unsigned short*>((char*)this + indexOffset) + i;
+	}
+
+	int numStrips;
+	int stripOffset;
+
+	StripHeader_t* vtxStrip(int i)
+	{
+		return reinterpret_cast<StripHeader_t*>((char*)this + stripOffset) + i;
+	}
+
+	unsigned char flags;
+
+	// The following fields are only present if MDL version is >=49
+	// Points to an array of unsigned shorts (16 bits each)
+	int numTopologyIndices;
+	int topologyOffset;
+};
+
+struct MeshHeader_t
+{
+	int numStripGroups;
+	int stripGroupHeaderOffset;
+
+	unsigned char flags; // never read these as eyeballs and mouths are depreciated
+
+	StripGroupHeader_t* vtxStripGrp(int i)
+	{
+		return reinterpret_cast<StripGroupHeader_t*>((char*)this + stripGroupHeaderOffset) + i;
+	}
+};
+
+struct ModelLODHeader_t
+{
+	//Mesh array
+	int numMeshes;
+	int meshOffset;
+
+	float switchPoint;
+
+	MeshHeader_t* vtxMesh(int i)
+	{
+		return reinterpret_cast<MeshHeader_t*>((char*)this + meshOffset) + i;
+	}
+};
+
+struct ModelHeader_t
+{
+	//LOD mesh array
+	int numLODs;   //This is also specified in FileHeader_t
+	int lodOffset;
+
+	ModelLODHeader_t* vtxLOD(int i)
+	{
+		return reinterpret_cast<ModelLODHeader_t*>((char*)this + lodOffset) + i;
+	}
+};
+
+struct BodyPartHeader_t
+{
+	// Model array
+	int numModels;
+	int modelOffset;
+
+	ModelHeader_t* vtxModel(int i)
+	{
+		return reinterpret_cast<ModelHeader_t*>((char*)this + modelOffset) + i;
+	}
+};
+
+struct FileHeader_t
+{
+	// file version as defined by OPTIMIZED_MODEL_FILE_VERSION (currently 7)
+	int version;
+
+	// hardware params that affect how the model is to be optimized.
+	int vertCacheSize;
+	unsigned short maxBonesPerStrip;
+	unsigned short maxBonesPerFace;
+	int maxBonesPerVert;
+
+	// must match checkSum in the .mdl
+	int checkSum;
+
+	int numLODs; // Also specified in ModelHeader_t's and should match
+
+	// Offset to materialReplacementList Array. one of these for each LOD, 8 in total
+	int materialReplacementListOffset;
+
+	// Defines the size and location of the body part array
+	int numBodyParts;
+	int bodyPartOffset;
+
+	BodyPartHeader_t* vtxBodypart(int i)
+	{
+		return reinterpret_cast<BodyPartHeader_t*>((char*)this + bodyPartOffset) + i;
+	}
+};
+
+#pragma pack(pop)
 
 //============
 // 'VG'
 //============
 
+// soon tm
 
 
 //============
@@ -1581,7 +1643,7 @@ namespace titanfall2
 		int nummeshes;
 		int meshindex;
 
-		titanfall2::mstudiomesh_t* mesh(int i)
+		titanfall2::mstudiomesh_t* mdlMesh(int i)
 		{
 			return reinterpret_cast<titanfall2::mstudiomesh_t*>((char*)this + meshindex) + i;
 		}
@@ -1616,7 +1678,7 @@ namespace titanfall2
 		int base;
 		int modelindex;
 
-		titanfall2::mstudiomodel_t* model(int i)
+		titanfall2::mstudiomodel_t* mdlModel(int i)
 		{
 			return reinterpret_cast<titanfall2::mstudiomodel_t*>((char*)this + modelindex) + i;
 		}
@@ -1673,7 +1735,7 @@ namespace titanfall2
 		int checksum; // This has to be the same in the phy and vtx files to load!
 		int sznameindex; // This has been moved from studiohdr2 to the front of the main header.
 
-		char* modelName()
+		char* mdlName()
 		{
 			return reinterpret_cast<char*>((char*)this + sznameindex);
 		}
@@ -1743,7 +1805,7 @@ namespace titanfall2
 		int numbodyparts;
 		int bodypartindex;
 
-		mstudiobodyparts_t* bodypart(int i)
+		mstudiobodyparts_t* mdlBodypart(int i)
 		{
 			return reinterpret_cast<mstudiobodyparts_t*>((char*)this + bodypartindex) + i;
 		}
