@@ -262,7 +262,7 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 		this->ModelExporter->ExportModel(*Model.get(), IO::Path::Combine(ModelDirectory, Model->Name + (const char*)ModelExporter->ModelExtension()));
 
 		// for testing
-		printf("model has been exported");
+		g_Logger.Info("Exported: " + Model->Name + ".mdl\n");
 	}
 
 	if (mdl->numlocalanim)
