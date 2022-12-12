@@ -71,16 +71,12 @@ void MdlLib::InitializeAnimExporter(AnimExportFormat_t Format)
 void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 {
 	IO::BinaryReader Reader = IO::BinaryReader(IO::File::OpenRead(Asset));
-	//IO::Stream* Stream = Reader.GetBaseStream();
-	//titanfall2::studiohdr_t hdr = Reader.Read<titanfall2::studiohdr_t>();
 
 	int modelLength = IO::File::OpenRead(Asset)->GetLength();;
 
 	char* mdlBuff = new char[modelLength];
 	Reader.Read(mdlBuff, 0, modelLength);
 	titanfall2::studiohdr_t* mdl = reinterpret_cast<titanfall2::studiohdr_t*>(mdlBuff);
-
-	//printf("length %i \n id %i \n version %i \n", modelLength, mdl->id, mdl->version);
 
 	// id = IDST or version = 53
 	if (mdl->id != 0x54534449 || mdl->version != 0x35)
@@ -134,15 +130,11 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 				{
 					vertexFileFixup_t* vertexFixup = vertexFileHeader->fixup(j);
 
-					//printf("num verts %i vert offset %i lod %i \n", vertexFixup->numVertexes, vertexFixup->sourceVertexID, vertexFixup->lod);
-
 					if (vertexFixup->lod >= i)
 					{
 						for (int k = 0; k < vertexFixup->numVertexes; k++)
 						{
 							mstudiovertex_t* vvdVert = vertexFileHeader->vertex(vertexFixup->sourceVertexID + k);
-
-							//printf("fixup %i vertex %i \n", j, vertexFixup->sourceVertexID + k);
 
 							vvdVerts.push_back(vvdVert);
 
@@ -155,8 +147,6 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 
 								vvcColors.push_back(vvcColor);
 								vvcUV2s.push_back(vvcUV2);
-
-								//printf("did color and uv \n");
 							}
 						}
 					}
@@ -169,8 +159,6 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 				{
 					mstudiovertex_t* vvdVert = vertexFileHeader->vertex(j);
 
-					//printf("vertex %i \n", j);
-
 					vvdVerts.push_back(vvdVert);
 
 					// vvc
@@ -182,13 +170,9 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 
 						vvcColors.push_back(vvcColor);
 						vvcUV2s.push_back(vvcUV2);
-
-						//printf("did color and uv \n");
 					}
 				}
 			}
-
-			//printf("num verts in vector %i \n", vvdVerts.size());
 
 			// some basic error checks to avoid crashes
 			if (vvdVerts.empty() || (vvcColors.empty() && (mdl->flags & STUDIOHDR_FLAGS_USES_VERTEX_COLOR)) || (vvcUV2s.empty() && (mdl->flags & STUDIOHDR_FLAGS_USES_UV2)))
@@ -200,19 +184,13 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 				titanfall2::mstudiobodyparts_t* mdlBodypart = mdl->mdlBodypart(j);
 				BodyPartHeader_t* vtxBodypart = fileHeader->vtxBodypart(j);
 
-				//printf("models %i \n", mdlBodypart->nummodels);
-
 				for (int k = 0; k < mdlBodypart->nummodels; k++)
 				{
 					titanfall2::mstudiomodel_t* mdlModel = mdlBodypart->mdlModel(k);
 					ModelHeader_t* vtxModel = vtxBodypart->vtxModel(k);
 
-					//printf("lods %i offset %i \n", vtxModel->numLODs, vtxModel->lodOffset);
-
 					// lod
 					ModelLODHeader_t* vtxLod = vtxModel->vtxLOD(i);
-
-					//printf("num meshes %i mesh offset %i \n", vtxLod->numMeshes, vtxLod->meshOffset);
 
 					for (int l = 0; l < mdlModel->nummeshes; l++)
 					{
@@ -229,20 +207,14 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 							titanfall2::mstudiotexture_t* meshMaterial = mdl->texture(mdlMesh->material);
 							exportMesh.MaterialIndices.EmplaceBack(Model->AddMaterial(IO::Path::GetFileNameWithoutExtension(meshMaterial->textureName()), ""));
 
-							//printf("strip grp offset %i num strips %i \n", vtxMesh->stripGroupHeaderOffset, vtxMesh->numStripGroups);
-
 							for (int m = 0; m < vtxMesh->numStripGroups; m++)
 							{
 								StripGroupHeader_t* vtxStripGroup = vtxMesh->vtxStripGrp(m);
-
-								//printf("num verts %i num indices %i \n", vtxStripGroup->numVerts, vtxStripGroup->numIndices);
 
 								for (int n = 0; n < vtxStripGroup->numVerts; n++)
 								{
 									Vertex_t* vtxVert = vtxStripGroup->vtxVert(n);
 									mstudiovertex_t* vvdVert = vvdVerts.at(vertexOffset + vtxVert->origMeshVertID);
-
-									//printf("vertex %i \n", vertexOffset + vtxVert->origMeshVertID);
 
 									Assets::VertexColor vertexColor;
 
@@ -269,12 +241,9 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 
 								for (int n = 0; n < vtxStripGroup->numIndices; n += 3)
 								{
-									//printf("indice %i \n", n);
 									unsigned short i1 = *vtxStripGroup->vtxIndice(n);
 									unsigned short i2 = *vtxStripGroup->vtxIndice(n + 1);
 									unsigned short i3 = *vtxStripGroup->vtxIndice(n + 2);
-
-									//printf("idx %i %i %i \n", i1, i2, i3);
 
 									exportMesh.Faces.EmplaceBack(i1, i2, i3);
 								}
@@ -294,6 +263,27 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 
 		// for testing
 		printf("model has been exported");
+	}
+
+	if (mdl->numlocalanim)
+	{
+		string ExportAnimPath = IO::Path::Combine(Path, "animations");
+		string ExportBasePath = IO::Path::Combine(ExportAnimPath, IO::Path::GetFileNameWithoutExtension(mdl->mdlName()));
+
+		IO::Directory::CreateDirectory(ExportBasePath);
+
+		for (int i = 0; i < mdl->numlocalanim; i++)
+		{
+			titanfall2::mstudioanimdesc_t* animdesc = mdl->anim(i);
+
+			auto Anim = std::make_unique<Assets::Animation>(Model->Bones.Count(), animdesc->fps);
+			Assets::AnimationCurveMode AnimCurveType = Assets::AnimationCurveMode::Absolute; // technically this should change based on flags
+
+			Anim->RemoveEmptyNodes();
+
+			string animName = animdesc->animName();
+			this->AnimExporter->ExportAnimation(*Anim.get(), IO::Path::Combine(ExportBasePath, animName + (const char*)this->AnimExporter->AnimationExtension()));
+		}
 	}
 
 	/*if (hdr.numlocalanim)
@@ -463,7 +453,7 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 	delete[] mdlBuff;
 }
 
-void MdlLib::ParseRAnimBoneTranslationTrack(const RAnimBoneHeader& BoneFlags, const titanfall2::mstudiobone_t& Bone, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
+/*void MdlLib::ParseRAnimBoneTranslationTrack(const RAnimBoneHeader& BoneFlags, const titanfall2::mstudiobone_t& Bone, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
 {
 	printf("***** ParseRAnimBoneTranslationTrack is STUBBED.\n");
 
@@ -541,4 +531,4 @@ void MdlLib::ParseRAnimBoneRotationTrack(const RAnimBoneHeader& BoneFlags, const
 	RTech::DecompressConvertRotation((const __m128i*) & EulerResult[0], (float*)&Result);
 
 	Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name())[0].Keyframes.Emplace(FrameIndex, Result);
-}
+}*/

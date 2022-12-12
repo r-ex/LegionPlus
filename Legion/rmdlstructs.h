@@ -7,10 +7,13 @@
 #include "ListBase.h"
 #include "StringBase.h"
 
-typedef unsigned short uint16;
 typedef unsigned char uint8;
+typedef unsigned short uint16;
+typedef unsigned __int64 uint64;
 typedef Math::Quaternion Quaternion;
 typedef Math::Vector3 RadianEuler;
+typedef short float16; // it really does not like Math::Half
+
 
 #define MAX_NUM_LODS 8
 #define MAX_NUM_BONES_PER_VERT 3
@@ -68,7 +71,6 @@ typedef Math::Vector3 RadianEuler;
 #define STUDIOHDR_FLAGS_CONSTANT_DIRECTIONAL_LIGHT_DOT 0x2000
 
 // Flag to mark delta flexes as already converted from disk format to memory format
-// in v54+ this has to do with Funny Weights I think
 //STUDIOHDR_FLAGS_COMPLEX_WEIGHTS
 #define STUDIOHDR_FLAGS_FLEXES_CONVERTED		0x4000
 
@@ -96,11 +98,10 @@ typedef Math::Vector3 RadianEuler;
 // studiohdr_t::VertAnimFixedPointScale() to always retrieve the scale value
 #define STUDIOHDR_FLAGS_VERT_ANIM_FIXED_POINT_SCALE	0x200000
 
-// added in v54
-#define STUDIOHDR_FLAGS_COMPLEX_WEIGHTS		        0x4000 // don't really know what to name this one
-
+// new in respawn models
+#define STUDIOHDR_FLAGS_COMPLEX_WEIGHTS		        0x4000 // don't really know what to name this one, new in v54, for 'vvw'
 #define STUDIOHDR_FLAGS_USES_VERTEX_COLOR	        0x1000000 // model has/uses vertex color
-#define STUDIOHDR_FLAGS_USES_UV2			        0x2000000 // model has/uses secondary uv layer
+#define STUDIOHDR_FLAGS_USES_UV2					0x2000000 // model has/uses secondary uv layer
 
 #pragma pack(push, 1)
 struct matrix3x4_t
@@ -175,6 +176,22 @@ struct matrix3x4_t
 
 		return { x,y,z };
 	}
+};
+
+// placeholders, needs to be done better and or like normal source
+struct Quaternion64
+{
+	uint64 x : 21;
+	uint64 y : 21;
+	uint64 z : 21;
+	uint64 wneg : 1;
+};
+
+struct Vector48
+{
+	float16 x;
+	float16 y;
+	float16 z;
 };
 
 struct studiohdr_t // latest studiohdr
@@ -441,11 +458,6 @@ struct s3studiohdr_t // season 3 studiohdr
 
 	int weightindex;
 	int weightsize;
-
-	//int vgindex; // 0tVG
-	//int unksize; // might be offset
-	//int unksize1; // might be offset
-
 };
 
 struct studiohdr_t_v16
@@ -1236,13 +1248,6 @@ struct Vector4_t
 	float x, y, z, w;
 };
 
-struct vertexFileFixup_t
-{
-	int		lod;				// used to skip culled root lod
-	int		sourceVertexID;		// absolute index from start of vertex/tangent blocks
-	int		numVertexes;
-};
-
 struct mstudioboneweight_t
 {
 	float	weight[MAX_NUM_BONES_PER_VERT];
@@ -1256,6 +1261,13 @@ struct mstudiovertex_t
 	Vector3 m_vecPosition;
 	Vector3 m_vecNormal;
 	Vector2 m_vecTexCoord;
+};
+
+struct vertexFileFixup_t
+{
+	int		lod;				// used to skip culled root lod
+	int		sourceVertexID;		// absolute index from start of vertex/tangent blocks
+	int		numVertexes;
 };
 
 struct vertexFileHeader_t
@@ -1307,7 +1319,7 @@ namespace apexlegends
 			union {
 				mstudiopackedweight_t packedweight;
 				float weight[MAX_NUM_BONES_PER_VERT];
-			} weights;
+			} weights; // change this to be nameless so we don't have to access through it?
 
 			unsigned char bone[MAX_NUM_BONES_PER_VERT]; // set to unsigned so we can read it
 			byte numbones;
@@ -1315,6 +1327,7 @@ namespace apexlegends
 
 		struct mstudiovertex_t
 		{
+			// should  we just do this with a union in the normal vertex struct?
 			apexlegends::v8::mstudioboneweight_t m_BoneWeights;
 			Vector3 m_vecPosition;
 			Vector3 m_vecNormal;
@@ -1391,7 +1404,6 @@ struct vertexWeightFileHeader_t
 
 // we have odd sized structs
 #pragma pack(push, 1)
-
 struct Vertex_t
 {
 	// these index into the mesh's vert[origMeshVertID]'s bones
@@ -1555,7 +1567,6 @@ struct FileHeader_t
 		return reinterpret_cast<BodyPartHeader_t*>((char*)this + bodyPartOffset) + i;
 	}
 };
-
 #pragma pack(pop)
 
 //============
@@ -1568,6 +1579,27 @@ struct FileHeader_t
 //============
 // MDL (IDST)
 //============
+
+union mstudioanimvalue_t
+{
+	struct
+	{
+		byte	valid;
+		byte	total;
+	} num;
+	short		value;
+};
+
+struct mstudioanim_valueptr_t
+{
+	short	offset[3];
+
+	// untested
+	mstudioanimvalue_t* mdlAnimValue(int i)
+	{
+		return reinterpret_cast<mstudioanimvalue_t*>((char*)this + offset[i]);
+	}
+};
 
 struct mstudiobodyparts_t
 {
@@ -1684,6 +1716,93 @@ namespace titanfall2
 		}
 	};
 
+	#define STUDIO_ANIM_DELTA		0x01 // these anims have been subtracted
+
+	// These work as toggles, flag enabled = raw data, flag disabled = pointers
+	#define STUDIO_ANIM_RAWPOS		0x02 // Vector48
+	#define STUDIO_ANIM_RAWROT		0x04 // Quaternion48
+	#define STUDIO_ANIM_RAWSCALE	0x08 // Vector48
+											 // drone_frag.mdl for scale track usage
+	#define STUDIO_ANIM_UNK			0x10 // whar?
+
+	struct mstudio_rle_anim_t
+	{
+		float posscale; // does what posscale is used for
+
+		unsigned char bone; // unsigned byte, bone limit exceeds 128 so has to be. also means max bones is 255.
+		byte flags;
+
+		short unk; // normally null data
+				   // honestly might just be fake to get the size to a clean 8 bytes
+				   // since the lower members are not actually part of the struct, at least in pre v52
+
+		// using func names for var names
+		// these are normally accessed by funcs, how to handle this?
+		union {
+			Quaternion64 pQuat64; // pQuat64
+			mstudioanim_valueptr_t pRotV; // pRotV
+			//short pad;
+		};
+
+		union
+		{
+			Vector48 pPos; // pPos
+			mstudioanim_valueptr_t pPosV; // pPosV
+		};
+			
+		// scale track
+		// a_Scaletest in pete_scripted for r1/2
+		// drone_frag.mdl
+		union
+		{
+			Vector48 pScale;
+			mstudioanim_valueptr_t pScaleV;
+		};
+
+		int nextoffset;
+	};
+
+	struct mstudioanimsections_t
+	{
+		int animindex;
+	};
+
+	struct mstudioanimdesc_t
+	{
+		int baseptr;
+
+		int sznameindex;
+
+		char* animName()
+		{
+			return reinterpret_cast<char*>((char*)this + sznameindex);
+		}
+
+		float fps; // frames per second	
+		int flags; // looping/non-looping flags
+
+		int numframes;
+
+		// piecewise movement
+		int nummovements;
+		int movementindex;
+
+		int framemovementindex; // new in v52
+
+		int animindex; // non-zero when anim data isn't in sections
+
+		int numikrules;
+		int ikruleindex; // non-zero when IK data is stored in the mdl
+
+		int numlocalhierarchy;
+		int localhierarchyindex;
+
+		int sectionindex;
+		int sectionframes; // number of frames used in each fast lookup section, zero if not used
+
+		int unused[8];
+	};
+
 	struct mstudiobone_t
 	{
 		int sznameindex;
@@ -1774,6 +1893,11 @@ namespace titanfall2
 
 		int numlocalanim; // animations/poses
 		int localanimindex; // animation descriptions
+
+		titanfall2::mstudioanimdesc_t* anim(int i)
+		{
+			return reinterpret_cast<titanfall2::mstudioanimdesc_t*>((char*)this + localanimindex) + i;
+		}
 
 		int numlocalseq; // sequences
 		int	localseqindex;
