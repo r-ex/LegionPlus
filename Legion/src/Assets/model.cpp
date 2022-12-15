@@ -380,6 +380,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 		{
 			RpakLoadAsset& MaterialAsset = Assets[material.guid];
 
+			this->ExportMaterialCPU(MaterialAsset, TexturePath);
 			RMdlMaterial ParsedMaterial = this->ExtractMaterial(MaterialAsset, TexturePath, IncludeMaterials, false);
 			uint32_t MaterialIndex = Model->AddMaterial(ParsedMaterial.MaterialName, ParsedMaterial.AlbedoHash);
 

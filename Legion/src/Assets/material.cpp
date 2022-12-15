@@ -195,6 +195,11 @@ void RpakLib::ExportMatCPUAsStruct(const RpakLoadAsset& Asset, MaterialHeader& M
 // Shaderset reference: 0x7b69f3d87cf71a2b THEY MAY DIFFER NOT SURE.
 void RpakLib::ExportMaterialCPU(const RpakLoadAsset& Asset, const string& Path)
 {
+	auto ExportFormat = (MatCPUExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("MatCPUFormat");
+
+	if (ExportFormat == MatCPUExportFormat_t::None)
+		return;
+
 	auto RpakStream = this->GetFileStream(Asset);
 	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
@@ -208,14 +213,8 @@ void RpakLib::ExportMaterialCPU(const RpakLoadAsset& Asset, const string& Path)
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, MatHeader.pName.Index, MatHeader.pName.Offset));
 
-	auto ExportFormat = (MatCPUExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("MatCPUFormat");
-
 	switch (ExportFormat)
 	{
-	case MatCPUExportFormat_t::None:
-	{
-		return;
-	}
 	case MatCPUExportFormat_t::Struct:
 	{
 		string DestinationPath = IO::Path::Combine(Path, string::Format("%s.h", IO::Path::GetFileNameWithoutExtension(Reader.ReadCString()).ToLower().ToCString()));
