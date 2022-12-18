@@ -949,19 +949,15 @@ void RpakLib::ExtractModelLod_V16(IO::BinaryReader& Reader, const std::unique_pt
 
 			if ((mesh.flags & 0x5000) == 0x5000)
 			{
+				float CurrentWeightTotal = (float)(Weights.BlendWeights[0] + 1) / (float)0x8000;
+				uint32_t WeightsIndex = 0;
+
+				Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], CurrentWeightTotal }, WeightsIndex++);
+
 				if (ExtendedWeights.Count() > 0)
 				{
-					//
-					// These models have complex extended weights
-					//
-
-					uint32_t ExtendedWeightsIndex = (uint32_t)Weights.BlendIds[2] << 16;
+					uint32_t ExtendedWeightsIndex = (uint32_t)Weights.BlendIds[2] << 16;  // BlendIds[2] seems to be unused? not sure
 					ExtendedWeightsIndex |= (uint32_t)Weights.BlendWeights[1];
-
-					float CurrentWeightTotal = (float)(Weights.BlendWeights[0] + 1) / (float)0x8000;
-					uint32_t WeightsIndex = 0;
-
-					Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], CurrentWeightTotal }, WeightsIndex++);
 
 					uint32_t ExtendedCounter = 1;
 					uint32_t ExtendedComparer = 0;
@@ -985,15 +981,11 @@ void RpakLib::ExtractModelLod_V16(IO::BinaryReader& Reader, const std::unique_pt
 						CurrentWeightTotal += ExtendedValue;
 						ExtendedCounter = ExtendedCounter + 1;
 					}
-
-					if (Weights.BlendIds[0] != Weights.BlendIds[1] && CurrentWeightTotal < 1.0f)
-					{
-						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[1]], 1.0f - CurrentWeightTotal }, WeightsIndex);
-					}
 				}
-				else
+
+				if (Weights.BlendIds[0] != Weights.BlendIds[1] && CurrentWeightTotal < 1.f)
 				{
-					Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], 1.f }, 0);
+					Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[1]], 1.f - CurrentWeightTotal }, WeightsIndex);
 				}
 			}
 			else if (Model->Bones.Count() > 0)
