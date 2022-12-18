@@ -956,7 +956,7 @@ void RpakLib::ExtractModelLod_V16(IO::BinaryReader& Reader, const std::unique_pt
 
 				if (ExtendedWeights.Count() > 0)
 				{
-					uint32_t ExtendedWeightsIndex = (uint32_t)Weights.BlendIds[2] << 16;  // BlendIds[2] seems to be unused? not sure
+					uint32_t ExtendedWeightsIndex = (uint32_t)Weights.BlendIds[2] << 16;
 					ExtendedWeightsIndex |= (uint32_t)Weights.BlendWeights[1];
 
 					uint32_t ExtendedCounter = 1;
