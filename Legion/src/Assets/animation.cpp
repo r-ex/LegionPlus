@@ -734,6 +734,8 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 				RpakStream->Read((uint8_t*)BoneFlags, 0, ((4 * (uint64_t)Skeleton.Count() + 7) / 8 + 1) & 0xFFFFFFFFFFFFFFFE);
 			}
 
+
+			// comes from CalcAnimation - 0x1401CACD4 CL456479
 			for (uint32_t b = 0; b < Skeleton.Count(); b++)
 			{
 				uint32_t Shift = 4 * (b % 2);
@@ -752,11 +754,11 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 					BoneDataFlags.bAdditiveCustom = (AnimCurveType == Assets::AnimationCurveMode::Additive);
 
 					if (BoneTrackFlags & 0x1)
-						ParseRAnimBoneTranslationTrack(BoneDataFlags, &BoneTrackDataPtr, Anim, b, ChunkFrame, Frame);
+						CalcBonePosition(BoneDataFlags, &BoneTrackDataPtr, Anim, b, ChunkFrame, Frame); // CalcBonePosition
 					if (BoneTrackFlags & 0x2)
-						ParseRAnimBoneRotationTrack(BoneDataFlags, &BoneTrackDataPtr, Anim, b, ChunkFrame, Frame);
+						CalcBoneQuaternion(BoneDataFlags, &BoneTrackDataPtr, Anim, b, ChunkFrame, Frame); // CalcBoneQuaternion
 					if (BoneTrackFlags & 0x4)
-						ParseRAnimBoneScaleTrack(BoneDataFlags, &BoneTrackDataPtr, Anim, b, ChunkFrame, Frame);
+						CalcBoneScale(BoneDataFlags, &BoneTrackDataPtr, Anim, b, ChunkFrame, Frame); // CalcBoneScale - new in r1
 				}
 			}
 		}
@@ -938,11 +940,11 @@ void RpakLib::ExtractAnimation_V11(const RpakLoadAsset& Asset, const List<Assets
 					BoneDataFlags.bAdditiveCustom = (AnimCurveType == Assets::AnimationCurveMode::Additive);
 
 					if (BoneTrackFlags & 0x1)
-						ParseRAnimBoneTranslationTrack(BoneDataFlags, &BoneTrackDataPtr, Anim, b, sectionFrameIdx, frameIdx);
+						CalcBonePosition(BoneDataFlags, &BoneTrackDataPtr, Anim, b, sectionFrameIdx, frameIdx);
 					if (BoneTrackFlags & 0x2)
-						ParseRAnimBoneRotationTrack(BoneDataFlags, &BoneTrackDataPtr, Anim, b, sectionFrameIdx, frameIdx);
+						CalcBoneQuaternion(BoneDataFlags, &BoneTrackDataPtr, Anim, b, sectionFrameIdx, frameIdx);
 					if (BoneTrackFlags & 0x4)
-						ParseRAnimBoneScaleTrack(BoneDataFlags, &BoneTrackDataPtr, Anim, b, sectionFrameIdx, frameIdx);
+						CalcBoneScale(BoneDataFlags, &BoneTrackDataPtr, Anim, b, sectionFrameIdx, frameIdx);
 				}
 			}
 		}
