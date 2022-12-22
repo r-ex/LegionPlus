@@ -92,10 +92,7 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 	for (int i = 0; i < mdl->numbones; i++)
 	{
 		titanfall2::mstudiobone_t* newBone = mdl->bone(i);
-
 		titanfall2::mstudiobone_t bone = *newBone;
-
-		//printf("I am working on bone %s", newBone->boneName());
 
 		Model->Bones.EmplaceBack(newBone->boneName(), bone.parent, bone.pos, bone.quat);
 		bones.push_back(bone);
