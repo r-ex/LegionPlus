@@ -74,9 +74,9 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 
 	int modelLength = IO::File::OpenRead(Asset)->GetLength();;
 
-	char* mdlBuff = new char[modelLength];
-	Reader.Read(mdlBuff, 0, modelLength);
-	titanfall2::studiohdr_t* mdl = reinterpret_cast<titanfall2::studiohdr_t*>(mdlBuff);
+	std::unique_ptr<char[]> mdlBuff(new char[modelLength]);
+	Reader.Read(mdlBuff.get(), 0, modelLength);
+	titanfall2::studiohdr_t* mdl = reinterpret_cast<titanfall2::studiohdr_t*>(mdlBuff.get());
 
 	// id = IDST or version = 53
 	if (mdl->id != 0x54534449 || mdl->version != 0x35)
@@ -448,9 +448,6 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 			this->AnimExporter->ExportAnimation(*Anim.get(), IO::Path::Combine(ExportBasePath, AnimName + (const char*)this->AnimExporter->AnimationExtension()));
 		}
 	}*/
-
-	// should be ok?
-	delete[] mdlBuff;
 }
 
 /*void MdlLib::ParseRAnimBoneTranslationTrack(const RAnimBoneHeader& BoneFlags, const titanfall2::mstudiobone_t& Bone, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
