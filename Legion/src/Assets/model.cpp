@@ -379,9 +379,17 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 		if (Assets.ContainsKey(material.guid))
 		{
 			RpakLoadAsset& MaterialAsset = Assets[material.guid];
+			bool ToggleSkinExport = ExportManager::Config.GetBool("SkinExport");
+			bool ExportSkins;
+			if (ToggleSkinExport == true) {
+				ExportSkins = IncludeMaterials;
+			}
+			else {
+				ExportSkins = false;
+			}
 
 			this->ExportMaterialCPU(MaterialAsset, TexturePath);
-			RMdlMaterial ParsedMaterial = this->ExtractMaterial(MaterialAsset, TexturePath, false , false);
+			RMdlMaterial ParsedMaterial = this->ExtractMaterial(MaterialAsset, TexturePath, ExportSkins, false);
 			uint32_t MaterialIndex = Model->AddMaterial(ParsedMaterial.MaterialName, ParsedMaterial.AlbedoHash);
 
 			material.name = ParsedMaterial.MaterialName;
