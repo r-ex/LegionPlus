@@ -379,17 +379,10 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 		if (Assets.ContainsKey(material.guid))
 		{
 			RpakLoadAsset& MaterialAsset = Assets[material.guid];
-			bool ToggleSkinExport = ExportManager::Config.GetBool("SkinExport");
-			bool ExportSkins;
-			if (ToggleSkinExport == true) {
-				ExportSkins = IncludeMaterials;
-			}
-			else {
-				ExportSkins = false;
-			}
+			bool bExportAllMaterials = ExportManager::Config.GetBool("SkinExport") ? IncludeMaterials : false;
 
 			this->ExportMaterialCPU(MaterialAsset, TexturePath);
-			RMdlMaterial ParsedMaterial = this->ExtractMaterial(MaterialAsset, TexturePath, ExportSkins, false);
+			RMdlMaterial ParsedMaterial = this->ExtractMaterial(MaterialAsset, TexturePath, bExportAllMaterials, false);
 			uint32_t MaterialIndex = Model->AddMaterial(ParsedMaterial.MaterialName, ParsedMaterial.AlbedoHash);
 
 			material.name = ParsedMaterial.MaterialName;
@@ -1027,35 +1020,38 @@ void RpakLib::ExtractModelLod_V16(IO::BinaryReader& Reader, const std::unique_pt
 		else
 			NewMesh.MaterialIndices.EmplaceBack(-1);
 
-		if (rmdlMesh.material < Fixup.Materials->Count() && Assets.ContainsKey(Material.guid))
+		if (!ExportManager::Config.GetBool("SkinExport") && IncludeMaterials)
 		{
-			RpakLoadAsset& MaterialAsset = Assets[Material.guid];
+			if (rmdlMesh.material < Fixup.Materials->Count() && Assets.ContainsKey(Material.guid))
+			{
+				RpakLoadAsset& MaterialAsset = Assets[Material.guid];
 
-			RMdlMaterial ParsedMaterial = this->ExtractMaterial(MaterialAsset, Fixup.MaterialPath, IncludeMaterials, false);
-			uint32_t MaterialIndex = Model->AddMaterial(ParsedMaterial.MaterialName, ParsedMaterial.AlbedoHash);
+				RMdlMaterial ParsedMaterial = this->ExtractMaterial(MaterialAsset, Fixup.MaterialPath, IncludeMaterials, false);
+				uint32_t MaterialIndex = Model->AddMaterial(ParsedMaterial.MaterialName, ParsedMaterial.AlbedoHash);
 
-			Assets::Material& MaterialInstance = Model->Materials[MaterialIndex];
+				Assets::Material& MaterialInstance = Model->Materials[MaterialIndex];
 
-			if (ParsedMaterial.AlbedoMapName != "")
-				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Albedo, { "_images\\" + ParsedMaterial.AlbedoMapName, ParsedMaterial.AlbedoHash });
-			if (ParsedMaterial.NormalMapName != "")
-				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Normal, { "_images\\" + ParsedMaterial.NormalMapName, ParsedMaterial.NormalHash });
-			if (ParsedMaterial.GlossMapName != "")
-				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Gloss, { "_images\\" + ParsedMaterial.GlossMapName, ParsedMaterial.GlossHash });
-			if (ParsedMaterial.SpecularMapName != "")
-				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Specular, { "_images\\" + ParsedMaterial.SpecularMapName, ParsedMaterial.SpecularHash });
-			if (ParsedMaterial.EmissiveMapName != "")
-				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Emissive, { "_images\\" + ParsedMaterial.EmissiveMapName, ParsedMaterial.EmissiveHash });
-			if (ParsedMaterial.AmbientOcclusionMapName != "")
-				MaterialInstance.Slots.Add(Assets::MaterialSlotType::AmbientOcclusion, { "_images\\" + ParsedMaterial.AmbientOcclusionMapName, ParsedMaterial.AmbientOcclusionHash });
-			if (ParsedMaterial.CavityMapName != "")
-				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Cavity, { "_images\\" + ParsedMaterial.CavityMapName, ParsedMaterial.CavityHash });
+				if (ParsedMaterial.AlbedoMapName != "")
+					MaterialInstance.Slots.Add(Assets::MaterialSlotType::Albedo, { "_images\\" + ParsedMaterial.AlbedoMapName, ParsedMaterial.AlbedoHash });
+				if (ParsedMaterial.NormalMapName != "")
+					MaterialInstance.Slots.Add(Assets::MaterialSlotType::Normal, { "_images\\" + ParsedMaterial.NormalMapName, ParsedMaterial.NormalHash });
+				if (ParsedMaterial.GlossMapName != "")
+					MaterialInstance.Slots.Add(Assets::MaterialSlotType::Gloss, { "_images\\" + ParsedMaterial.GlossMapName, ParsedMaterial.GlossHash });
+				if (ParsedMaterial.SpecularMapName != "")
+					MaterialInstance.Slots.Add(Assets::MaterialSlotType::Specular, { "_images\\" + ParsedMaterial.SpecularMapName, ParsedMaterial.SpecularHash });
+				if (ParsedMaterial.EmissiveMapName != "")
+					MaterialInstance.Slots.Add(Assets::MaterialSlotType::Emissive, { "_images\\" + ParsedMaterial.EmissiveMapName, ParsedMaterial.EmissiveHash });
+				if (ParsedMaterial.AmbientOcclusionMapName != "")
+					MaterialInstance.Slots.Add(Assets::MaterialSlotType::AmbientOcclusion, { "_images\\" + ParsedMaterial.AmbientOcclusionMapName, ParsedMaterial.AmbientOcclusionHash });
+				if (ParsedMaterial.CavityMapName != "")
+					MaterialInstance.Slots.Add(Assets::MaterialSlotType::Cavity, { "_images\\" + ParsedMaterial.CavityMapName, ParsedMaterial.CavityHash });
 
-			NewMesh.MaterialIndices.EmplaceBack(MaterialIndex);
-		}
-		else
-		{
-			NewMesh.MaterialIndices.EmplaceBack(-1);
+				NewMesh.MaterialIndices.EmplaceBack(MaterialIndex);
+			}
+			else
+			{
+				NewMesh.MaterialIndices.EmplaceBack(-1);
+			}
 		}
 
 		// Add an extra slot for the extra UV Layer if present
