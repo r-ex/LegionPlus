@@ -76,6 +76,7 @@ MatCPU: --matcpu <none, struct, cpu>
 --fullpath - Enables full path naming for the list export
 --audiolanguagefolder - Enables Audio Language Folder
 --usetxtrguids - Enables the renaming of Guid names for Textures (e.g. adding _albedoTexture, etc.)
+--skinexport - Enables exporting of all skins for available models
 ```
 ---
 ### Controls
