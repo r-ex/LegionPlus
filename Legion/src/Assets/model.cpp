@@ -381,7 +381,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 			RpakLoadAsset& MaterialAsset = Assets[material.guid];
 
 			this->ExportMaterialCPU(MaterialAsset, TexturePath);
-			RMdlMaterial ParsedMaterial = this->ExtractMaterial(MaterialAsset, TexturePath, IncludeMaterials, false);
+			RMdlMaterial ParsedMaterial = this->ExtractMaterial(MaterialAsset, TexturePath, false , false);
 			uint32_t MaterialIndex = Model->AddMaterial(ParsedMaterial.MaterialName, ParsedMaterial.AlbedoHash);
 
 			material.name = ParsedMaterial.MaterialName;
@@ -1019,7 +1019,7 @@ void RpakLib::ExtractModelLod_V16(IO::BinaryReader& Reader, const std::unique_pt
 		else
 			NewMesh.MaterialIndices.EmplaceBack(-1);
 
-		/*if (rmdlMesh.material < Fixup.Materials->Count() && Assets.ContainsKey(Material.guid))
+		if (rmdlMesh.material < Fixup.Materials->Count() && Assets.ContainsKey(Material.guid))
 		{
 			RpakLoadAsset& MaterialAsset = Assets[Material.guid];
 
@@ -1048,7 +1048,7 @@ void RpakLib::ExtractModelLod_V16(IO::BinaryReader& Reader, const std::unique_pt
 		else
 		{
 			NewMesh.MaterialIndices.EmplaceBack(-1);
-		}*/
+		}
 
 		// Add an extra slot for the extra UV Layer if present
 		if ((mesh.flags & 0x200000000) == 0x200000000)
