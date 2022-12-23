@@ -313,6 +313,15 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 	}
 
 	g_Logger.Info("\nMaterial Info for '%s' (%llX)\n", Result.MaterialName.ToCString(), Asset.NameHash);
+
+	if (Asset.Version == RpakGameVersion::Apex)
+	{
+		g_Logger.Info("> Flags: %08X\n", hdr.someFlags);
+		g_Logger.Info("> Unk2: %X\n", hdr.unk2);
+		g_Logger.Info("> Unk3: %X\n", hdr.unk3);
+	};
+
+
 	g_Logger.Info("> ShaderSet: %llx (%s)\n", hdr.shaderSetGuid, shadersetLoaded ? "LOADED" : "NOT LOADED");
 
 	const uint64_t TextureTable = this->GetFileOffset(Asset, hdr.textureHandles.Index, hdr.textureHandles.Offset); // (Asset.Version == RpakGameVersion::Apex) ? : this->GetFileOffset(Asset, hdr.TexturesTFIndex, hdr.TexturesTFOffset);
