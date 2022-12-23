@@ -406,6 +406,8 @@ void RpakLib::CalcBonePosition(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTr
 		uint16_t TranslationFlags = TranslationDataPtr[2];
 		float TranslationScale = *(float*)TranslationDataPtr;
 
+		// TranslationFlags is actually mstudio_rle_anim_t
+		// TranslationFlags & 0x1FFF == pAnim->size;
 		uint8_t* TranslationDataX = (uint8_t*)TranslationDataPtr + (TranslationFlags & 0x1FFF) + 4;	// Data for x
 
 		uint64_t DataYOffset = *((uint8_t*)TranslationDataPtr + 6);
@@ -430,7 +432,7 @@ void RpakLib::CalcBonePosition(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTr
 			// 0x1401C9AA4 - CL456479
 			if (_bittest((const long*)&TranslationFlags, v32))
 			{
-				RTech::DecompressDynamicTrack(Frame, dataPtrs[TranslationIndex], TranslationScale, &TranslationFinal, &TimeScale);
+				RTech::ExtractAnimValue(Frame, dataPtrs[TranslationIndex], TranslationScale, &TranslationFinal, &TimeScale);
 
 				if (BoneFlags.bAdditiveCustom)
 					Result[TranslationIndex] = (float)((float)((float)(1.0 - Time) * TranslationFinal) + (float)(TimeScale * Time));
@@ -511,7 +513,7 @@ void RpakLib::CalcBoneQuaternion(const RAnimBoneFlag& BoneFlags, uint16_t** Bone
 		{
 			if (_bittest((const long*)&RotationFlags, v32))
 			{
-				RTech::DecompressDynamicTrack(Frame, dataPtrs[v31], 0.00019175345f, &TranslationFinal, &TimeScale);
+				RTech::ExtractAnimValue(Frame, dataPtrs[v31], 0.00019175345f, &TranslationFinal, &TimeScale);
 				EulerResult[v31] = TranslationFinal;
 			}
 
@@ -571,7 +573,7 @@ void RpakLib::CalcBoneScale(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrack
 		{
 			if (_bittest((const long*)&ScaleFlags, v32))
 			{
-				RTech::DecompressDynamicTrack(Frame, dataPtrs[v31], 0.0030518509f, &TranslationFinal, &TimeScale);
+				RTech::ExtractAnimValue(Frame, dataPtrs[v31], 0.0030518509f, &TranslationFinal, &TimeScale);
 				Result[v31] = (float)((float)((float)(1.0 - a2) * TranslationFinal) + (float)(TimeScale * a2)) + Result[v31];
 			}
 

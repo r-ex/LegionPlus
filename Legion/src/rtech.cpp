@@ -2268,8 +2268,8 @@ bool RTech::DecompressSnowflake(int64_t param_buffer, uint64_t data_size, uint64
 //-----------------------------------------------------------------------------
 // Purpose: decompress input animation data
 //-----------------------------------------------------------------------------
-// 0x1401C93C0
-float* __fastcall RTech::DecompressDynamicTrack(int frame_count, uint8_t* in_translation_buffer, float translation_scale, float* out_translation_buffer, float* time_scale)
+// 0x1401C93C0 - ExtractAnimValue
+float* __fastcall RTech::ExtractAnimValue(int frame_count, uint8_t* in_translation_buffer, float translation_scale, float* out_translation_buffer, float* time_scale)
 {
 	int           v5; // er10
 	int64_t       v6; // rcx
