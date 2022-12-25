@@ -53,7 +53,7 @@ void LegionSplash::InitializeComponent()
 	this->PerformLayout();
 	// END DESIGNER CODE
 
-	SplashImage.reset(Drawing::ImageFromResource(IDB_JPG1));
+	SplashImage.reset(Drawing::ImageFromResource(IDB_JPEG1));
 
 	this->Refresh();
 }
