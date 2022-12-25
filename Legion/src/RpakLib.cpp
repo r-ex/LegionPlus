@@ -1202,7 +1202,7 @@ bool RpakLib::MountTitanfallRpak(const string& Path, bool Dump)
 	Header.CompressedSize = Header.DecompressedSize;
 	std::memcpy(pakbuf.data(), &Header, sizeof(RpakTitanfallHeader));
 
-	auto ResultStream = std::make_unique<IO::MemoryStream>(pakbuf.data(), 0, Header.DecompressedSize, true, false, true);
+	auto ResultStream = std::make_unique<IO::MemoryStream>(pakbuf.data(), 0, Header.DecompressedSize, true, true, true);
 
 #if _DEBUG
 	if (Dump)
