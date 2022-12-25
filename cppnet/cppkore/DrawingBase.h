@@ -224,10 +224,10 @@ namespace Drawing
 		return Result;
 	}
 
-	inline Drawing::Image* ImageFromPngResource(const uint32_t ResourceId)
+	inline Drawing::Image* ImageFromResource(const uint32_t ResourceId)
 	{
 		auto hInst = ::GetModuleHandleA(NULL);
-		auto hResource = ::FindResourceA(hInst, MAKEINTRESOURCEA(ResourceId), "PNG");
+		auto hResource = ::FindResourceA(hInst, MAKEINTRESOURCEA(ResourceId), "ImageResource");
 
 		if (hResource != nullptr)
 		{

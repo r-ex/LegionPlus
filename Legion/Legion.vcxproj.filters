@@ -244,6 +244,6 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\Resources\LegionIcon.ico" />
-    <Image Include="..\Resources\SplashImage.png" />
+    <Image Include="..\Resources\SplashImage.jpg" />
   </ItemGroup>
 </Project>
