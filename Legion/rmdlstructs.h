@@ -410,12 +410,12 @@ struct s3studiohdr_t // season 3 studiohdr
 	int vphysize; // still used in models using vg
 
 	// unused in apex
-    int unkmemberindex1;
-    int numunkmember1;
+	int unkmemberindex1;
+	int numunkmember1;
 
-    // only seen on '_animated' suffixed models so far
-    int unkcount3;
-    int unkindex3;
+	// only seen on '_animated' suffixed models so far
+	int unkcount3;
+	int unkindex3;
 
 	// Per Tri Collision AABB size
 	Vector3 mins;
@@ -622,6 +622,366 @@ struct r2studiohdr_t // titanfall 2 studiohdr (MDL v53)
 	int unkindex3; // goes to the same spot as vtx normally.
 
 	int unused1[60]; // god I hope
+};
+
+struct studiohdr_t_v13
+{
+	int id; // Model format ID, such as "IDST" (0x49 0x44 0x53 0x54)
+	int version; // Format version number, such as 48 (0x30,0x00,0x00,0x00)
+	int checksum; // This has to be the same in the phy and vtx files to load!
+	int sznameindex; // This has been moved from studiohdr2 to the front of the main header.
+	char name[64]; // The internal name of the model, padding with null bytes.
+	// Typically "my_model.mdl" will have an internal name of "my_model"
+	int length; // Data size of MDL file in bytes.
+
+	Vector3 eyeposition;	// ideal eye position
+
+	Vector3 illumposition;	// illumination center
+
+	Vector3 hull_min;		// ideal movement hull size
+	Vector3 hull_max;
+
+	Vector3 view_bbmin;		// clipping bounding box
+	Vector3 view_bbmax;
+
+	int flags;
+
+	int numbones; // bones
+	int boneindex;
+
+	int numbonecontrollers; // bone controllers
+	int bonecontrollerindex;
+
+	int numhitboxsets;
+	int hitboxsetindex;
+
+	// unused now
+	int numlocalanim; // animations/poses
+	int localanimindex; // animation descriptions
+
+	int numlocalseq; // sequences
+	int	localseqindex;
+
+	int activitylistversion; // initialization flag - have the sequences been indexed?
+
+	// mstudiotexture_t
+	// short rpak path
+	// raw textures
+	int materialtypesindex;
+	int numtextures; // the material limit exceeds 128, probably 256.
+	int textureindex;
+
+	// this should always only be one, unless using vmts.
+	// raw textures search paths
+	int numcdtextures;
+	int cdtextureindex;
+
+	// replaceable textures tables
+	int numskinref;
+	int numskinfamilies;
+	int skinindex;
+
+	int numbodyparts;
+	int bodypartindex;
+
+	int numlocalattachments;
+	int localattachmentindex;
+
+	int numlocalnodes;
+	int localnodeindex;
+	int localnodenameindex;
+
+	int numunknodes;
+	int unknodexindex;
+
+	int numikchains;
+	int ikchainindex;
+
+	// this is rui meshes
+	int numruimeshes;
+	int ruimeshindex;
+
+	int numlocalposeparameters;
+	int localposeparamindex;
+
+	int surfacepropindex;
+
+	int keyvalueindex;
+	int keyvaluesize;
+
+	int numlocalikautoplaylocks;
+	int localikautoplaylockindex;
+
+	float mass;
+	int contents;
+
+	// unused for packed models
+	int numincludemodels;
+	int includemodelindex;
+
+	uint32_t virtualModel;
+
+	int bonetablebynameindex;
+
+	// stuff moved from vg in v12.1
+	int numVGMeshes; // total number of meshes, not including LODs
+	int vgMeshIndex;
+
+	int boneStateIndex;
+	int numBoneStates;
+
+	int unk_v54_v121; // related to vg likely
+
+	int vgSize;
+
+	short vgUnk; // same as padding in vg header
+	int16_t vgLODCount; // same as lod count in vg header
+
+	int vgNumUnknown; // same as unk1 in vg header
+
+	int vgHeaderIndex;
+	int numVGHeaders;
+
+	int vgLODIndex;
+	int numVGLODs;
+
+	float fadeDistance;
+
+	float gathersize; // what. from r5r struct
+
+	float flVertAnimFixedPointScale; // to be verified
+	int surfacepropLookup; // saved in the file
+
+	int unk_v54_v122; // added in transition version
+
+	// asset bakery strings if it has any
+	int sourceFilenameOffset;
+
+	int numsrcbonetransform;
+	int srcbonetransformindex;
+
+	int	illumpositionattachmentindex;
+
+	int linearboneindex;
+
+	// unsure what this is for but it exists for jigglbones
+	int numprocbonesunk;
+	int procbonearrayindex;
+	int procbonemaskindex;
+
+	// always "" or "Titan"
+	int unkstringindex;
+
+	// the indexes are added to the offset in the rpak mdl_ header.
+	// vphy isn't vphy, looks like a heavily modified vphy.
+	// something different about these now
+	int vtxindex; // VTX
+	int vvdindex; // VVD / IDSV
+	int vvcindex; // VVC / IDCV 
+	int vphyindex; // VPHY / IVPS
+
+	int vtxsize;
+	int vvdsize;
+	int vvcsize;
+	int vphysize;
+
+	// only seen on '_animated' suffixed models so far
+	int unkcount3;
+	int unkindex3;
+
+	// BVH4 size (?)
+	Vector3 mins;
+	Vector3 maxs; // seem to be the same as hull size
+
+	int bvh4index; // bvh4 tree
+
+	short unk4_v54[2]; // same as unk3_v54_v121, 2nd might be base for other offsets?
+
+	int vvwindex;
+	int vvwsize;
+
+	int unk1_v54_v13[3];
+};
+
+struct studiohdr_t_v14
+{
+	int id; // Model format ID, such as "IDST" (0x49 0x44 0x53 0x54)
+	int version; // Format version number, such as 48 (0x30,0x00,0x00,0x00)
+	int checksum; // This has to be the same in the phy and vtx files to load!
+	int sznameindex; // No longer stored in string block, uses string in header.
+	char name[64]; // The internal name of the model, padding with null bytes.
+	// Typically "my_model.mdl" will have an internal name of "my_model"
+	int length; // Data size of MDL file in bytes.
+
+	Vector3 eyeposition;	// ideal eye position
+
+	Vector3 illumposition;	// illumination center
+
+	Vector3 hull_min;		// ideal movement hull size
+	Vector3 hull_max;
+
+	Vector3 view_bbmin;		// clipping bounding box
+	Vector3 view_bbmax;
+
+	int flags;
+
+	int numbones; // bones
+	int boneindex;
+
+	int numbonecontrollers; // bone controllers
+	int bonecontrollerindex;
+
+	int numhitboxsets;
+	int hitboxsetindex;
+
+	// unused now
+	int numlocalanim; // animations/poses
+	int localanimindex; // animation descriptions
+
+	int numlocalseq; // sequences
+	int	localseqindex;
+
+	int unk_v54_v14[2]; // added in v13 -> v14
+
+	int activitylistversion; // initialization flag - have the sequences been indexed?
+
+	// mstudiotexture_t
+	// short rpak path
+	// raw textures
+	int materialtypesindex;
+	int numtextures; // the material limit exceeds 128, probably 256.
+	int textureindex;
+
+	// this should always only be one, unless using vmts.
+	// raw textures search paths
+	int numcdtextures;
+	int cdtextureindex;
+
+	// replaceable textures tables
+	int numskinref;
+	int numskinfamilies;
+	int skinindex;
+
+	int numbodyparts;
+	int bodypartindex;
+
+	int numlocalattachments;
+	int localattachmentindex;
+
+	int numlocalnodes;
+	int localnodeindex;
+	int localnodenameindex;
+
+	int numunknodes;
+	int unknodexindex;
+
+	int numikchains;
+	int ikchainindex;
+
+	// this is rui meshes
+	int numruimeshes;
+	int ruimeshindex;
+
+	int numlocalposeparameters;
+	int localposeparamindex;
+
+	int surfacepropindex;
+
+	int keyvalueindex;
+	int keyvaluesize;
+
+	int numlocalikautoplaylocks;
+	int localikautoplaylockindex;
+
+	float mass;
+	int contents;
+
+	// unused for packed models
+	int numincludemodels;
+	int includemodelindex;
+
+	uint32_t virtualModel;
+
+	int bonetablebynameindex;
+
+	// stuff moved from vg in v12.1
+	int numVGMeshes; // total number of meshes, not including LODs
+	int vgMeshIndex;
+
+	int boneStateIndex;
+	int numBoneStates;
+
+	int unk_v54_v121; // related to vg likely
+
+	int vgSize;
+
+	short vgUnk; // same as padding in vg header
+	int16_t vgLODCount; // same as lod count in vg header
+
+	int vgNumUnknown; // same as unk1 in vg header
+
+	int vgHeaderIndex;
+	int numVGHeaders;
+
+	int vgLODIndex;
+	int numVGLODs;
+
+	float fadeDistance;
+
+	float gathersize; // what. from r5r struct
+
+	float flVertAnimFixedPointScale; // to be verified
+	int surfacepropLookup; // saved in the file
+
+	int unk_v54_v122; // added in transition version
+
+	// asset bakery strings if it has any
+	int sourceFilenameOffset;
+
+	int numsrcbonetransform;
+	int srcbonetransformindex;
+
+	int	illumpositionattachmentindex;
+
+	int linearboneindex;
+
+	// unsure what this is for but it exists for jigglbones
+	int numprocbonesunk;
+	int procbonearrayindex;
+	int procbonemaskindex;
+
+	// always "" or "Titan"
+	int unkstringindex;
+
+	// the indexes are added to the offset in the rpak mdl_ header.
+	// vphy isn't vphy, looks like a heavily modified vphy.
+	// something different about these now
+	int vtxindex; // VTX
+	int vvdindex; // VVD / IDSV
+	int vvcindex; // VVC / IDCV 
+	int vphyindex; // VPHY / IVPS
+
+	int vtxsize;
+	int vvdsize;
+	int vvcsize;
+	int vphysize;
+
+	// only seen on '_animated' suffixed models so far
+	int unkcount3;
+	int unkindex3;
+
+	// BVH4 size (?)
+	Vector3 mins;
+	Vector3 maxs; // seem to be the same as hull size
+
+	int bvh4index; // bvh4 tree
+
+	short unk4_v54[2]; // same as unk3_v54_v121, 2nd might be base for other offsets?
+
+	int vvwindex;
+	int vvwsize;
+
+	int unk1_v54_v13[3];
 };
 
 struct studiohdr_t_v16
@@ -872,6 +1232,184 @@ struct mstudiomodelv54_t
 
 	int unkindex;
 	int unkindex1;
+};
+
+struct mstudiomodelv54_t_v13
+{
+	char name[64];
+
+	int unkindex2; // byte before string block
+
+	// it looks like they write the entire name
+	// then write over it with other values where needed
+	// why.
+	int type;
+
+	float boundingradius;
+
+	int nummeshes;
+	int meshindex;
+
+	// cache purposes
+	int numvertices; // number of unique vertices/normals/texcoords
+	int vertexindex; // vertex Vector
+	int tangentsindex; // tangents Vector
+
+	int numattachments;
+	int attachmentindex;
+
+	int colorindex; // vertex color
+	// offset by colorindex number of bytes into vvc vertex colors
+	int uv2index; // vertex second uv map
+	// offset by uv2index number of bytes into vvc secondary uv map
+
+	int unk; // same as uv2index, did they add something to vvc/0tVG?
+
+	inline mstudiomodelv54_t* DowgradeToS3()
+	{
+		mstudiomodelv54_t* out = new mstudiomodelv54_t();
+
+		for (int i = 0; i < 64; i++)
+			out->name[i] = this->name[i];
+
+		out->unkindex2 = this->unkindex2;
+		out->nummeshes = this->nummeshes;
+		out->meshindex = this->meshindex;
+		out->numvertices = this->numvertices;
+		out->vertexindex = this->vertexindex;
+		out->tangentsindex = this->tangentsindex;
+		out->numattachments = this->numattachments;
+		out->attachmentindex = this->attachmentindex;
+
+		return out;
+	}
+};
+
+struct mstudiomodelv54_t_v14
+{
+	char name[64];
+
+	int unkindex2; // byte before string block
+
+	// they write over these two when it's the default
+	int type;
+
+	float boundingradius;
+
+	int nummeshes;
+
+	// first is the same as nummeshes?
+	int unk_v14;
+	int unk1_v14;
+
+	int meshindex;
+
+	// most of these vtx, vvd, vvc, and vg indexes are depreciated after v14.1 (s14)
+
+	// cache purposes
+	int numvertices; // number of unique vertices/normals/texcoords
+	int vertexindex; // vertex Vector
+	int tangentsindex; // tangents Vector
+
+	int numattachments;
+	int attachmentindex;
+
+	int colorindex; // vertex color
+	int uv2index; // vertex second uv map
+	int unk;
+
+	inline mstudiomodelv54_t* DowgradeToS3()
+	{
+		mstudiomodelv54_t* out = new mstudiomodelv54_t();
+
+		for (int i = 0; i < 64; i++)
+			out->name[i] = this->name[i];
+
+		out->unkindex2 = this->unkindex2;
+		out->nummeshes = this->nummeshes;
+		out->meshindex = this->meshindex;
+		out->numvertices = this->numvertices;
+		out->vertexindex = this->vertexindex;
+		out->tangentsindex = this->tangentsindex;
+		out->numattachments = this->numattachments;
+		out->attachmentindex = this->attachmentindex;
+
+		return out;
+	}
+};
+
+#define MAX_NUM_LODS 8
+
+struct mstudio_meshvertexloddata_t
+{
+	int modelvertexdataUnusedPad; // likely has none of the funny stuff because unused
+
+	int numLODVertexes[MAX_NUM_LODS]; // depreciated starting with rmdl v14(?)
+};
+
+
+struct mstudiomeshv54_t
+{
+	int material;
+
+	int modelindex;
+
+	int numvertices; // number of unique vertices/normals/texcoords
+	int vertexoffset; // vertex mstudiovertex_t
+
+	// Access thin/fat mesh vertex data (only one will return a non-NULL result)
+
+	int deprecated_numflexes; // vertex animation
+	int deprecated_flexindex;
+
+	// special codes for material operations
+	int deprecated_materialtype;
+	int deprecated_materialparam;
+
+	// a unique ordinal for this mesh
+	int meshid;
+
+	Vector3 center;
+
+	mstudio_meshvertexloddata_t vertexloddata;
+
+	int unk[2]; // these are suposed to be filled on load, however this isn't true??
+};
+
+struct mstudiomeshv54_t_v121
+{
+	int material;
+
+	int modelindex;
+
+	int numvertices; // number of unique vertices/normals/texcoords
+	int vertexoffset; // vertex mstudiovertex_t
+
+	// a unique ordinal for this mesh
+	int meshid;
+
+	Vector3 center;
+
+	// depreciated in later versions?
+	mstudio_meshvertexloddata_t vertexloddata;
+
+	int unk[2]; // these are suposed to be filled on load, however this isn't true??
+
+	inline mstudiomeshv54_t DowgradeToS3()
+	{
+		mstudiomeshv54_t out{};
+		out.material = this->material;
+		out.modelindex = this->modelindex;
+		out.numvertices = this->numvertices;
+		out.vertexoffset = this->vertexoffset;
+		out.meshid = this->meshid;
+		out.center = this->center;
+		out.vertexloddata = this->vertexloddata;
+		out.unk[0] = this->unk[0];
+		out.unk[1] = this->unk[1];
+
+		return out;
+	}
 };
 
 struct RMdlMeshStreamHeader
@@ -1347,7 +1885,7 @@ struct mstudiobonev54_t
 	Math::Quaternion quat;
 	Math::Vector3 rot; // radianeuler
 
-	Vector3 unkvector; // the same as whatever v53 is
+	Vector3 scale; // bone scale(?)
 
 	matrix3x4_t poseToBone;
 	Math::Quaternion qAlignment;
@@ -1366,6 +1904,127 @@ struct mstudiobonev54_t
 	int surfacepropLookup; // unsure, the normal spot has data though
 
 	int unkid; // id is for unk section after stringblock, lacks toggle
+};
+
+struct mstudiobonev54_t_v121
+{
+	int sznameindex;
+
+	int parent; // parent bone
+	int bonecontroller[6]; // bone controller index, -1 == none
+
+	// default values
+	Vector3 pos;
+	Math::Quaternion quat;
+	Math::Vector3 rot;
+	Vector3 scale; // bone scale(?)
+
+	matrix3x4_t poseToBone;
+	Math::Quaternion qAlignment;
+
+	int flags;
+	int proctype;
+	int procindex; // procedural rule
+	int physicsbone; // index into physically simulated bone
+
+	int surfacepropidx; // index into string tablefor property name
+
+	int contents; // See BSPFlags.h for the contents flags
+
+	int surfacepropLookup; // written on compile in v54
+
+	byte unkid; // this is separate because it's set to 0xFF when unused (-1)
+
+	byte unk1[3]; // maybe this is 'unk'?
+
+	inline mstudiobonev54_t DowgradeToS3()
+	{
+		mstudiobonev54_t out{};
+		out.sznameindex = this->sznameindex;
+
+		out.parent = this->parent;
+		for (int i = 0; i < 6; i++)
+			out.bonecontroller[i] = this->bonecontroller[i];
+
+		out.pos = this->pos;
+		out.quat = this->quat;
+		out.rot = this->rot;
+		out.scale = this->scale;
+		out.poseToBone = this->poseToBone;
+		out.qAlignment = this->qAlignment;
+		out.flags = this->flags;
+		out.proctype = this->proctype;
+		out.procindex = this->procindex;
+		out.physicsbone = this->physicsbone;
+		out.surfacepropidx = this->surfacepropidx;
+		out.contents = this->contents;
+		out.unk = this->unk1[0];
+		out.surfacepropLookup = this->surfacepropLookup;
+		out.unkid = this->unkid;
+
+		return out;
+	}
+};
+
+#define JIGGLE_IS_FLEXIBLE				0x01
+#define JIGGLE_IS_RIGID					0x02
+#define JIGGLE_HAS_YAW_CONSTRAINT		0x04
+#define JIGGLE_HAS_PITCH_CONSTRAINT		0x08
+#define JIGGLE_HAS_ANGLE_CONSTRAINT		0x10
+#define JIGGLE_HAS_LENGTH_CONSTRAINT	0x20
+#define JIGGLE_HAS_BASE_SPRING			0x40
+
+struct mstudiojigglebonev54_t
+{
+	int8_t flags; // looks to be.
+
+	uint8_t bone; // id of bone, might be single byte
+
+	short pad; // possibly unused
+
+	// general params
+	float length; // how far from bone base, along bone, is tip
+	float tipMass;
+
+	float unkfloat; // v54 adds an extra value here but otherwise the same
+	// observed values are between 0-1
+
+	// flexible params
+	float yawStiffness;
+	float yawDamping;
+	float pitchStiffness;
+	float pitchDamping;
+	float alongStiffness;
+	float alongDamping;
+
+	// angle constraint
+	float angleLimit; // maximum deflection of tip in radians
+
+	// yaw constraint
+	float minYaw; // in radians
+	float maxYaw; // in radians
+	float yawFriction;
+	float yawBounce;
+
+	// pitch constraint
+	float minPitch; // in radians
+	float maxPitch; // in radians
+	float pitchFriction;
+	float pitchBounce;
+
+	// base spring
+	float baseMass;
+	float baseStiffness;
+	float baseDamping;
+	float baseMinLeft;
+	float baseMaxLeft;
+	float baseLeftFriction;
+	float baseMinUp;
+	float baseMaxUp;
+	float baseUpFriction;
+	float baseMinForward;
+	float baseMaxForward;
+	float baseForwardFriction;
 };
 
 struct mstudioattachmentv54_t

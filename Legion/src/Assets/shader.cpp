@@ -13,17 +13,19 @@ void RpakLib::BuildShaderSetInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	string Name = string::Format("shaderset_0x%llx", Asset.NameHash);
 
-	if (ShdsHeader.NameIndex || ShdsHeader.NameOffset)
+	if (ShdsHeader.pName.Index || ShdsHeader.pName.Offset)
 	{
-		RpakStream->SetPosition(this->GetFileOffset(Asset, ShdsHeader.NameIndex, ShdsHeader.NameOffset));
+		RpakStream->SetPosition(this->GetFileOffset(Asset, ShdsHeader.pName.Index, ShdsHeader.pName.Offset));
 
-		Name = Reader.ReadCString();
+		Name = string::Format("%s 0x%llx ", Reader.ReadCString().ToCString(), Asset.NameHash);
 	}
 
 	Info.Name = Name;
 	Info.Type = ApexAssetType::ShaderSet;
 	Info.Status = ApexAssetStatus::Loaded;
-	Info.Info = "N/A";
+
+	Info.Info = string::Format("Textures : %d", ShdsHeader.TextureInputCount);
+	Info.DebugInfo = string::Format("Samplers: %d", ShdsHeader.NumSamplers);
 }
 
 void RpakLib::ExportShaderSet(const RpakLoadAsset& Asset, const string& Path)
@@ -37,9 +39,9 @@ void RpakLib::ExportShaderSet(const RpakLoadAsset& Asset, const string& Path)
 
 	ShaderSetHeader Header = Reader.Read<ShaderSetHeader>();
 
-	if (Header.NameIndex || Header.NameOffset)
+	if (Header.pName.Index || Header.pName.Offset)
 	{
-		RpakStream->SetPosition(this->GetFileOffset(Asset, Header.NameIndex, Header.NameOffset));
+		RpakStream->SetPosition(this->GetFileOffset(Asset, Header.pName.Index , Header.pName.Offset));
 
 		ShaderSetPath = IO::Path::Combine(Path, Reader.ReadCString());
 	}

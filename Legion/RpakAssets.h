@@ -867,7 +867,7 @@ struct MaterialHeader
 
 	RPakPtr pName; // pointer to partial asset path
 	RPakPtr pSurfaceProp; // pointer to surfaceprop (as defined in surfaceproperties.rson)
-	RPakPtr pSurfaceProp2; // pointer to surfaceprop2 
+	RPakPtr pSurfaceProp2; // pointer to surfaceprop2
 
 	// IDX 1: DepthShadow
 	// IDX 2: DepthPrepass
@@ -877,23 +877,23 @@ struct MaterialHeader
 	uint64_t materialGuids[5];
 	uint64_t shaderSetGuid; // guid/ptr of shaderset asset
 
-	RPakPtr textureHandles; // texture guids
-	RPakPtr streamingTextureHandles; // streaming texture guids
+	RPakPtr textureHandles; // TextureGUID Map
+	RPakPtr streamingTextureHandles; // Streamable TextureGUID Map
 
-	short streamingTextureCount; // number of textures with streamed mip levels.
+	short streamingTextureCount; // Number of textures with streamed mip levels.
 	short width;
 	short height;
 	short unk1;
 
-	int someFlags;
-	int unk2;
+	uint32_t flags;
+	uint32_t unk2;
 
-	int unk3;
+	uint32_t unk3; // REQUIRED but why?
 
-	int unk4;
+	uint32_t unk4;
 
-	int unk5;
-	int unk6;
+	uint32_t Flags2;
+	uint32_t unk5;
 
 	UnknownMaterialSectionV15 m_UnknownSections[2];
 	char bytef0;
@@ -919,12 +919,14 @@ struct MaterialHeader
 		width = mhn.width;
 		height = mhn.height;
 		unk1 = mhn.unknown1;
-		someFlags = mhn.flags;
+		flags = mhn.flags;
+		Flags2 = mhn.flags2;
 		unk2 = mhn.unknown2;
 		unk3 = mhn.unknown3;
 		unk4 = mhn.unknown4;
 		materialType = mhn.materialType;
 		textureAnimationGuid = mhn.textureAnimationGuid;
+		m_UnknownSections[0] = mhn.unknownSections;
 	}
 };
 
@@ -1188,16 +1190,18 @@ struct RShaderImage
 // --- shds ---
 struct ShaderSetHeader {
 	uint64_t VTablePadding;
-	uint32_t NameIndex;
-	uint32_t NameOffset;
-	uint8_t Unknown1[0x8];
-	uint16_t Count1;
-	uint16_t TextureInputCount;
-	uint16_t Count3;
-	uint8_t Byte1;
-	uint8_t Byte2;
 
-	uint8_t Unknown2[0x10];
+	RPakPtr pName{};
+
+	uint8_t pad_0008[8];
+	uint16_t Count1;
+	uint16_t TextureInputCount = 7;
+	uint16_t NumSamplers = 3;
+	uint8_t StartSlot;
+	uint8_t NumViews;
+	uint8_t Byte1;
+
+	uint8_t pad_0021[15]; //0x0021
 
 	uint64_t OldVertexShaderHash;
 	uint64_t OldPixelShaderHash;
@@ -1206,7 +1210,6 @@ struct ShaderSetHeader {
 	uint64_t VertexShaderHash;
 	uint64_t PixelShaderHash;
 	uint64_t PixelShaderHashTF;
-
 };
 
 struct ShaderSetHeaderTF {
