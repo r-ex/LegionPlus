@@ -58,9 +58,9 @@ When multiple load flags are used together, all specified types will be loaded
 #### Export Format Flags
 
 ```
-Models: --mdlfmt <semodel, obj/wavefront, xnalara_binary, smd/source, xmodel, maya/ma, fbx, cast, rmdl>
+Models: --mdlfmt <semodel, obj/wavefront, xnalara_ascii, xnalara_binary, smd/source, xmodel, maya/ma, fbx, cast, rmdl>
 Animations: --animfmt <seanim, cast, ranim>
-Images: --imgfmt <dds, png, tiff>
+Images: --imgfmt <dds, png, tiff, tga>
 Text: --textfmt <csv, txt>
 Shadersets: --nmlrecalc <none, directx/dx, opengl/ogl>
 Audio Language: --audiolanguage <english, french, german, spanish, italian, japanese, polish, russian, mandarin, korean>
