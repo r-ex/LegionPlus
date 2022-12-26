@@ -44,6 +44,15 @@ void LegionMain::InitializeComponent()
 	this->RefreshAssetsButton->Click += &OnRefreshClick;
 	this->AddControl(this->RefreshAssetsButton);
 
+	this->DumpAssetListButton = new UIX::UIXButton();
+	this->DumpAssetListButton->SetSize({ 78, 27 });
+	this->DumpAssetListButton->SetLocation({ 460, 446 });
+	this->DumpAssetListButton->SetTabIndex(9);
+	this->DumpAssetListButton->SetText("Dump List");
+	this->DumpAssetListButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
+	this->DumpAssetListButton->Click += &OnDumpAssetListClick;
+	this->AddControl(this->DumpAssetListButton);
+
 	this->ClearSearchButton = new UIX::UIXButton();
 	this->ClearSearchButton->SetSize({ 85, 24 });
 	this->ClearSearchButton->SetLocation({ 381, 8 });
@@ -579,6 +588,59 @@ void LegionMain::RefreshView()
 		this->SearchBox->SetText(SearchText);
 
 		this->SearchForAssets();
+	}
+}
+
+void LegionMain::OnDumpAssetListClick(Forms::Control* Sender)
+{
+	List<string> OpenFileD = OpenFileDialog::ShowMultiFileDialog("Legion+: Select file(s) to dump", "", "Apex Legends Files (RPak)|*.rpak;", Sender->FindForm());
+
+	auto Rpak = std::make_unique<RpakLib>();
+	auto ExportAssets = List<ExportAsset>();
+
+	std::array<bool, 11> bAssets = {
+		ExportManager::Config.GetBool("LoadModels"),
+		ExportManager::Config.GetBool("LoadAnimations"),
+		ExportManager::Config.GetBool("LoadAnimationSeqs"),
+		ExportManager::Config.GetBool("LoadImages"),
+		ExportManager::Config.GetBool("LoadMaterials"),
+		ExportManager::Config.GetBool("LoadUIImages"),
+		ExportManager::Config.GetBool("LoadDataTables"),
+		ExportManager::Config.GetBool("LoadShaderSets"),
+		ExportManager::Config.GetBool("LoadSettingsSets"),
+		ExportManager::Config.GetBool("LoadRSONs"),
+		ExportManager::Config.GetBool("LoadEffects")
+	};
+
+	std::unique_ptr<List<ApexAsset>> AssetList;
+
+	for (uint32_t i = 0; i < OpenFileD.Count(); i++)
+	{
+		string& filepath = OpenFileD[i];
+
+		if (filepath.EndsWith(".rpak")) {
+
+			string filename = IO::Path::GetFileNameWithoutExtension(filepath);
+
+			Rpak->LoadRpak(filepath);
+			Rpak->PatchAssets();
+
+			AssetList = Rpak->BuildAssetList(bAssets);
+
+			ExportManager::ExportRpakAssetList(AssetList, filename);
+		}
+
+		g_Logger.Info("Load rpak: %s\n", OpenFileD[i].ToCString());
+	}
+
+	if (OpenFileD.Count() == 0)
+		return;
+
+	else if (OpenFileD.Count() > MAX_LOADED_FILES)
+	{
+		string msg = string::Format("Please select %i or fewer files.", MAX_LOADED_FILES);
+		MessageBox::Show(msg, "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
+		return;
 	}
 }
 
