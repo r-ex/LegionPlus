@@ -29,22 +29,37 @@ void RpakLib::BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	{
 		studiohdr_t studiohdr = Reader.Read<studiohdr_t>();
 
-		Info.Info = string::Format("Bones: %d, Parts: %d", studiohdr.numbones, studiohdr.numbodyparts);
+		Info.Info = string::Format("Bones: %d, Meshes: %d", studiohdr.numbones, studiohdr.numbodyparts);
+
+		if (mdlHdr.animRigCount > 0)
+			Info.Info += string::Format(", Rigs: %d", mdlHdr.animRigCount);
 
 		if (mdlHdr.animSeqCount > 0)
 			Info.Info += string::Format(", Animations: %d", mdlHdr.animSeqCount);
+
+		if (studiohdr.numskinfamilies > 1 && Asset.AssetVersion != 14)
+			Info.Info += string::Format(", Skins: %d", studiohdr.numskinfamilies);
+
+		if (mdlHdr.phyData.Index > 0)
+			Info.DebugInfo += string::Format("Physics: True");
 	}
 	else
 	{
 		studiohdr_t_v16 studiohdr = Reader.Read<studiohdr_t_v16>();
 
-		Info.Info = string::Format("Bones: %d, Parts: %d", studiohdr.numbones, studiohdr.numbodyparts);
+		Info.Info = string::Format("Bones: %d, Meshes: %d", studiohdr.numbones, studiohdr.numbodyparts);
+
+		if (mdlHdr.animRigCount > 0)
+			Info.Info += string::Format(", Rigs: %d", mdlHdr.animRigCount);
 
 		if (mdlHdr.animSeqCount > 0)
 			Info.Info += string::Format(", Animations: %d", mdlHdr.animSeqCount);
 
 		if (studiohdr.numskinfamilies > 1)
 			Info.Info += string::Format(", Skins: %d", studiohdr.numskinfamilies);
+
+		if (mdlHdr.phyData.Index > 0)
+			Info.DebugInfo += string::Format("Physics: True");
 	}
 }
 
@@ -151,9 +166,8 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 
 	// write QC file when exporting as SMD
 	if (Path != "" && AnimPath != "" && ModelFormat == ModelExportFormat_t::SMD)
-	{
-		this->ExportQC(Asset.AssetVersion, BaseFileName + ".qc", RawModelName, studioBuf.get(), nullptr);
-	}
+		this->ExportQC(Asset.AssetVersion, BaseFileName + ".qc", RawModelName, Model, studioBuf.get(), nullptr);
+
 
 	if (Path != "" && AnimPath != "" && ModelFormat == ModelExportFormat_t::RMDL)
 	{
@@ -545,12 +559,6 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 	Reader.Read(studioBuf.get(), 0, studiohdr.length);
 
-	// write QC file when exporting as SMD
-	if (Path != "" && AnimPath != "" && ModelFormat == ModelExportFormat_t::SMD)
-	{
-		this->ExportQC(Asset.AssetVersion, BaseFileName + ".qc", RawModelName, studioBuf.get(), nullptr);
-	}
-
 	if (Path != "" && AnimPath != "" && ModelFormat == ModelExportFormat_t::RMDL)
 	{
 		// set this here so we don't have to do this check every time
@@ -848,6 +856,10 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 		this->ExtractModelLod_V14(StarpakReader, RpakStream, ModelName, Offset, Model, Fixups, Asset.AssetVersion, IncludeMaterials);
 	else // v12.1-v13
 		this->ExtractModelLod(StarpakReader, RpakStream, ModelName, Offset, Model, Fixups, Asset.AssetVersion, IncludeMaterials);
+
+	// write QC file when exporting as SMD
+	if (Path != "" && AnimPath != "" && ModelFormat == ModelExportFormat_t::SMD)
+		this->ExportQC(Asset.AssetVersion, BaseFileName + ".qc", RawModelName, Model, studioBuf.get(), nullptr);
 
 	return std::move(Model);
 }

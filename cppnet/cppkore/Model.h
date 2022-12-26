@@ -47,6 +47,9 @@ namespace Assets
 		List<List<int>> SkinMaterials;
 		List<string> SkinMaterialNames;
 
+		List<string> BodyPartNames;
+		List<List<int>> BodyPartMeshIds;
+
 		// Adds a material to the collection if it doesn't already exist, returning it's index.
 		template<typename T>
 		uint32_t AddMaterial(const string& MaterialName, const T& SourceMap = T())
