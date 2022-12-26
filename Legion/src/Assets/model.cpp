@@ -383,35 +383,35 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 
 			this->ExportMaterialCPU(MaterialAsset, TexturePath);
 			RMdlMaterial ParsedMaterial = this->ExtractMaterial(MaterialAsset, TexturePath, bExportAllMaterials, false);
-			uint32_t MaterialIndex = Model->AddMaterial(ParsedMaterial.MaterialName, ParsedMaterial.AlbedoHash);
+			//uint32_t MaterialIndex = Model->AddMaterial(ParsedMaterial.MaterialName, ParsedMaterial.AlbedoHash);
 
 			material.name = ParsedMaterial.MaterialName;
 
 			if (material.name.Length() > maxMaterialLength)
 				maxMaterialLength = material.name.Length();
 
-			Assets::Material& MaterialInstance = Model->Materials[MaterialIndex];
+			//Assets::Material& MaterialInstance = Model->Materials[MaterialIndex];
 
-			if (ParsedMaterial.AlbedoMapName != "")
-				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Albedo, { "_images\\" + ParsedMaterial.AlbedoMapName, ParsedMaterial.AlbedoHash });
-			if (ParsedMaterial.NormalMapName != "")
-				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Normal, { "_images\\" + ParsedMaterial.NormalMapName, ParsedMaterial.NormalHash });
-			if (ParsedMaterial.GlossMapName != "")
-				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Gloss, { "_images\\" + ParsedMaterial.GlossMapName, ParsedMaterial.GlossHash });
-			if (ParsedMaterial.SpecularMapName != "")
-				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Specular, { "_images\\" + ParsedMaterial.SpecularMapName, ParsedMaterial.SpecularHash });
-			if (ParsedMaterial.EmissiveMapName != "")
-				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Emissive, { "_images\\" + ParsedMaterial.EmissiveMapName, ParsedMaterial.EmissiveHash });
-			if (ParsedMaterial.AmbientOcclusionMapName != "")
-				MaterialInstance.Slots.Add(Assets::MaterialSlotType::AmbientOcclusion, { "_images\\" + ParsedMaterial.AmbientOcclusionMapName, ParsedMaterial.AmbientOcclusionHash });
-			if (ParsedMaterial.CavityMapName != "")
-				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Cavity, { "_images\\" + ParsedMaterial.CavityMapName, ParsedMaterial.CavityHash });
+			//if (ParsedMaterial.AlbedoMapName != "")
+			//	MaterialInstance.Slots.Add(Assets::MaterialSlotType::Albedo, { "_images\\" + ParsedMaterial.AlbedoMapName, ParsedMaterial.AlbedoHash });
+			//if (ParsedMaterial.NormalMapName != "")
+			//	MaterialInstance.Slots.Add(Assets::MaterialSlotType::Normal, { "_images\\" + ParsedMaterial.NormalMapName, ParsedMaterial.NormalHash });
+			//if (ParsedMaterial.GlossMapName != "")
+			//	MaterialInstance.Slots.Add(Assets::MaterialSlotType::Gloss, { "_images\\" + ParsedMaterial.GlossMapName, ParsedMaterial.GlossHash });
+			//if (ParsedMaterial.SpecularMapName != "")
+			//	MaterialInstance.Slots.Add(Assets::MaterialSlotType::Specular, { "_images\\" + ParsedMaterial.SpecularMapName, ParsedMaterial.SpecularHash });
+			//if (ParsedMaterial.EmissiveMapName != "")
+			//	MaterialInstance.Slots.Add(Assets::MaterialSlotType::Emissive, { "_images\\" + ParsedMaterial.EmissiveMapName, ParsedMaterial.EmissiveHash });
+			//if (ParsedMaterial.AmbientOcclusionMapName != "")
+			//	MaterialInstance.Slots.Add(Assets::MaterialSlotType::AmbientOcclusion, { "_images\\" + ParsedMaterial.AmbientOcclusionMapName, ParsedMaterial.AmbientOcclusionHash });
+			//if (ParsedMaterial.CavityMapName != "")
+			//	MaterialInstance.Slots.Add(Assets::MaterialSlotType::Cavity, { "_images\\" + ParsedMaterial.CavityMapName, ParsedMaterial.CavityHash });
 		}
 		else {
-			Model->AddMaterial(string::Format("UNK_0x%llx"), 0);
-
+			//Model->AddMaterial(string::Format("UNK_0x%llx"), 0);
+		
 			material.name = string::Format("0x%llx", material.guid);
-
+		
 			if (material.name.Length() > maxMaterialLength)
 				maxMaterialLength = material.name.Length();
 		}
