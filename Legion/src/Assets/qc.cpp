@@ -2,6 +2,7 @@
 #include "RpakLib.h"
 #include "Path.h"
 #include "Directory.h"
+#include <version.h>
 
 const std::vector<std::string> MaterialTypes = { "_rgdu", "_rgdp", "_rgdc", "_sknu", "_sknp", "_sknc", "_wldu", "_wldc", "_ptcu", "_ptcs" };
 
@@ -209,8 +210,9 @@ void RpakLib::ExportQC(int assetVersion, const string& Path, const string& model
 	IO::StreamWriter qc(IO::File::Create(Path));
 	s3studiohdr_t hdr = GetStudioMdl(assetVersion, rmdlBuf);
 
-	qc.WriteFmt("$modelname \"%s\"\n", modelPath.ToCString());
-	qc.WriteFmt("$cdmaterials \"\"\n");
+	qc.WriteFmt("// decompiled using LegionPlus %s\n\n", UI_VER_STR);
+
+	qc.WriteFmt("$modelname \"%s\"\n\n", modelPath.ToCString());
 
 	char* surfaceProp = reinterpret_cast<char*>(rmdlBuf + hdr.surfacepropindex);
 
@@ -222,8 +224,6 @@ void RpakLib::ExportQC(int assetVersion, const string& Path, const string& model
 	if (hdr.flags & STUDIOHDR_FLAGS_FORCE_OPAQUE)
 		qc.Write("$opaque\n\n");
 
-	qc.WriteFmt("$eyeposition %f %f %f\n", hdr.eyeposition.X, hdr.eyeposition.Y, hdr.eyeposition.Z);
-	qc.WriteFmt("$illumposition %f %f %f\n\n", hdr.illumposition.X, hdr.illumposition.Y, hdr.illumposition.Z);
 
 	std::vector<std::string> BoneNames(hdr.numbones);
 	std::vector<mstudiobonev54_t> Bones(hdr.numbones);
@@ -363,6 +363,11 @@ void RpakLib::ExportQC(int assetVersion, const string& Path, const string& model
 
 		qc.Write("}\n\n");
 	}
+
+	qc.WriteFmt("$eyeposition %f %f %f\n", hdr.eyeposition.X, hdr.eyeposition.Y, hdr.eyeposition.Z);
+	qc.WriteFmt("$illumposition %f %f %f\n\n", hdr.illumposition.X, hdr.illumposition.Y, hdr.illumposition.Z);
+
+	qc.WriteFmt("$cdmaterials \"\"\n\n");
 
 	std::vector<string> TextureNames(hdr.numtextures);
 	std::vector<string> TextureTypes(hdr.numtextures);
