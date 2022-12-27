@@ -270,6 +270,8 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 			hdr.FromV16(hdr_v16);
 		}
 		else hdr = Reader.Read<MaterialHeader>();
+
+		Result.MaterialType = hdr.materialType;
 	}
 	else
 	{

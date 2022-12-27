@@ -61,6 +61,27 @@ s3studiohdr_t GetStudioMdl(int assetVersion, char* rmdlBuf)
 			hdr.numtextures = thdr.numtextures;
 			break;
 		}
+		case 16:
+		{
+			studiohdr_t_v16 thdr = *reinterpret_cast<studiohdr_t_v16*>(rmdlBuf);
+			hdr.flags = thdr.flags;
+			hdr.surfacepropindex = thdr.surfacepropindex;
+			hdr.illumposition = thdr.illumposition;
+			hdr.numbones = thdr.numbones;
+			hdr.boneindex = thdr.boneindex;
+			hdr.numbodyparts = thdr.numbodyparts;
+			hdr.bodypartindex = thdr.bodypartindex;
+			hdr.numlocalattachments = thdr.numlocalattachments;
+			hdr.localattachmentindex = thdr.localattachmentindex;
+			hdr.numskinfamilies = thdr.numskinfamilies;
+			hdr.skinindex = thdr.skinindex;
+			hdr.numskinref = thdr.numskinref;
+			hdr.numhitboxsets = thdr.numhitboxsets;
+			hdr.hitboxsetindex = thdr.hitboxsetindex;
+			hdr.textureindex = thdr.textureindex;
+			hdr.numtextures = thdr.numtextures;
+			break;
+		}
 		default:
 			break;
 		}
@@ -182,323 +203,406 @@ void WriteJiggleBoneData(IO::StreamWriter& qc, mstudiojigglebonev54_t*& JiggleBo
 
 void RpakLib::ExportQC(int assetVersion, const string& Path, const string& modelPath, const std::unique_ptr<Assets::Model>& Model, char* rmdlBuf, char* phyBuf)
 {
+	if (assetVersion > 16)
+		return;
+
 	IO::StreamWriter qc(IO::File::Create(Path));
-	if (assetVersion <= 16)
+	s3studiohdr_t hdr = GetStudioMdl(assetVersion, rmdlBuf);
+
+	qc.WriteFmt("$modelname \"%s\"\n", modelPath.ToCString());
+	qc.WriteFmt("$cdmaterials \"\"\n");
+
+	char* surfaceProp = reinterpret_cast<char*>(rmdlBuf + hdr.surfacepropindex);
+
+	qc.WriteFmt("$surfaceprop \"%s\"\n", surfaceProp);
+
+	if (hdr.flags & STUDIOHDR_FLAGS_STATIC_PROP)
+		qc.WriteFmt("$staticprop\n\n");
+
+	if (hdr.flags & STUDIOHDR_FLAGS_FORCE_OPAQUE)
+		qc.Write("$opaque\n\n");
+
+	qc.WriteFmt("$eyeposition %f %f %f\n", hdr.eyeposition.X, hdr.eyeposition.Y, hdr.eyeposition.Z);
+	qc.WriteFmt("$illumposition %f %f %f\n\n", hdr.illumposition.X, hdr.illumposition.Y, hdr.illumposition.Z);
+
+	std::vector<std::string> BoneNames(hdr.numbones);
+	std::vector<mstudiobonev54_t> Bones(hdr.numbones);
+
+	uint64_t v16bonedataindex = 0;
+	if(assetVersion == 16)
+		v16bonedataindex = reinterpret_cast<studiohdr_t_v16*>(rmdlBuf)->bonedataindex;
+
+	for (int i = 0; i < hdr.numbones; i++)
 	{
-		s3studiohdr_t hdr = GetStudioMdl(assetVersion, rmdlBuf);
-
-		qc.WriteFmt("$modelname \"%s\"\n", modelPath.ToCString());
-		qc.WriteFmt("$cdmaterials \"\"\n");
-
-		char* surfaceProp = reinterpret_cast<char*>(rmdlBuf + hdr.surfacepropindex);
-
-		qc.WriteFmt("$surfaceprop \"%s\"\n", surfaceProp);
-
-		qc.WriteFmt("$contents \"%s\"\n\n", (hdr.contents & 1) == 1 ? "solid" : "notsolid");
-
-		if (hdr.flags & STUDIOHDR_FLAGS_STATIC_PROP)
-			qc.WriteFmt("$staticprop\n\n");
-
-		if (hdr.flags & STUDIOHDR_FLAGS_FORCE_OPAQUE)
-			qc.Write("$opaque\n\n");
-
-		qc.WriteFmt("$eyeposition %f %f %f\n", hdr.eyeposition.X, hdr.eyeposition.Y, hdr.eyeposition.Z);
-		qc.WriteFmt("$illumposition %f %f %f\n\n", hdr.illumposition.X, hdr.illumposition.Y, hdr.illumposition.Z);
-
-		std::vector<std::string> BoneNames(hdr.numbones);
-		std::vector<mstudiobonev54_t> Bones(hdr.numbones);
-
-		for (int i = 0; i < hdr.numbones; i++)
+		char* pBone = rmdlBuf + hdr.boneindex;
+		if (assetVersion <= 10)
 		{
-			if (assetVersion <= 10)
-			{
-				char* pBone = rmdlBuf + hdr.boneindex + (i * sizeof(mstudiobonev54_t));
-				mstudiobonev54_t Bone = *reinterpret_cast<mstudiobonev54_t*>(pBone);
-				char* boneName = reinterpret_cast<char*>(pBone + Bone.sznameindex);
+			pBone = pBone + (i * sizeof(mstudiobonev54_t));
+			mstudiobonev54_t Bone = *reinterpret_cast<mstudiobonev54_t*>(pBone);
+			BoneNames[i] = std::string(reinterpret_cast<char*>(pBone + Bone.sznameindex));
+			Bones[i] = Bone;
+		}
+		else if (assetVersion < 16)
+		{
+			pBone = pBone + (i * sizeof(mstudiobonev54_t_v121));
+			mstudiobonev54_t_v121 Bone = *reinterpret_cast<mstudiobonev54_t_v121*>(pBone);
+			BoneNames[i] = std::string(reinterpret_cast<char*>(pBone + Bone.sznameindex));
+			Bones[i] = Bone.Downgrade();
+		}
+		else {
+			pBone = pBone + (i * sizeof(mstudiobone_t_v16));
+			mstudiobone_t_v16 Bone = *reinterpret_cast<mstudiobone_t_v16*>(pBone);
+			BoneNames[i] = std::string(reinterpret_cast<char*>(pBone + Bone.sznameindex));
+			mstudiobonedata_t_v16 BoneData = *reinterpret_cast<mstudiobonedata_t_v16*>(rmdlBuf + v16bonedataindex + (i * sizeof(mstudiobonedata_t_v16)));
+			mstudiobonev54_t out{};
+			out.ConstructFromV16(Bone, BoneData);
+			Bones[i] = out;
 
-				BoneNames[i] = std::string(boneName);
-				Bones[i] = Bone;
-			}
-			else if (assetVersion <= 16)
-			{
-				char* pBone = rmdlBuf + hdr.boneindex + (i * sizeof(mstudiobonev54_t_v121));
-				mstudiobonev54_t_v121 Bone = *reinterpret_cast<mstudiobonev54_t_v121*>(pBone);
-				char* boneName = reinterpret_cast<char*>(pBone + Bone.sznameindex);
+			if (out.contents)
+				hdr.contents = out.contents;
+		}
+	}
 
-				BoneNames[i] = std::string(boneName);
-				Bones[i] = Bone.DowgradeToS3();
-			}
+	qc.WriteFmt("$contents \"%s\"\n\n", (hdr.contents & 1) == 1 ? "solid" : "notsolid");
+
+	int jigglebonecount = 0;
+	for (int i = 0; i < hdr.numbones; i++)
+	{
+		if (Bones[i].proctype == 5) {
+			jigglebonecount++;
+		}
+	}
+
+	for (int i = 0; i < hdr.numbodyparts; i++)
+	{
+		char* pBodyPart = rmdlBuf + hdr.bodypartindex; 
+		mstudiobodyparts_t bodyPart{};
+		switch (assetVersion)
+		{
+		case 15:
+			pBodyPart = pBodyPart + (i * sizeof(mstudiobodyparts_t_v15));
+			bodyPart = reinterpret_cast<mstudiobodyparts_t_v15*>(pBodyPart)->Downgrade();
+			break;
+		case 16:
+			pBodyPart = pBodyPart + (i * sizeof(mstudiobodyparts_t_v16));
+			bodyPart = reinterpret_cast<mstudiobodyparts_t_v16*>(pBodyPart)->Downgrade();
+			break;
+		default:
+			pBodyPart = pBodyPart + (i * sizeof(mstudiobodyparts_t));
+			bodyPart = *reinterpret_cast<mstudiobodyparts_t*>(pBodyPart);
+			break;
 		}
 
-		int jigglebonecount = 0;
-		for (int i = 0; i < hdr.numbones; i++)
-		{
-			if (Bones[i].proctype == 5) {
-				jigglebonecount++;
-			}
-		}
+		char* bodyPartName = reinterpret_cast<char*>(pBodyPart + bodyPart.sznameindex);
 
-		for (int i = 0; i < hdr.numbodyparts; i++)
+		qc.WriteFmt("$bodygroup \"%s\"\n{\n", bodyPartName);
+
+		List<int> BodyPartMeshes;
+		for (int j = 0; j < bodyPart.nummodels; j++)
 		{
-			char* pBodyPart = rmdlBuf + hdr.bodypartindex; 
-			mstudiobodyparts_t bodyPart{};
+			char* pModel = pBodyPart + bodyPart.modelindex;
+			mstudiomodelv54_t* model = nullptr;
+
 			switch (assetVersion)
 			{
+			case 13:
+				pModel = pModel + (j * sizeof(mstudiomodelv54_t_v13));
+				model = reinterpret_cast<mstudiomodelv54_t_v13*>(pModel)->Downgrade();
+				break;
+			case 14:
 			case 15:
-				pBodyPart = pBodyPart + (i * sizeof(mstudiobodyparts_t_v15));
-				bodyPart = reinterpret_cast<mstudiobodyparts_t_v15*>(pBodyPart)->DowngradeToS3();
+				pModel = pModel + (j * sizeof(mstudiomodelv54_t_v14));
+				model = reinterpret_cast<mstudiomodelv54_t_v14*>(pModel)->Downgrade();
 				break;
 			case 16:
-				pBodyPart = pBodyPart + (i * sizeof(mstudiobodyparts_t_v16));
-				bodyPart = reinterpret_cast<mstudiobodyparts_t_v16*>(pBodyPart)->DowngradeToS3();
+				pModel = pModel + (j * sizeof(mstudiomodelv54_t_v16));
+				model = reinterpret_cast<mstudiomodelv54_t_v16*>(pModel)->Downgrade();
 				break;
 			default:
-				pBodyPart = pBodyPart + (i * sizeof(mstudiobodyparts_t));
-				bodyPart = *reinterpret_cast<mstudiobodyparts_t*>(pBodyPart);
+				pModel = pModel + (j * sizeof(mstudiomodelv54_t));
+				model = reinterpret_cast<mstudiomodelv54_t*>(pModel);
 				break;
 			}
 
-			char* bodyPartName = reinterpret_cast<char*>(pBodyPart + bodyPart.sznameindex);
+			if (!model->nummeshes)
+				qc.Write("\tblank\n");
+			else
+				qc.WriteFmt("\tstudio \"%s.smd\"\n", bodyPartName);
 
-			qc.WriteFmt("$bodygroup \"%s\"\n{\n", bodyPartName);
-
-			List<int> BodyPartMeshes;
-			for (int j = 0; j < bodyPart.nummodels; j++)
+			for (int a = 0; a < model->nummeshes; a++)
 			{
-				char* pModel = pBodyPart + bodyPart.modelindex;
-				mstudiomodelv54_t* model = nullptr;
+				char* pMesh = pModel + model->meshindex;
+				mstudiomeshv54_t mesh{};
 
-				if (assetVersion <= 10)
+				switch (assetVersion)
 				{
-					pModel = pModel + (j * sizeof(mstudiomodelv54_t));
-					model = reinterpret_cast<mstudiomodelv54_t*>(pModel);
-				}
-				else if (assetVersion <= 16)
-				{
-					switch (assetVersion)
+				case 16:
+					pMesh = pMesh + (a * sizeof(mstudiomeshv54_t_v16));
+					mesh = reinterpret_cast<mstudiomeshv54_t_v16*>(pMesh)->Downgrade();
+					break;
+				default:
+					if (assetVersion <= 10)
 					{
-					case 13:
-						pModel = pModel + (j * sizeof(mstudiomodelv54_t_v13));
-						model = reinterpret_cast<mstudiomodelv54_t_v13*>(pModel)->DowgradeToS3();
-						break;
-					case 14:
-					case 15:
-						pModel = pModel + (j * sizeof(mstudiomodelv54_t_v14));
-						model = reinterpret_cast<mstudiomodelv54_t_v14*>(pModel)->DowgradeToS3();
-						break;
-					default:
-						break;
-					}
-				}
-
-				if (!*model->name)
-					qc.Write("\tblank\n");
-				else
-					qc.WriteFmt("\tstudio \"%s.smd\"\n", bodyPartName);
-
-				for (int a = 0; a < model->nummeshes; a++)
-				{
-					char* pMesh = pModel + model->meshindex;
-					if (assetVersion <= 10)
 						pMesh = pMesh + (a * sizeof(mstudiomeshv54_t));
-					else if (assetVersion <= 16)
-						pMesh = pMesh + (a * sizeof(mstudiomeshv54_t_v121));
-
-					mstudiomeshv54_t mesh{};
-
-					if (assetVersion <= 10)
 						mesh = *reinterpret_cast<mstudiomeshv54_t*>(pMesh);
-					else if (assetVersion <= 16)
-						mesh = reinterpret_cast<mstudiomeshv54_t_v121*>(pMesh)->DowgradeToS3();
-
-					BodyPartMeshes.EmplaceBack(mesh.meshid);
-				}
-			}
-
-			Model.get()->BodyPartNames.EmplaceBack(bodyPartName);
-			Model.get()->BodyPartMeshIds.EmplaceBack(BodyPartMeshes);
-
-			qc.Write("}\n\n");
-		}
-
-		std::vector<string> TextureNames(hdr.numtextures);
-		std::vector<string> TextureTypes(hdr.numtextures);
-
-		for (int i = 0; i < hdr.numtextures; i++)
-		{
-			char* pTexture = rmdlBuf + hdr.textureindex + (i * sizeof(mstudiotexturev54_t));
-			mstudiotexturev54_t texture = *reinterpret_cast<mstudiotexturev54_t*>(pTexture);
-			TextureNames[i] = string(pTexture + texture.sznameindex);
-
-			std::string temp = TextureNames[i].ToCString();
-			for (int z = 0; z < MaterialTypes.size(); z++)
-			{
-				std::string MatType = MaterialTypes[z];
-
-				if (temp.find(MatType) != -1)
-				{
-					TextureTypes[i] = MatType;
+					}
+					else
+					{
+						pMesh = pMesh + (a * sizeof(mstudiomeshv54_t_v121));
+						mesh = reinterpret_cast<mstudiomeshv54_t_v121*>(pMesh)->Downgrade();
+					}
 					break;
 				}
+
+				BodyPartMeshes.EmplaceBack(mesh.meshid);
 			}
 		}
 
-		qc.WriteFmt("//$texturegroup \"skinfamilies\"\n//{\n");
+		Model.get()->BodyPartNames.EmplaceBack(bodyPartName);
+		Model.get()->BodyPartMeshIds.EmplaceBack(BodyPartMeshes);
 
-		for (int i = 0; i < hdr.numskinfamilies; i++)
+		qc.Write("}\n\n");
+	}
+
+	std::vector<string> TextureNames(hdr.numtextures);
+	std::vector<string> TextureTypes(hdr.numtextures);
+
+	for (int i = 0; i < hdr.numtextures; i++)
+	{
+		char* pTexture = rmdlBuf + hdr.textureindex; 
+		mstudiotexturev54_t texture{};
+		
+		if (assetVersion > 16)
 		{
-			char* pSkinFamily = rmdlBuf + hdr.skinindex + (i * hdr.numskinref * sizeof(short));
-
-			std::string skinName = "default";
-
-			if (i > 0)
-			{
-				int sizeofz = (hdr.numskinfamilies * hdr.numskinref * sizeof(short));
-				char* pSkinFamilies = (rmdlBuf + hdr.skinindex + sizeofz) + (sizeofz % 4);
-
-				int* pSkinNameIndex = reinterpret_cast<int*>(pSkinFamilies + ((i - 1) * 4));
-				skinName = std::string(rmdlBuf + *(pSkinNameIndex));
-			}
-
-			qc.WriteFmt("//\t\"%s\" { ", skinName.c_str());
-			for (int j = 0; j < hdr.numskinref; j++)
-			{
-				short texId = *reinterpret_cast<short*>(pSkinFamily + (j * sizeof(short)));
-
-				std::string TextureName = (TextureNames[texId].ToCString());
-
-				while (TextureName.find("\\") != -1)
-					TextureName = TextureName.replace(TextureName.find("\\"), std::string("\\").length(), "/");
-
-				qc.WriteFmt("//\"%s\" ", TextureName.c_str());
-			}
-
-			qc.Write("//}\n");
+			pTexture = pTexture + (i * sizeof(mstudiotexturev54_t));
+			texture = *reinterpret_cast<mstudiotexturev54_t*>(pTexture);
+			TextureNames[i] = string(pTexture + texture.sznameindex);
 		}
-		qc.Write("//}\n\n");
+		else {
+			pTexture = pTexture + (i * sizeof(mstudiotexturev54_t_v16));
+			texture = reinterpret_cast<mstudiotexturev54_t_v16*>(pTexture)->Downgrade();
 
-		List<std::string> ValidTextures{};
-		for (auto& Submesh : Model.get()->Meshes)
-		{
-			for (auto& Face : Submesh.Faces)
+			if (Assets.ContainsKey(texture.guid))
 			{
-				if (Submesh.MaterialIndices[0] > -1)
+				RpakLoadAsset& MaterialAsset = Assets[texture.guid];
+				RMdlMaterial ParsedMaterial = this->ExtractMaterial(MaterialAsset, "", false, true);
+
+				TextureTypes[i] = MaterialTypes[ParsedMaterial.MaterialType];
+
+				TextureNames[i] = ParsedMaterial.FullMaterialName + TextureTypes[i];
+			}
+
+			continue;
+		}
+
+		std::string temp = TextureNames[i].ToCString();
+		for (int z = 0; z < MaterialTypes.size(); z++)
+		{
+			std::string MatType = MaterialTypes[z];
+
+			if (temp.find(MatType) != -1)
+			{
+				TextureTypes[i] = MatType;
+				break;
+			}
+		}
+	}
+
+	qc.WriteFmt("//$texturegroup \"skinfamilies\"\n//{\n");
+
+	for (int i = 0; i < hdr.numskinfamilies; i++)
+	{
+		if (assetVersion >= 16)
+			break;
+
+		char* pSkinFamily = rmdlBuf + hdr.skinindex + (i * hdr.numskinref * sizeof(short));
+
+		std::string skinName = "default";
+
+		if (i > 0)
+		{
+			int sizeofz = (hdr.numskinfamilies * hdr.numskinref * sizeof(short));
+			char* pSkinFamilies = (rmdlBuf + hdr.skinindex + sizeofz) + (sizeofz % 4);
+
+			int* pSkinNameIndex = reinterpret_cast<int*>(pSkinFamilies + ((i - 1) * 4));
+			skinName = std::string(rmdlBuf + *(pSkinNameIndex));
+		}
+
+		qc.WriteFmt("//\t\"%s\" { ", skinName.c_str());
+		for (int j = 0; j < hdr.numskinref; j++)
+		{
+			short texId = *reinterpret_cast<short*>(pSkinFamily + (j * sizeof(short)));
+
+			std::string TextureName = (TextureNames[texId].ToCString());
+
+			while (TextureName.find("\\") != -1)
+				TextureName = TextureName.replace(TextureName.find("\\"), std::string("\\").length(), "/");
+
+			qc.WriteFmt("//\"%s\" ", TextureName.c_str());
+		}
+
+		qc.Write("//}\n");
+	}
+	qc.Write("//}\n\n");
+
+	List<std::string> ValidTextures{};
+	for (auto& Submesh : Model.get()->Meshes)
+	{
+		for (auto& Face : Submesh.Faces)
+		{
+			if (Submesh.MaterialIndices[0] > -1)
+			{
+				int materialindex = Submesh.MaterialIndices[0];
+				string SubMeshTextureName = Model.get()->Materials[materialindex].Name + TextureTypes[materialindex];
+
+				int i = 0;
+				for (auto& Texture : TextureNames)
 				{
-					int materialindex = Submesh.MaterialIndices[0];
-					string SubMeshTextureName = Model.get()->Materials[materialindex].Name + TextureTypes[materialindex];
+					if (Texture.ToLower().Contains(SubMeshTextureName.ToLower()) && !ValidTextures.Contains(TextureNames[i].ToLower().ToCString()))
+						ValidTextures.EmplaceBack(TextureNames[i].ToCString());
 
-					int i = 0;
-					for (auto& Texture : TextureNames)
-					{
-						if (Texture.ToLower().Contains(SubMeshTextureName.ToLower()) && !ValidTextures.Contains(TextureNames[i].ToLower().ToCString()))
-							ValidTextures.EmplaceBack(TextureNames[i].ToCString());
-
-						i++;
-					}
+					i++;
 				}
 			}
 		}
+	}
 
-		for (auto& ValidTexture : ValidTextures)
+	for (auto& ValidTexture : ValidTextures)
+	{
+		while (ValidTexture.find("\\") != -1)
+			ValidTexture = ValidTexture.replace(ValidTexture.find("\\"), std::string("\\").length(), "/");
+
+		qc.WriteFmt("$renamematerial \"%s\" \"%s\"\n", IO::Path::GetFileNameWithoutExtension(ValidTexture.c_str()).ToCString(), ValidTexture.c_str());
+	}
+
+
+	qc.Write("\n");
+
+	qc.WriteFmt("$sequence \"ref\" \"%s_ref.smd\" \n\n", Model.get()->Name.ToCString());
+
+
+	qc.WriteFmt("$unlockdefinebones\n\n");
+
+	for (int i = 0; i < hdr.numbones; i++)
+	{
+		std::string BoneParentName = "";
+		std::string BoneName = BoneNames[i];
+
+		mstudiobonev54_t& bone = Bones[i];
+
+		if (bone.parent != -1)
+			BoneParentName = BoneNames[bone.parent];
+
+		qc.WriteFmt("$definebone \"%s\" \"%s\" %f %f %f %f %f %f 0 0 0 0 0 0\n", BoneName.c_str(), BoneParentName.c_str(), bone.pos.X, bone.pos.Y, bone.pos.Z, bone.rot.X, bone.rot.Y, bone.rot.Z);
+	}
+	qc.Write("\n");
+
+	for (int i = 0; i < hdr.numbones; i++)
+	{
+		std::string BoneName = BoneNames[i];
+		qc.WriteFmt("$bonemerge \"%s\" \n", BoneName.c_str());
+	}
+	qc.Write("\n");
+
+	if (hdr.numlocalattachments)
+		qc.Write("// !!! attachment rotation angles may be wrong !!!\n");
+	for (int i = 0; i < hdr.numlocalattachments; i++)
+	{
+		// get attachment
+		char* pAttachment = rmdlBuf + hdr.localattachmentindex;
+		mstudioattachmentv54_t attachment{};
+
+		if(assetVersion > 16)
 		{
-			while (ValidTexture.find("\\") != -1)
-				ValidTexture = ValidTexture.replace(ValidTexture.find("\\"), std::string("\\").length(), "/");
-
-			qc.WriteFmt("$renamematerial \"%s\" \"%s\"\n", IO::Path::GetFileNameWithoutExtension(ValidTexture.c_str()).ToCString(), ValidTexture.c_str());
+			pAttachment = pAttachment + (i * sizeof(mstudioattachmentv54_t));
+			attachment = *reinterpret_cast<mstudioattachmentv54_t*>(pAttachment);
 		}
-
-
-		qc.Write("\n");
-
-		qc.WriteFmt("$sequence \"ref\" \"%s_ref.smd\" \n\n", Model.get()->Name.ToCString());
-
-
-		qc.WriteFmt("$unlockdefinebones\n\n");
-
-		for (int i = 0; i < hdr.numbones; i++)
+		else
 		{
-			std::string BoneParentName = "";
-			std::string BoneName = BoneNames[i];
-
-			mstudiobonev54_t& bone = Bones[i];
-
-			if (bone.parent != -1)
-				BoneParentName = BoneNames[bone.parent];
-
-			qc.WriteFmt("$definebone \"%s\" \"%s\" %f %f %f %f %f %f 0 0 0 0 0 0\n", BoneName.c_str(), BoneParentName.c_str(), bone.pos.X, bone.pos.Y, bone.pos.Z, bone.rot.X, bone.rot.Y, bone.rot.Z);
+			pAttachment = pAttachment + (i * sizeof(mstudioattachmentv54_t_v16));
+			attachment = reinterpret_cast<mstudioattachmentv54_t_v16*>(pAttachment)->Downgrade();
 		}
-		qc.Write("\n");
+			
+		char* attachmentName = pAttachment + attachment.sznameindex;
 
-		for (int i = 0; i < hdr.numbones; i++)
+		// get attachment's bone
+		Vector3 angles = attachment.localmatrix.GetRotationMatrixAsDegrees();
+
+		qc.WriteFmt("$attachment \"%s\" \"%s\" %f %f %f rotate %f %f %f\n",
+			attachmentName,
+			BoneNames[attachment.localbone].c_str(),
+			attachment.localmatrix.c3r0, attachment.localmatrix.c3r1, attachment.localmatrix.c3r2,
+			angles.X, angles.Y, angles.Z
+		);
+
+	}
+	qc.Write("\n");
+
+	for (int i = 0; i < jigglebonecount; i++)
+	{
+		char* pBones = nullptr;
+		if (assetVersion <= 10)
+			pBones = rmdlBuf + hdr.boneindex + (hdr.numbones * sizeof(mstudiobonev54_t));
+		else if (assetVersion > 16)
+			pBones = rmdlBuf + hdr.boneindex + (hdr.numbones * sizeof(mstudiobonev54_t_v121));
+		else
+			pBones = rmdlBuf + v16bonedataindex + (hdr.numbones * sizeof(mstudiobonedata_t_v16));
+
+		mstudiojigglebonev54_t* JiggleBone = reinterpret_cast<mstudiojigglebonev54_t*>(pBones + (i * sizeof(mstudiojigglebonev54_t)));
+
+		qc.WriteFmt("$jigglebone \"%s\"\n{\n", BoneNames[JiggleBone->bone].c_str());
+
+		WriteJiggleBoneData(qc, JiggleBone);
+
+		qc.Write("}\n\n");
+	}
+
+	for (int i = 0; i < hdr.numhitboxsets; i++)
+	{
+		char* pHitboxSet = rmdlBuf + hdr.hitboxsetindex;
+		mstudiohitboxset_t hitboxSet{};
+
+		if (assetVersion < 16)
 		{
-			std::string BoneName = BoneNames[i];
-			qc.WriteFmt("$bonemerge \"%s\" \n", BoneName.c_str());
+			pHitboxSet = pHitboxSet + (i * sizeof(mstudiohitboxset_t));
+			hitboxSet = *reinterpret_cast<mstudiohitboxset_t*>(pHitboxSet);
 		}
-		qc.Write("\n");
-
-		if (hdr.numlocalattachments)
-			qc.Write("// !!! attachment rotation angles may be wrong !!!\n");
-		for (int i = 0; i < hdr.numlocalattachments; i++)
+		else
 		{
-			// get attachment
-			char* pAttachment = rmdlBuf + hdr.localattachmentindex + (i * sizeof(mstudioattachmentv54_t));
-			mstudioattachmentv54_t attachment = *reinterpret_cast<mstudioattachmentv54_t*>(pAttachment);
-			char* attachmentName = pAttachment + attachment.sznameindex;
-
-			// get attachment's bone
-			Vector3 angles = attachment.localmatrix.GetRotationMatrixAsDegrees();
-
-			qc.WriteFmt("$attachment \"%s\" \"%s\" %f %f %f rotate %f %f %f\n",
-				attachmentName,
-				BoneNames[attachment.localbone].c_str(),
-				attachment.localmatrix.c3r0, attachment.localmatrix.c3r1, attachment.localmatrix.c3r2,
-				angles.X, angles.Y, angles.Z
-			);
-
+			pHitboxSet = pHitboxSet + (i * sizeof(mstudiohitboxset_t_v16));
+			hitboxSet = reinterpret_cast<mstudiohitboxset_t_v16*>(pHitboxSet)->Downgrade();
 		}
-		qc.Write("\n");
+		
+		// get hboxset name
+		char* hitboxSetName = pHitboxSet + hitboxSet.sznameindex;
 
-		for (int i = 0; i < jigglebonecount; i++)
+		qc.WriteFmt("$hboxset \"%s\"\n\n", hitboxSetName);
+
+		for (int j = 0; j < hitboxSet.numhitboxes; j++)
 		{
-			char* pBones = nullptr;
-			if (assetVersion <= 10)
-				pBones = rmdlBuf + hdr.boneindex + (hdr.numbones * sizeof(mstudiobonev54_t));
-			else if (assetVersion <= 16)
-				pBones = rmdlBuf + hdr.boneindex + (hdr.numbones * sizeof(mstudiobonev54_t_v121));
+			mstudiobboxv54_t hitbox{};
 
-			mstudiojigglebonev54_t* JiggleBone = reinterpret_cast<mstudiojigglebonev54_t*>(pBones + (i * sizeof(mstudiojigglebonev54_t)));
+			char* pHitbox = nullptr;
 
-			qc.WriteFmt("$jigglebone \"%s\"\n{\n", BoneNames[JiggleBone->bone].c_str());
-
-			WriteJiggleBoneData(qc, JiggleBone);
-
-			qc.Write("}\n\n");
-		}
-
-		for (int i = 0; i < hdr.numhitboxsets; i++)
-		{
-			char* pHitboxSet = rmdlBuf + hdr.hitboxsetindex + (i * sizeof(mstudiohitboxset_t));
-			mstudiohitboxset_t hitboxSet = *reinterpret_cast<mstudiohitboxset_t*>(pHitboxSet);
-
-			// get hboxset name
-			char* hitboxSetName = pHitboxSet + hitboxSet.sznameindex;
-
-			qc.WriteFmt("$hboxset \"%s\"\n\n", hitboxSetName);
-
-			for (int j = 0; j < hitboxSet.numhitboxes; j++)
+			if (assetVersion < 16)
 			{
-				char* pHitbox = pHitboxSet + hitboxSet.hitboxindex + (j * sizeof(mstudiobboxv54_t));
-				mstudiobboxv54_t hitbox = *reinterpret_cast<mstudiobboxv54_t*>(pHitbox);
-
-				qc.WriteFmt("$hbox %i \"%s\" %f %f %f %f %f %f\n",
-					hitbox.group,
-					BoneNames[hitbox.bone].c_str(),
-					hitbox.bbmin.X, hitbox.bbmin.Y, hitbox.bbmin.Z,
-					hitbox.bbmax.X, hitbox.bbmax.Y, hitbox.bbmax.Z
-				);
+				pHitbox = pHitboxSet + (j * sizeof(mstudiobboxv54_t));
+				hitbox = *reinterpret_cast<mstudiobboxv54_t*>(pHitbox + hitboxSet.hitboxindex);
 			}
-			qc.Write("\n");
+			else
+			{
+				pHitbox = pHitboxSet + (j * sizeof(mstudiobboxv54_t_v16));
+				hitbox = reinterpret_cast<mstudiobboxv54_t_v16*>(pHitbox + hitboxSet.hitboxindex)->Downgrade();
+			}
+			
+			qc.WriteFmt("$hbox %i \"%s\" %f %f %f %f %f %f\n",
+				hitbox.group,
+				BoneNames[hitbox.bone].c_str(),
+				hitbox.bbmin.X, hitbox.bbmin.Y, hitbox.bbmin.Z,
+				hitbox.bbmax.X, hitbox.bbmax.Y, hitbox.bbmax.Z
+			);
 		}
+		qc.Write("\n");
 	}
 
 	qc.Close();

@@ -171,11 +171,6 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 
 	Reader.Read(studioBuf.get(), 0, cpuData.modelLength);
 
-	// write QC file when exporting as SMD
-	if (Path != "" && AnimPath != "" && ModelFormat == ModelExportFormat_t::SMD)
-		this->ExportQC(Asset.AssetVersion, BaseFileName + ".qc", RawModelName, Model, studioBuf.get(), nullptr);
-
-
 	if (Path != "" && AnimPath != "" && ModelFormat == ModelExportFormat_t::RMDL)
 	{
 		// set this here so we don't have to do this check every time
@@ -404,32 +399,32 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 
 			this->ExportMaterialCPU(MaterialAsset, TexturePath);
 			RMdlMaterial ParsedMaterial = this->ExtractMaterial(MaterialAsset, TexturePath, bExportAllMaterials, false);
-			//uint32_t MaterialIndex = Model->AddMaterial(ParsedMaterial.MaterialName, ParsedMaterial.AlbedoHash);
+			uint32_t MaterialIndex = Model->AddMaterial(ParsedMaterial.MaterialName, ParsedMaterial.AlbedoHash);
 
 			material.name = ParsedMaterial.MaterialName;
 
 			if (material.name.Length() > maxMaterialLength)
 				maxMaterialLength = material.name.Length();
 
-			//Assets::Material& MaterialInstance = Model->Materials[MaterialIndex];
+			Assets::Material& MaterialInstance = Model->Materials[MaterialIndex];
 
-			//if (ParsedMaterial.AlbedoMapName != "")
-			//	MaterialInstance.Slots.Add(Assets::MaterialSlotType::Albedo, { "_images\\" + ParsedMaterial.AlbedoMapName, ParsedMaterial.AlbedoHash });
-			//if (ParsedMaterial.NormalMapName != "")
-			//	MaterialInstance.Slots.Add(Assets::MaterialSlotType::Normal, { "_images\\" + ParsedMaterial.NormalMapName, ParsedMaterial.NormalHash });
-			//if (ParsedMaterial.GlossMapName != "")
-			//	MaterialInstance.Slots.Add(Assets::MaterialSlotType::Gloss, { "_images\\" + ParsedMaterial.GlossMapName, ParsedMaterial.GlossHash });
-			//if (ParsedMaterial.SpecularMapName != "")
-			//	MaterialInstance.Slots.Add(Assets::MaterialSlotType::Specular, { "_images\\" + ParsedMaterial.SpecularMapName, ParsedMaterial.SpecularHash });
-			//if (ParsedMaterial.EmissiveMapName != "")
-			//	MaterialInstance.Slots.Add(Assets::MaterialSlotType::Emissive, { "_images\\" + ParsedMaterial.EmissiveMapName, ParsedMaterial.EmissiveHash });
-			//if (ParsedMaterial.AmbientOcclusionMapName != "")
-			//	MaterialInstance.Slots.Add(Assets::MaterialSlotType::AmbientOcclusion, { "_images\\" + ParsedMaterial.AmbientOcclusionMapName, ParsedMaterial.AmbientOcclusionHash });
-			//if (ParsedMaterial.CavityMapName != "")
-			//	MaterialInstance.Slots.Add(Assets::MaterialSlotType::Cavity, { "_images\\" + ParsedMaterial.CavityMapName, ParsedMaterial.CavityHash });
+			if (ParsedMaterial.AlbedoMapName != "")
+				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Albedo, { "_images\\" + ParsedMaterial.AlbedoMapName, ParsedMaterial.AlbedoHash });
+			if (ParsedMaterial.NormalMapName != "")
+				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Normal, { "_images\\" + ParsedMaterial.NormalMapName, ParsedMaterial.NormalHash });
+			if (ParsedMaterial.GlossMapName != "")
+				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Gloss, { "_images\\" + ParsedMaterial.GlossMapName, ParsedMaterial.GlossHash });
+			if (ParsedMaterial.SpecularMapName != "")
+				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Specular, { "_images\\" + ParsedMaterial.SpecularMapName, ParsedMaterial.SpecularHash });
+			if (ParsedMaterial.EmissiveMapName != "")
+				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Emissive, { "_images\\" + ParsedMaterial.EmissiveMapName, ParsedMaterial.EmissiveHash });
+			if (ParsedMaterial.AmbientOcclusionMapName != "")
+				MaterialInstance.Slots.Add(Assets::MaterialSlotType::AmbientOcclusion, { "_images\\" + ParsedMaterial.AmbientOcclusionMapName, ParsedMaterial.AmbientOcclusionHash });
+			if (ParsedMaterial.CavityMapName != "")
+				MaterialInstance.Slots.Add(Assets::MaterialSlotType::Cavity, { "_images\\" + ParsedMaterial.CavityMapName, ParsedMaterial.CavityHash });
 		}
 		else {
-			//Model->AddMaterial(string::Format("UNK_0x%llx"), 0);
+			Model->AddMaterial(string::Format("UNK_0x%llx"), 0);
 		
 			material.name = string::Format("0x%llx", material.guid);
 		
@@ -480,6 +475,10 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 	IO::BinaryReader vgReader = IO::BinaryReader(vgStream.get(), true);
 	if(lods.front().numMeshes > 0)
 		this->ExtractModelLod_V16(vgReader, RpakStream, ModelName, vgStream->GetPosition(), Model, Fixups, Asset.AssetVersion, IncludeMaterials);
+
+	// write QC file when exporting as SMD
+	if (Path != "" && AnimPath != "" && ModelFormat == ModelExportFormat_t::SMD)
+		this->ExportQC(Asset.AssetVersion, BaseFileName + ".qc", RawModelName, Model, studioBuf.get(), nullptr);
 
 	vgStream->Close();
 

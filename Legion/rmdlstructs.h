@@ -1330,8 +1330,7 @@ struct mstudiobonedata_t_v16
 	Math::Vector3 pos;
 	Math::Quaternion quat;
 	Math::Vector3 rot;
-
-	Vector3 unkvector; // the same as whatever v53 is
+	Vector3 scale; // bone scale(?)
 
 	short parent; // parent bone;
 
@@ -1343,6 +1342,7 @@ struct mstudiobonedata_t_v16
 
 	byte proctype;
 	uint16 procindex; // procedural rule
+
 };
 
 struct mstudiomodelv54_t
@@ -1414,7 +1414,7 @@ struct mstudiomodelv54_t_v13
 
 	int unk; // same as uv2index, did they add something to vvc/0tVG?
 
-	inline mstudiomodelv54_t* DowgradeToS3()
+	inline mstudiomodelv54_t* Downgrade()
 	{
 		mstudiomodelv54_t* out = new mstudiomodelv54_t();
 
@@ -1467,7 +1467,7 @@ struct mstudiomodelv54_t_v14
 	int uv2index; // vertex second uv map
 	int unk;
 
-	inline mstudiomodelv54_t* DowgradeToS3()
+	inline mstudiomodelv54_t* Downgrade()
 	{
 		mstudiomodelv54_t* out = new mstudiomodelv54_t();
 
@@ -1482,6 +1482,29 @@ struct mstudiomodelv54_t_v14
 		out->tangentsindex = this->tangentsindex;
 		out->numattachments = this->numattachments;
 		out->attachmentindex = this->attachmentindex;
+
+		return out;
+	}
+};
+
+struct mstudiomodelv54_t_v16
+{
+	short unkindex2;
+	short nummeshes;
+
+	// first is the same as nummeshes?
+	short unk_v14;
+	short unk1_v14;
+
+	short meshindex;
+
+	inline mstudiomodelv54_t* Downgrade()
+	{
+		mstudiomodelv54_t* out = new mstudiomodelv54_t();
+
+		out->unkindex2 = this->unkindex2;
+		out->nummeshes = this->nummeshes;
+		out->meshindex = this->meshindex;
 
 		return out;
 	}
@@ -1544,7 +1567,7 @@ struct mstudiomeshv54_t_v121
 
 	int unk[2]; // these are suposed to be filled on load, however this isn't true??
 
-	inline mstudiomeshv54_t DowgradeToS3()
+	inline mstudiomeshv54_t Downgrade()
 	{
 		mstudiomeshv54_t out{};
 		out.material = this->material;
@@ -1557,6 +1580,24 @@ struct mstudiomeshv54_t_v121
 		out.unk[0] = this->unk[0];
 		out.unk[1] = this->unk[1];
 
+		return out;
+	}
+};
+
+struct mstudiomeshv54_t_v16
+{
+	short material;
+	// a unique ordinal for this mesh
+	short meshid;
+	byte unk[4];
+	Vector3 center;
+
+	inline mstudiomeshv54_t Downgrade()
+	{
+		mstudiomeshv54_t out{};
+		out.material = this->material;
+		out.meshid = this->meshid;
+		out.center = this->center;
 		return out;
 	}
 };
@@ -2053,6 +2094,26 @@ struct mstudiobonev54_t
 	int surfacepropLookup; // unsure, the normal spot has data though
 
 	int unkid; // id is for unk section after stringblock, lacks toggle
+
+	inline void ConstructFromV16(mstudiobone_t_v16& bone, mstudiobonedata_t_v16& data)
+	{
+		this->sznameindex = bone.sznameindex;
+		this->parent = data.parent;
+		this->pos = data.pos;
+		this->quat = data.quat;
+		this->rot = data.rot;
+		this->scale = data.scale;
+		this->poseToBone = data.poseToBone;
+		this->qAlignment = data.qAlignment;
+		this->flags = data.flags;
+		this->proctype = data.proctype;
+		this->procindex = data.procindex;
+		this->physicsbone = bone.physicsbone;
+		this->surfacepropidx = bone.surfacepropidx;
+		this->contents = bone.contents;
+		this->surfacepropLookup = bone.surfacepropLookup;
+		this->unkid = data.unkid;
+	}
 };
 
 struct mstudiobonev54_t_v121
@@ -2086,7 +2147,7 @@ struct mstudiobonev54_t_v121
 
 	byte unk1[3]; // maybe this is 'unk'?
 
-	inline mstudiobonev54_t DowgradeToS3()
+	inline mstudiobonev54_t Downgrade()
 	{
 		mstudiobonev54_t out{};
 		out.sznameindex = this->sznameindex;
@@ -2186,6 +2247,25 @@ struct mstudioattachmentv54_t
 	matrix3x4_t	localmatrix; // attachment point
 };
 
+struct mstudioattachmentv54_t_v16
+{
+	short sznameindex;
+	short localbone; // parent bone
+	int flags;
+
+	matrix3x4_t	localmatrix; // attachment point
+
+	inline mstudioattachmentv54_t Downgrade()
+	{
+		mstudioattachmentv54_t out{};
+		out.sznameindex = this->sznameindex;
+		out.localbone = this->localbone;
+		out.flags = this->flags;
+		out.localmatrix = this->localmatrix;
+		return out;
+	}
+};
+
 // $hboxset, $hbox
 struct mstudiohitboxset_t
 {
@@ -2196,17 +2276,48 @@ struct mstudiohitboxset_t
 
 struct mstudiobboxv54_t
 {
-	int bone;
-	int group; // intersection group
+	int bone = 0;
+	int group = 0; // intersection group
+
+	Vector3 bbmin{}; // bounding box
+	Vector3 bbmax{};
+
+	int szhitboxnameindex = 0; // offset to the name of the hitbox.
+
+	int unk = 0;
+	int keyvalueindex = 0; // used for KV names in string block, should be set to hitboxname if kv unneeded.
+};
+
+struct mstudiohitboxset_t_v16
+{
+	short sznameindex;
+	short numhitboxes;
+	short hitboxindex;
+
+	inline mstudiohitboxset_t Downgrade()
+	{
+		return mstudiohitboxset_t{ this->sznameindex, this->numhitboxes, this->hitboxindex};
+	}
+};
+
+
+struct mstudiobboxv54_t_v16
+{
+	short bone;
+	short group; // intersection group
 
 	Vector3 bbmin; // bounding box
 	Vector3 bbmax;
 
-	int szhitboxnameindex; // offset to the name of the hitbox.
+	uint16_t szhitboxnameindex; // offset to the name of the hitbox.
+	uint16_t keyvalueindex; // used for keyvalues, most for titans.
 
-	int unk;
-	int keyvalueindex; // used for KV names in string block, should be set to hitboxname if kv unneeded.
+	inline mstudiobboxv54_t Downgrade()
+	{
+		return mstudiobboxv54_t{ this->bone, this->group, this->bbmin , this->bbmax , this->szhitboxnameindex , 0 , this->keyvalueindex };
+	}
 };
+
 
 struct RMdlModel
 {
@@ -2391,7 +2502,7 @@ struct mstudiobodyparts_t_v15
 	int unk;
 	int meshindex; // start of meshes?
 
-	inline mstudiobodyparts_t DowngradeToS3()
+	inline mstudiobodyparts_t Downgrade()
 	{
 		mstudiobodyparts_t out{};
 		out.base = this->base;
@@ -2410,7 +2521,7 @@ struct mstudiobodyparts_t_v16
 	int nummodels;
 	int meshindex; // index into models array
 
-	inline mstudiobodyparts_t DowngradeToS3()
+	inline mstudiobodyparts_t Downgrade()
 	{
 		mstudiobodyparts_t out{};
 		out.base = this->base;
@@ -2451,9 +2562,14 @@ struct mstudiomaterial_t
 
 };
 
-struct mstudiotexture_t_v16
+struct mstudiotexturev54_t_v16
 {
 	uint64_t guid;
+
+	inline mstudiotexturev54_t Downgrade()
+	{
+		return mstudiotexturev54_t{ 0, guid };
+	}
 };
 #pragma pack(pop)
 
@@ -2471,6 +2587,7 @@ struct RMdlFixupPatches
 
 struct RMdlMaterial
 {
+	uint8_t MaterialType;
 	string MaterialName;
 	string FullMaterialName; // made another var so i dont break things somehow
 
