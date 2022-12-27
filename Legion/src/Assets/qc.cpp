@@ -324,10 +324,10 @@ void RpakLib::ExportQC(int assetVersion, const string& Path, const string& model
 				break;
 			}
 
-			if (!model->nummeshes)
-				qc.Write("\tblank\n");
-			else
+			if (model->nummeshes > 0 || *model->name)
 				qc.WriteFmt("\tstudio \"%s.smd\"\n", bodyPartName);
+			else
+				qc.Write("\tblank\n");
 
 			for (int a = 0; a < model->nummeshes; a++)
 			{
