@@ -593,9 +593,10 @@ void LegionMain::RefreshView()
 
 void LegionMain::OnDumpAssetListClick(Forms::Control* Sender)
 {
-	List<string> OpenFileD = OpenFileDialog::ShowMultiFileDialog("Legion+: Select file(s) to dump", "", "Apex Legends Files (RPak)|*.rpak;", Sender->FindForm());
+	List<string> OpenFileD = OpenFileDialog::ShowMultiFileDialog("Legion+: Select file(s) to dump", "", "Apex Legends Files (MBnk, RPak)|*.mbnk;*.rpak;", Sender->FindForm());
 
 	auto Rpak = std::make_unique<RpakLib>();
+	auto Audio = std::make_unique<MilesLib>();
 	auto ExportAssets = List<ExportAsset>();
 
 	std::array<bool, 11> bAssets = {
@@ -624,13 +625,19 @@ void LegionMain::OnDumpAssetListClick(Forms::Control* Sender)
 
 			Rpak->LoadRpak(filepath);
 			Rpak->PatchAssets();
-
 			AssetList = Rpak->BuildAssetList(bAssets);
 
 			ExportManager::ExportRpakAssetList(AssetList, filename);
 		}
+		else if (filepath.EndsWith(".mbnk")) {
 
-		g_Logger.Info("Load rpak: %s\n", OpenFileD[i].ToCString());
+			string filename = IO::Path::GetFileNameWithoutExtension(filepath);
+
+			Audio->MountBank(filepath);
+			AssetList = Audio->BuildAssetList();
+
+			ExportManager::ExportAudioAssetList(AssetList);
+		}
 	}
 
 	if (OpenFileD.Count() == 0)
