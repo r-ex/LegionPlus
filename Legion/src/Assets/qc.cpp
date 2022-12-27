@@ -372,7 +372,7 @@ void RpakLib::ExportQC(int assetVersion, const string& Path, const string& model
 		char* pTexture = rmdlBuf + hdr.textureindex; 
 		mstudiotexturev54_t texture{};
 		
-		if (assetVersion > 16)
+		if (assetVersion < 16)
 		{
 			pTexture = pTexture + (i * sizeof(mstudiotexturev54_t));
 			texture = *reinterpret_cast<mstudiotexturev54_t*>(pTexture);
@@ -512,7 +512,7 @@ void RpakLib::ExportQC(int assetVersion, const string& Path, const string& model
 		char* pAttachment = rmdlBuf + hdr.localattachmentindex;
 		mstudioattachmentv54_t attachment{};
 
-		if(assetVersion > 16)
+		if(assetVersion < 16)
 		{
 			pAttachment = pAttachment + (i * sizeof(mstudioattachmentv54_t));
 			attachment = *reinterpret_cast<mstudioattachmentv54_t*>(pAttachment);
