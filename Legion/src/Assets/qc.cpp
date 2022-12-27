@@ -3,6 +3,18 @@
 #include "Path.h"
 #include "Directory.h"
 
+const std::vector<std::string> MaterialTypeNames = {
+    "rgdu",
+    "rgdp",
+    "rgdc",
+    "sknu",
+    "sknc",
+    "wldu",
+    "wldc",
+    "ptcu",
+    "ptcs",
+};
+
 s3studiohdr_t GetStudioMdl(int assetVersion, char* rmdlBuf)
 {
 	s3studiohdr_t hdr{};
@@ -308,6 +320,15 @@ void RpakLib::ExportQC(int assetVersion, const string& Path, const string& model
 			char* pTexture = rmdlBuf + hdr.textureindex + (i * sizeof(mstudiotexturev54_t));
 			mstudiotexturev54_t texture = *reinterpret_cast<mstudiotexturev54_t*>(pTexture);
 			TextureNames[i] = string(pTexture + texture.sznameindex);
+
+			// swap material type in path
+			std::string temp = TextureNames[i].ToCString();
+			for (int z = 0; z < MaterialTypeNames.size(); z++)
+			{
+				std::string MatType = MaterialTypeNames[z];
+				while (temp.find(MatType) != -1)
+					TextureNames[i] = temp.replace(temp.find(MatType), MatType.length(), "sknp");
+			}
 		}
 
 		qc.WriteFmt("//$texturegroup \"skinfamilies\"\n//{\n");
