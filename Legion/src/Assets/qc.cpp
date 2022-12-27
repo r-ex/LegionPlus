@@ -3,17 +3,7 @@
 #include "Path.h"
 #include "Directory.h"
 
-const std::vector<std::string> MaterialTypeNames = {
-    "rgdu",
-    "rgdp",
-    "rgdc",
-    "sknu",
-    "sknc",
-    "wldu",
-    "wldc",
-    "ptcu",
-    "ptcs",
-};
+const std::vector<std::string> MaterialTypes = { "_rgdu", "_rgdp", "_rgdc", "_sknu", "_sknp", "_sknc", "_wldu", "_wldc", "_ptcu", "_ptcs" };
 
 s3studiohdr_t GetStudioMdl(int assetVersion, char* rmdlBuf)
 {
@@ -314,6 +304,7 @@ void RpakLib::ExportQC(int assetVersion, const string& Path, const string& model
 		}
 
 		std::vector<string> TextureNames(hdr.numtextures);
+		std::vector<string> TextureTypes(hdr.numtextures);
 
 		for (int i = 0; i < hdr.numtextures; i++)
 		{
@@ -321,13 +312,16 @@ void RpakLib::ExportQC(int assetVersion, const string& Path, const string& model
 			mstudiotexturev54_t texture = *reinterpret_cast<mstudiotexturev54_t*>(pTexture);
 			TextureNames[i] = string(pTexture + texture.sznameindex);
 
-			// swap material type in path
 			std::string temp = TextureNames[i].ToCString();
-			for (int z = 0; z < MaterialTypeNames.size(); z++)
+			for (int z = 0; z < MaterialTypes.size(); z++)
 			{
-				std::string MatType = MaterialTypeNames[z];
-				while (temp.find(MatType) != -1)
-					TextureNames[i] = temp.replace(temp.find(MatType), MatType.length(), "sknp");
+				std::string MatType = MaterialTypes[z];
+
+				if (temp.find(MatType) != -1)
+				{
+					TextureTypes[i] = MatType;
+					break;
+				}
 			}
 		}
 
@@ -372,7 +366,8 @@ void RpakLib::ExportQC(int assetVersion, const string& Path, const string& model
 			{
 				if (Submesh.MaterialIndices[0] > -1)
 				{
-					string SubMeshTextureName = Model.get()->Materials[Submesh.MaterialIndices[0]].Name + "_sknp";
+					int materialindex = Submesh.MaterialIndices[0];
+					string SubMeshTextureName = Model.get()->Materials[materialindex].Name + TextureTypes[materialindex];
 
 					int i = 0;
 					for (auto& Texture : TextureNames)
