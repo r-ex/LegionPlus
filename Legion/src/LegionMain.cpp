@@ -26,32 +26,22 @@ void LegionMain::InitializeComponent()
 	this->SetMinimumSize({ 791, 520 });
 	this->SetStartPosition(Forms::FormStartPosition::CenterScreen);
 
-	this->TitanfallConverterButton = new UIX::UIXButton();
-	this->TitanfallConverterButton->SetSize({ 78, 27 });
-	this->TitanfallConverterButton->SetLocation({ 290, 446 });
-	this->TitanfallConverterButton->SetTabIndex(9);
-	this->TitanfallConverterButton->SetText("Titanfall 2");
-	this->TitanfallConverterButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
-	this->TitanfallConverterButton->Click += &OnTitanfallClick;
-	this->AddControl(this->TitanfallConverterButton);
+	this->SearchBox = new UIX::UIXTextBox();
+	this->SearchBox->SetSize({ 272, 24 });
+	this->SearchBox->SetLocation({ 12, 8 });
+	this->SearchBox->SetTabIndex(5);
+	this->SearchBox->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->SearchBox->KeyPress += &OnSearchKeyPressed;
+	this->AddControl(this->SearchBox);
 
-	this->RefreshAssetsButton = new UIX::UIXButton();
-	this->RefreshAssetsButton->SetSize({ 78, 27 });
-	this->RefreshAssetsButton->SetLocation({ 374, 446 });
-	this->RefreshAssetsButton->SetTabIndex(9);
-	this->RefreshAssetsButton->SetText("Refresh");
-	this->RefreshAssetsButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
-	this->RefreshAssetsButton->Click += &OnRefreshClick;
-	this->AddControl(this->RefreshAssetsButton);
-
-	this->DumpAssetListButton = new UIX::UIXButton();
-	this->DumpAssetListButton->SetSize({ 78, 27 });
-	this->DumpAssetListButton->SetLocation({ 460, 446 });
-	this->DumpAssetListButton->SetTabIndex(9);
-	this->DumpAssetListButton->SetText("Dump List");
-	this->DumpAssetListButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
-	this->DumpAssetListButton->Click += &OnDumpAssetListClick;
-	this->AddControl(this->DumpAssetListButton);
+	this->SearchButton = new UIX::UIXButton();
+	this->SearchButton->SetSize({ 85, 24 });
+	this->SearchButton->SetLocation({ 290, 8 });
+	this->SearchButton->SetTabIndex(6);
+	this->SearchButton->SetText("Search");
+	this->SearchButton->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->SearchButton->Click += &OnSearchClick;
+	this->AddControl(this->SearchButton);
 
 	this->ClearSearchButton = new UIX::UIXButton();
 	this->ClearSearchButton->SetSize({ 85, 24 });
@@ -72,49 +62,59 @@ void LegionMain::InitializeComponent()
 	this->StatusLabel->SetTextAlign(Drawing::ContentAlignment::MiddleRight);
 	this->AddControl(this->StatusLabel);
 
-	this->SearchButton = new UIX::UIXButton();
-	this->SearchButton->SetSize({ 85, 24 });
-	this->SearchButton->SetLocation({ 290, 8 });
-	this->SearchButton->SetTabIndex(6);
-	this->SearchButton->SetText("Search");
-	this->SearchButton->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->SearchButton->Click += &OnSearchClick;
-	this->AddControl(this->SearchButton);
-
-	this->SearchBox = new UIX::UIXTextBox();
-	this->SearchBox->SetSize({ 272, 24 });
-	this->SearchBox->SetLocation({ 12, 8 });
-	this->SearchBox->SetTabIndex(5);
-	this->SearchBox->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
-	this->SearchBox->KeyPress += &OnSearchKeyPressed;
-	this->AddControl(this->SearchBox);
-
-	this->ExportAllButton = new UIX::UIXButton();
-	this->ExportAllButton->SetSize({ 78, 27 });
-	this->ExportAllButton->SetLocation({ 206, 446});
-	this->ExportAllButton->SetTabIndex(4);
-	this->ExportAllButton->SetText("Export All");
-	this->ExportAllButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
-	this->ExportAllButton->Click += &OnExpAllClick;
-	this->AddControl(this->ExportAllButton);
+	this->LoadRPakButton = new UIX::UIXButton();
+	this->LoadRPakButton->SetSize({ 85, 27 });
+	this->LoadRPakButton->SetLocation({ 12, 446 });
+	this->LoadRPakButton->SetTabIndex(2);
+	this->LoadRPakButton->SetText("Load File");
+	this->LoadRPakButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
+	this->LoadRPakButton->Click += &OnLoadClick;
+	this->AddControl(this->LoadRPakButton);
 
 	this->ExportSelectedButton = new UIX::UIXButton();
 	this->ExportSelectedButton->SetSize({ 97, 27 });
-	this->ExportSelectedButton->SetLocation({ 103, 446});
+	this->ExportSelectedButton->SetLocation({ 103, 446 });
 	this->ExportSelectedButton->SetTabIndex(3);
 	this->ExportSelectedButton->SetText("Export Selected");
 	this->ExportSelectedButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
 	this->ExportSelectedButton->Click += &OnExpClick;
 	this->AddControl(this->ExportSelectedButton);
 
-	this->LoadRPakButton = new UIX::UIXButton();
-	this->LoadRPakButton->SetSize({ 85, 27 });
-	this->LoadRPakButton->SetLocation({ 12, 446});
-	this->LoadRPakButton->SetTabIndex(2);
-	this->LoadRPakButton->SetText("Load File");
-	this->LoadRPakButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
-	this->LoadRPakButton->Click += &OnLoadClick;
-	this->AddControl(this->LoadRPakButton);
+	this->ExportAllButton = new UIX::UIXButton();
+	this->ExportAllButton->SetSize({ 78, 27 });
+	this->ExportAllButton->SetLocation({ 206, 446 });
+	this->ExportAllButton->SetTabIndex(4);
+	this->ExportAllButton->SetText("Export All");
+	this->ExportAllButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
+	this->ExportAllButton->Click += &OnExpAllClick;
+	this->AddControl(this->ExportAllButton);
+
+	this->DumpAssetListButton = new UIX::UIXButton();
+	this->DumpAssetListButton->SetSize({ 78, 27 });
+	this->DumpAssetListButton->SetLocation({ 290, 446 });
+	this->DumpAssetListButton->SetTabIndex(9);
+	this->DumpAssetListButton->SetText("Dump List");
+	this->DumpAssetListButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
+	this->DumpAssetListButton->Click += &OnDumpAssetListClick;
+	this->AddControl(this->DumpAssetListButton);
+
+	this->TitanfallConverterButton = new UIX::UIXButton();
+	this->TitanfallConverterButton->SetSize({ 78, 27 });
+	this->TitanfallConverterButton->SetLocation({ 374, 446 });
+	this->TitanfallConverterButton->SetTabIndex(9);
+	this->TitanfallConverterButton->SetText("Titanfall 2");
+	this->TitanfallConverterButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
+	this->TitanfallConverterButton->Click += &OnTitanfallClick;
+	this->AddControl(this->TitanfallConverterButton);
+
+	this->RefreshAssetsButton = new UIX::UIXButton();
+	this->RefreshAssetsButton->SetSize({ 78, 27 });
+	this->RefreshAssetsButton->SetLocation({ 458, 446 });
+	this->RefreshAssetsButton->SetTabIndex(9);
+	this->RefreshAssetsButton->SetText("Refresh");
+	this->RefreshAssetsButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
+	this->RefreshAssetsButton->Click += &OnRefreshClick;
+	this->AddControl(this->RefreshAssetsButton);
 
 	this->SettingsButton = new UIX::UIXButton();
 	this->SettingsButton->SetSize({ 80, 27 });
