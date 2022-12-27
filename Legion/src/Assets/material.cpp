@@ -420,6 +420,102 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 	return Result;
 }
 
+RMdlMaterial RpakLib::ExtractMaterialSilent(const RpakLoadAsset& Asset, const string& Path, bool IncludeImages, bool IncludeImageNames)
+{
+	RMdlMaterial Result;
+
+	auto RpakStream = this->GetFileStream(Asset);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
+
+	MaterialHeader hdr;
+
+	if (Asset.Version == RpakGameVersion::Apex)
+	{
+		if (Asset.AssetVersion >= 16)
+		{
+			MaterialHeaderV16 hdr_v16 = Reader.Read<MaterialHeaderV16>();
+			hdr.FromV16(hdr_v16);
+		}
+		else hdr = Reader.Read<MaterialHeader>();
+
+		Result.MaterialType = hdr.materialType;
+	}
+	else
+	{
+		MaterialHeaderV12 temp = Reader.Read<MaterialHeaderV12>();
+
+		hdr.pName = temp.pName;
+		hdr.textureHandles = temp.textureHandles;
+		hdr.streamingTextureHandles = temp.streamingTextureHandles;
+		hdr.shaderSetGuid = temp.shaderSetGuid;
+	}
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, hdr.pName.Index, hdr.pName.Offset));
+
+	string fullMaterialName = Reader.ReadCString();
+	Result.MaterialName = IO::Path::GetFileNameWithoutExtension(fullMaterialName);
+	Result.FullMaterialName = fullMaterialName;
+
+	List<ShaderResBinding> PixelShaderResBindings;
+
+	const uint64_t TextureTable = this->GetFileOffset(Asset, hdr.textureHandles.Index, hdr.textureHandles.Offset);
+	uint32_t TexturesCount = (hdr.streamingTextureHandles.Offset - hdr.textureHandles.Offset) / 8;
+	uint32_t bindingIdx = 0;
+
+	// These textures have named slots
+	for (uint32_t i = 0; i < TexturesCount; i++)
+	{
+		RpakStream->SetPosition(TextureTable + ((uint64_t)i * 8));
+
+		uint64_t TextureHash = Reader.Read<uint64_t>();
+		string TextureName = "";
+		bool bOverridden = false;
+		bool bNormalRecalculate = false;
+
+		if (TextureHash != 0)
+		{
+			switch (i)
+			{
+			case 0:
+				Result.AlbedoHash = TextureHash;
+				Result.AlbedoMapName = TextureName;
+				break;
+			case 1:
+				Result.NormalHash = TextureHash;
+				Result.NormalMapName = TextureName;
+				break;
+			case 2:
+				Result.GlossHash = TextureHash;
+				Result.GlossMapName = TextureName;
+				break;
+			case 3:
+				Result.SpecularHash = TextureHash;
+				Result.SpecularMapName = TextureName;
+				break;
+			case 4:
+				Result.EmissiveHash = TextureHash;
+				Result.EmissiveMapName = TextureName;
+				break;
+			case 5:
+				Result.AmbientOcclusionHash = TextureHash;
+				Result.AmbientOcclusionMapName = TextureName;
+				break;
+			case 6:
+				Result.CavityHash = TextureHash;
+				Result.CavityMapName = TextureName;
+				break;
+			}
+			bindingIdx++;
+
+		}
+
+	}
+
+	return Result;
+}
+
 std::unique_ptr<Assets::Texture> RpakLib::BuildPreviewMaterial(uint64_t Hash)
 {
 	if (!this->Assets.ContainsKey(Hash))

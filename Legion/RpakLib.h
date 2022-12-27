@@ -465,6 +465,7 @@ public:
 
 	// Used by the BSP system.
 	RMdlMaterial ExtractMaterial(const RpakLoadAsset& Asset, const string& Path, bool IncludeImages, bool IncludeImageNames);
+	RMdlMaterial ExtractMaterialSilent(const RpakLoadAsset& Asset, const string& Path, bool IncludeImages, bool IncludeImageNames);
 
 private:
 	std::array<RpakFile, MAX_LOADED_FILES> LoadedFiles;

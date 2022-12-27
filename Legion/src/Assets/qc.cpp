@@ -385,7 +385,7 @@ void RpakLib::ExportQC(int assetVersion, const string& Path, const string& model
 			if (Assets.ContainsKey(texture.guid))
 			{
 				RpakLoadAsset& MaterialAsset = Assets[texture.guid];
-				RMdlMaterial ParsedMaterial = this->ExtractMaterial(MaterialAsset, "", false, true);
+				RMdlMaterial ParsedMaterial = this->ExtractMaterialSilent(MaterialAsset, "", false, true);
 
 				TextureTypes[i] = MaterialTypes[ParsedMaterial.MaterialType];
 
