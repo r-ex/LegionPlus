@@ -38,6 +38,7 @@ s3studiohdr_t GetStudioMdl(int assetVersion, char* rmdlBuf)
 			break;
 		}
 		case 14:
+		case 15:
 		{
 			studiohdr_t_v14 thdr = *reinterpret_cast<studiohdr_t_v14*>(rmdlBuf);
 			hdr.flags = thdr.flags;
@@ -239,16 +240,32 @@ void RpakLib::ExportQC(int assetVersion, const string& Path, const string& model
 
 		for (int i = 0; i < hdr.numbodyparts; i++)
 		{
-			char* pBodyPart = rmdlBuf + hdr.bodypartindex + (i * sizeof(mstudiobodyparts_t));
-			mstudiobodyparts_t* bodyPart = reinterpret_cast<mstudiobodyparts_t*>(pBodyPart);
-			char* bodyPartName = reinterpret_cast<char*>(pBodyPart + bodyPart->sznameindex);
+			char* pBodyPart = rmdlBuf + hdr.bodypartindex; 
+			mstudiobodyparts_t bodyPart{};
+			switch (assetVersion)
+			{
+			case 15:
+				pBodyPart = pBodyPart + (i * sizeof(mstudiobodyparts_t_v15));
+				bodyPart = reinterpret_cast<mstudiobodyparts_t_v15*>(pBodyPart)->DowngradeToS3();
+				break;
+			case 16:
+				pBodyPart = pBodyPart + (i * sizeof(mstudiobodyparts_t_v16));
+				bodyPart = reinterpret_cast<mstudiobodyparts_t_v16*>(pBodyPart)->DowngradeToS3();
+				break;
+			default:
+				pBodyPart = pBodyPart + (i * sizeof(mstudiobodyparts_t));
+				bodyPart = *reinterpret_cast<mstudiobodyparts_t*>(pBodyPart);
+				break;
+			}
+
+			char* bodyPartName = reinterpret_cast<char*>(pBodyPart + bodyPart.sznameindex);
 
 			qc.WriteFmt("$bodygroup \"%s\"\n{\n", bodyPartName);
 
 			List<int> BodyPartMeshes;
-			for (int j = 0; j < bodyPart->nummodels; j++)
+			for (int j = 0; j < bodyPart.nummodels; j++)
 			{
-				char* pModel = pBodyPart + bodyPart->modelindex;
+				char* pModel = pBodyPart + bodyPart.modelindex;
 				mstudiomodelv54_t* model = nullptr;
 
 				if (assetVersion <= 10)
@@ -265,6 +282,7 @@ void RpakLib::ExportQC(int assetVersion, const string& Path, const string& model
 						model = reinterpret_cast<mstudiomodelv54_t_v13*>(pModel)->DowgradeToS3();
 						break;
 					case 14:
+					case 15:
 						pModel = pModel + (j * sizeof(mstudiomodelv54_t_v14));
 						model = reinterpret_cast<mstudiomodelv54_t_v14*>(pModel)->DowgradeToS3();
 						break;

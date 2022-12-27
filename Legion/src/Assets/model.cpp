@@ -27,7 +27,14 @@ void RpakLib::BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	if (Asset.AssetVersion < 16)
 	{
-		studiohdr_t studiohdr = Reader.Read<studiohdr_t>();
+		studiohdr_t studiohdr{};
+
+		if (Asset.AssetVersion <= 12)
+			studiohdr = Reader.Read<studiohdr_t>();
+		else if (Asset.AssetVersion == 13)
+			studiohdr = studiohdr_t::FromV13(Reader.Read<studiohdr_t_v13>());
+		else if (Asset.AssetVersion > 13)
+			studiohdr = studiohdr_t::FromV14(Reader.Read<studiohdr_t_v14>());
 
 		Info.Info = string::Format("Bones: %d, Parts: %d", studiohdr.numbones, studiohdr.numbodyparts);
 
@@ -551,7 +558,14 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 	RpakStream->SetPosition(StudioOffset);
 
-	studiohdr_t studiohdr = Reader.Read<studiohdr_t>();
+	studiohdr_t studiohdr{};
+	
+	if (Asset.AssetVersion <= 12)
+		studiohdr = Reader.Read<studiohdr_t>();
+	else if (Asset.AssetVersion == 13)
+		studiohdr = studiohdr_t::FromV13(Reader.Read<studiohdr_t_v13>());
+	else if (Asset.AssetVersion > 13)
+		studiohdr = studiohdr_t::FromV14(Reader.Read<studiohdr_t_v14>());
 
 	RpakStream->SetPosition(StudioOffset);
 
@@ -631,7 +645,12 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 	if (Asset.SubHeaderSize != 120)
 	{
-		SkeletonHeader = Reader.Read<studiohdr_t>();
+		if (Asset.AssetVersion <= 12)
+			SkeletonHeader = Reader.Read<studiohdr_t>();
+		else if (Asset.AssetVersion == 13)
+			SkeletonHeader = studiohdr_t::FromV13(Reader.Read<studiohdr_t_v13>());
+		else if (Asset.AssetVersion > 13)
+			SkeletonHeader = studiohdr_t::FromV14(Reader.Read<studiohdr_t_v14>());
 	}
 	else {
 		s3studiohdr_t TempSkeletonHeader = Reader.Read<s3studiohdr_t>();

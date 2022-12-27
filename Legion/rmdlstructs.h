@@ -165,83 +165,6 @@ struct matrix3x4_t
 	}
 };
 
-struct studiohdr_t // latest studiohdr
-{
-	int id; // Model format ID, such as "IDST" (0x49 0x44 0x53 0x54)
-	int version; // Format version number, such as 48 (0x30,0x00,0x00,0x00)
-	int checksum; // This has to be the same in the phy and vtx files to load!
-	int sznameindex; // This has been moved from studiohdr2 to the front of the main header.
-	char name[64]; // The internal name of the model, padding with null bytes.
-	// Typically "my_model.mdl" will have an internal name of "my_model"
-	int length; // Data size of MDL file in bytes.
-
-	Vector3 eyeposition;	// ideal eye position
-
-	Vector3 illumposition;	// illumination center
-
-	Vector3 hull_min;		// ideal movement hull size
-	Vector3 hull_max;
-
-	Vector3 view_bbmin;		// clipping bounding box
-	Vector3 view_bbmax;
-
-	int flags;
-
-	int numbones; // bones
-	int boneindex;
-
-	int numbonecontrollers; // bone controllers
-	int bonecontrollerindex;
-
-	int numhitboxsets;
-	int hitboxsetindex;
-
-	int numlocalanim; // animations/poses
-	int localanimindex; // animation descriptions
-
-	int numlocalseq; // sequences
-	int	localseqindex;
-
-	int activitylistversion; // initialization flag - have the sequences been indexed?
-
-	// mstudiotexture_t
-	// short rpak path
-	// raw textures
-	int materialtypesindex;
-	int numtextures; // the material limit exceeds 128, probably 256.
-	int textureindex;
-
-	// this should always only be one, unless using vmts.
-	// raw textures search paths
-	int numcdtextures;
-	int cdtextureindex;
-
-	// replaceable textures tables
-	int numskinref;
-	int numskinfamilies;
-	int skinindex;
-
-	int numbodyparts;
-	int bodypartindex;
-
-	int numlocalattachments;
-	int localattachmentindex;
-
-	// not unks but I am not filling this out because it changes from 12.1, 12.2, 13, and 14
-	uint8_t Unknown2[0x14];
-
-	uint32_t NahhhO;
-	uint32_t SubmeshLodsOffset;
-
-	uint32_t Unk;
-	uint32_t SubmeshLodsOffset_V14;
-
-	uint8_t Unknown3[0x3C];
-	uint32_t OffsetToBoneRemapInfo;
-	uint32_t BoneRemapCount;
-	uint32_t OffsetToBoneRemapInfo_V14;
-	uint32_t BoneRemapCount_V14;
-};
 
 struct s3studiohdr_t // season 3 studiohdr
 {
@@ -1095,6 +1018,232 @@ struct studiohdr_t_v16
 	short unk9_v16;
 
 	//uint16 unkshorts[7];
+};
+
+struct studiohdr_t // latest studiohdr
+{
+	int id; // Model format ID, such as "IDST" (0x49 0x44 0x53 0x54)
+	int version; // Format version number, such as 48 (0x30,0x00,0x00,0x00)
+	int checksum; // This has to be the same in the phy and vtx files to load!
+	int sznameindex; // This has been moved from studiohdr2 to the front of the main header.
+	char name[64]; // The internal name of the model, padding with null bytes.
+	// Typically "my_model.mdl" will have an internal name of "my_model"
+	int length; // Data size of MDL file in bytes.
+
+	Vector3 eyeposition;	// ideal eye position
+
+	Vector3 illumposition;	// illumination center
+
+	Vector3 hull_min;		// ideal movement hull size
+	Vector3 hull_max;
+
+	Vector3 view_bbmin;		// clipping bounding box
+	Vector3 view_bbmax;
+
+	int flags;
+
+	int numbones; // bones
+	int boneindex;
+
+	int numbonecontrollers; // bone controllers
+	int bonecontrollerindex;
+
+	int numhitboxsets;
+	int hitboxsetindex;
+
+	int numlocalanim; // animations/poses
+	int localanimindex; // animation descriptions
+
+	int numlocalseq; // sequences
+	int	localseqindex;
+
+	int activitylistversion; // initialization flag - have the sequences been indexed?
+
+	// mstudiotexture_t
+	// short rpak path
+	// raw textures
+	int materialtypesindex;
+	int numtextures; // the material limit exceeds 128, probably 256.
+	int textureindex;
+
+	// this should always only be one, unless using vmts.
+	// raw textures search paths
+	int numcdtextures;
+	int cdtextureindex;
+
+	// replaceable textures tables
+	int numskinref;
+	int numskinfamilies;
+	int skinindex;
+
+	int numbodyparts;
+	int bodypartindex;
+
+	int numlocalattachments;
+	int localattachmentindex;
+
+	// not unks but I am not filling this out because it changes from 12.1, 12.2, 13, and 14
+	uint8_t Unknown2[0x14];
+
+	uint32_t NahhhO;
+	uint32_t SubmeshLodsOffset;
+
+	uint32_t Unk;
+	uint32_t SubmeshLodsOffset_V14;
+
+	uint8_t Unknown3[0x3C];
+	uint32_t OffsetToBoneRemapInfo;
+	uint32_t BoneRemapCount;
+	uint32_t OffsetToBoneRemapInfo_V14;
+	uint32_t BoneRemapCount_V14;
+
+
+	static inline studiohdr_t FromV13(studiohdr_t_v13 n)
+	{
+		studiohdr_t hdr{};
+
+		for (int i = 0; i < 64; i++)
+			hdr.name[i] = n.name[i];
+
+		hdr.id = n.id;
+		hdr.version = n.version;
+		hdr.checksum = n.checksum;
+		hdr.sznameindex = n.sznameindex;
+		hdr.length = n.length;
+		hdr.eyeposition = n.eyeposition;
+		hdr.illumposition = n.illumposition;
+		hdr.hull_min = n.hull_min;
+		hdr.hull_max = n.hull_max;
+		hdr.view_bbmin = n.view_bbmin;
+		hdr.view_bbmax = n.view_bbmax;
+		hdr.flags = n.flags;
+		hdr.numbones = n.numbones;
+		hdr.boneindex = n.boneindex;
+		hdr.numbonecontrollers = n.numbonecontrollers;
+		hdr.bonecontrollerindex = n.bonecontrollerindex;
+		hdr.numhitboxsets = n.numhitboxsets;
+		hdr.hitboxsetindex = n.hitboxsetindex;
+		hdr.numlocalanim = n.numlocalanim;
+		hdr.localanimindex = n.localanimindex;
+		hdr.numlocalseq = n.numlocalseq;
+		hdr.localseqindex = n.localseqindex;
+		hdr.activitylistversion = n.activitylistversion;
+		hdr.materialtypesindex = n.materialtypesindex;
+		hdr.numtextures = n.numtextures;
+		hdr.textureindex = n.textureindex;
+		hdr.numcdtextures = n.numcdtextures;
+		hdr.cdtextureindex = n.cdtextureindex;
+		hdr.numskinref = n.numskinref;
+		hdr.numskinfamilies = n.numskinfamilies;
+		hdr.skinindex = n.skinindex;
+		hdr.numbodyparts = n.numbodyparts;
+		hdr.bodypartindex = n.bodypartindex;
+		hdr.numlocalattachments = n.numlocalattachments;
+		hdr.localattachmentindex = n.localattachmentindex;
+		hdr.SubmeshLodsOffset_V14 = n.vgLODIndex;
+		hdr.BoneRemapCount_V14 = n.numBoneStates;
+		hdr.OffsetToBoneRemapInfo_V14 = n.boneStateIndex;
+
+		return hdr;
+	}
+
+	static inline studiohdr_t FromV14(studiohdr_t_v14 n)
+	{
+		studiohdr_t hdr{};
+
+		for (int i = 0; i < 64; i++)
+			hdr.name[i] = n.name[i];
+
+		hdr.id = n.id;
+		hdr.version = n.version;
+		hdr.checksum = n.checksum;
+		hdr.sznameindex = n.sznameindex;
+		hdr.length = n.length;
+		hdr.eyeposition = n.eyeposition;
+		hdr.illumposition = n.illumposition;
+		hdr.hull_min = n.hull_min;
+		hdr.hull_max = n.hull_max;
+		hdr.view_bbmin = n.view_bbmin;
+		hdr.view_bbmax = n.view_bbmax;
+		hdr.flags = n.flags;
+		hdr.numbones = n.numbones;
+		hdr.boneindex = n.boneindex;
+		hdr.numbonecontrollers = n.numbonecontrollers;
+		hdr.bonecontrollerindex = n.bonecontrollerindex;
+		hdr.numhitboxsets = n.numhitboxsets;
+		hdr.hitboxsetindex = n.hitboxsetindex;
+		hdr.numlocalanim = n.numlocalanim;
+		hdr.localanimindex = n.localanimindex;
+		hdr.numlocalseq = n.numlocalseq;
+		hdr.localseqindex = n.localseqindex;
+		hdr.activitylistversion = n.activitylistversion;
+		hdr.materialtypesindex = n.materialtypesindex;
+		hdr.numtextures = n.numtextures;
+		hdr.textureindex = n.textureindex;
+		hdr.numcdtextures = n.numcdtextures;
+		hdr.cdtextureindex = n.cdtextureindex;
+		hdr.numskinref = n.numskinref;
+		hdr.numskinfamilies = n.numskinfamilies;
+		hdr.skinindex = n.skinindex;
+		hdr.numbodyparts = n.numbodyparts;
+		hdr.bodypartindex = n.bodypartindex;
+		hdr.numlocalattachments = n.numlocalattachments;
+		hdr.localattachmentindex = n.localattachmentindex;
+		hdr.SubmeshLodsOffset_V14 = n.vgLODIndex;
+		hdr.BoneRemapCount_V14 = n.numBoneStates;
+		hdr.OffsetToBoneRemapInfo_V14 = n.boneStateIndex;
+
+		return hdr;
+	}
+
+	static inline studiohdr_t FromV15(studiohdr_t_v14 n)
+	{
+		studiohdr_t hdr{};
+
+		for (int i = 0; i < 64; i++)
+			hdr.name[i] = n.name[i];
+
+		hdr.id = n.id;
+		hdr.version = n.version;
+		hdr.checksum = n.checksum;
+		hdr.sznameindex = n.sznameindex;
+		hdr.length = n.length;
+		hdr.eyeposition = n.eyeposition;
+		hdr.illumposition = n.illumposition;
+		hdr.hull_min = n.hull_min;
+		hdr.hull_max = n.hull_max;
+		hdr.view_bbmin = n.view_bbmin;
+		hdr.view_bbmax = n.view_bbmax;
+		hdr.flags = n.flags;
+		hdr.numbones = n.numbones;
+		hdr.boneindex = n.boneindex;
+		hdr.numbonecontrollers = n.numbonecontrollers;
+		hdr.bonecontrollerindex = n.bonecontrollerindex;
+		hdr.numhitboxsets = n.numhitboxsets;
+		hdr.hitboxsetindex = n.hitboxsetindex;
+		hdr.numlocalanim = n.numlocalanim;
+		hdr.localanimindex = n.localanimindex;
+		hdr.numlocalseq = n.numlocalseq;
+		hdr.localseqindex = n.localseqindex;
+		hdr.activitylistversion = n.activitylistversion;
+		hdr.materialtypesindex = n.materialtypesindex;
+		hdr.numtextures = n.numtextures;
+		hdr.textureindex = n.textureindex;
+		hdr.numcdtextures = n.numcdtextures;
+		hdr.cdtextureindex = n.cdtextureindex;
+		hdr.numskinref = n.numskinref;
+		hdr.numskinfamilies = n.numskinfamilies;
+		hdr.skinindex = n.skinindex;
+		hdr.numbodyparts = n.numbodyparts;
+		hdr.bodypartindex = n.bodypartindex;
+		hdr.numlocalattachments = n.numlocalattachments;
+		hdr.localattachmentindex = n.localattachmentindex;
+		hdr.SubmeshLodsOffset_V14 = n.vgLODIndex;
+		hdr.BoneRemapCount_V14 = n.numBoneStates;
+		hdr.OffsetToBoneRemapInfo_V14 = n.boneStateIndex;
+
+		return hdr;
+	}
 };
 
 struct mstudiolinearbone_t_v16
@@ -2232,6 +2381,27 @@ struct mstudiomesh_t_v16
 	Vector3 center;
 };
 
+struct mstudiobodyparts_t_v15
+{
+	int sznameindex;
+	int nummodels;
+	int base;
+	int modelindex; // index into models array
+
+	int unk;
+	int meshindex; // start of meshes?
+
+	inline mstudiobodyparts_t DowngradeToS3()
+	{
+		mstudiobodyparts_t out{};
+		out.base = this->base;
+		out.modelindex = this->modelindex;
+		out.nummodels = this->nummodels;
+		out.sznameindex =this->sznameindex;
+		return out;
+	}
+};
+
 struct mstudiobodyparts_t_v16
 {
 	short sznameindex;
@@ -2239,6 +2409,16 @@ struct mstudiobodyparts_t_v16
 	int base;
 	int nummodels;
 	int meshindex; // index into models array
+
+	inline mstudiobodyparts_t DowngradeToS3()
+	{
+		mstudiobodyparts_t out{};
+		out.base = this->base;
+		out.modelindex = this->modelindex;
+		out.nummodels = this->nummodels;
+		out.sznameindex = this->sznameindex;
+		return out;
+	}
 };
 
 struct RMdlTitanfallLodSubmesh
