@@ -310,7 +310,6 @@ void ExportManager::ExportAssetList(std::unique_ptr<List<ApexAsset>>& AssetList,
 	else if (FilePath.EndsWith(".mbnk")) {
 
 		IO::File::WriteAllLines(IO::Path::Combine(ExportDirectory, "Audio.txt"), NameList);
-		auto ListName = "Audio.txt";
 
 		g_Logger.Info("Exported List: %s\n", "Audio.txt");
 	}
