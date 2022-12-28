@@ -400,6 +400,10 @@ void RpakLib::ExportQC(int assetVersion, const string& Path, const string& model
 		}
 
 		std::string temp = TextureNames[i].ToCString();
+		while (temp.find("\\") != -1)
+			temp = temp.replace(temp.find("\\"), std::string("\\").length(), "/");
+		TextureNames[i] = temp;
+
 		for (int z = 0; z < MaterialTypes.size(); z++)
 		{
 			std::string MatType = MaterialTypes[z];
@@ -480,8 +484,7 @@ void RpakLib::ExportQC(int assetVersion, const string& Path, const string& model
 
 	for (auto& ValidTexture : ValidTextures)
 	{
-		while (ValidTexture.find("\\") != -1)
-			ValidTexture = ValidTexture.replace(ValidTexture.find("\\"), std::string("\\").length(), "/");
+
 
 		qc.WriteFmt("$renamematerial \"%s\" \"%s\"\n", IO::Path::GetFileNameWithoutExtension(ValidTexture.c_str()).ToCString(), ValidTexture.c_str());
 	}

@@ -666,13 +666,6 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 	uint32_t BoneRemapCount = SkeletonHeader.BoneRemapCount;
 	uint32_t BoneRemapOffset = SkeletonHeader.OffsetToBoneRemapInfo;
 
-	if (Asset.AssetVersion >= 14)
-	{
-		SubmeshLodsOffset = SkeletonHeader.SubmeshLodsOffset_V14;
-		TexturesOffset = SkeletonHeader.cdtextureindex;
-		TexturesCount = SkeletonHeader.numcdtextures;
-		BoneRemapCount = SkeletonHeader.BoneRemapCount_V14;
-	}
 
 	RpakStream->SetPosition(StudioOffset + TexturesOffset);
 

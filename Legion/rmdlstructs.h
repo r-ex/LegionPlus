@@ -1094,9 +1094,6 @@ struct studiohdr_t // latest studiohdr
 	uint8_t Unknown3[0x3C];
 	uint32_t OffsetToBoneRemapInfo;
 	uint32_t BoneRemapCount;
-	uint32_t OffsetToBoneRemapInfo_V14;
-	uint32_t BoneRemapCount_V14;
-
 
 	static inline studiohdr_t FromV13(studiohdr_t_v13 n)
 	{
@@ -1140,9 +1137,9 @@ struct studiohdr_t // latest studiohdr
 		hdr.bodypartindex = n.bodypartindex;
 		hdr.numlocalattachments = n.numlocalattachments;
 		hdr.localattachmentindex = n.localattachmentindex;
-		hdr.SubmeshLodsOffset_V14 = n.vgLODIndex;
-		hdr.BoneRemapCount_V14 = n.numBoneStates;
-		hdr.OffsetToBoneRemapInfo_V14 = n.boneStateIndex;
+		hdr.SubmeshLodsOffset = n.unknodexindex; // what?
+		hdr.OffsetToBoneRemapInfo = n.boneStateIndex;
+		hdr.BoneRemapCount = n.numBoneStates;
 
 		return hdr;
 	}
@@ -1189,10 +1186,10 @@ struct studiohdr_t // latest studiohdr
 		hdr.bodypartindex = n.bodypartindex;
 		hdr.numlocalattachments = n.numlocalattachments;
 		hdr.localattachmentindex = n.localattachmentindex;
-		hdr.SubmeshLodsOffset_V14 = n.vgLODIndex;
-		hdr.BoneRemapCount_V14 = n.numBoneStates;
-		hdr.OffsetToBoneRemapInfo_V14 = n.boneStateIndex;
-
+		hdr.SubmeshLodsOffset = n.ikchainindex; // what?
+		hdr.OffsetToBoneRemapInfo = n.boneStateIndex;
+		hdr.BoneRemapCount = n.numBoneStates;
+		
 		return hdr;
 	}
 
@@ -1238,9 +1235,9 @@ struct studiohdr_t // latest studiohdr
 		hdr.bodypartindex = n.bodypartindex;
 		hdr.numlocalattachments = n.numlocalattachments;
 		hdr.localattachmentindex = n.localattachmentindex;
-		hdr.SubmeshLodsOffset_V14 = n.vgLODIndex;
-		hdr.BoneRemapCount_V14 = n.numBoneStates;
-		hdr.OffsetToBoneRemapInfo_V14 = n.boneStateIndex;
+		hdr.SubmeshLodsOffset = n.ikchainindex; // what?
+		hdr.OffsetToBoneRemapInfo = n.boneStateIndex;
+		hdr.BoneRemapCount = n.numBoneStates;
 
 		return hdr;
 	}
