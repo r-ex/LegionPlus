@@ -456,7 +456,7 @@ public:
 	void ExportSettings(const RpakLoadAsset& Asset, const string& Path);
 	void ExportSettingsLayout(const RpakLoadAsset& Asset, const string& Path);
 	void ExportRSON(const RpakLoadAsset& Asset, const string& Path);
-	void ExportQC(int assetVersion, const string& Path, const string& modelPath, const std::unique_ptr<Assets::Model>& Model, char* rmdlBuf, char* phyBuf);
+	void ExportQC(const RpakLoadAsset& asset, const string& Path, const string& modelPath, const std::unique_ptr<Assets::Model>& Model, char* rmdlBuf, char* phyBuf);
 	void ExportRUI(const RpakLoadAsset& Asset, const string& Path);
 
 	List<List<DataTableColumnData>> ExtractDataTable(const RpakLoadAsset& Asset);

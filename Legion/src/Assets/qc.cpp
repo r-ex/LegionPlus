@@ -90,6 +90,7 @@ s3studiohdr_t GetStudioMdl(int assetVersion, char* rmdlBuf)
 
 	return hdr;
 }
+
 void WriteCommonJiggle(IO::StreamWriter& qc, mstudiojigglebonev54_t*& JiggleBone)
 {
 	if (JiggleBone->length)
@@ -202,13 +203,13 @@ void WriteJiggleBoneData(IO::StreamWriter& qc, mstudiojigglebonev54_t*& JiggleBo
 	qc.Write("\t}\n");
 };
 
-void RpakLib::ExportQC(int assetVersion, const string& Path, const string& modelPath, const std::unique_ptr<Assets::Model>& Model, char* rmdlBuf, char* phyBuf)
+void RpakLib::ExportQC(const RpakLoadAsset& asset, const string& Path, const string& modelPath, const std::unique_ptr<Assets::Model>& Model, char* rmdlBuf, char* phyBuf)
 {
-	if (assetVersion > 16)
+	if (asset.AssetVersion > 16)
 		return;
 
 	IO::StreamWriter qc(IO::File::Create(Path));
-	s3studiohdr_t hdr = GetStudioMdl(assetVersion, rmdlBuf);
+	s3studiohdr_t hdr = GetStudioMdl(asset.AssetVersion, rmdlBuf);
 
 	qc.WriteFmt("// decompiled using LegionPlus %s\n\n", UI_VER_STR);
 
@@ -229,20 +230,20 @@ void RpakLib::ExportQC(int assetVersion, const string& Path, const string& model
 	std::vector<mstudiobonev54_t> Bones(hdr.numbones);
 
 	uint64_t v16bonedataindex = 0;
-	if(assetVersion == 16)
+	if(asset.AssetVersion == 16)
 		v16bonedataindex = reinterpret_cast<studiohdr_t_v16*>(rmdlBuf)->bonedataindex;
 
 	for (int i = 0; i < hdr.numbones; i++)
 	{
 		char* pBone = rmdlBuf + hdr.boneindex;
-		if (assetVersion <= 10)
+		if (asset.AssetVersion <= 10)
 		{
 			pBone = pBone + (i * sizeof(mstudiobonev54_t));
 			mstudiobonev54_t Bone = *reinterpret_cast<mstudiobonev54_t*>(pBone);
 			BoneNames[i] = std::string(reinterpret_cast<char*>(pBone + Bone.sznameindex));
 			Bones[i] = Bone;
 		}
-		else if (assetVersion < 16)
+		else if (asset.AssetVersion < 16)
 		{
 			pBone = pBone + (i * sizeof(mstudiobonev54_t_v121));
 			mstudiobonev54_t_v121 Bone = *reinterpret_cast<mstudiobonev54_t_v121*>(pBone);
@@ -277,7 +278,7 @@ void RpakLib::ExportQC(int assetVersion, const string& Path, const string& model
 	{
 		char* pBodyPart = rmdlBuf + hdr.bodypartindex; 
 		mstudiobodyparts_t bodyPart{};
-		switch (assetVersion)
+		switch (asset.AssetVersion)
 		{
 		case 15:
 			pBodyPart = pBodyPart + (i * sizeof(mstudiobodyparts_t_v15));
@@ -303,7 +304,7 @@ void RpakLib::ExportQC(int assetVersion, const string& Path, const string& model
 			char* pModel = pBodyPart + bodyPart.modelindex;
 			mstudiomodelv54_t* model = nullptr;
 
-			switch (assetVersion)
+			switch (asset.AssetVersion)
 			{
 			case 13:
 				pModel = pModel + (j * sizeof(mstudiomodelv54_t_v13));
@@ -334,14 +335,14 @@ void RpakLib::ExportQC(int assetVersion, const string& Path, const string& model
 				char* pMesh = pModel + model->meshindex;
 				mstudiomeshv54_t mesh{};
 
-				switch (assetVersion)
+				switch (asset.AssetVersion)
 				{
 				case 16:
 					pMesh = pMesh + (a * sizeof(mstudiomeshv54_t_v16));
 					mesh = reinterpret_cast<mstudiomeshv54_t_v16*>(pMesh)->Downgrade();
 					break;
 				default:
-					if (assetVersion <= 10)
+					if (asset.AssetVersion <= 10)
 					{
 						pMesh = pMesh + (a * sizeof(mstudiomeshv54_t));
 						mesh = *reinterpret_cast<mstudiomeshv54_t*>(pMesh);
@@ -377,7 +378,7 @@ void RpakLib::ExportQC(int assetVersion, const string& Path, const string& model
 		char* pTexture = rmdlBuf + hdr.textureindex; 
 		mstudiotexturev54_t texture{};
 		
-		if (assetVersion < 16)
+		if (asset.AssetVersion < 16)
 		{
 			pTexture = pTexture + (i * sizeof(mstudiotexturev54_t));
 			texture = *reinterpret_cast<mstudiotexturev54_t*>(pTexture);
@@ -420,7 +421,7 @@ void RpakLib::ExportQC(int assetVersion, const string& Path, const string& model
 
 	for (int i = 0; i < hdr.numskinfamilies; i++)
 	{
-		if (assetVersion >= 16)
+		if (asset.AssetVersion >= 16)
 			break;
 
 		char* pSkinFamily = rmdlBuf + hdr.skinindex + (i * hdr.numskinref * sizeof(short));
@@ -526,7 +527,7 @@ void RpakLib::ExportQC(int assetVersion, const string& Path, const string& model
 		char* pAttachment = rmdlBuf + hdr.localattachmentindex;
 		mstudioattachmentv54_t attachment{};
 
-		if(assetVersion < 16)
+		if(asset.AssetVersion < 16)
 		{
 			pAttachment = pAttachment + (i * sizeof(mstudioattachmentv54_t));
 			attachment = *reinterpret_cast<mstudioattachmentv54_t*>(pAttachment);
@@ -555,9 +556,9 @@ void RpakLib::ExportQC(int assetVersion, const string& Path, const string& model
 	for (int i = 0; i < jigglebonecount; i++)
 	{
 		char* pBones = nullptr;
-		if (assetVersion <= 10)
+		if (asset.AssetVersion <= 10)
 			pBones = rmdlBuf + hdr.boneindex + (hdr.numbones * sizeof(mstudiobonev54_t));
-		else if (assetVersion > 16)
+		else if (asset.AssetVersion > 16)
 			pBones = rmdlBuf + hdr.boneindex + (hdr.numbones * sizeof(mstudiobonev54_t_v121));
 		else
 			pBones = rmdlBuf + v16bonedataindex + (hdr.numbones * sizeof(mstudiobonedata_t_v16));
@@ -576,7 +577,7 @@ void RpakLib::ExportQC(int assetVersion, const string& Path, const string& model
 		char* pHitboxSet = rmdlBuf + hdr.hitboxsetindex;
 		mstudiohitboxset_t hitboxSet{};
 
-		if (assetVersion < 16)
+		if (asset.AssetVersion < 16)
 		{
 			pHitboxSet = pHitboxSet + (i * sizeof(mstudiohitboxset_t));
 			hitboxSet = *reinterpret_cast<mstudiohitboxset_t*>(pHitboxSet);
@@ -598,7 +599,7 @@ void RpakLib::ExportQC(int assetVersion, const string& Path, const string& model
 
 			char* pHitbox = nullptr;
 
-			if (assetVersion < 16)
+			if (asset.AssetVersion < 16)
 			{
 				pHitbox = pHitboxSet + (j * sizeof(mstudiobboxv54_t));
 				hitbox = *reinterpret_cast<mstudiobboxv54_t*>(pHitbox + hitboxSet.hitboxindex);

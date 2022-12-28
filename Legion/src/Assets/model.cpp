@@ -478,7 +478,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 
 	// write QC file when exporting as SMD
 	if (Path != "" && AnimPath != "" && ModelFormat == ModelExportFormat_t::SMD)
-		this->ExportQC(Asset.AssetVersion, BaseFileName + ".qc", RawModelName, Model, studioBuf.get(), nullptr);
+		this->ExportQC(Asset, BaseFileName + ".qc", RawModelName, Model, studioBuf.get(), nullptr);
 
 	vgStream->Close();
 
@@ -870,7 +870,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 	// write QC file when exporting as SMD
 	if (Path != "" && AnimPath != "" && ModelFormat == ModelExportFormat_t::SMD)
-		this->ExportQC(Asset.AssetVersion, BaseFileName + ".qc", RawModelName, Model, studioBuf.get(), nullptr);
+		this->ExportQC(Asset, BaseFileName + ".qc", RawModelName, Model, studioBuf.get(), nullptr);
 
 	return std::move(Model);
 }
