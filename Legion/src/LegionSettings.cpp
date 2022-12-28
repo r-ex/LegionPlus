@@ -104,6 +104,14 @@ void LegionSettings::InitializeComponent()
 	this->ToggleUseTxtrGuids->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->groupBox2->AddControl(this->ToggleUseTxtrGuids);
 
+	this->ToggleSkinExport = new UIX::UIXCheckBox();
+	this->ToggleSkinExport->SetSize({ 105, 18 });
+	this->ToggleSkinExport->SetLocation({ 130, 43 });
+	this->ToggleSkinExport->SetTabIndex(2);
+	this->ToggleSkinExport->SetText("Export Skins");
+	this->ToggleSkinExport->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox2->AddControl(this->ToggleSkinExport);
+
 	//
 	//	About Box
 	//
@@ -624,6 +632,7 @@ void LegionSettings::LoadSettings()
 	this->ToggleAudioLanguageFolders->SetChecked(ExportManager::Config.GetBool("AudioLanguageFolders"));
 	this->ToggleUseFullPaths->SetChecked(ExportManager::Config.GetBool("UseFullPaths"));
 	this->ToggleUseTxtrGuids->SetChecked(ExportManager::Config.GetBool("UseTxtrGuids"));
+	this->ToggleSkinExport->SetChecked(ExportManager::Config.GetBool("SkinExport"));
 
 	if (ExportManager::Config.Has<System::SettingType::String>("ExportDirectory"))
 	{
@@ -812,6 +821,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	ExportManager::Config.SetBool("AudioLanguageFolders", ThisPtr->ToggleAudioLanguageFolders->Checked());
 	ExportManager::Config.SetBool("UseFullPaths", ThisPtr->ToggleUseFullPaths->Checked());
 	ExportManager::Config.SetBool("UseTxtrGuids", ThisPtr->ToggleUseTxtrGuids->Checked());
+	ExportManager::Config.SetBool("SkinExport", ThisPtr->ToggleSkinExport->Checked());
 	ExportManager::Config.SetInt("ModelFormat", (uint32_t)ModelExportFormat);
 	ExportManager::Config.SetInt("AnimFormat", (uint32_t)AnimExportFormat);
 	ExportManager::Config.SetInt("ImageFormat", (uint32_t)ImageExportFormat);

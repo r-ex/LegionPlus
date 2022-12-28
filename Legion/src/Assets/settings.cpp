@@ -215,7 +215,7 @@ void RpakLib::ExtractSettings(const RpakLoadAsset& Asset, const string& Path, co
 					// Now we the the pointer that points at the start of the array.
 					RpakStream->SetPosition(this->GetFileOffset(Asset, Header.Values.Index, Header.Values.Offset + (nArrayPtrOffset)));
 
-					for (int i = 1; i < nArraySize; i++)
+					for (int i = 1; i <= nArraySize; i++)
 					{
 						int nEntryOffset = nArrayPtrOffset + ((i - 1) * sizeof(RPakPtr));
 						RpakStream->SetPosition(this->GetFileOffset(Asset, Header.Values.Index, Header.Values.Offset + nEntryOffset));

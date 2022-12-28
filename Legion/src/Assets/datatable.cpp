@@ -167,7 +167,7 @@ List<List<DataTableColumnData>> RpakLib::ExtractDataTable(const RpakLoadAsset& A
 		// titanfall 2 uses version 0 and does not have this member
 		// all of apex uses version 1, but only later game versions have this member
 		// in order to make sure that the struct reads correctly, we must check the pak's creation time
-		if (Asset.AssetVersion != 0 && this->LoadedFiles[Asset.FileIndex].CreatedTime > 0x1d5d89aed97a800) // feb 1 2020
+		if (Asset.AssetVersion != 0 && this->LoadedFiles[Asset.FileIndex].CreatedTime > 0x1d692d897275335) // 25/09/2020 01:10:00
 			col.Unk8 = Reader.Read<uint64_t>();
 
 		col.Type = Reader.Read<uint32_t>();

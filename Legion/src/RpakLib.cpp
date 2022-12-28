@@ -384,7 +384,9 @@ std::unique_ptr<IO::FileStream> RpakLib::GetStarpakStream(const RpakLoadAsset& A
 	}
 }
 
-void RpakLib::ParseRAnimBoneTranslationTrack(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
+
+// CalcBonePosition - 0x1401C97B0 - CL456479
+void RpakLib::CalcBonePosition(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
 {
 	uint16_t* TranslationDataPtr = *BoneTrackData;
 
@@ -404,6 +406,8 @@ void RpakLib::ParseRAnimBoneTranslationTrack(const RAnimBoneFlag& BoneFlags, uin
 		uint16_t TranslationFlags = TranslationDataPtr[2];
 		float TranslationScale = *(float*)TranslationDataPtr;
 
+		// TranslationFlags is actually mstudio_rle_anim_t
+		// TranslationFlags & 0x1FFF == pAnim->size;
 		uint8_t* TranslationDataX = (uint8_t*)TranslationDataPtr + (TranslationFlags & 0x1FFF) + 4;	// Data for x
 
 		uint64_t DataYOffset = *((uint8_t*)TranslationDataPtr + 6);
@@ -417,7 +421,7 @@ void RpakLib::ParseRAnimBoneTranslationTrack(const RAnimBoneFlag& BoneFlags, uin
 		float Result[3]{ Bone.X, Bone.Y, Bone.Z };
 
 		uint32_t TranslationIndex = 0;
-		uint32_t v32 = 0xF;
+		uint32_t v32 = 0xF;	
 
 		uint8_t* dataPtrs[] = { TranslationDataX,TranslationDataY,TranslationDataZ };
 
@@ -425,9 +429,10 @@ void RpakLib::ParseRAnimBoneTranslationTrack(const RAnimBoneFlag& BoneFlags, uin
 		float Time = 0;	// time but doesn't matter
 		do
 		{
+			// 0x1401C9AA4 - CL456479
 			if (_bittest((const long*)&TranslationFlags, v32))
 			{
-				RTech::DecompressDynamicTrack(Frame, dataPtrs[TranslationIndex], TranslationScale, &TranslationFinal, &TimeScale);
+				RTech::ExtractAnimValue(Frame, dataPtrs[TranslationIndex], TranslationScale, &TranslationFinal, &TimeScale);
 
 				if (BoneFlags.bAdditiveCustom)
 					Result[TranslationIndex] = (float)((float)((float)(1.0 - Time) * TranslationFinal) + (float)(TimeScale * Time));
@@ -450,7 +455,7 @@ void RpakLib::ParseRAnimBoneTranslationTrack(const RAnimBoneFlag& BoneFlags, uin
 	}
 }
 
-void RpakLib::ParseRAnimBoneRotationTrack(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
+void RpakLib::CalcBoneQuaternion(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
 {
 	uint16_t* RotationDataPtr = *BoneTrackData;
 
@@ -508,7 +513,7 @@ void RpakLib::ParseRAnimBoneRotationTrack(const RAnimBoneFlag& BoneFlags, uint16
 		{
 			if (_bittest((const long*)&RotationFlags, v32))
 			{
-				RTech::DecompressDynamicTrack(Frame, dataPtrs[v31], 0.00019175345f, &TranslationFinal, &TimeScale);
+				RTech::ExtractAnimValue(Frame, dataPtrs[v31], 0.00019175345f, &TranslationFinal, &TimeScale);
 				EulerResult[v31] = TranslationFinal;
 			}
 
@@ -526,7 +531,7 @@ void RpakLib::ParseRAnimBoneRotationTrack(const RAnimBoneFlag& BoneFlags, uint16
 	}
 }
 
-void RpakLib::ParseRAnimBoneScaleTrack(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
+void RpakLib::CalcBoneScale(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
 {
 	uint16_t* ScaleDataPtr = *BoneTrackData;
 
@@ -568,7 +573,7 @@ void RpakLib::ParseRAnimBoneScaleTrack(const RAnimBoneFlag& BoneFlags, uint16_t*
 		{
 			if (_bittest((const long*)&ScaleFlags, v32))
 			{
-				RTech::DecompressDynamicTrack(Frame, dataPtrs[v31], 0.0030518509f, &TranslationFinal, &TimeScale);
+				RTech::ExtractAnimValue(Frame, dataPtrs[v31], 0.0030518509f, &TranslationFinal, &TimeScale);
 				Result[v31] = (float)((float)((float)(1.0 - a2) * TranslationFinal) + (float)(TimeScale * a2)) + Result[v31];
 			}
 
@@ -1197,7 +1202,7 @@ bool RpakLib::MountTitanfallRpak(const string& Path, bool Dump)
 	Header.CompressedSize = Header.DecompressedSize;
 	std::memcpy(pakbuf.data(), &Header, sizeof(RpakTitanfallHeader));
 
-	auto ResultStream = std::make_unique<IO::MemoryStream>(pakbuf.data(), 0, Header.DecompressedSize, true, false, true);
+	auto ResultStream = std::make_unique<IO::MemoryStream>(pakbuf.data(), 0, Header.DecompressedSize, true, true, true);
 
 #if _DEBUG
 	if (Dump)
