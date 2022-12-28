@@ -18,7 +18,7 @@ typedef unsigned short uint16;
 #define STUDIO_EVENT		0x2000		// Has been updated at runtime to event index on server
 #define STUDIO_WORLD		0x4000		// sequence blends in worldspace
 #define STUDIO_NOFORCELOOP	0x8000	// do not force the animation loop
-#define STUDIO_EVENT_CLIENT 0x10000	// Has been updated at runtime to event index on client
+#define STUDIO_EVENT_CLIENT	0x10000	// Has been updated at runtime to event index on client
 
 // new in respawn models
 #define STUDIO_ANIM_UNK		0x20000 // actually first in v52

@@ -197,7 +197,7 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 						// so we don't make empty meshes
 						if (mdlMesh->vertexloddata.numLODVertexes[i] > 0)
 						{
-							// maxinfluences is max weights, set to 3 as that is the max it should have (for v53)
+							// maxinfluences is max weights, set to 3 as that is the max it should have (for v53 and previous mdl versions)
 							Assets::Mesh& exportMesh = Model->Meshes.Emplace(3, (mdl->flags & STUDIOHDR_FLAGS_USES_UV2) ? 2 : 1); // set uv count, two uvs used rarely in v53
 
 							// set "texture" aka material
@@ -257,8 +257,6 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 		IO::Directory::CreateDirectory(ModelDirectory);
 
 		this->ModelExporter->ExportModel(*Model.get(), IO::Path::Combine(ModelDirectory, Model->Name + (const char*)ModelExporter->ModelExtension()));
-
-		// for testing
 		g_Logger.Info("Exported: " + Model->Name + ".mdl\n");
 	}
 
