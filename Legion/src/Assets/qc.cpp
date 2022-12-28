@@ -393,8 +393,7 @@ void RpakLib::ExportQC(int assetVersion, const string& Path, const string& model
 				RMdlMaterial ParsedMaterial = this->ExtractMaterialSilent(MaterialAsset, "", false, true);
 
 				TextureTypes[i] = MaterialTypes[ParsedMaterial.MaterialType];
-
-				TextureNames[i] = ParsedMaterial.FullMaterialName + TextureTypes[i];
+				TextureNames[i] = ParsedMaterial.FullMaterialName.ToLower() + TextureTypes[i];
 			}
 
 			continue;
@@ -458,15 +457,22 @@ void RpakLib::ExportQC(int assetVersion, const string& Path, const string& model
 			if (Submesh.MaterialIndices[0] > -1)
 			{
 				int materialindex = Submesh.MaterialIndices[0];
-				string SubMeshTextureName = Model.get()->Materials[materialindex].Name + TextureTypes[materialindex];
+				string SubMeshTextureName = Model.get()->Materials[materialindex].Name.ToLower() + TextureTypes[materialindex];
 
-				int i = 0;
-				for (auto& Texture : TextureNames)
+				for (int i = 0 ; i < TextureNames.size(); i++)
 				{
-					if (Texture.ToLower().Contains(SubMeshTextureName.ToLower()) && !ValidTextures.Contains(TextureNames[i].ToLower().ToCString()))
+					string Texture = TextureNames[i];
+					bool bIsSubmeshMaterial = Texture.Contains(SubMeshTextureName);
+
+					if (!bIsSubmeshMaterial)
+						continue;
+
+					bool bExistsInValidList = ValidTextures.Contains(TextureNames[i].ToLower().ToCString());
+
+					if (!bExistsInValidList)
 						ValidTextures.EmplaceBack(TextureNames[i].ToCString());
 
-					i++;
+					break;
 				}
 			}
 		}
