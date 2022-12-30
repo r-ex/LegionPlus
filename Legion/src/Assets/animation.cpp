@@ -857,8 +857,6 @@ void RpakLib::ExportAnimationSeq(const RpakLoadAsset& Asset, const string& Path)
 
 	size_t RSeqSize = 0;//sizeof(mstudioseqdesc_t);
 
-	bool HasExternal = false;
-
 	std::vector<FilterOffset> Filter{};
 
 	for (int i = 0; i < seqdesc.numblends; i++)
@@ -885,21 +883,6 @@ void RpakLib::ExportAnimationSeq(const RpakLoadAsset& Asset, const string& Path)
 			}
 		}
 
-		if (animdesc.sectionindex)
-		{
-			
-			int sectionlength = ((animdesc.numframes - 1) / animdesc.sectionframes) + 2;
-
-			for (int i = 0; i < sectionlength; i++)
-			{
-				RpakStream->SetPosition(AnimHeaderPointer + animdesc.sectionindex + (i * sizeof(mstudioanimsectionsv54_t_v121)));
-				auto value = Reader.Read<mstudioanimsectionsv54_t_v121>();
-
-				if(value.isExternal)
-				   HasExternal = true;
-			}
-		}
-		
 		if (seqdesc.numevents > 0)
 		{
 			RpakStream->SetPosition(AnimationOffset + seqdesc.eventindex);
@@ -976,49 +959,23 @@ void RpakLib::ExportAnimationSeq(const RpakLoadAsset& Asset, const string& Path)
 
 	// WIP EXTERNAL DATA
 
-	if (HasExternal)
+	if (AnHeader.pExternalData.Index || AnHeader.externalDataSize)
 	{
-		std::vector<uint8_t> ExtBuffer{};
-
-		ExtBuffer.reserve(0x500000); // just incase reserve 5mb
-		
-		int zerocount = 0;
-		int zerocountmax = 0x70;
+		char* externalBuf = new char[AnHeader.externalDataSize];
 
 		if (StarpakStream != nullptr)
 		{
 			StarpakStream->SetPosition(starpakDataOffset);
-			IO::BinaryReader StarReader = IO::BinaryReader(StarpakStream.get(), true);
-
-			while (zerocount <= zerocountmax)
-			{
-				uint8_t value = StarReader.Read<uint8_t>();
-				ExtBuffer.emplace_back(value);
-
-				if (value == 0x0)
-					zerocount++;
-				else
-					zerocount = 0;
-			}
+			StarpakStream->Read((uint8_t*)externalBuf, 0, AnHeader.externalDataSize);
 		}
 		else
 		{
 			RpakStream->SetPosition(this->GetFileOffset(Asset, AnHeader.pExternalData));
-
-			while (zerocount <= zerocountmax)
-			{
-				uint8_t value = Reader.Read<uint8_t>();
-				ExtBuffer.emplace_back(value);
-
-				if (value == 0x0)
-					zerocount++;
-				else
-					zerocount = 0;
-			}
+			RpakStream->Read((uint8_t*)externalBuf, 0, AnHeader.externalDataSize);
 		}
 
 		std::ofstream externalOut(IO::Path::ChangeExtension(AnimSetPath, ".SeqData"), std::ios::out | std::ios::binary);
-		externalOut.write((char*)ExtBuffer.data(), ExtBuffer.size());
+		externalOut.write(externalBuf, AnHeader.externalDataSize);
 		externalOut.close();
 	}
 

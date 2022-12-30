@@ -345,8 +345,8 @@ struct ASeqHeaderV10
 	uint64_t Unknown; // possible pointer, guid, or reserved space.
 
 	// counts for mdl_ and stgs assets, normally just one but can be multiples.
-	uint32_t ModelCount;
-	uint32_t SettingCount;
+	uint16_t ModelCount;
+	uint16_t SettingCount;
 
 	// size of the external data.
 	uint32_t externalDataSize;
