@@ -398,6 +398,21 @@ struct mstudio_rle_anim_t
 	uint16_t bAnimPosition : 1;	// If zero, one per data set
 };
 
+struct mstudioanim_valueptr_t
+{
+	short offset : 13;
+	short flags : 3;
+	uint8_t axisIdx1;
+	uint8_t axisIdx2;
+};
+
+union mstudioanimvalue_t
+{
+	struct {
+		byte valid;
+		byte total;
+	} num;
+	short value;
 };
 
 struct RAnimTitanfallBoneFlag

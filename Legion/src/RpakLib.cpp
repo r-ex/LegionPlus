@@ -386,11 +386,11 @@ std::unique_ptr<IO::FileStream> RpakLib::GetStarpakStream(const RpakLoadAsset& A
 
 
 // CalcBonePosition - 0x1401C97B0 - CL456479
-void RpakLib::CalcBonePosition(const mstudio_rle_anim_t& anim, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
+void RpakLib::CalcBonePosition(const mstudio_rle_anim_t& pAnim, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
 {
 	uint16_t* TranslationDataPtr = *BoneTrackData;
 
-	if (!anim.bAnimPosition)
+	if (!pAnim.bAnimPosition)
 	{
 		List<Assets::Curve>& Curves = Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name());
 
@@ -406,8 +406,6 @@ void RpakLib::CalcBonePosition(const mstudio_rle_anim_t& anim, uint16_t** BoneTr
 		uint16_t TranslationFlags = TranslationDataPtr[2];
 		float TranslationScale = *(float*)TranslationDataPtr;
 
-		// TranslationFlags is actually mstudio_rle_anim_t
-		// TranslationFlags & 0x1FFF == pAnim->size;
 		uint8_t* TranslationDataX = (uint8_t*)TranslationDataPtr + (TranslationFlags & 0x1FFF) + 4;	// Data for x
 
 		uint64_t DataYOffset = *((uint8_t*)TranslationDataPtr + 6);
@@ -434,7 +432,7 @@ void RpakLib::CalcBonePosition(const mstudio_rle_anim_t& anim, uint16_t** BoneTr
 			{
 				RTech::ExtractAnimValue(Frame, dataPtrs[TranslationIndex], TranslationScale, &TranslationFinal, &TimeScale);
 
-				if (anim.bAdditiveCustom)
+				if (pAnim.bAdditiveCustom)
 					Result[TranslationIndex] = (float)((float)((float)(1.0 - Time) * TranslationFinal) + (float)(TimeScale * Time));
 				else
 					Result[TranslationIndex] = (float)((float)((float)(1.0 - Time) * TranslationFinal) + (float)(TimeScale * Time)) + Result[TranslationIndex];
@@ -455,7 +453,7 @@ void RpakLib::CalcBonePosition(const mstudio_rle_anim_t& anim, uint16_t** BoneTr
 	}
 }
 
-void RpakLib::CalcBoneQuaternion(const mstudio_rle_anim_t& anim, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
+void RpakLib::CalcBoneQuaternion(const mstudio_rle_anim_t& pAnim, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
 {
 	uint16_t* RotationDataPtr = *BoneTrackData;
 
@@ -467,7 +465,7 @@ void RpakLib::CalcBoneQuaternion(const mstudio_rle_anim_t& anim, uint16_t** Bone
 		uint64_t WNeg : 1;
 	};
 
-	if (!anim.bAnimRotation)
+	if (!pAnim.bAnimRotation)
 	{
 		Quat64 PackedQuat = *(Quat64*)RotationDataPtr;
 
@@ -488,38 +486,35 @@ void RpakLib::CalcBoneQuaternion(const mstudio_rle_anim_t& anim, uint16_t** Bone
 	}
 	else
 	{
-		uint16_t RotationFlags = RotationDataPtr[0];
+		mstudioanim_valueptr_t* animValuePtr = *reinterpret_cast<mstudioanim_valueptr_t**>(BoneTrackData);
 
-		uint8_t* TranslationDataX = (uint8_t*)RotationDataPtr + (RotationFlags & 0x1FFF); // Data for x
+		mstudioanimvalue_t* pAnimValues = reinterpret_cast<mstudioanimvalue_t*>((uint8_t*)RotationDataPtr + animValuePtr->offset); // Data for x
 
-		uint64_t DataYOffset = *((uint8_t*)RotationDataPtr + 2);
-		uint64_t DataZOffset = *((uint8_t*)RotationDataPtr + 3);
+		// index into anim values array for the second and third axes. these axes are not necessarily y,z because:
+		// if only x,z flags are set, offset will point to data for X, axisIndex1 will point to data for Z
+		uint8_t axisIndex1 = animValuePtr->axisIdx1;
+		uint8_t axisIndex2 = animValuePtr->axisIdx2;
 
-		uint8_t* TranslationDataY = &TranslationDataX[2 * DataYOffset];	// Data for y
-		uint8_t* TranslationDataZ = &TranslationDataX[2 * DataZOffset];	// Data for z
+		// get actual animvalue pointers from index
+		mstudioanimvalue_t* pAnimValues_Axis1 = &pAnimValues[axisIndex1];
+		mstudioanimvalue_t* pAnimValues_Axis2 = &pAnimValues[axisIndex2];
 
 		Math::Vector3 BoneRotation = Anim->Bones[BoneIndex].LocalRotation().ToEulerAngles();
 
 		float EulerResult[4]{ Math::MathHelper::DegreesToRadians(BoneRotation.X),Math::MathHelper::DegreesToRadians(BoneRotation.Y),Math::MathHelper::DegreesToRadians(BoneRotation.Z),0 };
 
-		uint32_t v31 = 0;
-		uint32_t v32 = 0xF;
+		uint8_t* dataPtrs[] = { (uint8_t*)pAnimValues,(uint8_t*)pAnimValues_Axis1,(uint8_t*)pAnimValues_Axis2 };
 
-		uint8_t* dataPtrs[] = { TranslationDataX,TranslationDataY,TranslationDataZ };
-
-		float TranslationFinal = 0, TimeScale = 0; // might not be TimeScale
-		float a2 = 0; // time?
-		do
+		// this loop is weird. the game does this slightly differently, so i'm not sure how this even functions
+		float v1 = 0, v2 = 0;
+		for(int i = 0; i < 3; ++i)
 		{
-			if (_bittest((const long*)&RotationFlags, v32))
+			if (_bittest((const long*)animValuePtr, 15 - i))
 			{
-				RTech::ExtractAnimValue(Frame, dataPtrs[v31], 0.00019175345f, &TranslationFinal, &TimeScale);
-				EulerResult[v31] = TranslationFinal;
+				RTech::ExtractAnimValue(Frame, dataPtrs[i], 0.00019175345f, &v1, &v2);
+				EulerResult[i] = v1;
 			}
-
-			--v32;
-			++v31;
-		} while (v31 < 3);
+		};
 
 		Math::Quaternion Result;
 
@@ -531,11 +526,11 @@ void RpakLib::CalcBoneQuaternion(const mstudio_rle_anim_t& anim, uint16_t** Bone
 	}
 }
 
-void RpakLib::CalcBoneScale(const mstudio_rle_anim_t& anim, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
+void RpakLib::CalcBoneScale(const mstudio_rle_anim_t& pAnim, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
 {
 	uint16_t* ScaleDataPtr = *BoneTrackData;
 
-	if (!anim.bAnimScale)
+	if (!pAnim.bAnimScale)
 	{
 		List<Assets::Curve>& Curves = Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name());
 
@@ -548,38 +543,35 @@ void RpakLib::CalcBoneScale(const mstudio_rle_anim_t& anim, uint16_t** BoneTrack
 	}
 	else
 	{
-		uint32_t animValuePtr = ScaleDataPtr[0];
+		mstudioanim_valueptr_t* animValuePtr = *reinterpret_cast<mstudioanim_valueptr_t**>(BoneTrackData);
 
-		uint8_t* TranslationDataX = (uint8_t*)ScaleDataPtr + (animValuePtr & 0x1FFF);	// Data for x
+		mstudioanimvalue_t* pAnimValues = reinterpret_cast<mstudioanimvalue_t*>((uint8_t*)ScaleDataPtr + animValuePtr->offset); // Data for x
 
-		uint64_t DataYOffset = *((uint8_t*)ScaleDataPtr + 2);
-		uint64_t DataZOffset = *((uint8_t*)ScaleDataPtr + 3);
+		// index into anim values array for the second and third axes. these axes are not necessarily y,z because:
+		// if only x,z flags are set, offset will point to data for X, axisIndex1 will point to data for Z
+		uint8_t axisIndex1 = animValuePtr->axisIdx1;
+		uint8_t axisIndex2 = animValuePtr->axisIdx2;
 
-		uint8_t* TranslationDataY = &TranslationDataX[2 * DataYOffset];	// Data for y
-		uint8_t* TranslationDataZ = &TranslationDataX[2 * DataZOffset];	// Data for z
+		// get actual animvalue pointers from index
+		mstudioanimvalue_t* pAnimValues_Axis1 = &pAnimValues[axisIndex1];
+		mstudioanimvalue_t* pAnimValues_Axis2 = &pAnimValues[axisIndex2];
 
 		const Math::Vector3& BoneScale = Anim->Bones[BoneIndex].Scale();
 
 		float Result[3]{ BoneScale.X, BoneScale.Y, BoneScale.Z };
 
-		uint32_t v31 = 0;
-		uint32_t v32 = 0xF;
+		uint8_t* dataPtrs[] = { (uint8_t*)pAnimValues,(uint8_t*)pAnimValues_Axis1,(uint8_t*)pAnimValues_Axis2 };
 
-		uint8_t* dataPtrs[] = { TranslationDataX,TranslationDataY,TranslationDataZ };
-
-		float TranslationFinal = 0, TimeScale = 0; // might not be TimeScale
-		float a2 = 0; // time but doesn't matter
-		do
+		// this loop is weird. the game does this slightly differently, so i'm not sure how this even functions
+		float v1 = 0, v2 = 0;
+		for (int i = 0; i < 3; ++i)
 		{
-			if (_bittest((const long*)&animValuePtr, v32))
+			if (_bittest((const long*)animValuePtr, 15 - i))
 			{
-				RTech::ExtractAnimValue(Frame, dataPtrs[v31], 0.0030518509f, &TranslationFinal, &TimeScale);
-				Result[v31] = (float)((float)((float)(1.0 - a2) * TranslationFinal) + (float)(TimeScale * a2)) + Result[v31];
+				RTech::ExtractAnimValue(Frame, dataPtrs[i], 0.0030518509f, &v1, &v2);
+				Result[i] = (float)((float)((float)(1.0 - 0) * v1) + (float)(v2 * 0)) + Result[i];
 			}
-
-			--v32;
-			++v31;
-		} while (v31 < 3);
+		};
 
 		List<Assets::Curve>& Curves = Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name());
 
