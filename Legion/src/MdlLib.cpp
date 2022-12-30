@@ -62,6 +62,9 @@ void MdlLib::InitializeAnimExporter(AnimExportFormat_t Format)
 	case AnimExportFormat_t::Cast:
 		AnimExporter = std::make_unique<Assets::Exporters::CastAsset>();
 		break;
+	case AnimExportFormat_t::SMD:
+		AnimExporter = std::make_unique<Assets::Exporters::ValveSMD>();
+		break;
 	default:
 		AnimExporter = std::make_unique<Assets::Exporters::SEAsset>();
 		break;

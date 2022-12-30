@@ -144,6 +144,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 					AnimFmt = AnimExportFormat_t::Cast;
 				if (sFmt == L"ranim")
 					AnimFmt = AnimExportFormat_t::RAnim;
+				if (sFmt == L"smd")
+					AnimFmt = AnimExportFormat_t::SMD;
 
 				if (AnimFmt != (AnimExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat"))
 					ExportManager::Config.Set<System::SettingType::Integer>("AnimFormat", (uint32_t)AnimFmt);

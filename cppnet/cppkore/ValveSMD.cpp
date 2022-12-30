@@ -5,6 +5,13 @@
 #include "Path.h"
 #include "MathHelper.h"
 #include "StreamWriter.h"
+#include <vector>
+
+struct SMDFrame {
+	bool hasdata = false;
+	Vector3 Position{};
+	Vector3 Rotation{};
+};
 
 namespace Assets::Exporters
 {
@@ -23,8 +30,141 @@ namespace Assets::Exporters
 		Writer.Write("\n");
 	}
 
+	void GetBoneAnimation(int frame, List <Assets::Curve>& Curves, Vector3& Pos, Vector3& Rot)
+	{
+		for (auto& KeyFrame : Curves[0].Keyframes)
+		{
+			if (KeyFrame.Frame.Integer32 == frame)
+				Rot = KeyFrame.Value.Vector4.ToEulerAngles();
+		}
+
+		for (auto& KeyFrame : Curves[1].Keyframes)
+		{
+			if (KeyFrame.Frame.Integer32 == frame)
+				Pos.X = KeyFrame.Value.Float;
+		}
+
+		for (auto& KeyFrame : Curves[2].Keyframes)
+		{
+			if (KeyFrame.Frame.Integer32 == frame)
+				Pos.Y = KeyFrame.Value.Float;
+		}
+
+		for (auto& KeyFrame : Curves[3].Keyframes)
+		{
+			if (KeyFrame.Frame.Integer32 == frame)
+				Pos.Z = KeyFrame.Value.Float;
+		}
+	}
+
+	// Find Last Parent Bone Frame Before Bone Position
+	bool GetParentBoneAnimation(int frame, List <Assets::Curve>& Curves, Vector3& Pos)
+	{
+		
+		int MaxXIndex = -1;
+		auto& XKeyFrames = Curves[1].Keyframes;
+		for (int i = 0; i < XKeyFrames.Count(); i++)
+		{
+			if (XKeyFrames[i].Frame.Integer32 < frame)
+				MaxXIndex = i;
+		}
+
+		int MaxYIndex = -1;
+		auto& YKeyFrames = Curves[2].Keyframes;
+		for (int i = 0; i < YKeyFrames.Count(); i++)
+		{
+			if (YKeyFrames[i].Frame.Integer32 < frame)
+				MaxYIndex = i;
+		}
+
+		int MaxZIndex = -1;
+		auto& ZKeyFrames = Curves[3].Keyframes;
+		for (int i = 0; i < ZKeyFrames.Count(); i++)
+		{
+			if (ZKeyFrames[i].Frame.Integer32 < frame)
+				MaxZIndex = i;
+		}
+
+		if (MaxXIndex == -1 && MaxYIndex == -1 && MaxZIndex == -1)
+			return false;
+
+		if (MaxXIndex < XKeyFrames.Count())
+			Pos.X = XKeyFrames[MaxXIndex].Value.Float;
+
+		if (MaxYIndex < YKeyFrames.Count())
+			Pos.X = YKeyFrames[MaxYIndex].Value.Float;
+
+		if (MaxZIndex < ZKeyFrames.Count())
+			Pos.Z = ZKeyFrames[MaxZIndex].Value.Float;
+
+		return true;
+	}
+
 	bool ValveSMD::ExportAnimation(const Animation& Animation, const string& Path)
 	{
+		auto Writer = IO::StreamWriter(IO::File::Create(Path));
+
+		Writer.WriteLine(
+			"version 1\n"
+			"nodes"
+		);
+
+		uint32_t BoneIndex = 0;
+
+		for (auto& Bone : Animation.Bones)
+		{
+			Writer.WriteLineFmt("\t%d \"%s\" %d", BoneIndex, (char*)Bone.Name(), Bone.Parent());
+			BoneIndex++;
+		}
+
+		Writer.Write(
+			"end\n"
+			"skeleton\n"
+		);
+
+		for (int i = 0; i < Animation.FrameCount(); i++)
+		{
+			Writer.WriteLineFmt("time %d", i);
+
+			for (int j = 0; j < Animation.Bones.Count(); j++)
+			{
+				Assets::Bone& Bone = Animation.Bones[j];
+				auto& Curves = Animation.Curves[Bone.Name()];
+
+				if (!Animation.Curves.ContainsKey(Bone.Name()))
+					continue;
+
+				Vector3 Pos{}, Rot{};
+
+				GetBoneAnimation(i, Curves, Pos, Rot);
+
+				if (Pos == Vector3(0, 0, 0) && Rot == Vector3(0, 0, 0))
+					continue;
+
+				// needs to be fixed later
+				if (Bone.Parent() > -1)
+				{
+					Assets::Bone& pBone = Animation.Bones[j];
+					auto& pCurves = Animation.Curves[pBone.Name()];
+
+					if (!Animation.Curves.ContainsKey(pBone.Name()))
+						break;
+
+					Vector3 pPos{};
+					if (GetParentBoneAnimation(i, pCurves, pPos))
+					     Pos = pPos - Pos;
+					else Pos = Bone.GlobalPosition() - Pos;
+
+				} else Pos = Bone.GlobalPosition() - Pos;
+
+				Writer.WriteLineFmt("\t%d %f %f %f %f %f %f", j, Pos.X, Pos.Y, Pos.Z, MathHelper::DegreesToRadians(Rot.X), MathHelper::DegreesToRadians(Rot.Y), MathHelper::DegreesToRadians(Rot.Z));
+			}
+		}
+
+		Writer.WriteLine("end");
+
+		Writer.Close();
+
 		return false;
 	}
 
@@ -83,43 +223,6 @@ namespace Assets::Exporters
 		Writer.WriteLine("end");
 	}
 
-	void WriteRefAnim(const string& Path, const Model& Model)
-	{
-		string RefPath = IO::Path::Combine(IO::Path::GetDirectoryName(Path), (Model.Name + "_ref.smd"));
-
-		auto Writer = IO::StreamWriter(IO::File::Create(RefPath));
-
-		Writer.WriteLine(
-			"version 1\n"
-			"nodes"
-		);
-
-		uint32_t BoneIndex = 0;
-
-		for (auto& Bone : Model.Bones)
-		{
-			Writer.WriteLineFmt("\t%d \"%s\" %d", BoneIndex, (char*)Bone.Name(), Bone.Parent());
-			BoneIndex++;
-		}
-
-		Writer.WriteLine(
-			"end\n"
-			"skeleton\n"
-			"time 0"
-		);
-
-		BoneIndex = 0;
-
-		for (auto& Bone : Model.Bones)
-		{
-			auto Euler = Bone.LocalRotation().ToEulerAngles();
-			Writer.WriteLineFmt("\t%d %f %f %f %f %f %f", BoneIndex, Bone.LocalPosition().X, Bone.LocalPosition().Y, Bone.LocalPosition().Z, MathHelper::DegreesToRadians(Euler.X), MathHelper::DegreesToRadians(Euler.Y), MathHelper::DegreesToRadians(Euler.Z));
-			BoneIndex++;
-		}
-
-		Writer.WriteLine("end");
-	}
-
 	bool ValveSMD::ExportModel(const Model& Model, const string& Path)
 	{
 		int bodypart_index = 0;
@@ -136,8 +239,6 @@ namespace Assets::Exporters
 
 			bodypart_index++;
 		}
-
-		WriteRefAnim(Path, Model);
 
 		return true;
 	}

@@ -337,39 +337,6 @@ struct PatchHeader
 
 // ANIMATIONS
 // --- aseq ---
-struct ASeqHeader
-{
-	RPakPtr pAnimation;
-	RPakPtr pName;
-
-	RPakPtr pModels;
-	uint32_t ModelCount;
-	uint32_t Reserved;
-
-	RPakPtr pSettings;
-	uint32_t SettingCount;
-	uint32_t Reserved1;
-};
-
-struct ASeqHeaderV71
-{
-	RPakPtr pAnimation;
-	RPakPtr pName;
-
-	RPakPtr pModels;
-	uint32_t ModelCount;
-
-	uint32_t externalDataSize;
-
-	// this can point to a group of guids and not one singular one.
-	RPakPtr pSettings;
-	uint32_t SettingCount;
-	uint32_t Reserved1;
-
-	// pointer to data stored outside of the raw rseq.
-	RPakPtr pExternalData;
-};
-
 struct ASeqHeaderV10
 {
 	RPakPtr pAnimation;
@@ -392,6 +359,71 @@ struct ASeqHeaderV10
 	// data that is stored outside of the raw rseq.
 	RPakPtr pExternalData;
 };
+
+struct ASeqHeaderV71
+{
+	RPakPtr pAnimation;
+	RPakPtr pName;
+
+	RPakPtr pModels;
+	uint32_t ModelCount;
+
+	uint32_t externalDataSize;
+
+	// this can point to a group of guids and not one singular one.
+	RPakPtr pSettings;
+	uint32_t SettingCount;
+	uint32_t Reserved1;
+
+	// pointer to data stored outside of the raw rseq.
+	RPakPtr pExternalData;
+
+	inline ASeqHeaderV10 Upgrade()
+	{
+		ASeqHeaderV10 out{};
+
+		out.pAnimation = this->pAnimation;
+		out.pName = this->pName;
+		out.pModels = this->pModels;
+		out.ModelCount = this->ModelCount;
+		out.pSettings = this->pSettings;
+		out.SettingCount = this->SettingCount;
+		out.externalDataSize = this->externalDataSize;
+		out.pExternalData = this->pExternalData;
+
+		return out;
+	}
+};
+
+struct ASeqHeader
+{
+	RPakPtr pAnimation;
+	RPakPtr pName;
+
+	RPakPtr pModels;
+	uint32_t ModelCount;
+	uint32_t Reserved;
+
+	RPakPtr pSettings;
+	uint32_t SettingCount;
+	uint32_t Reserved1;
+
+	inline ASeqHeaderV10 Upgrade()
+	{
+		ASeqHeaderV10 out{};
+
+		out.pAnimation = this->pAnimation;
+		out.pName =	this->pName;
+		out.pModels = this->pModels;
+		out.ModelCount = this->ModelCount;
+		out.pSettings = this->pSettings;
+		out.SettingCount = this->SettingCount;
+
+		return out;
+	}
+};
+
+
 
 // --- arig ---
 struct AnimRigHeaderV5

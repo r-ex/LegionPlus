@@ -339,6 +339,7 @@ void LegionSettings::InitializeComponent()
 	this->AnimExportFormat->Items.Add("Cast");
 	this->AnimExportFormat->Items.Add("SEAnim");
 	this->AnimExportFormat->Items.Add("RAnim");
+	this->AnimExportFormat->Items.Add("SMD");
 	this->groupBox5->AddControl(this->AnimExportFormat);
 
 	//
@@ -551,6 +552,9 @@ void LegionSettings::LoadSettings()
 	case AnimExportFormat_t::RAnim:
 		this->AnimExportFormat->SetSelectedIndex(2);
 		break;
+	case AnimExportFormat_t::SMD:
+		this->AnimExportFormat->SetSelectedIndex(3);
+		break;
 	}
 
 	switch (ImageFormat)
@@ -702,6 +706,9 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 			break;
 		case 2:
 			AnimExportFormat = AnimExportFormat_t::RAnim;
+			break;
+		case 3:
+			AnimExportFormat = AnimExportFormat_t::SMD;
 			break;
 		}
 	}

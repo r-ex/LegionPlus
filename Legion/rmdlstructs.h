@@ -357,6 +357,7 @@ struct s3studiohdr_t // season 3 studiohdr
 	//int unksize; // might be offset
 	//int unksize1; // might be offset
 
+
 };
 
 struct r2studiohdr_t // titanfall 2 studiohdr (MDL v53)
@@ -724,6 +725,34 @@ struct studiohdr_t_v13
 	int vvwsize;
 
 	int unk1_v54_v13[3];
+
+	inline s3studiohdr_t Downgrade()
+	{
+		s3studiohdr_t out{};
+		out.flags = this->flags;
+		out.surfacepropindex = this->surfacepropindex;
+		out.contents = this->contents;
+		out.eyeposition = this->eyeposition;
+		out.illumposition = this->illumposition;
+		out.numbones = this->numbones;
+		out.boneindex = this->boneindex;
+		out.numbodyparts = this->numbodyparts;
+		out.bodypartindex = this->bodypartindex;
+		out.numlocalattachments = this->numlocalattachments;
+		out.localattachmentindex = this->localattachmentindex;
+		out.numskinfamilies = this->numskinfamilies;
+		out.skinindex = this->skinindex;
+		out.numskinref = this->numskinref;
+		out.numhitboxsets = this->numhitboxsets;
+		out.hitboxsetindex = this->hitboxsetindex;
+		out.textureindex = this->textureindex;
+		out.numtextures = this->numtextures;
+		out.ikchainindex = this->ikchainindex;
+		out.ikchainindex = this->numikchains;
+		out.localposeparamindex = this->localposeparamindex;
+		out.numlocalposeparameters = this->numlocalposeparameters;
+		return out;
+	}
 };
 
 struct studiohdr_t_v14
@@ -905,6 +934,34 @@ struct studiohdr_t_v14
 	int vvwsize;
 
 	int unk1_v54_v13[3];
+
+	inline s3studiohdr_t Downgrade()
+	{
+		s3studiohdr_t out{};
+		out.flags = this->flags;
+		out.surfacepropindex = this->surfacepropindex;
+		out.contents = this->contents;
+		out.eyeposition = this->eyeposition;
+		out.illumposition = this->illumposition;
+		out.numbones = this->numbones;
+		out.boneindex = this->boneindex;
+		out.numbodyparts = this->numbodyparts;
+		out.bodypartindex = this->bodypartindex;
+		out.numlocalattachments = this->numlocalattachments;
+		out.localattachmentindex = this->localattachmentindex;
+		out.numskinfamilies = this->numskinfamilies;
+		out.skinindex = this->skinindex;
+		out.numskinref = this->numskinref;
+		out.numhitboxsets = this->numhitboxsets;
+		out.hitboxsetindex = this->hitboxsetindex;
+		out.textureindex = this->textureindex;
+		out.numtextures = this->numtextures;
+		out.ikchainindex = this->ikchainindex;
+		out.ikchainindex = this->numikchains;
+		out.localposeparamindex = this->localposeparamindex;
+		out.numlocalposeparameters = this->numlocalposeparameters;
+		return out;
+	}
 };
 
 struct studiohdr_t_v16
@@ -1018,6 +1075,32 @@ struct studiohdr_t_v16
 	short unk9_v16;
 
 	//uint16 unkshorts[7];
+
+	inline s3studiohdr_t Downgrade()
+	{
+		s3studiohdr_t out{};
+		out.flags = this->flags;
+		out.surfacepropindex = (int)this->surfacepropindex;
+		out.illumposition = this->illumposition;
+		out.numbones = (int)this->numbones;
+		out.boneindex = (int)this->boneindex;
+		out.numbodyparts = (int)this->numbodyparts;
+		out.bodypartindex = (int)this->bodypartindex;
+		out.numlocalattachments = (int)this->numlocalattachments;
+		out.localattachmentindex = (int)this->localattachmentindex;
+		out.numskinfamilies = (int)this->numskinfamilies;
+		out.skinindex = (int)this->skinindex;
+		out.numskinref = (int)this->numskinref;
+		out.numhitboxsets = (int)this->numhitboxsets;
+		out.hitboxsetindex = (int)this->hitboxsetindex;
+		out.textureindex = (int)this->textureindex;
+		out.numtextures = (int)this->numtextures;
+		out.ikchainindex = (int)this->ikchainindex;
+		out.ikchainindex = (int)this->numikchains;
+		out.localposeparamindex = (int)this->localposeparamindex;
+		out.numlocalposeparameters = (int)this->numlocalposeparameters;
+		return out;
+	}
 };
 
 struct studiohdr_t // latest studiohdr
@@ -1241,6 +1324,37 @@ struct studiohdr_t // latest studiohdr
 
 		return hdr;
 	}
+};
+
+struct mstudioikchainv54_t
+{
+	int sznameindex;
+
+	int linktype;
+	int numlinks;
+	int linkindex;
+
+	float unk; // no clue what this does tbh, tweaking it does nothing
+	// default value: 0.707f
+};
+
+struct mstudioikchainv54_t_v16
+{
+	uint16_t sznameindex;
+
+	short linktype;
+	short numlinks;
+	uint16_t linkindex;
+
+	float unk; // no clue what this does tbh, tweaking it does nothing
+	// default value: 0.707f
+};
+
+// ikinfo
+struct mstudioiklinkv54_t
+{
+	int bone;
+	Vector3	unused0; // no kneeDir in apex I think
 };
 
 struct mstudiolinearbone_t_v16

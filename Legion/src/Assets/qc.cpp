@@ -3,93 +3,11 @@
 #include "Path.h"
 #include "Directory.h"
 #include <version.h>
+#include <MathHelper.h>
 
 const std::vector<std::string> MaterialTypes = { "_rgdu", "_rgdp", "_rgdc", "_sknu", "_sknp", "_sknc", "_wldu", "_wldc", "_ptcu", "_ptcs" };
 
-s3studiohdr_t GetStudioMdl(int assetVersion, char* rmdlBuf)
-{
-	s3studiohdr_t hdr{};
-
-	if (assetVersion <= 10)
-		hdr = *reinterpret_cast<s3studiohdr_t*>(rmdlBuf);
-	else {
-		switch (assetVersion)
-		{
-		case 13:
-		{
-			studiohdr_t_v13 thdr = *reinterpret_cast<studiohdr_t_v13*>(rmdlBuf);
-			hdr.flags = thdr.flags;
-			hdr.surfacepropindex = thdr.surfacepropindex;
-			hdr.contents = thdr.contents;
-			hdr.eyeposition = thdr.eyeposition;
-			hdr.illumposition = thdr.illumposition;
-			hdr.numbones = thdr.numbones;
-			hdr.boneindex = thdr.boneindex;
-			hdr.numbodyparts = thdr.numbodyparts;
-			hdr.bodypartindex = thdr.bodypartindex;
-			hdr.numlocalattachments = thdr.numlocalattachments;
-			hdr.localattachmentindex = thdr.localattachmentindex;
-			hdr.numskinfamilies = thdr.numskinfamilies;
-			hdr.skinindex = thdr.skinindex;
-			hdr.numskinref = thdr.numskinref;
-			hdr.numhitboxsets = thdr.numhitboxsets;
-			hdr.hitboxsetindex = thdr.hitboxsetindex;
-			hdr.textureindex = thdr.textureindex;
-			hdr.numtextures = thdr.numtextures;
-			break;
-		}
-		case 14:
-		case 15:
-		{
-			studiohdr_t_v14 thdr = *reinterpret_cast<studiohdr_t_v14*>(rmdlBuf);
-			hdr.flags = thdr.flags;
-			hdr.surfacepropindex = thdr.surfacepropindex;
-			hdr.contents = thdr.contents;
-			hdr.eyeposition = thdr.eyeposition;
-			hdr.illumposition = thdr.illumposition;
-			hdr.numbones = thdr.numbones;
-			hdr.boneindex = thdr.boneindex;
-			hdr.numbodyparts = thdr.numbodyparts;
-			hdr.bodypartindex = thdr.bodypartindex;
-			hdr.numlocalattachments = thdr.numlocalattachments;
-			hdr.localattachmentindex = thdr.localattachmentindex;
-			hdr.numskinfamilies = thdr.numskinfamilies;
-			hdr.skinindex = thdr.skinindex;
-			hdr.numskinref = thdr.numskinref;
-			hdr.numhitboxsets = thdr.numhitboxsets;
-			hdr.hitboxsetindex = thdr.hitboxsetindex;
-			hdr.textureindex = thdr.textureindex;
-			hdr.numtextures = thdr.numtextures;
-			break;
-		}
-		case 16:
-		{
-			studiohdr_t_v16 thdr = *reinterpret_cast<studiohdr_t_v16*>(rmdlBuf);
-			hdr.flags = thdr.flags;
-			hdr.surfacepropindex = thdr.surfacepropindex;
-			hdr.illumposition = thdr.illumposition;
-			hdr.numbones = thdr.numbones;
-			hdr.boneindex = thdr.boneindex;
-			hdr.numbodyparts = thdr.numbodyparts;
-			hdr.bodypartindex = thdr.bodypartindex;
-			hdr.numlocalattachments = thdr.numlocalattachments;
-			hdr.localattachmentindex = thdr.localattachmentindex;
-			hdr.numskinfamilies = thdr.numskinfamilies;
-			hdr.skinindex = thdr.skinindex;
-			hdr.numskinref = thdr.numskinref;
-			hdr.numhitboxsets = thdr.numhitboxsets;
-			hdr.hitboxsetindex = thdr.hitboxsetindex;
-			hdr.textureindex = thdr.textureindex;
-			hdr.numtextures = thdr.numtextures;
-			break;
-		}
-		default:
-			break;
-		}
-	}
-
-	return hdr;
-}
+#define CalculateLimit(r) ((r / Math::MathHelper::PI) * 180.0f)
 
 void WriteCommonJiggle(IO::StreamWriter& qc, mstudiojigglebonev54_t*& JiggleBone)
 {
@@ -99,13 +17,13 @@ void WriteCommonJiggle(IO::StreamWriter& qc, mstudiojigglebonev54_t*& JiggleBone
 	if (JiggleBone->tipMass)
 		qc.WriteFmt("\t\ttip_mass %.4f\n", JiggleBone->tipMass);
 
-	if (JiggleBone->flags & JIGGLE_HAS_ANGLE_CONSTRAINT && JiggleBone->angleLimit)
-		qc.WriteFmt("\t\tangle_constraint %.4f\n", (JiggleBone->angleLimit / Math::MathHelper::PI) * 180.0f);
+	if (JiggleBone->flags & JIGGLE_HAS_ANGLE_CONSTRAINT && CalculateLimit(JiggleBone->angleLimit))
+		qc.WriteFmt("\t\tangle_constraint %.4f\n", CalculateLimit(JiggleBone->angleLimit));
 
 	if (JiggleBone->flags & JIGGLE_HAS_YAW_CONSTRAINT)
 	{
-		if (JiggleBone->minYaw || JiggleBone->maxYaw)
-			qc.WriteFmt("\t\tyaw_constraint %.4f %.4f\n", (JiggleBone->minYaw / Math::MathHelper::PI) * 180.0f, (JiggleBone->maxYaw / Math::MathHelper::PI) * 180.0f);
+		if (CalculateLimit(JiggleBone->minYaw) || CalculateLimit(JiggleBone->maxYaw))
+			qc.WriteFmt("\t\tyaw_constraint %.4f %.4f\n", CalculateLimit(JiggleBone->minYaw), CalculateLimit(JiggleBone->maxYaw));
 	}
 
 	if (JiggleBone->yawFriction)
@@ -116,8 +34,8 @@ void WriteCommonJiggle(IO::StreamWriter& qc, mstudiojigglebonev54_t*& JiggleBone
 
 	if (JiggleBone->flags & JIGGLE_HAS_PITCH_CONSTRAINT)
 	{
-		if (JiggleBone->minPitch || JiggleBone->maxPitch)
-			qc.WriteFmt("\t\tpitch_constraint %.4f %.4f\n", (JiggleBone->minPitch / Math::MathHelper::PI) * 180.0f, (JiggleBone->maxPitch / Math::MathHelper::PI) * 180.0f);
+		if (CalculateLimit(JiggleBone->minPitch) || CalculateLimit(JiggleBone->maxPitch))
+			qc.WriteFmt("\t\tpitch_constraint %.4f %.4f\n", CalculateLimit(JiggleBone->minPitch), CalculateLimit(JiggleBone->maxPitch));
 	}
 
 	if (JiggleBone->pitchFriction)
@@ -129,7 +47,7 @@ void WriteCommonJiggle(IO::StreamWriter& qc, mstudiojigglebonev54_t*& JiggleBone
 
 void WriteJiggleBoneData(IO::StreamWriter& qc, mstudiojigglebonev54_t*& JiggleBone)
 {
-	if (JiggleBone->flags & JIGGLE_IS_RIGID)
+	if (JiggleBone->flags & JIGGLE_IS_RIGID && !JiggleBone->flags & JIGGLE_IS_FLEXIBLE)
 	{
 		qc.Write("\tis_rigid {\n");
 
@@ -203,13 +121,86 @@ void WriteJiggleBoneData(IO::StreamWriter& qc, mstudiojigglebonev54_t*& JiggleBo
 	qc.Write("\t}\n");
 };
 
-void RpakLib::ExportQC(const RpakLoadAsset& asset, const string& Path, const string& modelPath, const std::unique_ptr<Assets::Model>& Model, char* rmdlBuf, char* phyBuf)
+void SMDWriteRefAnim(const string& Path, const List<Assets::Bone>& Bones, string Name)
 {
-	if (asset.AssetVersion > 16)
+	string RefPath = IO::Path::Combine(IO::Path::GetDirectoryName(Path), (Name + "_ref.smd"));
+
+	auto Writer = IO::StreamWriter(IO::File::Create(RefPath));
+
+	Writer.WriteLine(
+		"version 1\n"
+		"nodes"
+	);
+
+	uint32_t BoneIndex = 0;
+
+	for (auto& Bone : Bones)
+	{
+		Writer.WriteLineFmt("\t%d \"%s\" %d", BoneIndex, (char*)Bone.Name(), Bone.Parent());
+		BoneIndex++;
+	}
+
+	Writer.WriteLine(
+		"end\n"
+		"skeleton\n"
+		"time 0"
+	);
+
+	BoneIndex = 0;
+
+	for (auto& Bone : Bones)
+	{
+		auto Euler = Bone.LocalRotation().ToEulerAngles();
+		Writer.WriteLineFmt("\t%d %f %f %f %f %f %f", BoneIndex, Bone.LocalPosition().X, Bone.LocalPosition().Y, Bone.LocalPosition().Z, Math::MathHelper::DegreesToRadians(Euler.X), Math::MathHelper::DegreesToRadians(Euler.Y), Math::MathHelper::DegreesToRadians(Euler.Z));
+		BoneIndex++;
+	}
+
+	Writer.WriteLine("end");
+
+	Writer.Close();
+}
+
+void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const string& modelPath, const std::unique_ptr<Assets::Model>& Model, char* rmdlBuf, char* phyBuf)
+{
+	int AssetVersion = Asset.AssetVersion;
+	bool IsRig = Asset.AssetType == (uint32_t)AssetType_t::AnimationRig;
+
+	if (IsRig) // stupid way of getting the highest Asset Version
+	{
+		int MaxVersion = 0;
+		for (auto& Asset : this->Assets)
+		{
+			auto& val = Asset.Value();
+			if (val.AssetType == (uint32_t)AssetType_t::Model && val.AssetVersion > MaxVersion)
+				MaxVersion = val.AssetVersion;
+		}
+
+		AssetVersion = MaxVersion;
+	}
+
+	if (AssetVersion > 16)
 		return;
 
 	IO::StreamWriter qc(IO::File::Create(Path));
-	s3studiohdr_t hdr = GetStudioMdl(asset.AssetVersion, rmdlBuf);
+
+	s3studiohdr_t hdr{};
+	
+	switch (AssetVersion)
+	{
+	case 13:
+		hdr = reinterpret_cast<studiohdr_t_v13*>(rmdlBuf)->Downgrade();
+		break;
+	case 14:
+	case 15:
+		hdr = reinterpret_cast<studiohdr_t_v14*>(rmdlBuf)->Downgrade();
+		break;
+	case 16:
+			hdr = reinterpret_cast<studiohdr_t_v16*>(rmdlBuf)->Downgrade();
+		break;
+	default:
+		hdr = *reinterpret_cast<s3studiohdr_t*>(rmdlBuf);
+		break;
+	}
 
 	qc.WriteFmt("// decompiled using LegionPlus %s\n\n", UI_VER_STR);
 
@@ -230,20 +221,20 @@ void RpakLib::ExportQC(const RpakLoadAsset& asset, const string& Path, const str
 	std::vector<mstudiobonev54_t> Bones(hdr.numbones);
 
 	uint64_t v16bonedataindex = 0;
-	if(asset.AssetVersion == 16)
+	if(AssetVersion == 16)
 		v16bonedataindex = reinterpret_cast<studiohdr_t_v16*>(rmdlBuf)->bonedataindex;
 
 	for (int i = 0; i < hdr.numbones; i++)
 	{
 		char* pBone = rmdlBuf + hdr.boneindex;
-		if (asset.AssetVersion <= 10)
+		if (AssetVersion <= 10)
 		{
 			pBone = pBone + (i * sizeof(mstudiobonev54_t));
 			mstudiobonev54_t Bone = *reinterpret_cast<mstudiobonev54_t*>(pBone);
 			BoneNames[i] = std::string(reinterpret_cast<char*>(pBone + Bone.sznameindex));
 			Bones[i] = Bone;
 		}
-		else if (asset.AssetVersion < 16)
+		else if (AssetVersion < 16)
 		{
 			pBone = pBone + (i * sizeof(mstudiobonev54_t_v121));
 			mstudiobonev54_t_v121 Bone = *reinterpret_cast<mstudiobonev54_t_v121*>(pBone);
@@ -278,7 +269,7 @@ void RpakLib::ExportQC(const RpakLoadAsset& asset, const string& Path, const str
 	{
 		char* pBodyPart = rmdlBuf + hdr.bodypartindex; 
 		mstudiobodyparts_t bodyPart{};
-		switch (asset.AssetVersion)
+		switch (AssetVersion)
 		{
 		case 15:
 			pBodyPart = pBodyPart + (i * sizeof(mstudiobodyparts_t_v15));
@@ -304,7 +295,7 @@ void RpakLib::ExportQC(const RpakLoadAsset& asset, const string& Path, const str
 			char* pModel = pBodyPart + bodyPart.modelindex;
 			mstudiomodelv54_t* model = nullptr;
 
-			switch (asset.AssetVersion)
+			switch (AssetVersion)
 			{
 			case 13:
 				pModel = pModel + (j * sizeof(mstudiomodelv54_t_v13));
@@ -335,14 +326,14 @@ void RpakLib::ExportQC(const RpakLoadAsset& asset, const string& Path, const str
 				char* pMesh = pModel + model->meshindex;
 				mstudiomeshv54_t mesh{};
 
-				switch (asset.AssetVersion)
+				switch (AssetVersion)
 				{
 				case 16:
 					pMesh = pMesh + (a * sizeof(mstudiomeshv54_t_v16));
 					mesh = reinterpret_cast<mstudiomeshv54_t_v16*>(pMesh)->Downgrade();
 					break;
 				default:
-					if (asset.AssetVersion <= 10)
+					if (AssetVersion <= 10)
 					{
 						pMesh = pMesh + (a * sizeof(mstudiomeshv54_t));
 						mesh = *reinterpret_cast<mstudiomeshv54_t*>(pMesh);
@@ -359,8 +350,8 @@ void RpakLib::ExportQC(const RpakLoadAsset& asset, const string& Path, const str
 			}
 		}
 
-		Model.get()->BodyPartNames.EmplaceBack(bodyPartName);
-		Model.get()->BodyPartMeshIds.EmplaceBack(BodyPartMeshes);
+		Model->BodyPartNames.EmplaceBack(bodyPartName);
+		Model->BodyPartMeshIds.EmplaceBack(BodyPartMeshes);
 
 		qc.Write("}\n\n");
 	}
@@ -370,15 +361,17 @@ void RpakLib::ExportQC(const RpakLoadAsset& asset, const string& Path, const str
 
 	qc.WriteFmt("$cdmaterials \"\"\n\n");
 
-	std::vector<string> TextureNames(hdr.numtextures);
-	std::vector<string> TextureTypes(hdr.numtextures);
+	int MaxTextureResize = Model->Materials.Count() < hdr.numtextures ? hdr.numtextures : Model->Materials.Count();
+
+	std::vector<string> TextureNames(MaxTextureResize);
+	std::vector<string> TextureTypes(MaxTextureResize);
 
 	for (int i = 0; i < hdr.numtextures; i++)
 	{
 		char* pTexture = rmdlBuf + hdr.textureindex; 
 		mstudiotexturev54_t texture{};
 		
-		if (asset.AssetVersion < 16)
+		if (AssetVersion < 16)
 		{
 			pTexture = pTexture + (i * sizeof(mstudiotexturev54_t));
 			texture = *reinterpret_cast<mstudiotexturev54_t*>(pTexture);
@@ -400,16 +393,14 @@ void RpakLib::ExportQC(const RpakLoadAsset& asset, const string& Path, const str
 			continue;
 		}
 
-		std::string temp = TextureNames[i].ToCString();
-		while (temp.find("\\") != -1)
-			temp = temp.replace(temp.find("\\"), std::string("\\").length(), "/");
-		TextureNames[i] = temp;
+		string temp = string(TextureNames[i].ToCString()).Replace("\\", "/");
 
+		TextureNames[i] = temp;
 		for (int z = 0; z < MaterialTypes.size(); z++)
 		{
-			std::string MatType = MaterialTypes[z];
+			string MatType = MaterialTypes[z].c_str();
 
-			if (temp.find(MatType) != -1)
+			if (temp.IndexOf(MatType) != -1)
 			{
 				TextureTypes[i] = MatType;
 				break;
@@ -417,84 +408,75 @@ void RpakLib::ExportQC(const RpakLoadAsset& asset, const string& Path, const str
 		}
 	}
 
-	qc.WriteFmt("//$texturegroup \"skinfamilies\"\n//{\n");
-
-	for (int i = 0; i < hdr.numskinfamilies; i++)
+	if (Model != nullptr)
 	{
-		if (asset.AssetVersion >= 16)
-			break;
+		qc.WriteFmt("//$texturegroup \"skinfamilies\"\n//{\n");
 
-		char* pSkinFamily = rmdlBuf + hdr.skinindex + (i * hdr.numskinref * sizeof(short));
-
-		std::string skinName = "default";
-
-		if (i > 0)
+		for (int i = 0; i < hdr.numskinfamilies; i++)
 		{
-			int sizeofz = (hdr.numskinfamilies * hdr.numskinref * sizeof(short));
-			char* pSkinFamilies = (rmdlBuf + hdr.skinindex + sizeofz) + (sizeofz % 4);
+			if (AssetVersion >= 16)
+				break;
 
-			int* pSkinNameIndex = reinterpret_cast<int*>(pSkinFamilies + ((i - 1) * 4));
-			skinName = std::string(rmdlBuf + *(pSkinNameIndex));
-		}
+			char* pSkinFamily = rmdlBuf + hdr.skinindex + (i * hdr.numskinref * sizeof(short));
 
-		qc.WriteFmt("//\t\"%s\" { ", skinName.c_str());
-		for (int j = 0; j < hdr.numskinref; j++)
-		{
-			short texId = *reinterpret_cast<short*>(pSkinFamily + (j * sizeof(short)));
+			std::string skinName = "default";
 
-			std::string TextureName = (TextureNames[texId].ToCString());
-
-			while (TextureName.find("\\") != -1)
-				TextureName = TextureName.replace(TextureName.find("\\"), std::string("\\").length(), "/");
-
-			qc.WriteFmt("//\"%s\" ", TextureName.c_str());
-		}
-
-		qc.Write("//}\n");
-	}
-	qc.Write("//}\n\n");
-
-	List<std::string> ValidTextures{};
-	for (auto& Submesh : Model.get()->Meshes)
-	{
-		for (auto& Face : Submesh.Faces)
-		{
-			if (Submesh.MaterialIndices[0] > -1)
+			if (i > 0)
 			{
-				int materialindex = Submesh.MaterialIndices[0];
-				string SubMeshTextureName = Model.get()->Materials[materialindex].Name.ToLower() + TextureTypes[materialindex];
+				int sizeofz = (hdr.numskinfamilies * hdr.numskinref * sizeof(short));
+				char* pSkinFamilies = (rmdlBuf + hdr.skinindex + sizeofz) + (sizeofz % 4);
 
-				for (int i = 0 ; i < TextureNames.size(); i++)
+				int* pSkinNameIndex = reinterpret_cast<int*>(pSkinFamilies + ((i - 1) * 4));
+				skinName = std::string(rmdlBuf + *(pSkinNameIndex));
+			}
+
+			qc.WriteFmt("//\t\"%s\" { ", skinName.c_str());
+			for (int j = 0; j < hdr.numskinref; j++)
+			{
+				short texId = *reinterpret_cast<short*>(pSkinFamily + (j * sizeof(short)));
+				string TextureName = string(TextureNames[texId].ToCString()).Replace("\\", "/");
+
+				qc.WriteFmt("//\"%s\" ", TextureName.ToCString());
+			}
+
+			qc.Write("//}\n");
+		}
+		qc.Write("//}\n\n");
+
+		List<std::string> ValidTextures{};
+		for (auto& Submesh : Model->Meshes)
+		{
+			for (auto& Face : Submesh.Faces)
+			{
+				if (Submesh.MaterialIndices[0] > -1)
 				{
-					string Texture = TextureNames[i];
-					bool bIsSubmeshMaterial = Texture.Contains(SubMeshTextureName);
+					int materialindex = Submesh.MaterialIndices[0];
+					string SubMeshTextureName = Model->Materials[materialindex].Name.ToLower() + TextureTypes[materialindex];
 
-					if (!bIsSubmeshMaterial)
-						continue;
+					for (int i = 0; i < TextureNames.size(); i++)
+					{
+						string Texture = TextureNames[i];
+						bool bIsSubmeshMaterial = Texture.Contains(SubMeshTextureName);
 
-					bool bExistsInValidList = ValidTextures.Contains(TextureNames[i].ToLower().ToCString());
+						if (!bIsSubmeshMaterial)
+							continue;
 
-					if (!bExistsInValidList)
-						ValidTextures.EmplaceBack(TextureNames[i].ToCString());
+						bool bExistsInValidList = ValidTextures.Contains(TextureNames[i].ToLower().ToCString());
 
-					break;
+						if (!bExistsInValidList)
+							ValidTextures.EmplaceBack(TextureNames[i].ToCString());
+
+						break;
+					}
 				}
 			}
 		}
+
+		for (auto& ValidTexture : ValidTextures)
+			qc.WriteFmt("$renamematerial \"%s\" \"%s\"\n", IO::Path::GetFileNameWithoutExtension(ValidTexture.c_str()).ToCString(), ValidTexture.c_str());
+
+		qc.Write("\n");
 	}
-
-	for (auto& ValidTexture : ValidTextures)
-	{
-
-
-		qc.WriteFmt("$renamematerial \"%s\" \"%s\"\n", IO::Path::GetFileNameWithoutExtension(ValidTexture.c_str()).ToCString(), ValidTexture.c_str());
-	}
-
-
-	qc.Write("\n");
-
-	qc.WriteFmt("$sequence \"ref\" \"%s_ref.smd\" \n\n", Model.get()->Name.ToCString());
-
 
 	qc.WriteFmt("$unlockdefinebones\n\n");
 
@@ -527,7 +509,7 @@ void RpakLib::ExportQC(const RpakLoadAsset& asset, const string& Path, const str
 		char* pAttachment = rmdlBuf + hdr.localattachmentindex;
 		mstudioattachmentv54_t attachment{};
 
-		if(asset.AssetVersion < 16)
+		if(AssetVersion < 16)
 		{
 			pAttachment = pAttachment + (i * sizeof(mstudioattachmentv54_t));
 			attachment = *reinterpret_cast<mstudioattachmentv54_t*>(pAttachment);
@@ -551,14 +533,16 @@ void RpakLib::ExportQC(const RpakLoadAsset& asset, const string& Path, const str
 		);
 
 	}
-	qc.Write("\n");
+
+	if (hdr.numlocalattachments)
+		qc.Write("\n");
 
 	for (int i = 0; i < jigglebonecount; i++)
 	{
 		char* pBones = nullptr;
-		if (asset.AssetVersion <= 10)
+		if (AssetVersion <= 10)
 			pBones = rmdlBuf + hdr.boneindex + (hdr.numbones * sizeof(mstudiobonev54_t));
-		else if (asset.AssetVersion > 16)
+		else if (AssetVersion > 16)
 			pBones = rmdlBuf + hdr.boneindex + (hdr.numbones * sizeof(mstudiobonev54_t_v121));
 		else
 			pBones = rmdlBuf + v16bonedataindex + (hdr.numbones * sizeof(mstudiobonedata_t_v16));
@@ -577,7 +561,7 @@ void RpakLib::ExportQC(const RpakLoadAsset& asset, const string& Path, const str
 		char* pHitboxSet = rmdlBuf + hdr.hitboxsetindex;
 		mstudiohitboxset_t hitboxSet{};
 
-		if (asset.AssetVersion < 16)
+		if (AssetVersion < 16)
 		{
 			pHitboxSet = pHitboxSet + (i * sizeof(mstudiohitboxset_t));
 			hitboxSet = *reinterpret_cast<mstudiohitboxset_t*>(pHitboxSet);
@@ -591,7 +575,7 @@ void RpakLib::ExportQC(const RpakLoadAsset& asset, const string& Path, const str
 		// get hboxset name
 		char* hitboxSetName = pHitboxSet + hitboxSet.sznameindex;
 
-		qc.WriteFmt("$hboxset \"%s\"\n\n", hitboxSetName);
+		qc.WriteFmt("$hboxset \"%s\"\n", hitboxSetName);
 
 		for (int j = 0; j < hitboxSet.numhitboxes; j++)
 		{
@@ -599,7 +583,7 @@ void RpakLib::ExportQC(const RpakLoadAsset& asset, const string& Path, const str
 
 			char* pHitbox = nullptr;
 
-			if (asset.AssetVersion < 16)
+			if (AssetVersion < 16)
 			{
 				pHitbox = pHitboxSet + (j * sizeof(mstudiobboxv54_t));
 				hitbox = *reinterpret_cast<mstudiobboxv54_t*>(pHitbox + hitboxSet.hitboxindex);
@@ -620,5 +604,270 @@ void RpakLib::ExportQC(const RpakLoadAsset& asset, const string& Path, const str
 		qc.Write("\n");
 	}
 
+	qc.Write("$defaultfadein 0.2\n$defaultfadeout 0.2\n\n");
+
+	List<string> PoseParameters;
+	char* pPoseParams = rmdlBuf + hdr.localposeparamindex;
+	for (int i = 0; i < hdr.numlocalposeparameters; i++)
+	{
+		mstudioposeparamdescv54_t PoseParam{};
+
+		char* pPoseParam = nullptr;
+		if (AssetVersion < 16)
+		{
+			pPoseParam = pPoseParams + (i * sizeof(mstudioposeparamdescv54_t));
+			PoseParam = *reinterpret_cast<mstudioposeparamdescv54_t*>(pPoseParam);
+		}
+		else {
+			pPoseParam = pPoseParams + (i * sizeof(mstudioposeparamdescv54_t_v16));
+			PoseParam = reinterpret_cast<mstudioposeparamdescv54_t_v16*>(pPoseParam)->Downgrade();
+		}
+			
+		string PoseName = string(pPoseParam + PoseParam.sznameindex);
+
+		qc.WriteFmt("$poseparameter \"%s\" %.4f %.4f", PoseName.ToCString(), PoseParam.start, PoseParam.start);
+
+		if(PoseParam.flags & STUDIO_LOOPING)
+			qc.WriteFmt(" loop %f", PoseParam.loop);
+
+		qc.Write("\n");
+
+		PoseParameters.EmplaceBack(PoseName);
+	}
+
+	if(hdr.numlocalposeparameters)
+	   qc.Write("\n");
+
+	qc.WriteFmt("$sequence \"ref\" \"%s_ref.smd\" \n\n", Model->Name.ToCString());
+
+	SMDWriteRefAnim(Path, Model->Bones, Model->Name);
+
+	if (IsRig)
+	{
+		auto RpakStream = this->GetFileStream(Asset);
+		IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
+
+		RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
+		AnimRigHeader RigHeader{};
+		RigHeader.ReadFromAssetStream(&RpakStream, Asset.AssetVersion);
+
+		const uint64_t ReferenceOffset = this->GetFileOffset(Asset, RigHeader.animSeqs);
+
+		List<uint64_t> Hashes;
+
+		for (uint32_t i = 0; i < RigHeader.animSeqCount; i++)
+		{
+			RpakStream->SetPosition(ReferenceOffset + ((uint64_t)i * 0x8));
+
+			uint64_t AnimHash = Reader.Read<uint64_t>();
+
+			if (Hashes.Contains(AnimHash) || AnimHash == 0xDF5)
+				continue;
+
+			if (!Assets.ContainsKey(AnimHash))
+			{
+				qc.WriteFmt("// Legion could not find Aseq 0x%llX in loaded rpaks\n\n", AnimHash);
+				continue;
+			}
+
+			this->QCWriteAseqData(qc, AnimHash, Asset, PoseParameters);
+
+			Hashes.EmplaceBack(AnimHash);
+		}
+	}
+
 	qc.Close();
+}
+
+void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, uint64_t AnimHash, const RpakLoadAsset& RigAsset, List<string> PoseParameters)
+{
+	if (this->Assets.ContainsKey(AnimHash))
+	{
+		auto& AseqAsset = this->Assets[AnimHash];
+		auto RpakStream = this->GetFileStream(AseqAsset);
+		IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
+		RpakStream->SetPosition(this->GetFileOffset(AseqAsset, AseqAsset.SubHeaderIndex, AseqAsset.SubHeaderOffset));
+
+		ASeqHeaderV10 AnHeader{};
+		switch (AseqAsset.SubHeaderSize)
+		{
+		case 0x30: // 7
+			AnHeader = Reader.Read<ASeqHeader>().Upgrade();
+			break;
+		case 0x38: // 7.1
+			AnHeader = Reader.Read<ASeqHeaderV71>().Upgrade();
+			break;
+		case 0x40: // 10
+			AnHeader = Reader.Read<ASeqHeaderV10>();
+			break;
+		}
+
+		RpakStream->SetPosition(this->GetFileOffset(AseqAsset, AnHeader.pName));
+		string AnimSetNameFull = Reader.ReadCString();
+		string AnimSetName = IO::Path::GetFileNameWithoutExtension(AnimSetNameFull).ToCString();
+		string AnimSetNameDir = IO::Path::GetDirectoryName(AnimSetNameFull).ToCString();
+		string FolderPath = IO::Path::Combine(IO::Path::GetDirectoryName(AnimSetNameFull), IO::Path::GetFileNameWithoutExtension(AnimSetNameFull)).Replace("\\", "/");
+
+		uint64_t AseqDataOffset = this->GetFileOffset(AseqAsset, AnHeader.pAnimation);
+		RpakStream->SetPosition(AseqDataOffset);
+		mstudioseqdesc_t_v16 seqdesc{};
+
+		if (AseqAsset.AssetVersion < 11)
+			seqdesc = Reader.Read<mstudioseqdesc_t>().Upgrade();
+		else
+			seqdesc = Reader.Read<mstudioseqdesc_t_v16>();
+
+		int blends = seqdesc.groupsize[0] * seqdesc.groupsize[1];
+
+		List<int> FrameRates;
+		List<string> AnimNames{};
+		for (int i = 0; i < blends; i++)
+		{
+			RpakStream->SetPosition(AseqDataOffset + seqdesc.animindexindex + (i * 4));
+
+			uint64_t blendoffset = Reader.Read<int>();
+
+			RpakStream->SetPosition(AseqDataOffset + blendoffset);
+
+			mstudioanimdescv54_t_v16 animdesc{};
+
+			switch (AseqAsset.SubHeaderSize)
+			{
+			case 0x30: // 7
+				animdesc = Reader.Read<mstudioanimdescv54_t>().Upgrade();
+				break;
+			case 0x38: // 7.1
+				animdesc = Reader.Read<mstudioanimdescv54_t_v121>().Upgrade();
+				break;
+			case 0x40: // 10
+				animdesc = Reader.Read<mstudioanimdescv54_t_v16>();
+				break;
+			}
+
+			RpakStream->SetPosition(AseqDataOffset + blendoffset + animdesc.sznameindex);
+			string namez = Reader.ReadCString();
+
+			AnimNames.EmplaceBack((AnimSetNameDir + string::Format("/%s_%d", AnimSetName.ToCString(), i)));
+			FrameRates.EmplaceBack(animdesc.numframes);
+		}
+		
+		qc.WriteFmt("$sequence \"%s\" \"Anims/%s.smd\" {\n", AnimSetNameFull.ToCString(), AnimSetName.ToCString());
+
+		RpakStream->SetPosition(AseqDataOffset + seqdesc.szactivitynameindex);
+		string Activity = Reader.ReadCString();
+
+		if (!string::IsNullOrEmpty(Activity))
+			qc.WriteFmt("\tactivity %s %d\n\n", Activity.ToCString(), seqdesc.actweight);
+
+		if(seqdesc.flags & STUDIO_LOOPING)
+			qc.Write("\tloop\n\n");
+
+		if (seqdesc.flags & STUDIO_NOFORCELOOP)
+			qc.Write("\tnoforceloop\n\n");
+
+		if (seqdesc.flags & STUDIO_SNAP)
+			qc.Write("\tsnap\n\n");
+
+		if (seqdesc.numactivitymodifiers)
+			qc.Write("\n");
+
+		for (int i = 0; i < seqdesc.numactivitymodifiers; i++)
+		{
+			uint64_t offset = AseqDataOffset + seqdesc.activitymodifierindex;
+			
+			if (AseqAsset.AssetVersion > 10)
+				offset += (i * sizeof(mstudioactivitymodifierv54_t_v16));
+			else
+				offset += (i * sizeof(mstudioactivitymodifierv53_t));
+			
+			RpakStream->SetPosition(offset);
+
+			mstudioactivitymodifierv53_t layer{};
+			if(AseqAsset.AssetVersion < 10)
+				layer = Reader.Read<mstudioactivitymodifierv53_t>();
+			else
+				layer = Reader.Read<mstudioactivitymodifierv54_t_v16>().Downgrade();
+
+			RpakStream->SetPosition(offset + layer.sznameindex);
+			string ActivityMod = Reader.ReadCString();
+
+			if (!string::IsNullOrEmpty(ActivityMod))
+			    qc.WriteFmt("\tactivitymodifier %s\n", ActivityMod.ToCString());
+		}
+
+		if (seqdesc.numactivitymodifiers)
+			qc.Write("\n");
+
+		if (seqdesc.numautolayers)
+			qc.Write("\n");
+
+		for (int i = 0; i < seqdesc.numautolayers; i++)
+		{
+			RpakStream->SetPosition(AseqDataOffset + seqdesc.autolayerindex + (i * sizeof(mstudioautolayerv54_t)));
+			mstudioautolayerv54_t layer = Reader.Read<mstudioautolayerv54_t>();
+
+			if (this->Assets.ContainsKey(layer.guidSequence))
+			{
+				auto& LayerAsset = this->Assets[layer.guidSequence];
+
+				std::string options = "";
+
+				if (layer.flags & STUDIO_AL_XFADE)
+					options += " xfade";
+
+				if (layer.flags & STUDIO_AL_SPLINE)
+					options += " spline";
+
+				if (layer.flags & STUDIO_AL_NOBLEND)
+					options += " noblend";
+
+				if (layer.flags & STUDIO_AL_POSE)
+					options += string::Format(" poseparameter %s", PoseParameters[layer.iPose].ToCString());
+
+				if (layer.flags & STUDIO_AL_LOCAL)
+					options += " local";
+
+				qc.WriteFmt("\n\tblendlayer \"%s\" %d %d %d %d %s", this->ExtractAnimationSeq(LayerAsset).ToCString(), layer.start, layer.peak, layer.tail, layer.end, options.c_str());
+			}
+			else
+			{
+				qc.WriteFmt("\t//blendlayer LAYER NOT FOUND IN LOADED RPAKs\n");
+			}
+		}
+
+		if(seqdesc.numautolayers)
+		   qc.Write("\n");
+
+		for (int i = 0; i < seqdesc.numevents; i++)
+		{
+			mstudioeventv54 Event{};
+			if (AseqAsset.AssetVersion > 10)
+			{
+				RpakStream->SetPosition(AseqDataOffset + seqdesc.eventindex + (i * sizeof(mstudioeventv54_t_v16)));
+				Event.Init(AseqAsset.AssetVersion, Reader);
+			}
+			else
+			{
+				switch (AseqAsset.SubHeaderSize)
+				{
+				case 0x30: // 7 / 7.1
+				case 0x38:
+					RpakStream->SetPosition(AseqDataOffset + seqdesc.eventindex + (i * sizeof(mstudioeventv54_t)));
+					Event.Init(AseqAsset.AssetVersion, Reader);
+					break;
+				case 0x40: // 10
+					RpakStream->SetPosition(AseqDataOffset + seqdesc.eventindex + (i * sizeof(mstudioeventv54_t_v122)));
+					Event.Init(AseqAsset.AssetVersion, Reader);
+					break;
+				}
+			}
+
+			// disabled for now until a fix is found to get the correct frame
+			int frame_reversed = 0;//(int)(Event.cycle * float(FrameRates[0] - 1));
+
+			qc.WriteFmt("\t{ event %s %d \"%s\" }\n", Event.szevent.ToCString(), frame_reversed, Event.szoptions.ToCString());
+		}
+
+		qc.Write("\n}\n\n");
+	}
 }

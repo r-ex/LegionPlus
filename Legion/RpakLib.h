@@ -336,7 +336,8 @@ enum class AnimExportFormat_t
 {
 	SEAnim,
 	Cast,
-	RAnim
+	RAnim,
+	SMD
 };
 
 enum class MatCPUExportFormat_t
@@ -466,7 +467,7 @@ public:
 	// Used by the BSP system.
 	RMdlMaterial ExtractMaterial(const RpakLoadAsset& Asset, const string& Path, bool IncludeImages, bool IncludeImageNames);
 	RMdlMaterial ExtractMaterialSilent(const RpakLoadAsset& Asset, const string& Path, bool IncludeImages, bool IncludeImageNames);
-
+	void QCWriteAseqData(IO::StreamWriter& qc, uint64_t AnimHash, const RpakLoadAsset& RigAsset, List<string> PoseParameters);
 private:
 	std::array<RpakFile, MAX_LOADED_FILES> LoadedFiles;
 	uint32_t LoadedFileIndex;
