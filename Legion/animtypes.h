@@ -393,9 +393,11 @@ struct mstudio_rle_anim_t
 {
 	uint16_t size : 12;
 	uint16_t bAdditiveCustom : 1;
-	uint16_t bDynamicScale : 1;			// If zero, one per data set
-	uint16_t bDynamicRotation : 1;		// If zero, one per data set
-	uint16_t bDynamicTranslation : 1;	// If zero, one per data set
+	uint16_t bAnimScale : 1;			// If zero, one per data set
+	uint16_t bAnimRotation : 1;		// If zero, one per data set
+	uint16_t bAnimPosition : 1;	// If zero, one per data set
+};
+
 };
 
 struct RAnimTitanfallBoneFlag

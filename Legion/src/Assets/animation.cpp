@@ -739,9 +739,9 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 			for (uint32_t b = 0; b < Skeleton.Count(); b++)
 			{
 				uint32_t Shift = 4 * (b % 2);
-				char BoneTrackFlags = boneFlagData[b / 2] >> Shift;
+				char boneFlags = boneFlagData[b / 2] >> Shift;
 
-				if (BoneTrackFlags & 0x7)
+				if (boneFlags & 0x7)
 				{
 					mstudio_rle_anim_t anim = currentReader->Read<mstudio_rle_anim_t>();
 
@@ -754,11 +754,11 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 					// this flag does not exist
 					anim.bAdditiveCustom = (AnimCurveType == Assets::AnimationCurveMode::Additive);
 
-					if (BoneTrackFlags & STUDIO_ANIM_BONEPOS)
+					if (boneFlags & STUDIO_ANIM_BONEPOS)
 						CalcBonePosition(anim, &BoneTrackDataPtr, Anim, b, ChunkFrame, Frame);
-					if (BoneTrackFlags & STUDIO_ANIM_BONEROT)
+					if (boneFlags & STUDIO_ANIM_BONEROT)
 						CalcBoneQuaternion(anim, &BoneTrackDataPtr, Anim, b, ChunkFrame, Frame);
-					if (BoneTrackFlags & STUDIO_ANIM_BONESCALE)
+					if (boneFlags & STUDIO_ANIM_BONESCALE)
 						CalcBoneScale(anim, &BoneTrackDataPtr, Anim, b, ChunkFrame, Frame);
 				}
 			}

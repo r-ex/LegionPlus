@@ -386,11 +386,11 @@ std::unique_ptr<IO::FileStream> RpakLib::GetStarpakStream(const RpakLoadAsset& A
 
 
 // CalcBonePosition - 0x1401C97B0 - CL456479
-void RpakLib::CalcBonePosition(const mstudio_rle_anim_t& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
+void RpakLib::CalcBonePosition(const mstudio_rle_anim_t& anim, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
 {
 	uint16_t* TranslationDataPtr = *BoneTrackData;
 
-	if (!BoneFlags.bDynamicTranslation)
+	if (!anim.bAnimPosition)
 	{
 		List<Assets::Curve>& Curves = Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name());
 
@@ -434,7 +434,7 @@ void RpakLib::CalcBonePosition(const mstudio_rle_anim_t& BoneFlags, uint16_t** B
 			{
 				RTech::ExtractAnimValue(Frame, dataPtrs[TranslationIndex], TranslationScale, &TranslationFinal, &TimeScale);
 
-				if (BoneFlags.bAdditiveCustom)
+				if (anim.bAdditiveCustom)
 					Result[TranslationIndex] = (float)((float)((float)(1.0 - Time) * TranslationFinal) + (float)(TimeScale * Time));
 				else
 					Result[TranslationIndex] = (float)((float)((float)(1.0 - Time) * TranslationFinal) + (float)(TimeScale * Time)) + Result[TranslationIndex];
@@ -455,7 +455,7 @@ void RpakLib::CalcBonePosition(const mstudio_rle_anim_t& BoneFlags, uint16_t** B
 	}
 }
 
-void RpakLib::CalcBoneQuaternion(const mstudio_rle_anim_t& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
+void RpakLib::CalcBoneQuaternion(const mstudio_rle_anim_t& anim, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
 {
 	uint16_t* RotationDataPtr = *BoneTrackData;
 
@@ -467,7 +467,7 @@ void RpakLib::CalcBoneQuaternion(const mstudio_rle_anim_t& BoneFlags, uint16_t**
 		uint64_t WNeg : 1;
 	};
 
-	if (!BoneFlags.bDynamicRotation)
+	if (!anim.bAnimRotation)
 	{
 		Quat64 PackedQuat = *(Quat64*)RotationDataPtr;
 
@@ -531,11 +531,11 @@ void RpakLib::CalcBoneQuaternion(const mstudio_rle_anim_t& BoneFlags, uint16_t**
 	}
 }
 
-void RpakLib::CalcBoneScale(const mstudio_rle_anim_t& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
+void RpakLib::CalcBoneScale(const mstudio_rle_anim_t& anim, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
 {
 	uint16_t* ScaleDataPtr = *BoneTrackData;
 
-	if (!BoneFlags.bDynamicScale)
+	if (!anim.bAnimScale)
 	{
 		List<Assets::Curve>& Curves = Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name());
 
@@ -548,9 +548,9 @@ void RpakLib::CalcBoneScale(const mstudio_rle_anim_t& BoneFlags, uint16_t** Bone
 	}
 	else
 	{
-		uint32_t ScaleFlags = ScaleDataPtr[0];
+		uint32_t animValuePtr = ScaleDataPtr[0];
 
-		uint8_t* TranslationDataX = (uint8_t*)ScaleDataPtr + (ScaleFlags & 0x1FFF);	// Data for x
+		uint8_t* TranslationDataX = (uint8_t*)ScaleDataPtr + (animValuePtr & 0x1FFF);	// Data for x
 
 		uint64_t DataYOffset = *((uint8_t*)ScaleDataPtr + 2);
 		uint64_t DataZOffset = *((uint8_t*)ScaleDataPtr + 3);
@@ -571,7 +571,7 @@ void RpakLib::CalcBoneScale(const mstudio_rle_anim_t& BoneFlags, uint16_t** Bone
 		float a2 = 0; // time but doesn't matter
 		do
 		{
-			if (_bittest((const long*)&ScaleFlags, v32))
+			if (_bittest((const long*)&animValuePtr, v32))
 			{
 				RTech::ExtractAnimValue(Frame, dataPtrs[v31], 0.0030518509f, &TranslationFinal, &TimeScale);
 				Result[v31] = (float)((float)((float)(1.0 - a2) * TranslationFinal) + (float)(TimeScale * a2)) + Result[v31];
