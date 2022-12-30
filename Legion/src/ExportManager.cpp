@@ -293,24 +293,26 @@ void ExportManager::ExportMdlAssets(const std::unique_ptr<MdlLib>& MdlFS, List<s
 
 void ExportManager::ExportAssetList(std::unique_ptr<List<ApexAsset>>& AssetList, string RpakName, const string& FilePath)
 {
-	String ExportDirectory = IO::Path::Combine(ExportPath, "lists");
+	string ExportDirectory = IO::Path::Combine(ExportPath, "lists");
 	IO::Directory::CreateDirectory(ExportDirectory);
-	List<String> NameList;
+	
+	List<string> NameList;
 	for (auto& Asset : *AssetList)
 		NameList.EmplaceBack(Asset.Name);
+		
 	NameList.Sort([](const String& lhs, const String& rhs) { return lhs.Compare(rhs) < 0; });
 
-	if (FilePath.EndsWith(".rpak")) {
-
+	if (FilePath.EndsWith(".rpak"))
+	{
 		IO::File::WriteAllLines(IO::Path::Combine(ExportDirectory, RpakName + ".txt"), NameList);
-		auto ListName = RpakName + ".txt";
+		string ListName = RpakName + ".txt";
 
 		g_Logger.Info("Exported List: %s\n", ListName.ToCString());
 	}
-	else if (FilePath.EndsWith(".mbnk")) {
+	else if (FilePath.EndsWith(".mbnk"))
+	{
+		IO::File::WriteAllLines(IO::Path::Combine(ExportDirectory, "audio.txt"), NameList);
 
-		IO::File::WriteAllLines(IO::Path::Combine(ExportDirectory, "Audio.txt"), NameList);
-
-		g_Logger.Info("Exported List: %s\n", "Audio.txt");
+		g_Logger.Info("Exported List: audio.txt\n");
 	}
 }
