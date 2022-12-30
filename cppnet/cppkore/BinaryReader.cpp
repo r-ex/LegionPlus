@@ -45,6 +45,15 @@ namespace IO
 		return Buffer;
 	}
 
+	std::unique_ptr<uint8_t[]> BinaryReader::Read(uint64_t Count)
+	{
+		auto Buffer = std::make_unique<uint8_t[]>(Count);
+
+		Read(Buffer.get(), 0, Count);
+
+		return Buffer;
+	}
+
 	uint64_t BinaryReader::Read(uint8_t* Buffer, uint64_t Index, uint64_t Count)
 	{
 		if (!this->BaseStream)

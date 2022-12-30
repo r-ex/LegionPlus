@@ -386,7 +386,7 @@ std::unique_ptr<IO::FileStream> RpakLib::GetStarpakStream(const RpakLoadAsset& A
 
 
 // CalcBonePosition - 0x1401C97B0 - CL456479
-void RpakLib::CalcBonePosition(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
+void RpakLib::CalcBonePosition(const mstudio_rle_anim_t& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
 {
 	uint16_t* TranslationDataPtr = *BoneTrackData;
 
@@ -455,7 +455,7 @@ void RpakLib::CalcBonePosition(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTr
 	}
 }
 
-void RpakLib::CalcBoneQuaternion(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
+void RpakLib::CalcBoneQuaternion(const mstudio_rle_anim_t& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
 {
 	uint16_t* RotationDataPtr = *BoneTrackData;
 
@@ -531,7 +531,7 @@ void RpakLib::CalcBoneQuaternion(const RAnimBoneFlag& BoneFlags, uint16_t** Bone
 	}
 }
 
-void RpakLib::CalcBoneScale(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
+void RpakLib::CalcBoneScale(const mstudio_rle_anim_t& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
 {
 	uint16_t* ScaleDataPtr = *BoneTrackData;
 
