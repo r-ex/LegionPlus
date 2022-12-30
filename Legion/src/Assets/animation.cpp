@@ -857,6 +857,8 @@ void RpakLib::ExportAnimationSeq(const RpakLoadAsset& Asset, const string& Path)
 
 	size_t RSeqSize = 0;//sizeof(mstudioseqdesc_t);
 
+	bool HasExternal = false;
+
 	std::vector<FilterOffset> Filter{};
 
 	for (int i = 0; i < seqdesc.numblends; i++)
@@ -867,7 +869,7 @@ void RpakLib::ExportAnimationSeq(const RpakLoadAsset& Asset, const string& Path)
 
 		mstudioanimdescv54_t_v16 animdesc{};
 
-		if (Asset.AssetVersion <= 11)
+		if (Asset.AssetVersion >= 11)
 			animdesc = Reader.Read<mstudioanimdescv54_t_v16>();
 		else
 		{
@@ -883,6 +885,21 @@ void RpakLib::ExportAnimationSeq(const RpakLoadAsset& Asset, const string& Path)
 			}
 		}
 
+		if (animdesc.sectionindex)
+		{
+			
+			int sectionlength = ((animdesc.numframes - 1) / animdesc.sectionframes) + 2;
+
+			for (int i = 0; i < sectionlength; i++)
+			{
+				RpakStream->SetPosition(AnimHeaderPointer + animdesc.sectionindex + (i * sizeof(mstudioanimsectionsv54_t_v121)));
+				auto value = Reader.Read<mstudioanimsectionsv54_t_v121>();
+
+				if(value.isExternal)
+				   HasExternal = true;
+			}
+		}
+		
 		if (seqdesc.numevents > 0)
 		{
 			RpakStream->SetPosition(AnimationOffset + seqdesc.eventindex);
@@ -947,7 +964,7 @@ void RpakLib::ExportAnimationSeq(const RpakLoadAsset& Asset, const string& Path)
 	}
 
 	// ensure small buffer
-	RSeqSize += 0x100;
+	RSeqSize += 0x200;
 
 	RpakStream->SetPosition(AnimationOffset);
 	char* rseqBuf = new char[RSeqSize];
@@ -959,7 +976,7 @@ void RpakLib::ExportAnimationSeq(const RpakLoadAsset& Asset, const string& Path)
 
 	// WIP EXTERNAL DATA
 
-	if (AnHeader.pExternalData.Index && AnHeader.SettingCount > 0)
+	if (HasExternal)
 	{
 		std::vector<uint8_t> ExtBuffer{};
 

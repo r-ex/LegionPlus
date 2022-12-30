@@ -585,6 +585,17 @@ struct mstudioanimdescv53_t
 	uint8_t UnknownZero[0x20];
 };
 
+struct mstudioanimsectionsv53_t
+{
+	int animindex;
+};
+
+struct mstudioanimsectionsv54_t_v121
+{
+	int animindex;
+	int isExternal; // 0 or 1, if 1 section is not in rseq (I think)
+};
+
 
 struct RAnimBoneFlag
 {
