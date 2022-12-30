@@ -354,7 +354,6 @@ string RpakLib::ExtractAnimationSeq(const RpakLoadAsset& Asset)
 	return Reader.ReadCString();
 }
 
-
 string RpakLib::ExtractAnimationRig(const RpakLoadAsset& Asset)
 {
 	auto RpakStream = this->GetFileStream(Asset);
@@ -367,214 +366,6 @@ string RpakLib::ExtractAnimationRig(const RpakLoadAsset& Asset)
 	RpakStream->SetPosition(this->GetFileOffset(Asset, RigHeader.name));
 
 	return Reader.ReadCString();
-}
-
-
-struct FilterOffset
-{
-	int offset;
-	uint32_t count = 1;
-};
-
-bool FilterByOffset(FilterOffset const& x, FilterOffset const& y)
-{
-	return x.offset > y.offset;
-}
-
-void RpakLib::ExportAnimationSeq(const RpakLoadAsset& Asset, const string& Path)
-{
-	auto RpakStream = this->GetFileStream(Asset);
-	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
-
-	AnimExportFormat_t AnimFormat = (AnimExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat");
-	if (AnimFormat != AnimExportFormat_t::RAnim)
-		return;
-
-	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
-
-	ASeqHeaderV10 AnHeader{};
-	switch (Asset.SubHeaderSize)
-	{
-	case 0x30: // 7
-		AnHeader = Reader.Read<ASeqHeader>().Upgrade();
-		break;
-	case 0x38: // 7.1
-		AnHeader = Reader.Read<ASeqHeaderV71>().Upgrade();
-		break;
-	case 0x40: // 10
-		AnHeader = Reader.Read<ASeqHeaderV10>();
-		break;
-	}
-
-	RpakStream->SetPosition(this->GetFileOffset(Asset, AnHeader.pName.Index, AnHeader.pName.Offset));
-
-	string FullAnimSetName = Reader.ReadCString();
-	string AnimSetPath = IO::Path::Combine(Path, FullAnimSetName);
-	string FolderPath = IO::Path::GetDirectoryName(AnimSetPath);
-
-	IO::Directory::CreateDirectory(FolderPath);
-
-	const uint64_t AnimationOffset = this->GetFileOffset(Asset, AnHeader.pAnimation.Index, AnHeader.pAnimation.Offset);
-
-	const uint64_t ExternalDataOffset = this->GetFileOffset(Asset, AnHeader.pExternalData.Index, AnHeader.pExternalData.Offset);
-
-	RpakStream->SetPosition(AnimationOffset);
-
-	mstudioseqdesc_t_v16 seqdesc{};
-	if (Asset.AssetVersion < 11)
-		seqdesc = Reader.Read<mstudioseqdesc_t>().Upgrade();
-	else
-		seqdesc = Reader.Read<mstudioseqdesc_t_v16>();
-
-	RpakStream->SetPosition(AnimationOffset);
-
-	uint64_t ActualStarpakOffset = Asset.StarpakOffset & 0xFFFFFFFFFFFFFF00;
-	uint64_t ActualOptStarpakOffset = Asset.OptimalStarpakOffset & 0xFFFFFFFFFFFFFF00;
-
-	uint64_t starpakDataOffset = 0;
-	std::unique_ptr<IO::FileStream> StarpakStream = nullptr;
-
-	if (Asset.OptimalStarpakOffset != -1)
-	{
-		starpakDataOffset = ActualOptStarpakOffset;
-		StarpakStream = this->GetStarpakStream(Asset, true);
-	}
-	else if (Asset.StarpakOffset != -1)
-	{
-		starpakDataOffset = ActualStarpakOffset;
-		StarpakStream = this->GetStarpakStream(Asset, false);
-	}
-
-	int numbones = (seqdesc.activitymodifierindex - seqdesc.weightlistindex) / 4;
-	auto numanims = seqdesc.groupsize[0] * seqdesc.groupsize[1];
-	auto numkeys = seqdesc.groupsize[0] + seqdesc.groupsize[1];
-
-	std::vector<int> Blends;
-	RpakStream->SetPosition(AnimationOffset + seqdesc.animindexindex);
-	for (int j = 0; j < numanims; j++)
-		Blends.push_back(Reader.Read<int>());
-
-	size_t RSeqSize = 0;//sizeof(mstudioseqdesc_t);
-
-	std::vector<FilterOffset> Filter{};
-
-	for (int i = 0; i < seqdesc.numblends; i++)
-	{
-		const uint64_t AnimHeaderPointer = AnimationOffset + Blends[i];
-
-		RpakStream->SetPosition(AnimHeaderPointer);
-
-		mstudioanimdescv54_t_v16 animdesc{};
-
-		if (Asset.AssetVersion <= 11)
-			animdesc = Reader.Read<mstudioanimdescv54_t_v16>();
-		else
-		{
-			switch (Asset.SubHeaderSize)
-			{
-			case 0x30: // 7
-				animdesc = Reader.Read<mstudioanimdescv54_t>().Upgrade();
-				break;
-			case 0x38: // 7.1 / 10
-			case 0x40:
-				animdesc = Reader.Read<mstudioanimdescv54_t_v121>().Upgrade();
-				break;
-			}
-		}
-
-		if (seqdesc.numevents > 0)
-		{
-			RpakStream->SetPosition(AnimationOffset + seqdesc.eventindex);
-			for (int i = 0; i < seqdesc.numevents; i++)
-			{
-				FilterOffset InputData = { 0 , seqdesc.numevents };
-
-				if (Asset.AssetVersion <= 11)
-					InputData.offset = sizeof(mstudioseqdesc_t_v16) + Reader.Read<mstudioeventv54_t_v16>().szeventindex;
-				else
-				{
-					switch (Asset.SubHeaderSize)
-					{
-					case 0x30: // 7 / 7.1
-					case 0x38:
-						InputData.offset = sizeof(mstudioseqdesc_t) + Reader.Read<mstudioeventv54_t>().szeventindex;
-						break;
-					case 0x40: // 10
-						InputData.offset = sizeof(mstudioseqdesc_t) + Reader.Read<mstudioeventv54_t_v122>().szeventindex;
-						break;
-					}
-				}
-
-				Filter.push_back(InputData);
-			}
-		}
-
-		if (seqdesc.numactivitymodifiers > 0)
-		{
-			RpakStream->SetPosition(AnimationOffset + seqdesc.activitymodifierindex);
-			for (int i = 0; i < seqdesc.numactivitymodifiers; i++)
-			{
-				auto Data = Reader.Read<mstudioactivitymodifierv53_t>();
-
-				FilterOffset InputData = { Data.sznameindex , seqdesc.numactivitymodifiers };
-				Filter.push_back(InputData);
-			}
-		}
-
-		FilterOffset InputData = { Blends[i] + animdesc.sznameindex , 1 };
-		Filter.push_back(InputData);
-
-		FilterOffset InputData2 = { seqdesc.szactivitynameindex , 1 };
-		Filter.push_back(InputData2);
-
-		FilterOffset InputData3 = { seqdesc.szlabelindex , 1 };
-		Filter.push_back(InputData3);
-
-		std::sort(Filter.begin(), Filter.end(), FilterByOffset);
-	}
-
-	RpakStream->SetPosition(AnimationOffset + Filter[0].offset);
-	RSeqSize += Filter[0].offset;
-
-	for (int i = 0; i < Filter[0].count; i++)
-	{
-		string label = Reader.ReadCString();
-
-		if (label.Length() > 0)
-			RSeqSize += label.Length() + 1;
-	}
-
-	RpakStream->SetPosition(AnimationOffset);
-	char* rseqBuf = new char[RSeqSize];
-	Reader.Read(rseqBuf, 0, RSeqSize);
-
-	std::ofstream rseqOut(AnimSetPath, std::ios::out | std::ios::binary);
-	rseqOut.write(rseqBuf, RSeqSize);
-	rseqOut.close();
-
-	// WIP EXTERNAL DATA
-
-    if (StarpakStream != nullptr && AnHeader.pExternalData.Index && AnHeader.externalDataSize > 0)
-    {
-    	char* externalBuf = new char[AnHeader.externalDataSize];
-    
-    	if (StarpakStream != nullptr)
-    	{
-    		StarpakStream->SetPosition(starpakDataOffset);
-    		StarpakStream->Read((uint8_t*)externalBuf, 0, AnHeader.externalDataSize);
-    	}
-    	else
-    	{
-    		RpakStream->SetPosition(AnimationOffset + AnHeader.pExternalData.Index);
-    		RpakStream->Read((uint8_t*)externalBuf, 0, AnHeader.externalDataSize);
-    	}
-    
-    
-    	std::ofstream externalOut(IO::Path::ChangeExtension(AnimSetPath, ".ExternalData"), std::ios::out | std::ios::binary);
-    	externalOut.write(externalBuf, AnHeader.externalDataSize);
-    	externalOut.close();
-    }
-
 }
 
 void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bone>& Skeleton, const string& Path)
@@ -978,4 +769,240 @@ void RpakLib::ExtractAnimation_V11(const RpakLoadAsset& Asset, const List<Assets
 		{
 		}
 	}
+}
+
+
+struct FilterOffset
+{
+	int offset;
+	uint32_t count = 1;
+};
+
+bool FilterByOffset(FilterOffset const& x, FilterOffset const& y)
+{
+	return x.offset > y.offset;
+}
+
+
+void RpakLib::ExportAnimationSeq(const RpakLoadAsset& Asset, const string& Path)
+{
+	auto RpakStream = this->GetFileStream(Asset);
+	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
+
+	AnimExportFormat_t AnimFormat = (AnimExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat");
+	if (AnimFormat != AnimExportFormat_t::RAnim)
+		return;
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
+
+	ASeqHeaderV10 AnHeader{};
+	switch (Asset.SubHeaderSize)
+	{
+	case 0x30: // 7
+		AnHeader = Reader.Read<ASeqHeader>().Upgrade();
+		break;
+	case 0x38: // 7.1
+		AnHeader = Reader.Read<ASeqHeaderV71>().Upgrade();
+		break;
+	case 0x40: // 10
+		AnHeader = Reader.Read<ASeqHeaderV10>();
+		break;
+	}
+
+	RpakStream->SetPosition(this->GetFileOffset(Asset, AnHeader.pName.Index, AnHeader.pName.Offset));
+
+	string FullAnimSetName = Reader.ReadCString();
+	string AnimSetPath = IO::Path::Combine(Path, FullAnimSetName);
+	string FolderPath = IO::Path::GetDirectoryName(AnimSetPath);
+
+	IO::Directory::CreateDirectory(FolderPath);
+
+	const uint64_t AnimationOffset = this->GetFileOffset(Asset, AnHeader.pAnimation.Index, AnHeader.pAnimation.Offset);
+
+	RpakStream->SetPosition(AnimationOffset);
+
+	mstudioseqdesc_t_v16 seqdesc{};
+	if (Asset.AssetVersion < 11)
+		seqdesc = Reader.Read<mstudioseqdesc_t>().Upgrade();
+	else
+		seqdesc = Reader.Read<mstudioseqdesc_t_v16>();
+
+	RpakStream->SetPosition(AnimationOffset);
+
+	uint64_t ActualStarpakOffset = Asset.StarpakOffset & 0xFFFFFFFFFFFFFF00;
+	uint64_t ActualOptStarpakOffset = Asset.OptimalStarpakOffset & 0xFFFFFFFFFFFFFF00;
+
+	uint64_t starpakDataOffset = 0;
+	std::unique_ptr<IO::FileStream> StarpakStream = nullptr;
+
+	if (Asset.OptimalStarpakOffset != -1)
+	{
+		starpakDataOffset = ActualOptStarpakOffset;
+		StarpakStream = this->GetStarpakStream(Asset, true);
+	}
+	else if (Asset.StarpakOffset != -1)
+	{
+		starpakDataOffset = ActualStarpakOffset;
+		StarpakStream = this->GetStarpakStream(Asset, false);
+	}
+
+	int numbones = (seqdesc.activitymodifierindex - seqdesc.weightlistindex) / 4;
+	auto numanims = seqdesc.groupsize[0] * seqdesc.groupsize[1];
+	auto numkeys = seqdesc.groupsize[0] + seqdesc.groupsize[1];
+
+	std::vector<int> Blends;
+	RpakStream->SetPosition(AnimationOffset + seqdesc.animindexindex);
+	for (int j = 0; j < numanims; j++)
+		Blends.push_back(Reader.Read<int>());
+
+	size_t RSeqSize = 0;//sizeof(mstudioseqdesc_t);
+
+	std::vector<FilterOffset> Filter{};
+
+	for (int i = 0; i < seqdesc.numblends; i++)
+	{
+		const uint64_t AnimHeaderPointer = AnimationOffset + Blends[i];
+
+		RpakStream->SetPosition(AnimHeaderPointer);
+
+		mstudioanimdescv54_t_v16 animdesc{};
+
+		if (Asset.AssetVersion <= 11)
+			animdesc = Reader.Read<mstudioanimdescv54_t_v16>();
+		else
+		{
+			switch (Asset.SubHeaderSize)
+			{
+			case 0x30: // 7
+				animdesc = Reader.Read<mstudioanimdescv54_t>().Upgrade();
+				break;
+			case 0x38: // 7.1 / 10
+			case 0x40:
+				animdesc = Reader.Read<mstudioanimdescv54_t_v121>().Upgrade();
+				break;
+			}
+		}
+
+		if (seqdesc.numevents > 0)
+		{
+			RpakStream->SetPosition(AnimationOffset + seqdesc.eventindex);
+			for (int i = 0; i < seqdesc.numevents; i++)
+			{
+				FilterOffset InputData = { 0 , seqdesc.numevents };
+
+				if (Asset.AssetVersion <= 11)
+					InputData.offset = sizeof(mstudioseqdesc_t_v16) + Reader.Read<mstudioeventv54_t_v16>().szeventindex;
+				else
+				{
+					switch (Asset.SubHeaderSize)
+					{
+					case 0x30: // 7 / 7.1
+					case 0x38:
+						InputData.offset = sizeof(mstudioseqdesc_t) + Reader.Read<mstudioeventv54_t>().szeventindex;
+						break;
+					case 0x40: // 10
+						InputData.offset = sizeof(mstudioseqdesc_t) + Reader.Read<mstudioeventv54_t_v122>().szeventindex;
+						break;
+					}
+				}
+
+				Filter.push_back(InputData);
+			}
+		}
+
+		if (seqdesc.numactivitymodifiers > 0)
+		{
+			RpakStream->SetPosition(AnimationOffset + seqdesc.activitymodifierindex);
+			for (int i = 0; i < seqdesc.numactivitymodifiers; i++)
+			{
+				auto Data = Reader.Read<mstudioactivitymodifierv53_t>();
+
+				FilterOffset InputData = { Data.sznameindex , seqdesc.numactivitymodifiers };
+				Filter.push_back(InputData);
+			}
+		}
+
+
+		FilterOffset InputData3 = { seqdesc.szlabelindex , 1 };
+		Filter.push_back(InputData3);
+
+		FilterOffset InputData2 = { seqdesc.szactivitynameindex , 1 };
+		Filter.push_back(InputData2);
+
+		FilterOffset InputData = { Blends[i] + animdesc.sznameindex, 1 };
+		Filter.push_back(InputData);
+
+		std::sort(Filter.begin(), Filter.end(), FilterByOffset);
+	}
+
+	RpakStream->SetPosition(AnimationOffset + Filter[0].offset);
+	RSeqSize += Filter[0].offset;
+
+	for (int i = 0; i < Filter[0].count; i++)
+	{
+		string label = Reader.ReadCString();
+
+		if (label.Length() > 0)
+			RSeqSize += label.Length() + 1;
+	}
+
+	// ensure small buffer
+	RSeqSize += 0x100;
+
+	RpakStream->SetPosition(AnimationOffset);
+	char* rseqBuf = new char[RSeqSize];
+	Reader.Read(rseqBuf, 0, RSeqSize);
+
+	std::ofstream rseqOut(AnimSetPath, std::ios::out | std::ios::binary);
+	rseqOut.write(rseqBuf, RSeqSize);
+	rseqOut.close();
+
+	// WIP EXTERNAL DATA
+
+	if (AnHeader.pExternalData.Index && AnHeader.SettingCount > 0)
+	{
+		std::vector<uint8_t> ExtBuffer{};
+
+		ExtBuffer.reserve(0x500000); // just incase reserve 5mb
+		
+		int zerocount = 0;
+		int zerocountmax = 0x70;
+
+		if (StarpakStream != nullptr)
+		{
+			StarpakStream->SetPosition(starpakDataOffset);
+			IO::BinaryReader StarReader = IO::BinaryReader(StarpakStream.get(), true);
+
+			while (zerocount <= zerocountmax)
+			{
+				uint8_t value = StarReader.Read<uint8_t>();
+				ExtBuffer.emplace_back(value);
+
+				if (value == 0x0)
+					zerocount++;
+				else
+					zerocount = 0;
+			}
+		}
+		else
+		{
+			RpakStream->SetPosition(this->GetFileOffset(Asset, AnHeader.pExternalData));
+
+			while (zerocount <= zerocountmax)
+			{
+				uint8_t value = Reader.Read<uint8_t>();
+				ExtBuffer.emplace_back(value);
+
+				if (value == 0x0)
+					zerocount++;
+				else
+					zerocount = 0;
+			}
+		}
+
+		std::ofstream externalOut(IO::Path::ChangeExtension(AnimSetPath, ".SeqData"), std::ios::out | std::ios::binary);
+		externalOut.write((char*)ExtBuffer.data(), ExtBuffer.size());
+		externalOut.close();
+	}
+
 }
