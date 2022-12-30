@@ -300,7 +300,7 @@ void ExportManager::ExportAssetList(std::unique_ptr<List<ApexAsset>>& AssetList,
 	for (auto& Asset : *AssetList)
 		NameList.EmplaceBack(Asset.Name);
 		
-	NameList.Sort([](const String& lhs, const String& rhs) { return lhs.Compare(rhs) < 0; });
+	NameList.Sort([](const string& lhs, const string& rhs) { return lhs.Compare(rhs) < 0; });
 
 	if (FilePath.EndsWith(".rpak"))
 	{
