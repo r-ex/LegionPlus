@@ -538,7 +538,7 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 		char* pBones = nullptr;
 		if (AssetVersion <= 10)
 			pBones = rmdlBuf + hdr.boneindex + (hdr.numbones * sizeof(mstudiobonev54_t));
-		else if (AssetVersion > 16)
+		else if (AssetVersion < 16)
 			pBones = rmdlBuf + hdr.boneindex + (hdr.numbones * sizeof(mstudiobonev54_t_v121));
 		else
 			pBones = rmdlBuf + v16bonedataindex + (hdr.numbones * sizeof(mstudiobonedata_t_v16));
