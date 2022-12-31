@@ -718,7 +718,7 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, uint64_t AnimHash, const Rpa
 			RpakStream->SetPosition(AseqDataOffset + seqdesc.animindexindex);
 
 			uint64_t blendoffset = 0;
-			if (AseqAsset.AssetVersion > 11)
+			if (AseqAsset.AssetVersion <= 10)
 			{
 				RpakStream->SetPosition(RpakStream->GetPosition() + (i * sizeof(int)));
 				blendoffset = Reader.Read<int>();
@@ -739,18 +739,22 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, uint64_t AnimHash, const Rpa
 				animdesc = Reader.Read<mstudioanimdescv54_t>().Upgrade();
 				break;
 			case 0x38: // 7.1
-				animdesc = Reader.Read<mstudioanimdescv54_t_v121>().Upgrade();
-				break;
 			case 0x40: // 10
 			{
-				animdesc = Reader.Read<mstudioanimdescv54_t_v16>();
-				animdesc.sznameindex = FIX_OFFSET((int)animdesc.sznameindex);
+				if (AseqAsset.AssetVersion <= 10)
+					animdesc = Reader.Read<mstudioanimdescv54_t_v121>().Upgrade();
+				else
+				{
+					animdesc = Reader.Read<mstudioanimdescv54_t_v16>();
+					animdesc.sznameindex = FIX_OFFSET((int)animdesc.sznameindex);
+				}
+
 				break;
 			}
 			}
 
 			RpakStream->SetPosition(AseqDataOffset + blendoffset + animdesc.sznameindex);
-			std::string namez = Reader.ReadCString().ToCString();
+			string namez = Reader.ReadCString();
 
 			AnimNames.EmplaceBack(namez);
 			FrameRates.EmplaceBack(animdesc.fps);
@@ -765,12 +769,12 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, uint64_t AnimHash, const Rpa
 			qc.WriteFmt(" %s", AnimNames[i].ToCString());
 		qc.Write("\n");
 
-
-		RpakStream->SetPosition(AseqDataOffset + seqdesc.szactivitynameindex);
-		string Activity = Reader.ReadCString();
-
-		if (!string::IsNullOrEmpty(Activity))
-			qc.WriteFmt("\tactivity %s %d\n\n", Activity.ToCString(), seqdesc.actweight);
+		// activity weight will never be 0 if an activity is set
+		if (seqdesc.actweight)
+		{
+			RpakStream->SetPosition(AseqDataOffset + seqdesc.szactivitynameindex);
+			qc.WriteFmt("\tactivity %s %d\n\n", Reader.ReadCString().ToCString(), seqdesc.actweight);
+		}
 
 		if (seqdesc.flags & STUDIO_LOOPING)
 			qc.Write("\tloop\n\n");
@@ -854,29 +858,29 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, uint64_t AnimHash, const Rpa
 		for (int i = 0; i < seqdesc.numevents; i++)
 		{
 			mstudioeventv54 Event{};
-			if (AseqAsset.AssetVersion > 10)
-			{
-				RpakStream->SetPosition(AseqDataOffset + seqdesc.eventindex + (i * sizeof(mstudioeventv54_t_v16)));
-				Event.Init(AseqAsset.AssetVersion, Reader);
-			}
-			else
+			if (AseqAsset.AssetVersion <= 10)
 			{
 				switch (AseqAsset.SubHeaderSize)
 				{
 				case 0x30: // 7 / 7.1
 				case 0x38:
 					RpakStream->SetPosition(AseqDataOffset + seqdesc.eventindex + (i * sizeof(mstudioeventv54_t)));
-					Event.Init(AseqAsset.AssetVersion, Reader);
 					break;
 				case 0x40: // 10
-					RpakStream->SetPosition(AseqDataOffset + FIX_OFFSET(seqdesc.eventindex) + (i * sizeof(mstudioeventv54_t_v122)));
-					Event.Init(AseqAsset.AssetVersion, Reader);
+					RpakStream->SetPosition(AseqDataOffset + seqdesc.eventindex + (i * sizeof(mstudioeventv54_t_v122)));
 					break;
 				}
 			}
+			else
+			{
+				RpakStream->SetPosition(AseqDataOffset + seqdesc.eventindex + (i * sizeof(mstudioeventv54_t_v16)));
+			}
+
+
+			Event.Init(AseqAsset.AssetVersion, AseqAsset.SubHeaderSize, Reader);
 
 			// disabled for now until a fix is found to get the correct frame
-			int frame_reversed = 0;//(int)(Event.cycle * float(FrameRates[0] - 1));
+			int frame_reversed = (int)(Event.cycle * float(FrameRates[0] - 1));
 
 			qc.WriteFmt("\t{ event %s %d \"%s\" }\n", Event.szevent.ToCString(), frame_reversed, Event.szoptions.ToCString());
 		}

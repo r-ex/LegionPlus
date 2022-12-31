@@ -154,7 +154,7 @@ struct mstudioeventv54
 	string szoptions;
 	string szevent;
 
-	inline void Init(int version, IO::BinaryReader& Reader)
+	inline void Init(int version, int headersize, IO::BinaryReader& Reader)
 	{
 		uint64_t oldpos = Reader.GetBaseStream()->GetPosition();
 
@@ -165,65 +165,36 @@ struct mstudioeventv54
 
 		Reader.GetBaseStream()->SetPosition(oldpos);
 
-		InitOptions(version, Reader);
-		InitEvent(version, Reader);
-		return;
-	}
-	
-private:
-	inline void InitOptions(int version, IO::BinaryReader& Reader)
-	{
-		uint64_t oldpos = Reader.GetBaseStream()->GetPosition();
-		switch (version)
+		int index = 0;
+		if (version <= 10)
 		{
-		case 7:
-		{
-			this->szoptions = string(Reader.Read<mstudioeventv54_t>().options);
-			break;
+			switch (headersize)
+			{
+			case 0x30: // 7 / 7.1
+			case 0x38:
+			{
+				mstudioeventv54_t event = Reader.Read<mstudioeventv54_t>();
+				this->szoptions = string(event.options);
+				Reader.GetBaseStream()->SetPosition(oldpos + event.szeventindex);
+				this->szevent = Reader.ReadCString();
+				break;
+			}
+			case 0x40: // 10
+			{
+				mstudioeventv54_t_v122 event = Reader.Read<mstudioeventv54_t_v122>();
+				this->szoptions = string(event.options);
+				Reader.GetBaseStream()->SetPosition(oldpos + event.szeventindex);
+				this->szevent = Reader.ReadCString();
+				break;
+			}
+			}
 		}
-
-		case 10:
-		{
-			this->szoptions = string(Reader.Read<mstudioeventv54_t_v122>().options);
-			break;
-		}
-		case 11:
+		else
 		{
 			mstudioeventv54_t_v16 event = Reader.Read<mstudioeventv54_t_v16>();
 			Reader.GetBaseStream()->SetPosition(oldpos + FIX_OFFSET((int)event.szoptionsindex));
 			this->szoptions = Reader.ReadCString();
-			break;
-		}
-		default:
-			break;
-		}
-
-		Reader.GetBaseStream()->SetPosition(oldpos);
-		return;
-	}
-
-	inline void InitEvent(int version, IO::BinaryReader& Reader)
-	{
-		uint64_t oldpos = Reader.GetBaseStream()->GetPosition();
-		int index = 0;
-		switch (version)
-		{
-		case 7:
-			index = Reader.Read<mstudioeventv54_t>().szeventindex;
-			break;
-		case 10:
-			index = FIX_OFFSET(Reader.Read<mstudioeventv54_t_v122>().szeventindex);
-			break;
-		case 11:
-			index = FIX_OFFSET(Reader.Read<mstudioeventv54_t_v16>().szeventindex);
-			break;
-		default:
-			break;
-		}
-
-		if (index)
-		{
-			Reader.GetBaseStream()->SetPosition(oldpos + index);
+			Reader.GetBaseStream()->SetPosition(oldpos + FIX_OFFSET((int)event.szeventindex));
 			this->szevent = Reader.ReadCString();
 		}
 
@@ -231,6 +202,8 @@ private:
 
 		return;
 	}
+	
+private:
 };
 
 struct mstudioseqdesc_t_v16
