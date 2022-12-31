@@ -458,7 +458,7 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 			uint32_t FrameCountOneLess = 0;
 			uint32_t FirstChunk = animdesc.animindex;
 			uint64_t ChunkDataOffset = 0;
-			uint32_t IsChunkInStarpak = 0;
+			uint32_t IsExternal = 0;
 			uint64_t ResultDataPtr = 0;
 
 			if (!animdesc.mediancount)
@@ -486,9 +486,9 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 
 			RpakStream->SetPosition(AnimHeaderPointer + ChunkDataOffset);
 			FirstChunk = Reader.Read<uint32_t>();
-			IsChunkInStarpak = Reader.Read<uint32_t>();
+			IsExternal = Reader.Read<uint32_t>();
 
-			if (IsChunkInStarpak)
+			if (IsExternal)
 			{
 				uint64_t v13 = animdesc.somedataoffset;
 				if (v13)
@@ -506,44 +506,45 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 				ResultDataPtr = AnimHeaderPointer + FirstChunk;
 			}
 
-			char BoneFlags[256]{};
+			char boneFlagData[256]{};
 
-			if (IsChunkInStarpak && Asset.AssetVersion > 7)
+			if (IsExternal)
 			{
 				StarpakStream->SetPosition(ResultDataPtr);
-				StarpakStream->Read((uint8_t*)BoneFlags, 0, ((4 * (uint64_t)Skeleton.Count() + 7) / 8 + 1) & 0xFFFFFFFFFFFFFFFE);
+				StarpakStream->Read((uint8_t*)boneFlagData, 0, ((4 * (uint64_t)Skeleton.Count() + 7) / 8 + 1) & 0xFFFFFFFFFFFFFFFE);
 			}
 			else
 			{
 				RpakStream->SetPosition(ResultDataPtr);
-				RpakStream->Read((uint8_t*)BoneFlags, 0, ((4 * (uint64_t)Skeleton.Count() + 7) / 8 + 1) & 0xFFFFFFFFFFFFFFFE);
+				RpakStream->Read((uint8_t*)boneFlagData, 0, ((4 * (uint64_t)Skeleton.Count() + 7) / 8 + 1) & 0xFFFFFFFFFFFFFFFE);
 			}
 
+			IO::BinaryReader* currentReader = IsExternal ? &StarpakReader : &Reader;
 
-			// comes from CalcAnimation - 0x1401CACD4 CL456479
 			for (uint32_t b = 0; b < Skeleton.Count(); b++)
 			{
 				uint32_t Shift = 4 * (b % 2);
-				char BoneTrackFlags = BoneFlags[b / 2] >> Shift;
+				char boneFlags = boneFlagData[b / 2] >> Shift;
 
-				if (BoneTrackFlags & 0x7)
+				if (boneFlags & 0x7)
 				{
-					uint64_t TrackDataRead = 0;
+					mstudio_rle_anim_t anim = currentReader->Read<mstudio_rle_anim_t>();
 
-					RAnimBoneFlag BoneDataFlags = IsChunkInStarpak ? StarpakReader.Read<RAnimBoneFlag>() : Reader.Read<RAnimBoneFlag>();
-					auto BoneTrackData = IsChunkInStarpak ? StarpakReader.Read((BoneDataFlags.Size > 0) ? BoneDataFlags.Size - sizeof(uint16_t) : 0, TrackDataRead) : Reader.Read((BoneDataFlags.Size > 0) ? BoneDataFlags.Size - sizeof(uint16_t) : 0, TrackDataRead);
+					short sizeToRead = anim.size > 0 ? anim.size - sizeof(mstudio_rle_anim_t) : 0;
 
-					uint16_t* BoneTrackDataPtr = (uint16_t*)BoneTrackData.get();
+					std::unique_ptr<uint8_t[]> boneTrackData = currentReader->Read(sizeToRead);
 
-					// Set this so when we do translations we will know whether or not to add the rest position onto it...
-					BoneDataFlags.bAdditiveCustom = (AnimCurveType == Assets::AnimationCurveMode::Additive);
+					uint16_t* BoneTrackDataPtr = (uint16_t*)boneTrackData.get();
 
-					if (BoneTrackFlags & 0x1)
-						CalcBonePosition(BoneDataFlags, &BoneTrackDataPtr, Anim, b, ChunkFrame, Frame); // CalcBonePosition
-					if (BoneTrackFlags & 0x2)
-						CalcBoneQuaternion(BoneDataFlags, &BoneTrackDataPtr, Anim, b, ChunkFrame, Frame); // CalcBoneQuaternion
-					if (BoneTrackFlags & 0x4)
-						CalcBoneScale(BoneDataFlags, &BoneTrackDataPtr, Anim, b, ChunkFrame, Frame); // CalcBoneScale - new in r1
+					// this flag does not exist
+					anim.bAdditiveCustom = (AnimCurveType == Assets::AnimationCurveMode::Additive);
+
+					if (boneFlags & STUDIO_ANIM_BONEPOS)
+						CalcBonePosition(anim, &BoneTrackDataPtr, Anim, b, ChunkFrame, Frame);
+					if (boneFlags & STUDIO_ANIM_BONEROT)
+						CalcBoneQuaternion(anim, &BoneTrackDataPtr, Anim, b, ChunkFrame, Frame);
+					if (boneFlags & STUDIO_ANIM_BONESCALE)
+						CalcBoneScale(anim, &BoneTrackDataPtr, Anim, b, ChunkFrame, Frame);
 				}
 			}
 		}
@@ -705,43 +706,47 @@ void RpakLib::ExtractAnimation_V11(const RpakLoadAsset& Asset, const List<Assets
 				ResultDataPtr = animDescPtr + AnimIndex;
 			}
 
-			// I have a really bad feeling we will see 256< bones sooner than later
-			char BoneFlags[256]{};
+			// I have a really bad feeling we will see > 256 bones sooner than later
+			char boneFlagData[256]{};
 
 			if (IsExternal)
 			{
 				StarpakStream->SetPosition(ResultDataPtr);
-				StarpakStream->Read((uint8_t*)BoneFlags, 0, ((4 * (uint64_t)Skeleton.Count() + 7) / 8 + 1) & 0xFFFFFFFFFFFFFFFE);
+				StarpakStream->Read((uint8_t*)boneFlagData, 0, ((4 * (uint64_t)Skeleton.Count() + 7) / 8 + 1) & 0xFFFFFFFFFFFFFFFE);
 			}
 			else
 			{
 				RpakStream->SetPosition(ResultDataPtr);
-				RpakStream->Read((uint8_t*)BoneFlags, 0, ((4 * (uint64_t)Skeleton.Count() + 7) / 8 + 1) & 0xFFFFFFFFFFFFFFFE);
+				RpakStream->Read((uint8_t*)boneFlagData, 0, ((4 * (uint64_t)Skeleton.Count() + 7) / 8 + 1) & 0xFFFFFFFFFFFFFFFE);
 			}
+
+			IO::BinaryReader* currentReader = IsExternal ? &StarpakReader : &Reader;
 
 			for (uint32_t b = 0; b < Skeleton.Count(); b++)
 			{
 				uint32_t Shift = 4 * (b % 2);
-				char BoneTrackFlags = BoneFlags[b / 2] >> Shift;
+				char BoneTrackFlags = boneFlagData[b / 2] >> Shift;
 
-				if (BoneTrackFlags & 0x7)
+				if (BoneTrackFlags & (STUDIO_ANIM_BONEPOS | STUDIO_ANIM_BONEROT | STUDIO_ANIM_BONESCALE))
 				{
-					uint64_t TrackDataRead = 0;
 
-					RAnimBoneFlag BoneDataFlags = IsExternal ? StarpakReader.Read<RAnimBoneFlag>() : Reader.Read<RAnimBoneFlag>();
-					auto BoneTrackData = IsExternal ? StarpakReader.Read((BoneDataFlags.Size > 0) ? BoneDataFlags.Size - sizeof(uint16_t) : 0, TrackDataRead) : Reader.Read((BoneDataFlags.Size > 0) ? BoneDataFlags.Size - sizeof(uint16_t) : 0, TrackDataRead);
+					mstudio_rle_anim_t anim = currentReader->Read<mstudio_rle_anim_t>();
 
-					uint16_t* BoneTrackDataPtr = (uint16_t*)BoneTrackData.get();
+					short sizeToRead = anim.size > 0 ? anim.size - sizeof(mstudio_rle_anim_t) : 0;
+
+					std::unique_ptr<uint8_t[]> boneTrackData = currentReader->Read(sizeToRead);
+
+					uint16_t* BoneTrackDataPtr = (uint16_t*)boneTrackData.get();
 
 					// Set this so when we do translations we will know whether or not to add the rest position onto it...
-					BoneDataFlags.bAdditiveCustom = (AnimCurveType == Assets::AnimationCurveMode::Additive);
+					anim.bAdditiveCustom = (AnimCurveType == Assets::AnimationCurveMode::Additive);
 
-					if (BoneTrackFlags & 0x1)
-						CalcBonePosition(BoneDataFlags, &BoneTrackDataPtr, Anim, b, sectionFrameIdx, frameIdx);
-					if (BoneTrackFlags & 0x2)
-						CalcBoneQuaternion(BoneDataFlags, &BoneTrackDataPtr, Anim, b, sectionFrameIdx, frameIdx);
-					if (BoneTrackFlags & 0x4)
-						CalcBoneScale(BoneDataFlags, &BoneTrackDataPtr, Anim, b, sectionFrameIdx, frameIdx);
+					if (BoneTrackFlags & STUDIO_ANIM_BONEPOS)
+						CalcBonePosition(anim, &BoneTrackDataPtr, Anim, b, sectionFrameIdx, frameIdx);
+					if (BoneTrackFlags & STUDIO_ANIM_BONEROT)
+						CalcBoneQuaternion(anim, &BoneTrackDataPtr, Anim, b, sectionFrameIdx, frameIdx);
+					if (BoneTrackFlags & STUDIO_ANIM_BONESCALE)
+						CalcBoneScale(anim, &BoneTrackDataPtr, Anim, b, sectionFrameIdx, frameIdx);
 				}
 			}
 		}

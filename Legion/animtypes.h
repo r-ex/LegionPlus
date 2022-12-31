@@ -597,13 +597,40 @@ struct mstudioanimsectionsv54_t_v121
 };
 
 
-struct RAnimBoneFlag
+// rle anim flags
+#define STUDIO_ANIM_SCALE 1
+#define STUDIO_ANIM_ROT 2
+#define STUDIO_ANIM_POS 4
+
+// bone anim flags
+#define STUDIO_ANIM_BONEPOS 1
+#define STUDIO_ANIM_BONEROT 2
+#define STUDIO_ANIM_BONESCALE 4
+
+struct mstudio_rle_anim_t
 {
-	uint16_t Size : 12;
+	uint16_t size : 12;
 	uint16_t bAdditiveCustom : 1;
-	uint16_t bDynamicScale : 1;			// If zero, one per data set
-	uint16_t bDynamicRotation : 1;		// If zero, one per data set
-	uint16_t bDynamicTranslation : 1;	// If zero, one per data set
+	uint16_t bAnimScale : 1;			// If zero, one per data set
+	uint16_t bAnimRotation : 1;		// If zero, one per data set
+	uint16_t bAnimPosition : 1;	// If zero, one per data set
+};
+
+struct mstudioanim_valueptr_t
+{
+	short offset : 13;
+	short flags : 3;
+	uint8_t axisIdx1;
+	uint8_t axisIdx2;
+};
+
+union mstudioanimvalue_t
+{
+	struct {
+		byte valid;
+		byte total;
+	} num;
+	short value;
 };
 
 struct RAnimTitanfallBoneFlag

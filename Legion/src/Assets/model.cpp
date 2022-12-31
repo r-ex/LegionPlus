@@ -425,9 +425,9 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& As
 		}
 		else {
 			Model->AddMaterial(string::Format("UNK_0x%llx"), 0);
-		
+      
 			material.name = string::Format("0x%llx", material.guid);
-		
+
 			if (material.name.Length() > maxMaterialLength)
 				maxMaterialLength = material.name.Length();
 		}

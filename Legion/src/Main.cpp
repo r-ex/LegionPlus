@@ -70,14 +70,14 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	{
 		string filePath;
 
-		bool bExportRpak = cmdline.HasParam(L"--export");
-		bool bListRpak = cmdline.HasParam(L"--list");
+		bool bExportFile = cmdline.HasParam(L"--export");
+		bool bExportList = cmdline.HasParam(L"--list");
 
-		if (bExportRpak)
+		if (bExportFile)
 		{
 			filePath = wstring(cmdline.GetParamValue(L"--export")).ToString();
 		}
-		else if (bListRpak)
+		else if (bExportList)
 		{
 			filePath = wstring(cmdline.GetParamValue(L"--list")).ToString();
 		}
@@ -308,7 +308,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				AssetList = Rpak->BuildAssetList(bAssets);
 			}
 
-			if (bExportRpak)
+			if (bExportFile)
 			{
 				if (filePath.EndsWith(".rpak")) {
 					for (auto& Asset : *AssetList.get())
@@ -343,13 +343,12 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 				}
 			}
-			else if (bListRpak)
+			else if (bExportList)
 			{
-
+				string filename = IO::Path::GetFileNameWithoutExtension(filePath);
 				if (filePath.EndsWith(".rpak")) {
 
-					string filename = IO::Path::GetFileNameWithoutExtension(filePath);
-					ExportManager::ExportRpakAssetList(AssetList, filename);
+					ExportManager::ExportAssetList(AssetList, filename, filePath);
 				}
 				else if (filePath.EndsWith(".mbnk")) {
 
@@ -357,10 +356,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 					Audio->MountBank(filePath);
 					AssetList = Audio->BuildAssetList();
 
-					ExportManager::ExportAudioAssetList(AssetList);
+					ExportManager::ExportAssetList(AssetList, filename, filePath);
 				}
 				else if (!filePath.EndsWith(".rpak" || ".mbnk")) {
-				
 					g_Logger.Info("You loaded a file extension that isn't supported, the --list flag only supports .rpak and .mbnk file extensions");
 				}
 			}
