@@ -2,6 +2,9 @@
 #include <cstdint>
 typedef unsigned short uint16;
 
+#define FIX_OFFSET(offset) ((offset & 0xFFFE) << (4 * (offset & 1)))
+
+
 // sequence and autolayer flags
 #define STUDIO_LOOPING	0x0001		// ending frame should be the same as the starting frame
 #define STUDIO_SNAP		0x0002		// do not interpolate between previous animation and this one
@@ -59,7 +62,7 @@ struct mstudioactivitymodifierv54_t_v16
 
 	inline mstudioactivitymodifierv53_t Downgrade() 
 	{ 
-		return mstudioactivitymodifierv53_t{ (int)this->sznameindex , negate };
+		return mstudioactivitymodifierv53_t{ this->sznameindex , negate };
 	};
 };
 
@@ -85,8 +88,7 @@ struct mstudioposeparamdescv54_t_v16
 	inline mstudioposeparamdescv54_t Downgrade()
 	{
 		mstudioposeparamdescv54_t out{};
-		
-		out.sznameindex = this->sznameindex;
+		out.sznameindex = FIX_OFFSET((int)this->sznameindex);
 		out.flags = this->flags;
 		out.start = this->start;
 		out.end = this->end;
@@ -188,7 +190,7 @@ private:
 		case 11:
 		{
 			mstudioeventv54_t_v16 event = Reader.Read<mstudioeventv54_t_v16>();
-			Reader.GetBaseStream()->SetPosition(oldpos + event.szoptionsindex);
+			Reader.GetBaseStream()->SetPosition(oldpos + FIX_OFFSET((int)event.szoptionsindex));
 			this->szoptions = Reader.ReadCString();
 			break;
 		}
@@ -210,10 +212,10 @@ private:
 			index = Reader.Read<mstudioeventv54_t>().szeventindex;
 			break;
 		case 10:
-			index = Reader.Read<mstudioeventv54_t_v122>().szeventindex;
+			index = FIX_OFFSET(Reader.Read<mstudioeventv54_t_v122>().szeventindex);
 			break;
 		case 11:
-			index = Reader.Read<mstudioeventv54_t_v16>().szeventindex;
+			index = FIX_OFFSET(Reader.Read<mstudioeventv54_t_v16>().szeventindex);
 			break;
 		default:
 			break;

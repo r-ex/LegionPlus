@@ -962,7 +962,7 @@ void RpakLib::ExportAnimationSeq(const RpakLoadAsset& Asset, const string& Path)
 	rseqOut.write(rseqBuf, RSeqSize);
 	rseqOut.close();
 
-	// EXTERNAL DATA
+	// WIP EXTERNAL DATA
 	if (AnHeader.pExternalData.Index || AnHeader.externalDataSize)
 	{
 		char* externalBuf = new char[AnHeader.externalDataSize];

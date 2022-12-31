@@ -3,7 +3,6 @@
 #include "Path.h"
 #include "Directory.h"
 #include <MathHelper.h>
-
 const std::vector<std::string> MaterialTypes = { "_rgdu", "_rgdp", "_rgdc", "_sknu", "_sknp", "_sknc", "_wldu", "_wldc", "_ptcu", "_ptcs" };
 
 #define RadiansToDegrees(r) ((r / Math::MathHelper::PI) * 180.0f)
@@ -716,10 +715,20 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, uint64_t AnimHash, const Rpa
 		List<string> AnimNames{};
 		for (int i = 0; i < blends; i++)
 		{
-			RpakStream->SetPosition(AseqDataOffset + seqdesc.animindexindex + (i * 4));
+			RpakStream->SetPosition(AseqDataOffset + seqdesc.animindexindex);
 
-			uint64_t blendoffset = Reader.Read<int>();
-
+			uint64_t blendoffset = 0;
+			if (AseqAsset.AssetVersion > 11)
+			{
+				RpakStream->SetPosition(RpakStream->GetPosition() + (i * sizeof(int)));
+				blendoffset = Reader.Read<int>();
+			}
+			else
+			{
+				RpakStream->SetPosition(RpakStream->GetPosition() + (i * sizeof(short)));
+				blendoffset = Reader.Read<short>();
+			}
+				
 			RpakStream->SetPosition(AseqDataOffset + blendoffset);
 
 			mstudioanimdescv54_t_v16 animdesc{};
@@ -735,24 +744,27 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, uint64_t AnimHash, const Rpa
 			case 0x40: // 10
 			{
 				animdesc = Reader.Read<mstudioanimdescv54_t_v16>();
+				animdesc.sznameindex = FIX_OFFSET((int)animdesc.sznameindex);
 				break;
 			}
 			}
 
-			RpakStream->SetPosition(AseqDataOffset + blendoffset + FIX_OFFSET(animdesc.sznameindex));
-			string namez = Reader.ReadCString();
+			RpakStream->SetPosition(AseqDataOffset + blendoffset + animdesc.sznameindex);
+			std::string namez = Reader.ReadCString().ToCString();
 
 			AnimNames.EmplaceBack(namez);
-			//AnimNames.EmplaceBack((AnimSetNameDir + string::Format("/%s_%d", AnimSetName.ToCString(), i)));
 			FrameRates.EmplaceBack(animdesc.fps);
 		}
 
-		//for (int i = 0; i < blends; i++)
-		//{
-		//	qc.WriteFmt("$animation \"%s\" \"Anims/%s/%s.smd\" fps %d\n", AnimNames[i].ToCString(), AnimSetName.ToCString(), AnimNames[i].ToCString(), FrameRates[i] + 1);
-		//}
+		for (int i = 0; i < blends; i++)
+			qc.WriteFmt("//$animation \"%s\" \"Anims/%s/%s.smd\" fps %d\n", AnimNames[i].ToCString(), AnimSetName.ToCString(), AnimNames[i].ToCString(), FrameRates[i] + 1);
 
 		qc.WriteFmt("$sequence \"%s\" \"Anims/%s.smd\" {\n", AnimSetNameFull.ToCString(), AnimSetName.ToCString());
+		qc.Write("//");
+		for (int i = 0; i < blends; i++)
+			qc.WriteFmt(" %s", AnimNames[i].ToCString());
+		qc.Write("\n");
+
 
 		RpakStream->SetPosition(AseqDataOffset + seqdesc.szactivitynameindex);
 		string Activity = Reader.ReadCString();
@@ -844,7 +856,7 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, uint64_t AnimHash, const Rpa
 			mstudioeventv54 Event{};
 			if (AseqAsset.AssetVersion > 10)
 			{
-				RpakStream->SetPosition(AseqDataOffset + FIX_OFFSET(seqdesc.eventindex) + (i * sizeof(mstudioeventv54_t_v16)));
+				RpakStream->SetPosition(AseqDataOffset + seqdesc.eventindex + (i * sizeof(mstudioeventv54_t_v16)));
 				Event.Init(AseqAsset.AssetVersion, Reader);
 			}
 			else
@@ -853,7 +865,7 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, uint64_t AnimHash, const Rpa
 				{
 				case 0x30: // 7 / 7.1
 				case 0x38:
-					RpakStream->SetPosition(AseqDataOffset + FIX_OFFSET(seqdesc.eventindex) + (i * sizeof(mstudioeventv54_t)));
+					RpakStream->SetPosition(AseqDataOffset + seqdesc.eventindex + (i * sizeof(mstudioeventv54_t)));
 					Event.Init(AseqAsset.AssetVersion, Reader);
 					break;
 				case 0x40: // 10
