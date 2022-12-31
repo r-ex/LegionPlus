@@ -6,8 +6,6 @@
 const std::vector<std::string> MaterialTypes = { "_rgdu", "_rgdp", "_rgdc", "_sknu", "_sknp", "_sknc", "_wldu", "_wldc", "_ptcu", "_ptcs" };
 
 #define RadiansToDegrees(r) ((r / Math::MathHelper::PI) * 180.0f)
-#define RadiansToDegrees(r) ((r / Math::MathHelper::PI) * 180.0f)
-
 
 void WriteCommonJiggle(IO::StreamWriter& qc, mstudiojigglebonev54_t*& JiggleBone)
 {
@@ -748,7 +746,7 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, const string& Path, uint64_t
 				RpakStream->SetPosition(RpakStream->GetPosition() + (i * sizeof(short)));
 				blendoffset = Reader.Read<short>();
 			}
-				
+
 			RpakStream->SetPosition(AseqDataOffset + blendoffset);
 
 			mstudioanimdescv54_t_v16 animdesc{};
@@ -792,7 +790,7 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, const string& Path, uint64_t
 				ValidAnimDescs.EmplaceBack(AnimDescs[i]);
 				ValidAnimNames.EmplaceBack(AnimNames[i]);
 			}
-			     
+
 		}
 		AnimNames = ValidAnimNames;
 		AnimDescs = ValidAnimDescs;
@@ -834,7 +832,7 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, const string& Path, uint64_t
 
 			return;
 		}
-		
+
 
 		qc.WriteFmt("$sequence \"%s\" {\n", AnimSetNameFull.ToCString());
 		{
@@ -866,7 +864,7 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, const string& Path, uint64_t
 			qc.WriteFmt("\tfadein %.1f\n\tfadeout %.1f\n\n", seqdesc.fadeintime, seqdesc.fadeouttime);
 
 			// ACTIVITY MODIFIERS
-			{ 
+			{
 				if (seqdesc.numactivitymodifiers)
 					qc.Write("\n");
 
@@ -962,7 +960,7 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, const string& Path, uint64_t
 				if (seqdesc.numautolayers)
 					qc.Write("\n\n");
 			}
-			
+
 			// EVENTS
 			{
 				for (int i = 0; i < seqdesc.numevents; i++)
