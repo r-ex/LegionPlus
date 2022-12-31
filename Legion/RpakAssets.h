@@ -1223,12 +1223,12 @@ struct RShaderImage
 struct ShaderSetHeader {
 	uint64_t VTablePadding;
 
-	RPakPtr pName{};
+	RPakPtr pName;
 
 	uint8_t pad_0008[8];
 	uint16_t Count1;
-	uint16_t TextureInputCount = 7;
-	uint16_t NumSamplers = 3;
+	uint16_t TextureInputCount;
+	uint16_t NumSamplers;
 	uint8_t StartSlot;
 	uint8_t NumViews;
 	uint8_t Byte1;

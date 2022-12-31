@@ -962,8 +962,7 @@ void RpakLib::ExportAnimationSeq(const RpakLoadAsset& Asset, const string& Path)
 	rseqOut.write(rseqBuf, RSeqSize);
 	rseqOut.close();
 
-	// WIP EXTERNAL DATA
-
+	// EXTERNAL DATA
 	if (AnHeader.pExternalData.Index || AnHeader.externalDataSize)
 	{
 		char* externalBuf = new char[AnHeader.externalDataSize];
@@ -982,6 +981,8 @@ void RpakLib::ExportAnimationSeq(const RpakLoadAsset& Asset, const string& Path)
 		std::ofstream externalOut(IO::Path::ChangeExtension(AnimSetPath, ".SeqData"), std::ios::out | std::ios::binary);
 		externalOut.write(externalBuf, AnHeader.externalDataSize);
 		externalOut.close();
+
+		delete[] externalBuf;
 	}
 
 }

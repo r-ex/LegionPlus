@@ -83,8 +83,6 @@ void RpakLib::ExportModel(const RpakLoadAsset& Asset, const string& Path, const 
 	}
 }
 
-#define FIX_OFFSET(offset) ((offset & 0xFFFE) << (4 * (offset & 1)))
-
 std::unique_ptr<Assets::Model> RpakLib::ExtractModel_V16(const RpakLoadAsset& Asset, const string& Path, const string& AnimPath, bool IncludeMaterials, bool IncludeAnimations)
 {
 	auto RpakStream = this->GetFileStream(Asset);

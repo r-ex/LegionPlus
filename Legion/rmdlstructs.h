@@ -90,6 +90,9 @@ typedef unsigned short uint16;
 // studiohdr_t::VertAnimFixedPointScale() to always retrieve the scale value
 #define STUDIOHDR_FLAGS_VERT_ANIM_FIXED_POINT_SCALE	0x200000
 
+
+#define FIX_OFFSET(offset) ((offset & 0xFFFE) << (4 * (offset & 1)))
+
 #pragma pack(push, 1)
 struct matrix3x4_t
 {
@@ -1165,16 +1168,8 @@ struct studiohdr_t // latest studiohdr
 	int numlocalattachments;
 	int localattachmentindex;
 
-	// not unks but I am not filling this out because it changes from 12.1, 12.2, 13, and 14
-	uint8_t Unknown2[0x14];
-
-	uint32_t NahhhO;
 	uint32_t SubmeshLodsOffset;
 
-	uint32_t Unk;
-	uint32_t SubmeshLodsOffset_V14;
-
-	uint8_t Unknown3[0x3C];
 	uint32_t OffsetToBoneRemapInfo;
 	uint32_t BoneRemapCount;
 
@@ -1525,21 +1520,21 @@ struct mstudiomodelv54_t_v13
 
 	int unk; // same as uv2index, did they add something to vvc/0tVG?
 
-	inline mstudiomodelv54_t* Downgrade()
+	inline mstudiomodelv54_t Downgrade()
 	{
-		mstudiomodelv54_t* out = new mstudiomodelv54_t();
+		mstudiomodelv54_t out{};
 
 		for (int i = 0; i < 64; i++)
-			out->name[i] = this->name[i];
+			out.name[i] = this->name[i];
 
-		out->unkindex2 = this->unkindex2;
-		out->nummeshes = this->nummeshes;
-		out->meshindex = this->meshindex;
-		out->numvertices = this->numvertices;
-		out->vertexindex = this->vertexindex;
-		out->tangentsindex = this->tangentsindex;
-		out->numattachments = this->numattachments;
-		out->attachmentindex = this->attachmentindex;
+		out.unkindex2 = this->unkindex2;
+		out.nummeshes = this->nummeshes;
+		out.meshindex = this->meshindex;
+		out.numvertices = this->numvertices;
+		out.vertexindex = this->vertexindex;
+		out.tangentsindex = this->tangentsindex;
+		out.numattachments = this->numattachments;
+		out.attachmentindex = this->attachmentindex;
 
 		return out;
 	}
@@ -1578,21 +1573,21 @@ struct mstudiomodelv54_t_v14
 	int uv2index; // vertex second uv map
 	int unk;
 
-	inline mstudiomodelv54_t* Downgrade()
+	inline mstudiomodelv54_t Downgrade()
 	{
-		mstudiomodelv54_t* out = new mstudiomodelv54_t();
+		mstudiomodelv54_t out{};
 
 		for (int i = 0; i < 64; i++)
-			out->name[i] = this->name[i];
+			out.name[i] = this->name[i];
 
-		out->unkindex2 = this->unkindex2;
-		out->nummeshes = this->nummeshes;
-		out->meshindex = this->meshindex;
-		out->numvertices = this->numvertices;
-		out->vertexindex = this->vertexindex;
-		out->tangentsindex = this->tangentsindex;
-		out->numattachments = this->numattachments;
-		out->attachmentindex = this->attachmentindex;
+		out.unkindex2 = this->unkindex2;
+		out.nummeshes = this->nummeshes;
+		out.meshindex = this->meshindex;
+		out.numvertices = this->numvertices;
+		out.vertexindex = this->vertexindex;
+		out.tangentsindex = this->tangentsindex;
+		out.numattachments = this->numattachments;
+		out.attachmentindex = this->attachmentindex;
 
 		return out;
 	}
@@ -1609,13 +1604,13 @@ struct mstudiomodelv54_t_v16
 
 	short meshindex;
 
-	inline mstudiomodelv54_t* Downgrade()
+	inline mstudiomodelv54_t Downgrade()
 	{
-		mstudiomodelv54_t* out = new mstudiomodelv54_t();
+		mstudiomodelv54_t out{};
 
-		out->unkindex2 = this->unkindex2;
-		out->nummeshes = this->nummeshes;
-		out->meshindex = this->meshindex;
+		out.unkindex2 = this->unkindex2;
+		out.nummeshes = this->nummeshes;
+		out.meshindex = this->meshindex;
 
 		return out;
 	}
@@ -2208,7 +2203,7 @@ struct mstudiobonev54_t
 
 	inline void ConstructFromV16(mstudiobone_t_v16& bone, mstudiobonedata_t_v16& data)
 	{
-		this->sznameindex = bone.sznameindex;
+		this->sznameindex = FIX_OFFSET(bone.sznameindex);
 		this->parent = data.parent;
 		this->pos = data.pos;
 		this->quat = data.quat;
@@ -2218,9 +2213,9 @@ struct mstudiobonev54_t
 		this->qAlignment = data.qAlignment;
 		this->flags = data.flags;
 		this->proctype = data.proctype;
-		this->procindex = data.procindex;
+		this->procindex = FIX_OFFSET(data.procindex);
 		this->physicsbone = bone.physicsbone;
-		this->surfacepropidx = bone.surfacepropidx;
+		this->surfacepropidx = FIX_OFFSET(bone.surfacepropidx);
 		this->contents = bone.contents;
 		this->surfacepropLookup = bone.surfacepropLookup;
 		this->unkid = data.unkid;
@@ -2619,7 +2614,7 @@ struct mstudiobodyparts_t_v15
 		out.base = this->base;
 		out.modelindex = this->modelindex;
 		out.nummodels = this->nummodels;
-		out.sznameindex =this->sznameindex;
+		out.sznameindex = FIX_OFFSET(this->sznameindex);
 		return out;
 	}
 };
@@ -2638,7 +2633,7 @@ struct mstudiobodyparts_t_v16
 		out.base = this->base;
 		out.modelindex = this->modelindex;
 		out.nummodels = this->nummodels;
-		out.sznameindex = this->sznameindex;
+		out.sznameindex = FIX_OFFSET(this->sznameindex);
 		return out;
 	}
 };

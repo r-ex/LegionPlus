@@ -7,20 +7,13 @@
 #include "StreamWriter.h"
 #include <vector>
 
-struct SMDFrame {
-	bool hasdata = false;
-	Vector3 Position{};
-	Vector3 Rotation{};
-};
-
 namespace Assets::Exporters
 {
 	void ProcessVertex(IO::StreamWriter& Writer, const Vertex& Vertex)
 	{
 		auto Normal = Vertex.Normal().GetNormalized();
-
-		auto& Position = Vertex.Position();
-		auto& UVLayer = Vertex.UVLayers(0);
+		const Vector3& Position = Vertex.Position();
+		const Vector2& UVLayer = Vertex.UVLayers(0);
 
 		Writer.WriteFmt("\t0 %f %f %f %f %f %f %f %f %d ", Position.X, Position.Y, Position.Z, Normal.X, Normal.Y, Normal.Z, UVLayer.U, (1 - UVLayer.V), Vertex.WeightCount());
 
@@ -32,25 +25,25 @@ namespace Assets::Exporters
 
 	void GetBoneAnimation(int frame, List <Assets::Curve>& Curves, Vector3& Pos, Vector3& Rot)
 	{
-		for (auto& KeyFrame : Curves[0].Keyframes)
+		for (Assets::CurveKeyframe& KeyFrame : Curves[0].Keyframes)
 		{
 			if (KeyFrame.Frame.Integer32 == frame)
 				Rot = KeyFrame.Value.Vector4.ToEulerAngles();
 		}
 
-		for (auto& KeyFrame : Curves[1].Keyframes)
+		for (Assets::CurveKeyframe& KeyFrame : Curves[1].Keyframes)
 		{
 			if (KeyFrame.Frame.Integer32 == frame)
 				Pos.X = KeyFrame.Value.Float;
 		}
 
-		for (auto& KeyFrame : Curves[2].Keyframes)
+		for (Assets::CurveKeyframe& KeyFrame : Curves[2].Keyframes)
 		{
 			if (KeyFrame.Frame.Integer32 == frame)
 				Pos.Y = KeyFrame.Value.Float;
 		}
 
-		for (auto& KeyFrame : Curves[3].Keyframes)
+		for (Assets::CurveKeyframe& KeyFrame : Curves[3].Keyframes)
 		{
 			if (KeyFrame.Frame.Integer32 == frame)
 				Pos.Z = KeyFrame.Value.Float;
@@ -111,7 +104,7 @@ namespace Assets::Exporters
 
 		uint32_t BoneIndex = 0;
 
-		for (auto& Bone : Animation.Bones)
+		for (Assets::Bone& Bone : Animation.Bones)
 		{
 			Writer.WriteLineFmt("\t%d \"%s\" %d", BoneIndex, (char*)Bone.Name(), Bone.Parent());
 			BoneIndex++;
@@ -177,7 +170,7 @@ namespace Assets::Exporters
 
 		uint32_t BoneIndex = 0;
 
-		for (auto& Bone : Model.Bones)
+		for (Assets::Bone& Bone : Model.Bones)
 		{
 			Writer.WriteLineFmt("\t%d \"%s\" %d", BoneIndex, (char*)Bone.Name(), Bone.Parent());
 			BoneIndex++;
@@ -191,9 +184,9 @@ namespace Assets::Exporters
 
 		BoneIndex = 0;
 
-		for (auto& Bone : Model.Bones)
+		for (Assets::Bone& Bone : Model.Bones)
 		{
-			auto Euler = Bone.LocalRotation().ToEulerAngles();
+			Vector3 Euler = Bone.LocalRotation().ToEulerAngles();
 
 			Writer.WriteLineFmt("  %d %f %f %f %f %f %f", BoneIndex, Bone.LocalPosition().X, Bone.LocalPosition().Y, Bone.LocalPosition().Z, MathHelper::DegreesToRadians(Euler.X), MathHelper::DegreesToRadians(Euler.Y), MathHelper::DegreesToRadians(Euler.Z));
 			BoneIndex++;
@@ -205,7 +198,7 @@ namespace Assets::Exporters
 
 		for (auto& SubmeshId : MeshIds)
 		{
-			auto& Submesh = Model.Meshes[SubmeshId];
+			Assets::Mesh& Submesh = Model.Meshes[SubmeshId];
 
 			for (auto& Face : Submesh.Faces)
 			{

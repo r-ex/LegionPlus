@@ -431,31 +431,24 @@ struct mstudioanimdescv54_t_v16
 {
 	float fps; // frames per second	
 	int flags; // looping/non-looping flags
-
-	short numframes;
+	int16_t numframes;
 
 	// piecewise movement
 	//short nummovements;
 	//short movementindex;
 
-	short unk_v16;
-
-	uint16 sznameindex;
-
-	uint16 compressedikerrorindex;
+	int16_t unk_v16;
+	uint16_t sznameindex;
+	uint16_t compressedikerrorindex;
 
 	int animindex; // non-zero when anim data isn't in sections
 
-	short numikrules;
-	uint16 ikruleindex; // non-zero when IK data is stored in the mdl
-
-	uint16 unk1[5];
-
-	uint16 sectionindex;
-
-	uint16 unk2; // what, obviously section related as it's wedged between sectionindex and sectiom frames
-
-	uint16 sectionframes; // number of frames used in each fast lookup section, zero if not used
+	int16_t numikrules;
+	uint16_t ikruleindex; // non-zero when IK data is stored in the mdl
+	uint16_t unk1[5];
+	uint16_t sectionindex;
+	uint16_t unk2; // what, obviously section related as it's wedged between sectionindex and sectiom frames
+	uint16_t sectionframes; // number of frames used in each fast lookup section, zero if not used
 };
 
 // rseq v7.1

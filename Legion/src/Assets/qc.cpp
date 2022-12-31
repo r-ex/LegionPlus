@@ -2,12 +2,11 @@
 #include "RpakLib.h"
 #include "Path.h"
 #include "Directory.h"
-#include <version.h>
 #include <MathHelper.h>
 
 const std::vector<std::string> MaterialTypes = { "_rgdu", "_rgdp", "_rgdc", "_sknu", "_sknp", "_sknc", "_wldu", "_wldc", "_ptcu", "_ptcs" };
 
-#define CalculateLimit(r) ((r / Math::MathHelper::PI) * 180.0f)
+#define RadiansToDegrees(r) ((r / Math::MathHelper::PI) * 180.0f)
 
 void WriteCommonJiggle(IO::StreamWriter& qc, mstudiojigglebonev54_t*& JiggleBone)
 {
@@ -17,13 +16,13 @@ void WriteCommonJiggle(IO::StreamWriter& qc, mstudiojigglebonev54_t*& JiggleBone
 	if (JiggleBone->tipMass)
 		qc.WriteFmt("\t\ttip_mass %.4f\n", JiggleBone->tipMass);
 
-	if (JiggleBone->flags & JIGGLE_HAS_ANGLE_CONSTRAINT && CalculateLimit(JiggleBone->angleLimit))
-		qc.WriteFmt("\t\tangle_constraint %.4f\n", CalculateLimit(JiggleBone->angleLimit));
+	if (JiggleBone->flags & JIGGLE_HAS_ANGLE_CONSTRAINT && RadiansToDegrees(JiggleBone->angleLimit))
+		qc.WriteFmt("\t\tangle_constraint %.4f\n", RadiansToDegrees(JiggleBone->angleLimit));
 
 	if (JiggleBone->flags & JIGGLE_HAS_YAW_CONSTRAINT)
 	{
-		if (CalculateLimit(JiggleBone->minYaw) || CalculateLimit(JiggleBone->maxYaw))
-			qc.WriteFmt("\t\tyaw_constraint %.4f %.4f\n", CalculateLimit(JiggleBone->minYaw), CalculateLimit(JiggleBone->maxYaw));
+		if (RadiansToDegrees(JiggleBone->minYaw) || RadiansToDegrees(JiggleBone->maxYaw))
+			qc.WriteFmt("\t\tyaw_constraint %.4f %.4f\n", RadiansToDegrees(JiggleBone->minYaw), RadiansToDegrees(JiggleBone->maxYaw));
 	}
 
 	if (JiggleBone->yawFriction)
@@ -34,8 +33,8 @@ void WriteCommonJiggle(IO::StreamWriter& qc, mstudiojigglebonev54_t*& JiggleBone
 
 	if (JiggleBone->flags & JIGGLE_HAS_PITCH_CONSTRAINT)
 	{
-		if (CalculateLimit(JiggleBone->minPitch) || CalculateLimit(JiggleBone->maxPitch))
-			qc.WriteFmt("\t\tpitch_constraint %.4f %.4f\n", CalculateLimit(JiggleBone->minPitch), CalculateLimit(JiggleBone->maxPitch));
+		if (RadiansToDegrees(JiggleBone->minPitch) || RadiansToDegrees(JiggleBone->maxPitch))
+			qc.WriteFmt("\t\tpitch_constraint %.4f %.4f\n", RadiansToDegrees(JiggleBone->minPitch), RadiansToDegrees(JiggleBone->maxPitch));
 	}
 
 	if (JiggleBone->pitchFriction)
@@ -134,7 +133,7 @@ void SMDWriteRefAnim(const string& Path, const List<Assets::Bone>& Bones, string
 
 	uint32_t BoneIndex = 0;
 
-	for (auto& Bone : Bones)
+	for (Assets::Bone& Bone : Bones)
 	{
 		Writer.WriteLineFmt("\t%d \"%s\" %d", BoneIndex, (char*)Bone.Name(), Bone.Parent());
 		BoneIndex++;
@@ -148,7 +147,7 @@ void SMDWriteRefAnim(const string& Path, const List<Assets::Bone>& Bones, string
 
 	BoneIndex = 0;
 
-	for (auto& Bone : Bones)
+	for (Assets::Bone& Bone : Bones)
 	{
 		auto Euler = Bone.LocalRotation().ToEulerAngles();
 		Writer.WriteLineFmt("\t%d %f %f %f %f %f %f", BoneIndex, Bone.LocalPosition().X, Bone.LocalPosition().Y, Bone.LocalPosition().Z, Math::MathHelper::DegreesToRadians(Euler.X), Math::MathHelper::DegreesToRadians(Euler.Y), Math::MathHelper::DegreesToRadians(Euler.Z));
@@ -184,7 +183,7 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 	IO::StreamWriter qc(IO::File::Create(Path));
 
 	s3studiohdr_t hdr{};
-	
+
 	switch (AssetVersion)
 	{
 	case 13:
@@ -195,14 +194,12 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 		hdr = reinterpret_cast<studiohdr_t_v14*>(rmdlBuf)->Downgrade();
 		break;
 	case 16:
-			hdr = reinterpret_cast<studiohdr_t_v16*>(rmdlBuf)->Downgrade();
+		hdr = reinterpret_cast<studiohdr_t_v16*>(rmdlBuf)->Downgrade();
 		break;
 	default:
 		hdr = *reinterpret_cast<s3studiohdr_t*>(rmdlBuf);
 		break;
 	}
-
-	qc.WriteFmt("// decompiled using LegionPlus %s\n\n", UI_VER_STR);
 
 	qc.WriteFmt("$modelname \"%s\"\n\n", modelPath.ToCString());
 
@@ -221,7 +218,7 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 	std::vector<mstudiobonev54_t> Bones(hdr.numbones);
 
 	uint64_t v16bonedataindex = 0;
-	if(AssetVersion == 16)
+	if (AssetVersion == 16)
 		v16bonedataindex = reinterpret_cast<studiohdr_t_v16*>(rmdlBuf)->bonedataindex;
 
 	for (int i = 0; i < hdr.numbones; i++)
@@ -267,7 +264,7 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 
 	for (int i = 0; i < hdr.numbodyparts; i++)
 	{
-		char* pBodyPart = rmdlBuf + hdr.bodypartindex; 
+		char* pBodyPart = rmdlBuf + hdr.bodypartindex;
 		mstudiobodyparts_t bodyPart{};
 		switch (AssetVersion)
 		{
@@ -293,7 +290,7 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 		for (int j = 0; j < bodyPart.nummodels; j++)
 		{
 			char* pModel = pBodyPart + bodyPart.modelindex;
-			mstudiomodelv54_t* model = nullptr;
+			mstudiomodelv54_t model{};
 
 			switch (AssetVersion)
 			{
@@ -312,18 +309,18 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 				break;
 			default:
 				pModel = pModel + (j * sizeof(mstudiomodelv54_t));
-				model = reinterpret_cast<mstudiomodelv54_t*>(pModel);
+				model = *reinterpret_cast<mstudiomodelv54_t*>(pModel);
 				break;
 			}
 
-			if (model->nummeshes > 0 || *model->name)
+			if (model.nummeshes > 0 || *model.name)
 				qc.WriteFmt("\tstudio \"%s.smd\"\n", bodyPartName);
 			else
 				qc.Write("\tblank\n");
 
-			for (int a = 0; a < model->nummeshes; a++)
+			for (int a = 0; a < model.nummeshes; a++)
 			{
-				char* pMesh = pModel + model->meshindex;
+				char* pMesh = pModel + model.meshindex;
 				mstudiomeshv54_t mesh{};
 
 				switch (AssetVersion)
@@ -368,9 +365,9 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 
 	for (int i = 0; i < hdr.numtextures; i++)
 	{
-		char* pTexture = rmdlBuf + hdr.textureindex; 
+		char* pTexture = rmdlBuf + hdr.textureindex;
 		mstudiotexturev54_t texture{};
-		
+
 		if (AssetVersion < 16)
 		{
 			pTexture = pTexture + (i * sizeof(mstudiotexturev54_t));
@@ -444,9 +441,9 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 		qc.Write("//}\n\n");
 
 		List<std::string> ValidTextures{};
-		for (auto& Submesh : Model->Meshes)
+		for (Assets::Mesh& Submesh : Model->Meshes)
 		{
-			for (auto& Face : Submesh.Faces)
+			for (Assets::Face& Face : Submesh.Faces)
 			{
 				if (Submesh.MaterialIndices[0] > -1)
 				{
@@ -509,7 +506,7 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 		char* pAttachment = rmdlBuf + hdr.localattachmentindex;
 		mstudioattachmentv54_t attachment{};
 
-		if(AssetVersion < 16)
+		if (AssetVersion < 16)
 		{
 			pAttachment = pAttachment + (i * sizeof(mstudioattachmentv54_t));
 			attachment = *reinterpret_cast<mstudioattachmentv54_t*>(pAttachment);
@@ -519,7 +516,7 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 			pAttachment = pAttachment + (i * sizeof(mstudioattachmentv54_t_v16));
 			attachment = reinterpret_cast<mstudioattachmentv54_t_v16*>(pAttachment)->Downgrade();
 		}
-			
+
 		char* attachmentName = pAttachment + attachment.sznameindex;
 
 		// get attachment's bone
@@ -571,7 +568,7 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 			pHitboxSet = pHitboxSet + (i * sizeof(mstudiohitboxset_t_v16));
 			hitboxSet = reinterpret_cast<mstudiohitboxset_t_v16*>(pHitboxSet)->Downgrade();
 		}
-		
+
 		// get hboxset name
 		char* hitboxSetName = pHitboxSet + hitboxSet.sznameindex;
 
@@ -593,7 +590,7 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 				pHitbox = pHitboxSet + (j * sizeof(mstudiobboxv54_t_v16));
 				hitbox = reinterpret_cast<mstudiobboxv54_t_v16*>(pHitbox + hitboxSet.hitboxindex)->Downgrade();
 			}
-			
+
 			qc.WriteFmt("$hbox %i \"%s\" %f %f %f %f %f %f\n",
 				hitbox.group,
 				BoneNames[hitbox.bone].c_str(),
@@ -621,13 +618,14 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 		else {
 			pPoseParam = pPoseParams + (i * sizeof(mstudioposeparamdescv54_t_v16));
 			PoseParam = reinterpret_cast<mstudioposeparamdescv54_t_v16*>(pPoseParam)->Downgrade();
+			PoseParam.sznameindex = FIX_OFFSET(PoseParam.sznameindex);
 		}
-			
+
 		string PoseName = string(pPoseParam + PoseParam.sznameindex);
 
 		qc.WriteFmt("$poseparameter \"%s\" %.4f %.4f", PoseName.ToCString(), PoseParam.start, PoseParam.start);
 
-		if(PoseParam.flags & STUDIO_LOOPING)
+		if (PoseParam.flags & STUDIO_LOOPING)
 			qc.WriteFmt(" loop %f", PoseParam.loop);
 
 		qc.Write("\n");
@@ -635,8 +633,8 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 		PoseParameters.EmplaceBack(PoseName);
 	}
 
-	if(hdr.numlocalposeparameters)
-	   qc.Write("\n");
+	if (hdr.numlocalposeparameters)
+		qc.Write("\n");
 
 	qc.WriteFmt("$sequence \"ref\" \"%s_ref.smd\" \n\n", Model->Name.ToCString());
 
@@ -661,14 +659,9 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 
 			uint64_t AnimHash = Reader.Read<uint64_t>();
 
-			if (Hashes.Contains(AnimHash) || AnimHash == 0xDF5)
+			if (Hashes.Contains(AnimHash) || AnimHash == 0xDF5 || !Assets.ContainsKey(AnimHash))
 				continue;
 
-			if (!Assets.ContainsKey(AnimHash))
-			{
-				qc.WriteFmt("// Legion could not find Aseq 0x%llX in loaded rpaks\n\n", AnimHash);
-				continue;
-			}
 
 			this->QCWriteAseqData(qc, AnimHash, Asset, PoseParameters);
 
@@ -683,8 +676,8 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, uint64_t AnimHash, const Rpa
 {
 	if (this->Assets.ContainsKey(AnimHash))
 	{
-		auto& AseqAsset = this->Assets[AnimHash];
-		auto RpakStream = this->GetFileStream(AseqAsset);
+		RpakLoadAsset AseqAsset = this->Assets[AnimHash];
+		std::unique_ptr<IO::MemoryStream> RpakStream = this->GetFileStream(AseqAsset);
 		IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 		RpakStream->SetPosition(this->GetFileOffset(AseqAsset, AseqAsset.SubHeaderIndex, AseqAsset.SubHeaderOffset));
 
@@ -740,17 +733,25 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, uint64_t AnimHash, const Rpa
 				animdesc = Reader.Read<mstudioanimdescv54_t_v121>().Upgrade();
 				break;
 			case 0x40: // 10
+			{
 				animdesc = Reader.Read<mstudioanimdescv54_t_v16>();
 				break;
 			}
+			}
 
-			RpakStream->SetPosition(AseqDataOffset + blendoffset + animdesc.sznameindex);
+			RpakStream->SetPosition(AseqDataOffset + blendoffset + FIX_OFFSET(animdesc.sznameindex));
 			string namez = Reader.ReadCString();
 
-			AnimNames.EmplaceBack((AnimSetNameDir + string::Format("/%s_%d", AnimSetName.ToCString(), i)));
-			FrameRates.EmplaceBack(animdesc.numframes);
+			AnimNames.EmplaceBack(namez);
+			//AnimNames.EmplaceBack((AnimSetNameDir + string::Format("/%s_%d", AnimSetName.ToCString(), i)));
+			FrameRates.EmplaceBack(animdesc.fps);
 		}
-		
+
+		//for (int i = 0; i < blends; i++)
+		//{
+		//	qc.WriteFmt("$animation \"%s\" \"Anims/%s/%s.smd\" fps %d\n", AnimNames[i].ToCString(), AnimSetName.ToCString(), AnimNames[i].ToCString(), FrameRates[i] + 1);
+		//}
+
 		qc.WriteFmt("$sequence \"%s\" \"Anims/%s.smd\" {\n", AnimSetNameFull.ToCString(), AnimSetName.ToCString());
 
 		RpakStream->SetPosition(AseqDataOffset + seqdesc.szactivitynameindex);
@@ -759,7 +760,7 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, uint64_t AnimHash, const Rpa
 		if (!string::IsNullOrEmpty(Activity))
 			qc.WriteFmt("\tactivity %s %d\n\n", Activity.ToCString(), seqdesc.actweight);
 
-		if(seqdesc.flags & STUDIO_LOOPING)
+		if (seqdesc.flags & STUDIO_LOOPING)
 			qc.Write("\tloop\n\n");
 
 		if (seqdesc.flags & STUDIO_NOFORCELOOP)
@@ -774,16 +775,16 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, uint64_t AnimHash, const Rpa
 		for (int i = 0; i < seqdesc.numactivitymodifiers; i++)
 		{
 			uint64_t offset = AseqDataOffset + seqdesc.activitymodifierindex;
-			
+
 			if (AseqAsset.AssetVersion > 10)
 				offset += (i * sizeof(mstudioactivitymodifierv54_t_v16));
 			else
 				offset += (i * sizeof(mstudioactivitymodifierv53_t));
-			
+
 			RpakStream->SetPosition(offset);
 
 			mstudioactivitymodifierv53_t layer{};
-			if(AseqAsset.AssetVersion < 10)
+			if (AseqAsset.AssetVersion < 10)
 				layer = Reader.Read<mstudioactivitymodifierv53_t>();
 			else
 				layer = Reader.Read<mstudioactivitymodifierv54_t_v16>().Downgrade();
@@ -792,7 +793,7 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, uint64_t AnimHash, const Rpa
 			string ActivityMod = Reader.ReadCString();
 
 			if (!string::IsNullOrEmpty(ActivityMod))
-			    qc.WriteFmt("\tactivitymodifier %s\n", ActivityMod.ToCString());
+				qc.WriteFmt("\tactivitymodifier %s\n", ActivityMod.ToCString());
 		}
 
 		if (seqdesc.numactivitymodifiers)
@@ -835,15 +836,15 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, uint64_t AnimHash, const Rpa
 			}
 		}
 
-		if(seqdesc.numautolayers)
-		   qc.Write("\n");
+		if (seqdesc.numautolayers)
+			qc.Write("\n");
 
 		for (int i = 0; i < seqdesc.numevents; i++)
 		{
 			mstudioeventv54 Event{};
 			if (AseqAsset.AssetVersion > 10)
 			{
-				RpakStream->SetPosition(AseqDataOffset + seqdesc.eventindex + (i * sizeof(mstudioeventv54_t_v16)));
+				RpakStream->SetPosition(AseqDataOffset + FIX_OFFSET(seqdesc.eventindex) + (i * sizeof(mstudioeventv54_t_v16)));
 				Event.Init(AseqAsset.AssetVersion, Reader);
 			}
 			else
@@ -852,11 +853,11 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, uint64_t AnimHash, const Rpa
 				{
 				case 0x30: // 7 / 7.1
 				case 0x38:
-					RpakStream->SetPosition(AseqDataOffset + seqdesc.eventindex + (i * sizeof(mstudioeventv54_t)));
+					RpakStream->SetPosition(AseqDataOffset + FIX_OFFSET(seqdesc.eventindex) + (i * sizeof(mstudioeventv54_t)));
 					Event.Init(AseqAsset.AssetVersion, Reader);
 					break;
 				case 0x40: // 10
-					RpakStream->SetPosition(AseqDataOffset + seqdesc.eventindex + (i * sizeof(mstudioeventv54_t_v122)));
+					RpakStream->SetPosition(AseqDataOffset + FIX_OFFSET(seqdesc.eventindex) + (i * sizeof(mstudioeventv54_t_v122)));
 					Event.Init(AseqAsset.AssetVersion, Reader);
 					break;
 				}
