@@ -123,7 +123,7 @@ void SMDWriteRefAnim(const string& Path, const List<Assets::Bone>& Bones, string
 {
 	string RefPath = IO::Path::Combine(IO::Path::GetDirectoryName(Path), (Name + "_ref.smd"));
 
-	auto Writer = IO::StreamWriter(IO::File::Create(RefPath));
+	IO::StreamWriter Writer = IO::StreamWriter(IO::File::Create(RefPath));
 
 	Writer.WriteLine(
 		"version 1\n"

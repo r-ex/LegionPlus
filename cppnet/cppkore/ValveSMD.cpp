@@ -95,7 +95,7 @@ namespace Assets::Exporters
 
 	bool ValveSMD::ExportAnimation(const Animation& Animation, const string& Path)
 	{
-		auto Writer = IO::StreamWriter(IO::File::Create(Path));
+		IO::StreamWriter Writer = IO::StreamWriter(IO::File::Create(Path));
 
 		Writer.WriteLine(
 			"version 1\n"
@@ -226,7 +226,7 @@ namespace Assets::Exporters
 
 			string NewPath = IO::Path::Combine(IO::Path::GetDirectoryName(Path), Submesh) + ModelExtension().ToCString();
 
-			auto Writer = IO::StreamWriter(IO::File::Create(NewPath));
+			IO::StreamWriter Writer = IO::StreamWriter(IO::File::Create(NewPath));
 
 			WriteSubMesh(Writer, Model, MeshIds, NewPath);
 
