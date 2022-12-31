@@ -168,23 +168,6 @@ void RpakLib::ExportAnimationRig_V5(const RpakLoadAsset& Asset, const string& Pa
 	// version is 99 because it's supposed to only check model version, not arig version
 	const List<Assets::Bone> Skeleton = this->ExtractSkeleton_V16(Reader, this->GetFileOffset(Asset, RigHeader.studioData), 99);
 
-	if (AnimFormat == AnimExportFormat_t::SMD)
-	{
-		uint64_t SkeletonOffset = this->GetFileOffset(Asset, RigHeader.studioData);
-		RpakStream->SetPosition(SkeletonOffset);
-		studiohdr_t_v16 studiohdr = Reader.Read<studiohdr_t_v16>();
-		RpakStream->SetPosition(SkeletonOffset);
-
-		std::unique_ptr<char[]> studioBuf(new char[studiohdr.bonedataindex + (sizeof(mstudiobonedata_t_v16) * studiohdr.numbones)]);
-		Reader.Read(studioBuf.get(), 0, studiohdr.bonedataindex + (sizeof(mstudiobonedata_t_v16) * studiohdr.numbones));
-
-		auto Model = std::make_unique<Assets::Model>(0, 0);
-		Model->Name = AnimSetName;
-		Model->Bones = std::move(this->ExtractSkeleton_V16(Reader, this->GetFileOffset(Asset, RigHeader.studioData), 99));
-
-		this->ExportQC(Asset, IO::Path::Combine(AnimSetPath, AnimSetName + ".qc"), FullAnimSetName, Model, studioBuf.get(), nullptr);
-	}
-
 	const uint64_t ReferenceOffset = this->GetFileOffset(Asset, RigHeader.animSeqs);
 
 	for (uint32_t i = 0; i < RigHeader.animSeqCount; i++)
@@ -209,6 +192,24 @@ void RpakLib::ExportAnimationRig_V5(const RpakLoadAsset& Asset, const string& Pa
 		// We need to make sure the skeleton is kept alive (copied) here...
 		this->ExtractAnimation_V11(Assets[AnimHash], Skeleton, AnimSetPath);
 	}
+
+	if (AnimFormat == AnimExportFormat_t::SMD)
+	{
+		uint64_t SkeletonOffset = this->GetFileOffset(Asset, RigHeader.studioData);
+		RpakStream->SetPosition(SkeletonOffset);
+		studiohdr_t_v16 studiohdr = Reader.Read<studiohdr_t_v16>();
+		RpakStream->SetPosition(SkeletonOffset);
+
+		std::unique_ptr<char[]> studioBuf(new char[studiohdr.bonedataindex + (sizeof(mstudiobonedata_t_v16) * studiohdr.numbones)]);
+		Reader.Read(studioBuf.get(), 0, studiohdr.bonedataindex + (sizeof(mstudiobonedata_t_v16) * studiohdr.numbones));
+
+		auto Model = std::make_unique<Assets::Model>(0, 0);
+		Model->Name = AnimSetName;
+		Model->Bones = std::move(this->ExtractSkeleton_V16(Reader, this->GetFileOffset(Asset, RigHeader.studioData), 99));
+
+		this->ExportQC(Asset, IO::Path::Combine(AnimSetPath, AnimSetName + ".qc"), FullAnimSetName, Model, studioBuf.get(), nullptr);
+	}
+
 }
 
 void RpakLib::ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path)
@@ -297,23 +298,6 @@ void RpakLib::ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path)
 	// version is 99 because it's supposed to only check model version, not arig version
 	const List<Assets::Bone> Skeleton = this->ExtractSkeleton(Reader, this->GetFileOffset(Asset, RigHeader.studioData), 99);
 
-	if (AnimFormat == AnimExportFormat_t::SMD)
-	{
-		uint64_t SkeletonOffset = this->GetFileOffset(Asset, RigHeader.studioData);
-		RpakStream->SetPosition(SkeletonOffset);
-		studiohdr_t studiohdr = Reader.Read<studiohdr_t>();
-		RpakStream->SetPosition(SkeletonOffset);
-
-		std::unique_ptr<char[]> studioBuf(new char[studiohdr.length]);
-		Reader.Read(studioBuf.get(), 0, studiohdr.length);
-
-		auto Model = std::make_unique<Assets::Model>(0, 0);
-		Model->Name = AnimSetName;
-		Model->Bones = std::move(this->ExtractSkeleton(Reader, this->GetFileOffset(Asset, RigHeader.studioData), 99));
-
-		this->ExportQC(Asset, IO::Path::Combine(AnimSetPath, AnimSetName + ".qc"), FullAnimSetName, Model, studioBuf.get(), nullptr);
-	}
-
 	const uint64_t ReferenceOffset = this->GetFileOffset(Asset, RigHeader.animSeqs);
 
 	for (uint32_t i = 0; i < RigHeader.animSeqCount; i++)
@@ -338,6 +322,24 @@ void RpakLib::ExportAnimationRig(const RpakLoadAsset& Asset, const string& Path)
 		// We need to make sure the skeleton is kept alive (copied) here...
 		this->ExtractAnimation(Assets[AnimHash], Skeleton, AnimSetPath);
 	}
+
+	if (AnimFormat == AnimExportFormat_t::SMD)
+	{
+		uint64_t SkeletonOffset = this->GetFileOffset(Asset, RigHeader.studioData);
+		RpakStream->SetPosition(SkeletonOffset);
+		studiohdr_t studiohdr = Reader.Read<studiohdr_t>();
+		RpakStream->SetPosition(SkeletonOffset);
+
+		std::unique_ptr<char[]> studioBuf(new char[studiohdr.length]);
+		Reader.Read(studioBuf.get(), 0, studiohdr.length);
+
+		auto Model = std::make_unique<Assets::Model>(0, 0);
+		Model->Name = AnimSetName;
+		Model->Bones = std::move(this->ExtractSkeleton(Reader, this->GetFileOffset(Asset, RigHeader.studioData), 99));
+
+		this->ExportQC(Asset, IO::Path::Combine(AnimSetPath, AnimSetName + ".qc"), FullAnimSetName, Model, studioBuf.get(), nullptr);
+	}
+
 }
 
 string RpakLib::ExtractAnimationSeq(const RpakLoadAsset& Asset)
@@ -406,20 +408,20 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 
 	IO::BinaryReader StarpakReader = IO::BinaryReader(StarpakStream.get(), true);
 
+
 	AnimExportFormat_t AnimFormat = (AnimExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("AnimFormat");
 
 	for (uint32_t i = 0; i < seqdesc.numblends; i++)
 	{
-		if (AnimFormat == AnimExportFormat_t::SMD && i > 1)
-			continue;
-
 		RpakStream->SetPosition(seqOffset + seqdesc.animindexindex + ((uint64_t)i * sizeof(uint32_t)));
 
 		int animindex = Reader.Read<int>();
 
 		RpakStream->SetPosition(seqOffset + animindex);
-
 		mstudioanimdescv54_t animdesc = Reader.Read<mstudioanimdescv54_t>();
+
+		RpakStream->SetPosition(seqOffset + animindex + animdesc.sznameindex);
+		string szanimname = Reader.ReadCString();
 
 		// unsure what this flag is
 		if (!(animdesc.flags & 0x20000))
@@ -450,6 +452,7 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 		}
 
 		const uint64_t AnimHeaderPointer = seqOffset + animindex;
+
 
 		for (uint32_t Frame = 0; Frame < animdesc.numframes; Frame++)
 		{
@@ -556,16 +559,15 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 
 		if (AnimFormat == AnimExportFormat_t::SMD)
 		{
-			DestinationPath = IO::Path::Combine((Path + "\\Anims\\"), animName + (const char*)this->AnimExporter->AnimationExtension());
+			DestinationPath = string::Format("%s\\Anims\\%s\\%s.smd", Path.ToCString(), animName.ToCString(), szanimname.ToCString());
+
 			IO::Directory::CreateDirectory(IO::Path::GetDirectoryName(DestinationPath));
 		}
 
-		if (!Utils::ShouldWriteFile(DestinationPath))
-			return;
-
 		try
 		{
-			this->AnimExporter->ExportAnimation(*Anim.get(), DestinationPath);
+			if (Utils::ShouldWriteFile(DestinationPath))
+			     this->AnimExporter->ExportAnimation(*Anim.get(), DestinationPath);
 		}
 		catch (...)
 		{
@@ -626,6 +628,9 @@ void RpakLib::ExtractAnimation_V11(const RpakLoadAsset& Asset, const List<Assets
 		RpakStream->SetPosition(seqOffset + animindex);
 
 		mstudioanimdescv54_t_v16 animdesc = Reader.Read<mstudioanimdescv54_t_v16>(); // lower case because normal source is like this :)
+
+		RpakStream->SetPosition(seqOffset + animindex + FIX_OFFSET(animdesc.sznameindex));
+		string szanimname = Reader.ReadCString();
 
 		// unsure what this flag is
 		if (!(animdesc.flags & 0x20000))
@@ -759,16 +764,15 @@ void RpakLib::ExtractAnimation_V11(const RpakLoadAsset& Asset, const List<Assets
 		// no animation blends for smd
 		if (AnimFormat == AnimExportFormat_t::SMD)
 		{
-			DestinationPath = IO::Path::Combine((Path + "\\Anims\\"), animName + (const char*)this->AnimExporter->AnimationExtension());
+			DestinationPath = string::Format("%s\\Anims\\%s\\%s.smd", Path.ToCString(), animName.ToCString(), szanimname.ToCString());
+
 			IO::Directory::CreateDirectory(IO::Path::GetDirectoryName(DestinationPath));
 		}
 			
-		if (!Utils::ShouldWriteFile(DestinationPath))
-			continue;
-
 		try
 		{
-			this->AnimExporter->ExportAnimation(*Anim.get(), DestinationPath);
+			if (Utils::ShouldWriteFile(DestinationPath))
+				this->AnimExporter->ExportAnimation(*Anim.get(), DestinationPath);
 		}
 		catch (...)
 		{

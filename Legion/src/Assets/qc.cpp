@@ -6,6 +6,8 @@
 const std::vector<std::string> MaterialTypes = { "_rgdu", "_rgdp", "_rgdc", "_sknu", "_sknp", "_sknc", "_wldu", "_wldc", "_ptcu", "_ptcs" };
 
 #define RadiansToDegrees(r) ((r / Math::MathHelper::PI) * 180.0f)
+#define RadiansToDegrees(r) ((r / Math::MathHelper::PI) * 180.0f)
+
 
 void WriteCommonJiggle(IO::StreamWriter& qc, mstudiojigglebonev54_t*& JiggleBone)
 {
@@ -600,8 +602,6 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 		qc.Write("\n");
 	}
 
-	qc.Write("$defaultfadein 0.2\n$defaultfadeout 0.2\n\n");
-
 	List<string> PoseParameters;
 	char* pPoseParams = rmdlBuf + hdr.localposeparamindex;
 	for (int i = 0; i < hdr.numlocalposeparameters; i++)
@@ -639,6 +639,8 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 
 	SMDWriteRefAnim(Path, Model->Bones, Model->Name);
 
+
+
 	if (IsRig)
 	{
 		auto RpakStream = this->GetFileStream(Asset);
@@ -651,6 +653,7 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 		const uint64_t ReferenceOffset = this->GetFileOffset(Asset, RigHeader.animSeqs);
 
 		List<uint64_t> Hashes;
+		List<string> AnimationNames;
 
 		for (uint32_t i = 0; i < RigHeader.animSeqCount; i++)
 		{
@@ -658,11 +661,28 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 
 			uint64_t AnimHash = Reader.Read<uint64_t>();
 
-			if (Hashes.Contains(AnimHash) || AnimHash == 0xDF5 || !Assets.ContainsKey(AnimHash))
+			if (AnimHash == 0xDF5 || !Assets.ContainsKey(AnimHash))
 				continue;
 
 
-			this->QCWriteAseqData(qc, AnimHash, Asset, PoseParameters);
+			this->QCWriteAseqData(qc, Path, AnimHash, Asset, {}, AnimationNames, true);
+
+			Hashes.EmplaceBack(AnimHash);
+		}
+
+		Hashes.Clear();
+		AnimationNames.Clear();
+		for (uint32_t i = 0; i < RigHeader.animSeqCount; i++)
+		{
+			RpakStream->SetPosition(ReferenceOffset + ((uint64_t)i * 0x8));
+
+			uint64_t AnimHash = Reader.Read<uint64_t>();
+
+			if (AnimHash == 0xDF5 || !Assets.ContainsKey(AnimHash))
+				continue;
+
+
+			this->QCWriteAseqData(qc, Path, AnimHash, Asset, PoseParameters, AnimationNames, false);
 
 			Hashes.EmplaceBack(AnimHash);
 		}
@@ -671,7 +691,7 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 	qc.Close();
 }
 
-void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, uint64_t AnimHash, const RpakLoadAsset& RigAsset, List<string> PoseParameters)
+void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, const string& Path, uint64_t AnimHash, const RpakLoadAsset& RigAsset, List<string> PoseParameters, List<string>& AnimationNames, bool WriteAnimations)
 {
 	if (this->Assets.ContainsKey(AnimHash))
 	{
@@ -695,8 +715,8 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, uint64_t AnimHash, const Rpa
 		}
 
 		RpakStream->SetPosition(this->GetFileOffset(AseqAsset, AnHeader.pName));
-		string AnimSetNameFull = Reader.ReadCString();
-		string AnimSetName = IO::Path::GetFileNameWithoutExtension(AnimSetNameFull).ToCString();
+		string AnimSetNameFull = Reader.ReadCString().Replace(".rseq", "");
+		string AnimSetName = IO::Path::GetFileNameWithoutExtension(AnimSetNameFull);
 		string AnimSetNameDir = IO::Path::GetDirectoryName(AnimSetNameFull).ToCString();
 		string FolderPath = IO::Path::Combine(IO::Path::GetDirectoryName(AnimSetNameFull), IO::Path::GetFileNameWithoutExtension(AnimSetNameFull)).Replace("\\", "/");
 
@@ -711,7 +731,7 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, uint64_t AnimHash, const Rpa
 
 		int blends = seqdesc.groupsize[0] * seqdesc.groupsize[1];
 
-		List<int> FrameRates;
+		List<mstudioanimdescv54_t_v16> AnimDescs;
 		List<string> AnimNames{};
 		for (int i = 0; i < blends; i++)
 		{
@@ -757,134 +777,226 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, uint64_t AnimHash, const Rpa
 			string namez = Reader.ReadCString();
 
 			AnimNames.EmplaceBack(namez);
-			FrameRates.EmplaceBack(animdesc.fps);
+			AnimDescs.EmplaceBack(animdesc);
 		}
 
-		for (int i = 0; i < blends; i++)
-			qc.WriteFmt("//$animation \"%s\" \"Anims/%s/%s.smd\" fps %d\n", AnimNames[i].ToCString(), AnimSetName.ToCString(), AnimNames[i].ToCString(), FrameRates[i] + 1);
 
-		qc.WriteFmt("$sequence \"%s\" \"Anims/%s.smd\" {\n", AnimSetNameFull.ToCString(), AnimSetName.ToCString());
-		qc.Write("//");
-		for (int i = 0; i < blends; i++)
-			qc.WriteFmt(" %s", AnimNames[i].ToCString());
-		qc.Write("\n");
-
-		// activity weight will never be 0 if an activity is set
-		if (seqdesc.actweight)
+		List<mstudioanimdescv54_t_v16> ValidAnimDescs;
+		List<string> ValidAnimNames;
+		for (int i = 0; i < AnimDescs.Count(); i++)
 		{
-			RpakStream->SetPosition(AseqDataOffset + seqdesc.szactivitynameindex);
-			qc.WriteFmt("\tactivity %s %d\n\n", Reader.ReadCString().ToCString(), seqdesc.actweight);
-		}
+			string directory = string::Format("%s\\Anims\\%s\\%s.smd", IO::Path::GetDirectoryName(Path).ToCString(), AnimSetName.ToCString(), AnimNames[i].ToCString());
 
-		if (seqdesc.flags & STUDIO_LOOPING)
-			qc.Write("\tloop\n\n");
-
-		if (seqdesc.flags & STUDIO_NOFORCELOOP)
-			qc.Write("\tnoforceloop\n\n");
-
-		if (seqdesc.flags & STUDIO_SNAP)
-			qc.Write("\tsnap\n\n");
-
-		if (seqdesc.numactivitymodifiers)
-			qc.Write("\n");
-
-		for (int i = 0; i < seqdesc.numactivitymodifiers; i++)
-		{
-			uint64_t offset = AseqDataOffset + seqdesc.activitymodifierindex;
-
-			if (AseqAsset.AssetVersion > 10)
-				offset += (i * sizeof(mstudioactivitymodifierv54_t_v16));
-			else
-				offset += (i * sizeof(mstudioactivitymodifierv53_t));
-
-			RpakStream->SetPosition(offset);
-
-			mstudioactivitymodifierv53_t layer{};
-			if (AseqAsset.AssetVersion < 10)
-				layer = Reader.Read<mstudioactivitymodifierv53_t>();
-			else
-				layer = Reader.Read<mstudioactivitymodifierv54_t_v16>().Downgrade();
-
-			RpakStream->SetPosition(offset + layer.sznameindex);
-			string ActivityMod = Reader.ReadCString();
-
-			if (!string::IsNullOrEmpty(ActivityMod))
-				qc.WriteFmt("\tactivitymodifier %s\n", ActivityMod.ToCString());
-		}
-
-		if (seqdesc.numactivitymodifiers)
-			qc.Write("\n");
-
-		if (seqdesc.numautolayers)
-			qc.Write("\n");
-
-		for (int i = 0; i < seqdesc.numautolayers; i++)
-		{
-			RpakStream->SetPosition(AseqDataOffset + seqdesc.autolayerindex + (i * sizeof(mstudioautolayerv54_t)));
-			mstudioautolayerv54_t layer = Reader.Read<mstudioautolayerv54_t>();
-
-			if (this->Assets.ContainsKey(layer.guidSequence))
+			if (IO::File::Exists(directory))
 			{
-				auto& LayerAsset = this->Assets[layer.guidSequence];
-
-				std::string options = "";
-
-				if (layer.flags & STUDIO_AL_XFADE)
-					options += " xfade";
-
-				if (layer.flags & STUDIO_AL_SPLINE)
-					options += " spline";
-
-				if (layer.flags & STUDIO_AL_NOBLEND)
-					options += " noblend";
-
-				if (layer.flags & STUDIO_AL_POSE)
-					options += string::Format(" poseparameter %s", PoseParameters[layer.iPose].ToCString());
-
-				if (layer.flags & STUDIO_AL_LOCAL)
-					options += " local";
-
-				qc.WriteFmt("\n\tblendlayer \"%s\" %d %d %d %d %s", this->ExtractAnimationSeq(LayerAsset).ToCString(), layer.start, layer.peak, layer.tail, layer.end, options.c_str());
+				ValidAnimDescs.EmplaceBack(AnimDescs[i]);
+				ValidAnimNames.EmplaceBack(AnimNames[i]);
 			}
-			else
-			{
-				qc.WriteFmt("\t//blendlayer LAYER NOT FOUND IN LOADED RPAKs\n");
-			}
+			     
 		}
+		AnimNames = ValidAnimNames;
+		AnimDescs = ValidAnimDescs;
 
-		if (seqdesc.numautolayers)
-			qc.Write("\n");
+		if (!AnimDescs.Count())
+			return;
 
-		for (int i = 0; i < seqdesc.numevents; i++)
+		if(WriteAnimations)
 		{
-			mstudioeventv54 Event{};
-			if (AseqAsset.AssetVersion <= 10)
+			// seperator
+			for (int i = 0; i < AnimDescs.Count(); i++)
 			{
-				switch (AseqAsset.SubHeaderSize)
+				mstudioanimdescv54_t_v16 AnimDesc = AnimDescs[i];
+
+				if (!(AnimDesc.flags & STUDIO_ALLZEROS) && !AnimationNames.Contains(AnimNames[i]))
 				{
-				case 0x30: // 7 / 7.1
-				case 0x38:
-					RpakStream->SetPosition(AseqDataOffset + seqdesc.eventindex + (i * sizeof(mstudioeventv54_t)));
-					break;
-				case 0x40: // 10
-					RpakStream->SetPosition(AseqDataOffset + seqdesc.eventindex + (i * sizeof(mstudioeventv54_t_v122)));
-					break;
+					AnimationNames.EmplaceBack(AnimNames[i]);
+
+					qc.WriteFmt("$animation \"%s\" \"Anims/%s/%s.smd\" {\n", AnimNames[i].ToCString(), AnimSetName.ToCString(), AnimNames[i].ToCString());
+					{
+						qc.WriteFmt("\tfps %d\n", int(AnimDesc.fps + 1.0));
+
+						if (AnimDesc.flags & STUDIO_LOOPING)
+							qc.Write("\tloop\n");
+
+						if (AnimDesc.flags & STUDIO_NOFORCELOOP)
+							qc.Write("\tnoforceloop\n");
+
+						if (AnimDesc.flags & STUDIO_SNAP)
+							qc.Write("\tsnap\n");
+
+						if (AnimDesc.flags & STUDIO_POST)
+							qc.Write("\tpost\n");
+
+						qc.Write("\n}\n\n");
+					}
 				}
 			}
-			else
+
+			return;
+		}
+		
+
+		qc.WriteFmt("$sequence \"%s\" {\n", AnimSetNameFull.ToCString());
+		{
+			for (int i = 0; i <1; i++)
 			{
-				RpakStream->SetPosition(AseqDataOffset + seqdesc.eventindex + (i * sizeof(mstudioeventv54_t_v16)));
+				if (!(AnimDescs[i].flags & STUDIO_ALLZEROS))
+					qc.WriteFmt("\t\"%s\"\n", AnimNames[i].ToCString());
 			}
 
+			qc.Write("\n\n");
 
-			Event.Init(AseqAsset.AssetVersion, AseqAsset.SubHeaderSize, Reader);
+			// activity weight will never be 0 if an activity is set
+			if (seqdesc.actweight)
+			{
+				RpakStream->SetPosition(AseqDataOffset + seqdesc.szactivitynameindex);
+				qc.WriteFmt("\tactivity %s %d\n\n", Reader.ReadCString().ToCString(), seqdesc.actweight);
+			}
 
-			// disabled for now until a fix is found to get the correct frame
-			int frame_reversed = (int)(Event.cycle * float(FrameRates[0] - 1));
+			//if (seqdesc.flags & STUDIO_LOOPING)
+			//	qc.Write("\tloop\n\n");
+			//
+			//if (seqdesc.flags & STUDIO_NOFORCELOOP)
+			//	qc.Write("\tnoforceloop\n\n");
+			//
+			//if (seqdesc.flags & STUDIO_SNAP)
+			//	qc.Write("\tsnap\n\n");
 
-			qc.WriteFmt("\t{ event %s %d \"%s\" }\n", Event.szevent.ToCString(), frame_reversed, Event.szoptions.ToCString());
+
+			qc.WriteFmt("\tfadein %.1f\n\tfadeout %.1f\n\n", seqdesc.fadeintime, seqdesc.fadeouttime);
+
+			// ACTIVITY MODIFIERS
+			{ 
+				if (seqdesc.numactivitymodifiers)
+					qc.Write("\n");
+
+				for (int i = 0; i < seqdesc.numactivitymodifiers; i++)
+				{
+					uint64_t offset = AseqDataOffset + seqdesc.activitymodifierindex;
+
+					if (AseqAsset.AssetVersion > 10)
+						offset += (i * sizeof(mstudioactivitymodifierv54_t_v16));
+					else
+						offset += (i * sizeof(mstudioactivitymodifierv53_t));
+
+					RpakStream->SetPosition(offset);
+
+					mstudioactivitymodifierv53_t layer{};
+					if (AseqAsset.AssetVersion < 10)
+						layer = Reader.Read<mstudioactivitymodifierv53_t>();
+					else
+						layer = Reader.Read<mstudioactivitymodifierv54_t_v16>().Downgrade();
+
+					RpakStream->SetPosition(offset + layer.sznameindex);
+					string ActivityMod = Reader.ReadCString();
+
+					if (!string::IsNullOrEmpty(ActivityMod))
+						qc.WriteFmt("\tactivitymodifier %s\n", ActivityMod.ToCString());
+				}
+
+				if (seqdesc.numactivitymodifiers)
+					qc.Write("\n");
+			}
+
+			// AUTO LAYERS
+			{
+				if (seqdesc.numautolayers)
+					qc.Write("\n");
+
+				for (int i = 0; i < seqdesc.numautolayers; i++)
+				{
+					RpakStream->SetPosition(AseqDataOffset + seqdesc.autolayerindex + (i * sizeof(mstudioautolayerv54_t)));
+					mstudioautolayerv54_t layer = Reader.Read<mstudioautolayerv54_t>();
+
+					if (this->Assets.ContainsKey(layer.guidSequence))
+					{
+						auto& LayerAsset = this->Assets[layer.guidSequence];
+
+						std::string options = "";
+
+						if (layer.flags & STUDIO_AL_XFADE)
+							options += " xfade";
+
+						if (layer.flags & STUDIO_AL_SPLINE)
+							options += " spline";
+
+						if (layer.flags & STUDIO_AL_NOBLEND)
+							options += " noblend";
+
+						if (layer.flags & STUDIO_AL_LOCAL)
+							options += " local";
+
+						int start = 0;
+						int peak = 0;
+						int tail = 0;
+						int end = 0;
+
+						if (layer.flags & STUDIO_AL_POSE)
+						{
+							options += string::Format(" poseparameter %s", PoseParameters[layer.iPose].ToCString());
+
+							mstudioanimdescv54_t_v16 AnimDesc = AnimDescs[0];
+
+							start = int(layer.start * (AnimDesc.fps * -1));
+							peak = int(layer.peak * (AnimDesc.fps * -1));
+							tail = int(layer.tail * (AnimDesc.fps * -1));
+							end = int(layer.end * (AnimDesc.fps * -1));
+						}
+						else
+						{
+							start = int(layer.start);
+							peak = int(layer.peak);
+							tail = int(layer.tail);
+							end = int(layer.end);
+						}
+
+						qc.WriteFmt("\n\taddlayer \"%s\"", this->ExtractAnimationSeq(LayerAsset).Replace(".rseq", "").ToCString());
+						//qc.WriteFmt("\n\tblendlayer \"%s\" %d %d %d %d %s", this->ExtractAnimationSeq(LayerAsset).Replace(".rseq", "").ToCString(), start, peak, tail, end, options.c_str());
+					}
+					else
+					{
+						qc.WriteFmt("\t//blendlayer LAYER NOT FOUND IN LOADED RPAKs\n");
+					}
+				}
+
+				if (seqdesc.numautolayers)
+					qc.Write("\n\n");
+			}
+			
+			// EVENTS
+			{
+				for (int i = 0; i < seqdesc.numevents; i++)
+				{
+					mstudioeventv54 Event{};
+					if (AseqAsset.AssetVersion <= 10)
+					{
+						switch (AseqAsset.SubHeaderSize)
+						{
+						case 0x30: // 7 / 7.1
+						case 0x38:
+							RpakStream->SetPosition(AseqDataOffset + seqdesc.eventindex + (i * sizeof(mstudioeventv54_t)));
+							break;
+						case 0x40: // 10
+							RpakStream->SetPosition(AseqDataOffset + seqdesc.eventindex + (i * sizeof(mstudioeventv54_t_v122)));
+							break;
+						}
+					}
+					else
+					{
+						RpakStream->SetPosition(AseqDataOffset + seqdesc.eventindex + (i * sizeof(mstudioeventv54_t_v16)));
+					}
+
+
+					Event.Init(AseqAsset.AssetVersion, AseqAsset.SubHeaderSize, Reader);
+
+					// disabled for now until a fix is found to get the correct frame
+					int frame_reversed = 0;//(int)(Event.cycle * float(AnimDescs[0].fps - 1));
+
+					qc.WriteFmt("\t{ event %s %d \"%s\" }\n", Event.szevent.ToCString(), frame_reversed, Event.szoptions.ToCString());
+				}
+
+				qc.Write("\n}\n\n");
+			}
 		}
-
-		qc.Write("\n}\n\n");
 	}
 }
