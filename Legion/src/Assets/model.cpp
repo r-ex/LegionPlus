@@ -54,6 +54,13 @@ void RpakLib::BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	{
 		studiohdr_t_v16 studiohdr = Reader.Read<studiohdr_t_v16>();
 
+		ModelCPU cpuData{};
+		if (Asset.RawDataIndex || Asset.RawDataOffset)
+		{
+			RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset));
+			cpuData = Reader.Read<ModelCPU>();
+		}
+
 		Info.Info = string::Format("Bones: %d, Parts: %d", studiohdr.numbones, studiohdr.numbodyparts);
 
 		if (mdlHdr.animRigCount > 0)
@@ -65,7 +72,7 @@ void RpakLib::BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 		if (studiohdr.numskinfamilies > 1)
 			Info.Info += string::Format(", Skins: %d", studiohdr.numskinfamilies);
 
-		if (mdlHdr.phyData.Index > 0)
+		if (cpuData.phyDataSize > 0)
 			Info.DebugInfo += string::Format("Physics: True");
 	}
 }
