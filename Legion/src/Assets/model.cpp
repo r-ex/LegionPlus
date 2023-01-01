@@ -29,12 +29,24 @@ void RpakLib::BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	{
 		studiohdr_t studiohdr{};
 
-		if (Asset.AssetVersion <= 12)
+		if (Asset.SubHeaderSize == 120)
+			studiohdr.FromS3(Reader.Read<s3studiohdr_t>());
+		else if (Asset.AssetVersion <= 12)
 			studiohdr = Reader.Read<studiohdr_t>();
-		else if (Asset.AssetVersion == 13)
-			studiohdr = studiohdr_t::FromV13(Reader.Read<studiohdr_t_v13>());
-		else if (Asset.AssetVersion > 13)
-			studiohdr = studiohdr_t::FromV14(Reader.Read<studiohdr_t_v14>());
+		else
+		{
+			switch (Asset.AssetVersion)
+			{
+			case 13:
+				studiohdr.FromV13(Reader.Read<studiohdr_t_v13>());
+				break;
+			case 14:
+				studiohdr.FromV14(Reader.Read<studiohdr_t_v14>());
+				break;
+			default:
+				break;
+			}
+		}
 
 		Info.Info = string::Format("Bones: %d, Parts: %d", studiohdr.numbones, studiohdr.numbodyparts);
 
@@ -563,13 +575,25 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 	RpakStream->SetPosition(StudioOffset);
 
 	studiohdr_t studiohdr{};
-	
-	if (Asset.AssetVersion <= 12)
+
+	if (Asset.SubHeaderSize == 120)
+		studiohdr.FromS3(Reader.Read<s3studiohdr_t>());
+	else if (Asset.AssetVersion <= 12)
 		studiohdr = Reader.Read<studiohdr_t>();
-	else if (Asset.AssetVersion == 13)
-		studiohdr = studiohdr_t::FromV13(Reader.Read<studiohdr_t_v13>());
-	else if (Asset.AssetVersion > 13)
-		studiohdr = studiohdr_t::FromV14(Reader.Read<studiohdr_t_v14>());
+	else
+	{
+		switch (Asset.AssetVersion)
+		{
+		case 13:
+			studiohdr.FromV13(Reader.Read<studiohdr_t_v13>());
+			break;
+		case 14:
+			studiohdr.FromV14(Reader.Read<studiohdr_t_v14>());
+			break;
+		default:
+			break;
+		}
+	}
 
 	RpakStream->SetPosition(StudioOffset);
 
@@ -647,22 +671,23 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 	studiohdr_t SkeletonHeader{};
 
-	if (Asset.SubHeaderSize != 120)
+	if (Asset.SubHeaderSize == 120)
+		SkeletonHeader.FromS3(Reader.Read<s3studiohdr_t>());
+	else if (Asset.AssetVersion <= 12)
+		SkeletonHeader = Reader.Read<studiohdr_t>();
+	else
 	{
-		if (Asset.AssetVersion <= 12)
-			SkeletonHeader = Reader.Read<studiohdr_t>();
-		else if (Asset.AssetVersion == 13)
-			SkeletonHeader = studiohdr_t::FromV13(Reader.Read<studiohdr_t_v13>());
-		else if (Asset.AssetVersion > 13)
-			SkeletonHeader = studiohdr_t::FromV14(Reader.Read<studiohdr_t_v14>());
-	}
-	else {
-		s3studiohdr_t TempSkeletonHeader = Reader.Read<s3studiohdr_t>();
-
-		memcpy(&SkeletonHeader, &TempSkeletonHeader, 0x110);
-
-		SkeletonHeader.SubmeshLodsOffset = TempSkeletonHeader.meshindex;
-		SkeletonHeader.BoneRemapCount = 0; // s3 doesnt use these from here
+		switch (Asset.AssetVersion)
+		{
+		case 13:
+			SkeletonHeader.FromV13(Reader.Read<studiohdr_t_v13>());
+			break;
+		case 14:
+			SkeletonHeader.FromV14(Reader.Read<studiohdr_t_v14>());
+			break;
+		default:
+			break;
+		}
 	}
 
 	uint32_t SubmeshLodsOffset = SkeletonHeader.SubmeshLodsOffset;

@@ -1173,151 +1173,140 @@ struct studiohdr_t // latest studiohdr
 	uint32_t OffsetToBoneRemapInfo;
 	uint32_t BoneRemapCount;
 
-	static inline studiohdr_t FromV13(studiohdr_t_v13 n)
+	inline void FromS3(s3studiohdr_t n)
 	{
-		studiohdr_t hdr{};
 
 		for (int i = 0; i < 64; i++)
-			hdr.name[i] = n.name[i];
+			this->name[i] = n.name[i];
 
-		hdr.id = n.id;
-		hdr.version = n.version;
-		hdr.checksum = n.checksum;
-		hdr.sznameindex = n.sznameindex;
-		hdr.length = n.length;
-		hdr.eyeposition = n.eyeposition;
-		hdr.illumposition = n.illumposition;
-		hdr.hull_min = n.hull_min;
-		hdr.hull_max = n.hull_max;
-		hdr.view_bbmin = n.view_bbmin;
-		hdr.view_bbmax = n.view_bbmax;
-		hdr.flags = n.flags;
-		hdr.numbones = n.numbones;
-		hdr.boneindex = n.boneindex;
-		hdr.numbonecontrollers = n.numbonecontrollers;
-		hdr.bonecontrollerindex = n.bonecontrollerindex;
-		hdr.numhitboxsets = n.numhitboxsets;
-		hdr.hitboxsetindex = n.hitboxsetindex;
-		hdr.numlocalanim = n.numlocalanim;
-		hdr.localanimindex = n.localanimindex;
-		hdr.numlocalseq = n.numlocalseq;
-		hdr.localseqindex = n.localseqindex;
-		hdr.activitylistversion = n.activitylistversion;
-		hdr.materialtypesindex = n.materialtypesindex;
-		hdr.numtextures = n.numtextures;
-		hdr.textureindex = n.textureindex;
-		hdr.numcdtextures = n.numcdtextures;
-		hdr.cdtextureindex = n.cdtextureindex;
-		hdr.numskinref = n.numskinref;
-		hdr.numskinfamilies = n.numskinfamilies;
-		hdr.skinindex = n.skinindex;
-		hdr.numbodyparts = n.numbodyparts;
-		hdr.bodypartindex = n.bodypartindex;
-		hdr.numlocalattachments = n.numlocalattachments;
-		hdr.localattachmentindex = n.localattachmentindex;
-		hdr.SubmeshLodsOffset = n.unknodexindex; // what?
-		hdr.OffsetToBoneRemapInfo = n.boneStateIndex;
-		hdr.BoneRemapCount = n.numBoneStates;
-
-		return hdr;
+		this->id = n.id;
+		this->version = n.version;
+		this->checksum = n.checksum;
+		this->sznameindex = n.sznameindex;
+		this->length = n.length;
+		this->eyeposition = n.eyeposition;
+		this->illumposition = n.illumposition;
+		this->hull_min = n.hull_min;
+		this->hull_max = n.hull_max;
+		this->view_bbmin = n.view_bbmin;
+		this->view_bbmax = n.view_bbmax;
+		this->flags = n.flags;
+		this->numbones = n.numbones;
+		this->boneindex = n.boneindex;
+		this->numbonecontrollers = n.numbonecontrollers;
+		this->bonecontrollerindex = n.bonecontrollerindex;
+		this->numhitboxsets = n.numhitboxsets;
+		this->hitboxsetindex = n.hitboxsetindex;
+		this->numlocalanim = n.numlocalanim;
+		this->localanimindex = n.localanimindex;
+		this->numlocalseq = n.numlocalseq;
+		this->localseqindex = n.localseqindex;
+		this->activitylistversion = n.activitylistversion;
+		this->materialtypesindex = n.materialtypesindex;
+		this->numtextures = n.numtextures;
+		this->textureindex = n.textureindex;
+		this->numcdtextures = n.numcdtextures;
+		this->cdtextureindex = n.cdtextureindex;
+		this->numskinref = n.numskinref;
+		this->numskinfamilies = n.numskinfamilies;
+		this->skinindex = n.skinindex;
+		this->numbodyparts = n.numbodyparts;
+		this->bodypartindex = n.bodypartindex;
+		this->numlocalattachments = n.numlocalattachments;
+		this->localattachmentindex = n.localattachmentindex;
+		this->SubmeshLodsOffset = n.meshindex; // what?
+		this->OffsetToBoneRemapInfo = 0;
+		this->BoneRemapCount = 0;
 	}
 
-	static inline studiohdr_t FromV14(studiohdr_t_v14 n)
+	inline void FromV13(studiohdr_t_v13 n)
 	{
-		studiohdr_t hdr{};
-
 		for (int i = 0; i < 64; i++)
-			hdr.name[i] = n.name[i];
+			this->name[i] = n.name[i];
 
-		hdr.id = n.id;
-		hdr.version = n.version;
-		hdr.checksum = n.checksum;
-		hdr.sznameindex = n.sznameindex;
-		hdr.length = n.length;
-		hdr.eyeposition = n.eyeposition;
-		hdr.illumposition = n.illumposition;
-		hdr.hull_min = n.hull_min;
-		hdr.hull_max = n.hull_max;
-		hdr.view_bbmin = n.view_bbmin;
-		hdr.view_bbmax = n.view_bbmax;
-		hdr.flags = n.flags;
-		hdr.numbones = n.numbones;
-		hdr.boneindex = n.boneindex;
-		hdr.numbonecontrollers = n.numbonecontrollers;
-		hdr.bonecontrollerindex = n.bonecontrollerindex;
-		hdr.numhitboxsets = n.numhitboxsets;
-		hdr.hitboxsetindex = n.hitboxsetindex;
-		hdr.numlocalanim = n.numlocalanim;
-		hdr.localanimindex = n.localanimindex;
-		hdr.numlocalseq = n.numlocalseq;
-		hdr.localseqindex = n.localseqindex;
-		hdr.activitylistversion = n.activitylistversion;
-		hdr.materialtypesindex = n.materialtypesindex;
-		hdr.numtextures = n.numtextures;
-		hdr.textureindex = n.textureindex;
-		hdr.numcdtextures = n.numcdtextures;
-		hdr.cdtextureindex = n.cdtextureindex;
-		hdr.numskinref = n.numskinref;
-		hdr.numskinfamilies = n.numskinfamilies;
-		hdr.skinindex = n.skinindex;
-		hdr.numbodyparts = n.numbodyparts;
-		hdr.bodypartindex = n.bodypartindex;
-		hdr.numlocalattachments = n.numlocalattachments;
-		hdr.localattachmentindex = n.localattachmentindex;
-		hdr.SubmeshLodsOffset = n.ikchainindex; // what?
-		hdr.OffsetToBoneRemapInfo = n.boneStateIndex;
-		hdr.BoneRemapCount = n.numBoneStates;
-		
-		return hdr;
+		this->id = n.id;
+		this->version = n.version;
+		this->checksum = n.checksum;
+		this->sznameindex = n.sznameindex;
+		this->length = n.length;
+		this->eyeposition = n.eyeposition;
+		this->illumposition = n.illumposition;
+		this->hull_min = n.hull_min;
+		this->hull_max = n.hull_max;
+		this->view_bbmin = n.view_bbmin;
+		this->view_bbmax = n.view_bbmax;
+		this->flags = n.flags;
+		this->numbones = n.numbones;
+		this->boneindex = n.boneindex;
+		this->numbonecontrollers = n.numbonecontrollers;
+		this->bonecontrollerindex = n.bonecontrollerindex;
+		this->numhitboxsets = n.numhitboxsets;
+		this->hitboxsetindex = n.hitboxsetindex;
+		this->numlocalanim = n.numlocalanim;
+		this->localanimindex = n.localanimindex;
+		this->numlocalseq = n.numlocalseq;
+		this->localseqindex = n.localseqindex;
+		this->activitylistversion = n.activitylistversion;
+		this->materialtypesindex = n.materialtypesindex;
+		this->numtextures = n.numtextures;
+		this->textureindex = n.textureindex;
+		this->numcdtextures = n.numcdtextures;
+		this->cdtextureindex = n.cdtextureindex;
+		this->numskinref = n.numskinref;
+		this->numskinfamilies = n.numskinfamilies;
+		this->skinindex = n.skinindex;
+		this->numbodyparts = n.numbodyparts;
+		this->bodypartindex = n.bodypartindex;
+		this->numlocalattachments = n.numlocalattachments;
+		this->localattachmentindex = n.localattachmentindex;
+		this->SubmeshLodsOffset = n.unknodexindex; // what?
+		this->OffsetToBoneRemapInfo = n.boneStateIndex;
+		this->BoneRemapCount = n.numBoneStates;
 	}
 
-	static inline studiohdr_t FromV15(studiohdr_t_v14 n)
+	inline void FromV14(studiohdr_t_v14 n)
 	{
-		studiohdr_t hdr{};
-
 		for (int i = 0; i < 64; i++)
-			hdr.name[i] = n.name[i];
+			this->name[i] = n.name[i];
 
-		hdr.id = n.id;
-		hdr.version = n.version;
-		hdr.checksum = n.checksum;
-		hdr.sznameindex = n.sznameindex;
-		hdr.length = n.length;
-		hdr.eyeposition = n.eyeposition;
-		hdr.illumposition = n.illumposition;
-		hdr.hull_min = n.hull_min;
-		hdr.hull_max = n.hull_max;
-		hdr.view_bbmin = n.view_bbmin;
-		hdr.view_bbmax = n.view_bbmax;
-		hdr.flags = n.flags;
-		hdr.numbones = n.numbones;
-		hdr.boneindex = n.boneindex;
-		hdr.numbonecontrollers = n.numbonecontrollers;
-		hdr.bonecontrollerindex = n.bonecontrollerindex;
-		hdr.numhitboxsets = n.numhitboxsets;
-		hdr.hitboxsetindex = n.hitboxsetindex;
-		hdr.numlocalanim = n.numlocalanim;
-		hdr.localanimindex = n.localanimindex;
-		hdr.numlocalseq = n.numlocalseq;
-		hdr.localseqindex = n.localseqindex;
-		hdr.activitylistversion = n.activitylistversion;
-		hdr.materialtypesindex = n.materialtypesindex;
-		hdr.numtextures = n.numtextures;
-		hdr.textureindex = n.textureindex;
-		hdr.numcdtextures = n.numcdtextures;
-		hdr.cdtextureindex = n.cdtextureindex;
-		hdr.numskinref = n.numskinref;
-		hdr.numskinfamilies = n.numskinfamilies;
-		hdr.skinindex = n.skinindex;
-		hdr.numbodyparts = n.numbodyparts;
-		hdr.bodypartindex = n.bodypartindex;
-		hdr.numlocalattachments = n.numlocalattachments;
-		hdr.localattachmentindex = n.localattachmentindex;
-		hdr.SubmeshLodsOffset = n.ikchainindex; // what?
-		hdr.OffsetToBoneRemapInfo = n.boneStateIndex;
-		hdr.BoneRemapCount = n.numBoneStates;
-
-		return hdr;
+		this->id = n.id;
+		this->version = n.version;
+		this->checksum = n.checksum;
+		this->sznameindex = n.sznameindex;
+		this->length = n.length;
+		this->eyeposition = n.eyeposition;
+		this->illumposition = n.illumposition;
+		this->hull_min = n.hull_min;
+		this->hull_max = n.hull_max;
+		this->view_bbmin = n.view_bbmin;
+		this->view_bbmax = n.view_bbmax;
+		this->flags = n.flags;
+		this->numbones = n.numbones;
+		this->boneindex = n.boneindex;
+		this->numbonecontrollers = n.numbonecontrollers;
+		this->bonecontrollerindex = n.bonecontrollerindex;
+		this->numhitboxsets = n.numhitboxsets;
+		this->hitboxsetindex = n.hitboxsetindex;
+		this->numlocalanim = n.numlocalanim;
+		this->localanimindex = n.localanimindex;
+		this->numlocalseq = n.numlocalseq;
+		this->localseqindex = n.localseqindex;
+		this->activitylistversion = n.activitylistversion;
+		this->materialtypesindex = n.materialtypesindex;
+		this->numtextures = n.numtextures;
+		this->textureindex = n.textureindex;
+		this->numcdtextures = n.numcdtextures;
+		this->cdtextureindex = n.cdtextureindex;
+		this->numskinref = n.numskinref;
+		this->numskinfamilies = n.numskinfamilies;
+		this->skinindex = n.skinindex;
+		this->numbodyparts = n.numbodyparts;
+		this->bodypartindex = n.bodypartindex;
+		this->numlocalattachments = n.numlocalattachments;
+		this->localattachmentindex = n.localattachmentindex;
+		this->SubmeshLodsOffset = n.ikchainindex; // what?
+		this->OffsetToBoneRemapInfo = n.boneStateIndex;
+		this->BoneRemapCount = n.numBoneStates;
 	}
 };
 
