@@ -673,8 +673,8 @@ struct ModelHeader
 	Vector3 bbox_max;
 
 private:
-	mdlversion_t _version;
-	int _flags;
+	mdlversion_t _version{};
+	int _flags = 0;
 
 public:
 	inline mdlversion_t version() { return _version; };
@@ -687,7 +687,6 @@ public:
 	void ReadFromAssetStream(std::unique_ptr<IO::MemoryStream>* RpakStream, int headerSize, int assetVersion)
 	{
 		IO::BinaryReader Reader = IO::BinaryReader(RpakStream->get(), true);
-
 
 		switch (assetVersion)
 		{
