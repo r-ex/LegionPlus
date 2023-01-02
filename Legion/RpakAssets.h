@@ -498,7 +498,7 @@ struct ModelHeaderV8
 
 	RPakPtr name;
 
-	char unk1[8];
+	uint64_t unk1;
 
 	// .phy
 	RPakPtr phyData;
@@ -508,44 +508,46 @@ struct ModelHeaderV8
 	RPakPtr animRigs;
 
 	int animRigCount;
-	int unkDataSize;
-	int alignedStreamingSize;
 
+	uint64_t alignedStreamingSize; // size of VTX, VVD, and VVC (before rpak baking).
+
+	// anim sequences directly associated with this model
 	int animSeqCount;
 	RPakPtr animSeqs;
 
-	char unk2[8];
+	uint64_t unk2;
 };
 
 // size: 0x78
 struct ModelHeaderV9
 {
 	RPakPtr studioData;
-	char unk1[8];
+	uint64_t unk1;
 
 	RPakPtr name;
-	char unk2[8];
+	uint64_t unk2;
 
 	RPakPtr phyData;
-	char unk3[8];
+	uint64_t unk3;
 
 	RPakPtr vgCacheData;
 
 	RPakPtr animRigs;
 
-	int animRigCount;
+	uint32_t animRigCount;
 
-	int unkDataSize;
-	int alignedStreamingSize; // full size of the starpak entry, aligned to 4096.
+	uint32_t modelDataSize; // size of VTX, VVD, and VVC (before rpak baking)
+	uint32_t alignedStreamingSize; // full size of the starpak entry (0tVG only), aligned to 4096.
 
-	char unk4[8];
+	uint64_t unk4;
+	uint64_t unk5;
+	uint64_t unk6;
 
-	int animSeqCount;
+	// number of anim sequences directly associated with this model
+	uint32_t animSeqCount;
 	RPakPtr animSeqs;
 
-	char unk5[8];
-	char unk6[8];
-	char unk7[8];
+	uint64_t unk7;
 };
 
 // size: 0x68
@@ -554,16 +556,16 @@ struct ModelHeaderV12_1
 	// IDST data
 	// .mdl
 	RPakPtr studioData;
-	char unk1[8];
+	uint64_t unk1;
 
 	// model path
 	// e.g. mdl/vehicle/goblin_dropship/goblin_dropship.rmdl
 	RPakPtr name;
-	char unk2[8];
+	uint64_t unk2;
 
 	// .phy
 	RPakPtr phyData;
-	char unk3[8];
+	uint64_t unk3;
 
 	// preload cache data for static props
 	RPakPtr vgCacheData;
@@ -578,13 +580,13 @@ struct ModelHeaderV12_1
 	int unkDataSize;
 	int alignedStreamingSize; // full size of the starpak entry, aligned to 4096.
 
-	char unk4[8];
+	uint64_t unk4;
 
 	// number of anim sequences directly associated with this model
-	int animSeqCount;
+	uint32_t animSeqCount;
 	RPakPtr animSeqs;
 
-	char unk5[8];
+	uint64_t unk6;
 };
 
 // size: 0x80
@@ -592,14 +594,14 @@ struct ModelHeaderV13
 {
 	// .rmdl
 	RPakPtr studioData;
-	char unk1[8];
+	uint64_t unk1;
 
 	RPakPtr name;
-	char unk2[8];
+	uint64_t unk2;
 
 	// .phy
 	RPakPtr phyData;
-	char unk3[8];
+	uint64_t unk3;
 
 	// .vvd
 	// this pointer is not always registered
@@ -614,12 +616,12 @@ struct ModelHeaderV13
 	Vector3 bbox_min;
 	Vector3 bbox_max;
 
-	char unk4[8];
+	uint64_t unk4;
 
-	int animSeqCount;
+	uint32_t animSeqCount;
 	RPakPtr animSeqs;
 
-	char unk5[8];
+	uint64_t unk6;
 };
 
 struct ModelHeaderV16
@@ -701,7 +703,7 @@ public:
 			animSeqs = mht.animSeqs;
 			animRigCount = mht.animRigCount;
 			animSeqCount = mht.animSeqCount;
-			alignedStreamingSize = mht.unkDataSize;
+			alignedStreamingSize = mht.alignedStreamingSize;
 
 			SetVersion(8);
 			break;
