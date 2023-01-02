@@ -642,7 +642,7 @@ struct ModelHeader
 
 private:
 	mdlversion_t _version;
-	int _flags;
+	int _flags = 0;
 
 public:
 	inline mdlversion_t version() { return _version; };
