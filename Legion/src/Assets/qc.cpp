@@ -15,14 +15,11 @@ void WriteCommonJiggle(IO::StreamWriter& qc, mstudiojigglebonev54_t*& JiggleBone
 	if (JiggleBone->tipMass)
 		qc.WriteFmt("\t\ttip_mass %.4f\n", JiggleBone->tipMass);
 
-	if (JiggleBone->flags & JIGGLE_HAS_ANGLE_CONSTRAINT && RadiansToDegrees(JiggleBone->angleLimit))
+	if (JiggleBone->flags & JIGGLE_HAS_ANGLE_CONSTRAINT)
 		qc.WriteFmt("\t\tangle_constraint %.4f\n", RadiansToDegrees(JiggleBone->angleLimit));
 
 	if (JiggleBone->flags & JIGGLE_HAS_YAW_CONSTRAINT)
-	{
-		if (RadiansToDegrees(JiggleBone->minYaw) || RadiansToDegrees(JiggleBone->maxYaw))
-			qc.WriteFmt("\t\tyaw_constraint %.4f %.4f\n", RadiansToDegrees(JiggleBone->minYaw), RadiansToDegrees(JiggleBone->maxYaw));
-	}
+		qc.WriteFmt("\t\tyaw_constraint %.4f %.4f\n", RadiansToDegrees(JiggleBone->minYaw), RadiansToDegrees(JiggleBone->maxYaw));
 
 	if (JiggleBone->yawFriction)
 		qc.WriteFmt("\t\tyaw_friction %.4f\n", JiggleBone->yawFriction);
@@ -31,10 +28,7 @@ void WriteCommonJiggle(IO::StreamWriter& qc, mstudiojigglebonev54_t*& JiggleBone
 		qc.WriteFmt("\t\tyaw_bounce %.4f\n", JiggleBone->yawBounce);
 
 	if (JiggleBone->flags & JIGGLE_HAS_PITCH_CONSTRAINT)
-	{
-		if (RadiansToDegrees(JiggleBone->minPitch) || RadiansToDegrees(JiggleBone->maxPitch))
-			qc.WriteFmt("\t\tpitch_constraint %.4f %.4f\n", RadiansToDegrees(JiggleBone->minPitch), RadiansToDegrees(JiggleBone->maxPitch));
-	}
+		qc.WriteFmt("\t\tpitch_constraint %.4f %.4f\n", RadiansToDegrees(JiggleBone->minPitch), RadiansToDegrees(JiggleBone->maxPitch));
 
 	if (JiggleBone->pitchFriction)
 		qc.WriteFmt("\t\tpitch_friction %.4f\n", JiggleBone->pitchFriction);
@@ -45,7 +39,7 @@ void WriteCommonJiggle(IO::StreamWriter& qc, mstudiojigglebonev54_t*& JiggleBone
 
 void WriteJiggleBoneData(IO::StreamWriter& qc, mstudiojigglebonev54_t*& JiggleBone)
 {
-	if (JiggleBone->flags & JIGGLE_IS_RIGID && !JiggleBone->flags & JIGGLE_IS_FLEXIBLE)
+	if ((JiggleBone->flags & JIGGLE_IS_RIGID) && !(JiggleBone->flags & JIGGLE_IS_FLEXIBLE))
 	{
 		qc.Write("\tis_rigid {\n");
 
@@ -80,6 +74,8 @@ void WriteJiggleBoneData(IO::StreamWriter& qc, mstudiojigglebonev54_t*& JiggleBo
 
 		if (JiggleBone->alongDamping)
 			qc.WriteFmt("\t\talong_damping %.4f\n", JiggleBone->alongDamping);
+
+		qc.Write("\t}\n\n");
 	}
 
 	if (JiggleBone->flags & JIGGLE_HAS_BASE_SPRING)
@@ -114,9 +110,9 @@ void WriteJiggleBoneData(IO::StreamWriter& qc, mstudiojigglebonev54_t*& JiggleBo
 
 		if (JiggleBone->baseMass)
 			qc.WriteFmt("\t\tbase_mass %.4f\n", JiggleBone->baseMass);
-	}
 
-	qc.Write("\t}\n");
+		qc.Write("\t}\n\n");
+	}
 };
 
 void SMDWriteRefAnim(const string& Path, const List<Assets::Bone>& Bones, string Name)
@@ -203,6 +199,8 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 	qc.WriteFmt("$modelname \"%s\"\n\n", modelPath.ToCString());
 
 	char* surfaceProp = reinterpret_cast<char*>(rmdlBuf + hdr.surfacepropindex);
+
+	qc.Write("$maxverts 65535 65535\n\n");
 
 	qc.WriteFmt("$surfaceprop \"%s\"\n", surfaceProp);
 
@@ -355,7 +353,7 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 	qc.WriteFmt("$eyeposition %f %f %f\n", hdr.eyeposition.X, hdr.eyeposition.Y, hdr.eyeposition.Z);
 	qc.WriteFmt("$illumposition %f %f %f\n\n", hdr.illumposition.X, hdr.illumposition.Y, hdr.illumposition.Z);
 
-	qc.WriteFmt("$cdmaterials \"\"\n\n");
+	qc.Write("$cdmaterials \"\"\n\n");
 
 	int MaxTextureResize = Model->Materials.Count() < hdr.numtextures ? hdr.numtextures : Model->Materials.Count();
 
@@ -406,38 +404,38 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 
 	if (Model != nullptr)
 	{
-		qc.WriteFmt("//$texturegroup \"skinfamilies\"\n//{\n");
-
-		for (int i = 0; i < hdr.numskinfamilies; i++)
-		{
-			if (AssetVersion >= 16)
-				break;
-
-			char* pSkinFamily = rmdlBuf + hdr.skinindex + (i * hdr.numskinref * sizeof(short));
-
-			std::string skinName = "default";
-
-			if (i > 0)
-			{
-				int sizeofz = (hdr.numskinfamilies * hdr.numskinref * sizeof(short));
-				char* pSkinFamilies = (rmdlBuf + hdr.skinindex + sizeofz) + (sizeofz % 4);
-
-				int* pSkinNameIndex = reinterpret_cast<int*>(pSkinFamilies + ((i - 1) * 4));
-				skinName = std::string(rmdlBuf + *(pSkinNameIndex));
-			}
-
-			qc.WriteFmt("//\t\"%s\" { ", skinName.c_str());
-			for (int j = 0; j < hdr.numskinref; j++)
-			{
-				short texId = *reinterpret_cast<short*>(pSkinFamily + (j * sizeof(short)));
-				string TextureName = string(TextureNames[texId].ToCString()).Replace("\\", "/");
-
-				qc.WriteFmt("//\"%s\" ", TextureName.ToCString());
-			}
-
-			qc.Write("//}\n");
-		}
-		qc.Write("//}\n\n");
+		//qc.WriteFmt("//$texturegroup \"skinfamilies\"\n//{\n");
+		//
+		//for (int i = 0; i < hdr.numskinfamilies; i++)
+		//{
+		//	if (AssetVersion >= 16)
+		//		break;
+		//
+		//	char* pSkinFamily = rmdlBuf + hdr.skinindex + (i * hdr.numskinref * sizeof(short));
+		//
+		//	std::string skinName = "default";
+		//
+		//	if (i > 0)
+		//	{
+		//		int sizeofz = (hdr.numskinfamilies * hdr.numskinref * sizeof(short));
+		//		char* pSkinFamilies = (rmdlBuf + hdr.skinindex + sizeofz) + (sizeofz % 4);
+		//
+		//		int* pSkinNameIndex = reinterpret_cast<int*>(pSkinFamilies + ((i - 1) * 4));
+		//		skinName = std::string(rmdlBuf + *(pSkinNameIndex));
+		//	}
+		//
+		//	qc.WriteFmt("//\t\"%s\" { ", skinName.c_str());
+		//	for (int j = 0; j < hdr.numskinref; j++)
+		//	{
+		//		short texId = *reinterpret_cast<short*>(pSkinFamily + (j * sizeof(short)));
+		//		string TextureName = string(TextureNames[texId].ToCString()).Replace("\\", "/");
+		//
+		//		qc.WriteFmt("//\"%s\" ", TextureName.ToCString());
+		//	}
+		//
+		//	qc.Write("//}\n");
+		//}
+		//qc.Write("//}\n\n");
 
 		List<std::string> ValidTextures{};
 		for (Assets::Mesh& Submesh : Model->Meshes)
