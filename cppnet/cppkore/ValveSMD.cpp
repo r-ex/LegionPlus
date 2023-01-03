@@ -62,67 +62,6 @@ namespace Assets::Exporters
 		}
 	}
 
-	// Find Last Parent Bone Frame Before Bone Position
-	bool GetParentBoneAnimation(int frame, List <Assets::Curve>& Curves, Vector3& Pos)
-	{
-		
-		int MaxXIndex = -1;
-		auto& XKeyFrames = Curves[1].Keyframes;
-		for (int i = 0; i < XKeyFrames.Count(); i++)
-		{
-			if (XKeyFrames[i].Frame.Integer32 < frame)
-				MaxXIndex = i;
-		}
-
-		int MaxYIndex = -1;
-		auto& YKeyFrames = Curves[2].Keyframes;
-		for (int i = 0; i < YKeyFrames.Count(); i++)
-		{
-			if (YKeyFrames[i].Frame.Integer32 < frame)
-				MaxYIndex = i;
-		}
-
-		int MaxZIndex = -1;
-		auto& ZKeyFrames = Curves[3].Keyframes;
-		for (int i = 0; i < ZKeyFrames.Count(); i++)
-		{
-			if (ZKeyFrames[i].Frame.Integer32 < frame)
-				MaxZIndex = i;
-		}
-
-		if (MaxXIndex == -1 && MaxYIndex == -1 && MaxZIndex == -1)
-			return false;
-
-		if (MaxXIndex < XKeyFrames.Count())
-			Pos.X = XKeyFrames[MaxXIndex].Value.Float;
-
-		if (MaxYIndex < YKeyFrames.Count())
-			Pos.X = YKeyFrames[MaxYIndex].Value.Float;
-
-		if (MaxZIndex < ZKeyFrames.Count())
-			Pos.Z = ZKeyFrames[MaxZIndex].Value.Float;
-
-		return true;
-	}
-
-	inline Vector3 GetBoneGlobalPosition(Assets::Bone& MasterBone, List<Assets::Bone> BoneList)
-	{
-		Vector3 GlobalLocation = MasterBone.LocalPosition();
-
-		uint32_t boneparentid = MasterBone.Parent();
-		while (boneparentid != -1)
-		{
-			Assets::Bone& Bone = BoneList[boneparentid];
-
-			GlobalLocation += Bone.LocalPosition();
-
-			boneparentid = Bone.Parent();
-		}
-
-		return GlobalLocation;
-	}
-
-
 	bool ValveSMD::ExportAnimation(const Animation& Animation, const string& Path)
 	{
 		IO::StreamWriter Writer = IO::StreamWriter(IO::File::Create(Path));
@@ -134,13 +73,9 @@ namespace Assets::Exporters
 
 		uint32_t BoneIndex = 0;
 
-		Dictionary<int, Vector3> LastBoneLocations;
-
 		for (Assets::Bone& Bone : Animation.Bones)
 		{
 			Writer.WriteLineFmt("\t%d \"%s\" %d", BoneIndex, (char*)Bone.Name(), Bone.Parent());
-
-			LastBoneLocations.Add(BoneIndex, GetBoneGlobalPosition(Bone, Animation.Bones));
 			BoneIndex++;
 		}
 
@@ -167,36 +102,6 @@ namespace Assets::Exporters
 
 				if (Pos == Vector3(0, 0, 0) && Rot == Vector3(0, 0, 0))
 					continue;
-
-				Vector3 NowPos = Pos;
-
-				Vector3 LastBonePos = LastBoneLocations[j];
-				if (LastBonePos.X != Pos.X && Pos.X != 0.0)
-					Pos.X = Pos.X - LastBonePos.X;
-
-				if (LastBonePos.Y != Pos.Y && Pos.Y != 0.0)
-					Pos.Y = Pos.Y - LastBonePos.Y;
-
-				if (LastBonePos.Z != Pos.Z && Pos.Z != 0.0)
-					Pos.Z = Pos.Z - LastBonePos.Z;
-
-				LastBoneLocations[j] = NowPos;
-
-				// needs to be fixed later
-				//if (Bone.Parent() > -1)
-				//{
-				//	Assets::Bone& pBone = Animation.Bones[j];
-				//	auto& pCurves = Animation.Curves[pBone.Name()];
-				//
-				//	if (!Animation.Curves.ContainsKey(pBone.Name()))
-				//		break;
-				//
-				//	Vector3 pPos{};
-				//	if (GetParentBoneAnimation(i, pCurves, pPos))
-				//	     Pos = pPos - Pos;
-				//	//else Pos = Bone.GlobalPosition() - Pos;
-				//
-				//} else Pos = Bone.GlobalPosition() - Pos;
 
 				Writer.WriteLineFmt("\t%d %f %f %f %f %f %f", j, Pos.X, Pos.Y, Pos.Z, MathHelper::DegreesToRadians(Rot.X), MathHelper::DegreesToRadians(Rot.Y), MathHelper::DegreesToRadians(Rot.Z));
 			}
