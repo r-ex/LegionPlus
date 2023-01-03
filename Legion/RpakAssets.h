@@ -654,8 +654,8 @@ struct ModelHeaderV16
 struct ModelHeader
 {
 	struct mdlversion_t {
-		int major;
-		__int8 minor;
+		int major = 0;
+		__int8 minor = 0;
 	};
 
 	RPakPtr studioData;
@@ -675,7 +675,7 @@ struct ModelHeader
 	Vector3 bbox_max;
 
 private:
-	mdlversion_t _version{};
+	mdlversion_t _version;
 	int _flags = 0;
 
 public:
