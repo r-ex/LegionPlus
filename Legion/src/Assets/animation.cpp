@@ -542,7 +542,7 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 					// this flag does not exist
 					anim.bAdditiveCustom = (AnimCurveType == Assets::AnimationCurveMode::Additive);
 
-					//if (boneFlags & STUDIO_ANIM_BONEPOS)
+					if (boneFlags & STUDIO_ANIM_BONEPOS)
 						CalcBonePosition(anim, &BoneTrackDataPtr, Anim, b, ChunkFrame, Frame);
 					if (boneFlags & STUDIO_ANIM_BONEROT)
 						CalcBoneQuaternion(anim, &BoneTrackDataPtr, Anim, b, ChunkFrame, Frame);
