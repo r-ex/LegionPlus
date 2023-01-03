@@ -84,24 +84,36 @@ namespace Assets::Exporters
 			"skeleton\n"
 		);
 
+		std::vector<bool> UsedFirstLocalPos(Animation.Bones.Count());
+
 		for (int i = 0; i < Animation.FrameCount(); i++)
 		{
 			Writer.WriteLineFmt("time %d", i);
+
+			UsedFirstLocalPos.clear();
+			UsedFirstLocalPos.resize(Animation.Bones.Count());
 
 			for (int j = 0; j < Animation.Bones.Count(); j++)
 			{
 				Assets::Bone& Bone = Animation.Bones[j];
 				auto& Curves = Animation.Curves[Bone.Name()];
 
-				if (!Animation.Curves.ContainsKey(Bone.Name()))
-					continue;
-
 				Vector3 Pos{}, Rot{};
-
 				GetBoneAnimation(i, Curves, Pos, Rot);
 
+				if (Pos == Vector3(0, 0, 0) && !UsedFirstLocalPos[j])
+				{
+					Pos = Bone.LocalPosition();
+
+					if(Rot == Vector3(0, 0, 0))
+						Rot = Bone.LocalRotation().ToEulerAngles();
+
+					UsedFirstLocalPos[j] = true;
+				}
+				
 				if (Pos == Vector3(0, 0, 0) && Rot == Vector3(0, 0, 0))
 					continue;
+
 
 				Writer.WriteLineFmt("\t%d %f %f %f %f %f %f", j, Pos.X, Pos.Y, Pos.Z, MathHelper::DegreesToRadians(Rot.X), MathHelper::DegreesToRadians(Rot.Y), MathHelper::DegreesToRadians(Rot.Z));
 			}

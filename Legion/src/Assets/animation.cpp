@@ -542,7 +542,7 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 					// this flag does not exist
 					anim.bAdditiveCustom = (AnimCurveType == Assets::AnimationCurveMode::Additive);
 
-					if (boneFlags & STUDIO_ANIM_BONEPOS)
+					//if (boneFlags & STUDIO_ANIM_BONEPOS)
 						CalcBonePosition(anim, &BoneTrackDataPtr, Anim, b, ChunkFrame, Frame);
 					if (boneFlags & STUDIO_ANIM_BONEROT)
 						CalcBoneQuaternion(anim, &BoneTrackDataPtr, Anim, b, ChunkFrame, Frame);
@@ -552,8 +552,7 @@ void RpakLib::ExtractAnimation(const RpakLoadAsset& Asset, const List<Assets::Bo
 			}
 		}
 
-		if (AnimFormat != AnimExportFormat_t::SMD)
-			Anim->RemoveEmptyNodes();
+		Anim->RemoveEmptyNodes();
 
 		string DestinationPath = IO::Path::Combine(Path, animName + string::Format("_%d", i) + (const char*)this->AnimExporter->AnimationExtension());
 
@@ -756,8 +755,7 @@ void RpakLib::ExtractAnimation_V11(const RpakLoadAsset& Asset, const List<Assets
 			}
 		}
 
-		if (AnimFormat != AnimExportFormat_t::SMD)
-		      Anim->RemoveEmptyNodes();
+		Anim->RemoveEmptyNodes();
 
 		string DestinationPath = IO::Path::Combine(Path, animName + string::Format("_%d", i) + (const char*)this->AnimExporter->AnimationExtension());
 		
