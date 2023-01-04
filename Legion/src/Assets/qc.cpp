@@ -384,7 +384,7 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 				RMdlMaterial ParsedMaterial = this->ExtractMaterialSilent(MaterialAsset, "", false, true);
 
 				TextureTypes[i] = MaterialTypes[ParsedMaterial.MaterialType];
-				TextureNames[i] = ParsedMaterial.FullMaterialName.ToLower() + TextureTypes[i];
+				TextureNames[i] = ParsedMaterial.FullMaterialName.ToLower();
 			}
 
 			continue;
@@ -448,7 +448,7 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 				if (Submesh.MaterialIndices[0] > -1)
 				{
 					int materialindex = Submesh.MaterialIndices[0];
-					string SubMeshTextureName = Model->Materials[materialindex].Name.ToLower() + TextureTypes[materialindex];
+					string SubMeshTextureName = Model->Materials[materialindex].Name.ToLower();
 
 					for (int i = 0; i < TextureNames.size(); i++)
 					{
@@ -469,8 +469,14 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 			}
 		}
 
-		for (auto& ValidTexture : ValidTextures)
-			qc.WriteFmt("$renamematerial \"%s\" \"%s\"\n", IO::Path::GetFileNameWithoutExtension(ValidTexture.c_str()).ToCString(), ValidTexture.c_str());
+		for (int i = 0; i < ValidTextures.Count(); i++)
+		{
+			std::string ValidTexture = ValidTextures[i];
+			string MaterialName = IO::Path::GetFileNameWithoutExtension(ValidTexture.c_str());
+
+			qc.WriteFmt("$renamematerial \"%s\" \"%s\"\n", MaterialName.Replace(TextureTypes[i].ToCString(), "").ToCString(), ValidTexture.c_str());
+		}
+			
 
 		qc.Write("\n");
 	}
