@@ -551,6 +551,414 @@ struct r2studiohdr_t // titanfall 2 studiohdr (MDL v53)
 	int unused1[60]; // god I hope
 };
 
+struct studiohdr_t_v121
+{
+	int id; // Model format ID, such as "IDST" (0x49 0x44 0x53 0x54)
+	int version; // Format version number, such as 48 (0x30,0x00,0x00,0x00)
+	int checksum; // This has to be the same in the phy and vtx files to load!
+	int sznameindex; // This has been moved from studiohdr2 to the front of the main header.
+	char name[64]; // The internal name of the model, padding with null bytes.
+	// Typically "my_model.mdl" will have an internal name of "my_model"
+	int length; // Data size of MDL file in bytes.
+
+	Vector3 eyeposition;	// ideal eye position
+
+	Vector3 illumposition;	// illumination center
+
+	Vector3 hull_min;		// ideal movement hull size
+	Vector3 hull_max;
+
+	Vector3 view_bbmin;		// clipping bounding box
+	Vector3 view_bbmax;
+
+	int flags;
+
+	int numbones; // bones
+	int boneindex;
+
+	int numbonecontrollers; // bone controllers
+	int bonecontrollerindex;
+
+	int numhitboxsets;
+	int hitboxsetindex;
+
+	// unused now
+	int numlocalanim; // animations/poses
+	int localanimindex; // animation descriptions
+
+	int numlocalseq; // sequences
+	int	localseqindex;
+
+	int activitylistversion; // initialization flag - have the sequences been indexed?
+
+	// mstudiotexture_t
+	// short rpak path
+	// raw textures
+	int materialtypesindex;
+	int numtextures; // the material limit exceeds 128, probably 256.
+	int textureindex;
+
+	// this should always only be one, unless using vmts.
+	// raw textures search paths
+	int numcdtextures;
+	int cdtextureindex;
+
+	// replaceable textures tables
+	int numskinref;
+	int numskinfamilies;
+	int skinindex;
+
+	int numbodyparts;
+	int bodypartindex;
+
+	int numlocalattachments;
+	int localattachmentindex;
+
+	int numlocalnodes;
+	int localnodeindex;
+	int localnodenameindex;
+
+	int numunknodes;
+	int nodedataindexindex;
+
+	int numikchains;
+	int ikchainindex;
+
+	// this is rui meshes
+	int numruimeshes;
+	int ruimeshindex;
+
+	int numlocalposeparameters;
+	int localposeparamindex;
+
+	int surfacepropindex;
+
+	int keyvalueindex;
+	int keyvaluesize;
+
+	int numlocalikautoplaylocks;
+	int localikautoplaylockindex;
+
+	float mass;
+	int contents;
+
+	// unused for packed models
+	int numincludemodels;
+	int includemodelindex;
+
+	uint32_t virtualModel;
+
+	int bonetablebynameindex;
+
+	// stuff moved from vg in v12.1
+	int numVGMeshes; // total number of meshes, not including LODs
+	int vgMeshIndex;
+
+	int boneStateIndex;
+	int numBoneStates;
+
+	int unk_v54_v121; // related to vg likely
+
+	int vgSize;
+
+	short vgUnk; // same as padding in vg header
+	short vgLODCount; // same as lod count in vg header
+
+	int vgNumUnknown; // same as unk1 in vg header
+
+	int vgHeaderIndex;
+	int numVGHeaders;
+
+	int vgLODIndex;
+	int numVGLODs;
+
+	float fadeDistance;
+
+	float gathersize; // what. from r5r struct
+
+	float flVertAnimFixedPointScale; // to be verified
+	int surfacepropLookup; // saved in the file
+
+	// asset bakery strings if it has any
+	int sourceFilenameOffset;
+
+	int numsrcbonetransform;
+	int srcbonetransformindex;
+
+	int	illumpositionattachmentindex;
+
+	int linearboneindex;
+
+	// unsure what this is for but it exists for jigglbones
+	int numprocbonesunk;
+	int procbonearrayindex;
+	int procbonemaskindex;
+
+	// always "" or "Titan"
+	int unkstringindex;
+
+	// the indexes are added to the offset in the rpak mdl_ header.
+	// vphy isn't vphy, looks like a heavily modified vphy.
+	// something different about these now
+	int vtxindex; // VTX
+	int vvdindex; // VVD / IDSV
+	int vvcindex; // VVC / IDCV 
+	int vphyindex; // VPHY / IVPS
+
+	int vtxsize;
+	int vvdsize;
+	int vvcsize;
+	int vphysize;
+
+	// only seen on '_animated' suffixed models so far
+	int unkcount3;
+	int unkindex3;
+
+	// BVH4 size (?)
+	Vector3 mins;
+	Vector3 maxs; // seem to be the same as hull size
+
+	int bvh4index; // bvh4 tree
+
+	short unk4_v54[2]; // same as unk3_v54_v121, 2nd might be base for other offsets?
+
+	int vvwindex;
+	int vvwsize;
+
+	inline s3studiohdr_t Downgrade()
+	{
+		s3studiohdr_t out{};
+		out.flags = this->flags;
+		out.surfacepropindex = this->surfacepropindex;
+		out.contents = this->contents;
+		out.eyeposition = this->eyeposition;
+		out.illumposition = this->illumposition;
+		out.numbones = this->numbones;
+		out.boneindex = this->boneindex;
+		out.numbodyparts = this->numbodyparts;
+		out.bodypartindex = this->bodypartindex;
+		out.numlocalattachments = this->numlocalattachments;
+		out.localattachmentindex = this->localattachmentindex;
+		out.numskinfamilies = this->numskinfamilies;
+		out.skinindex = this->skinindex;
+		out.numskinref = this->numskinref;
+		out.numhitboxsets = this->numhitboxsets;
+		out.hitboxsetindex = this->hitboxsetindex;
+		out.textureindex = this->textureindex;
+		out.numtextures = this->numtextures;
+		out.ikchainindex = this->ikchainindex;
+		out.ikchainindex = this->numikchains;
+		out.localposeparamindex = this->localposeparamindex;
+		out.numlocalposeparameters = this->numlocalposeparameters;
+		return out;
+	}
+};
+
+struct studiohdr_t_v122
+{
+	int id; // Model format ID, such as "IDST" (0x49 0x44 0x53 0x54)
+	int version; // Format version number, such as 48 (0x30,0x00,0x00,0x00)
+	int checksum; // This has to be the same in the phy and vtx files to load!
+	int sznameindex; // This has been moved from studiohdr2 to the front of the main header.
+	char name[64]; // The internal name of the model, padding with null bytes.
+	// Typically "my_model.mdl" will have an internal name of "my_model"
+	int length; // Data size of MDL file in bytes.
+
+	Vector3 eyeposition;	// ideal eye position
+
+	Vector3 illumposition;	// illumination center
+
+	Vector3 hull_min;		// ideal movement hull size
+	Vector3 hull_max;
+
+	Vector3 view_bbmin;		// clipping bounding box
+	Vector3 view_bbmax;
+
+	int flags;
+
+	int numbones; // bones
+	int boneindex;
+
+	int numbonecontrollers; // bone controllers
+	int bonecontrollerindex;
+
+	int numhitboxsets;
+	int hitboxsetindex;
+
+	// unused now
+	int numlocalanim; // animations/poses
+	int localanimindex; // animation descriptions
+
+	int numlocalseq; // sequences
+	int	localseqindex;
+
+	int activitylistversion; // initialization flag - have the sequences been indexed?
+
+	// mstudiotexture_t
+	// short rpak path
+	// raw textures
+	int materialtypesindex;
+	int numtextures; // the material limit exceeds 128, probably 256.
+	int textureindex;
+
+	// this should always only be one, unless using vmts.
+	// raw textures search paths
+	int numcdtextures;
+	int cdtextureindex;
+
+	// replaceable textures tables
+	int numskinref;
+	int numskinfamilies;
+	int skinindex;
+
+	int numbodyparts;
+	int bodypartindex;
+
+	int numlocalattachments;
+	int localattachmentindex;
+
+	int numlocalnodes;
+	int localnodeindex;
+	int localnodenameindex;
+
+	int numunknodes;
+	int nodedataindexindex;
+
+	int numikchains;
+	int ikchainindex;
+
+	// this is rui meshes
+	int numruimeshes;
+	int ruimeshindex;
+
+	int numlocalposeparameters;
+	int localposeparamindex;
+
+	int surfacepropindex;
+
+	int keyvalueindex;
+	int keyvaluesize;
+
+	int numlocalikautoplaylocks;
+	int localikautoplaylockindex;
+
+	float mass;
+	int contents;
+
+	// unused for packed models
+	int numincludemodels;
+	int includemodelindex;
+
+	uint32_t virtualModel;
+
+	int bonetablebynameindex;
+
+	// stuff moved from vg in v12.1
+	int numVGMeshes; // total number of meshes, not including LODs
+	int vgMeshIndex;
+
+	int boneStateIndex;
+	int numBoneStates;
+
+	int unk_v54_v121; // related to vg likely
+
+	int vgSize;
+
+	short vgUnk; // same as padding in vg header
+	short vgLODCount; // same as lod count in vg header
+
+	int vgNumUnknown; // same as unk1 in vg header
+
+	int vgHeaderIndex;
+	int numVGHeaders;
+
+	int vgLODIndex;
+	int numVGLODs;
+
+	float fadeDistance;
+
+	float gathersize; // what. from r5r struct
+
+	float flVertAnimFixedPointScale; // to be verified
+	int surfacepropLookup; // saved in the file
+
+	int unk_v54_v122; // added in transition version
+
+	// asset bakery strings if it has any
+	int sourceFilenameOffset;
+
+	int numsrcbonetransform;
+	int srcbonetransformindex;
+
+	int	illumpositionattachmentindex;
+
+	int linearboneindex;
+
+	// unsure what this is for but it exists for jigglbones
+	int numprocbonesunk;
+	int procbonearrayindex;
+	int procbonemaskindex;
+
+	// always "" or "Titan"
+	int unkstringindex;
+
+	// the indexes are added to the offset in the rpak mdl_ header.
+	// vphy isn't vphy, looks like a heavily modified vphy.
+	// something different about these now
+	int vtxindex; // VTX
+	int vvdindex; // VVD / IDSV
+	int vvcindex; // VVC / IDCV 
+	int vphyindex; // VPHY / IVPS
+
+	int vtxsize;
+	int vvdsize;
+	int vvcsize;
+	int vphysize;
+
+	// only seen on '_animated' suffixed models so far
+	int unkcount3;
+	int unkindex3;
+
+	// BVH4 size (?)
+	Vector3 mins;
+	Vector3 maxs; // seem to be the same as hull size
+
+	int bvh4index; // bvh4 tree
+
+	short unk4_v54[2]; // same as unk3_v54_v121, 2nd might be base for other offsets?
+
+	int vvwindex;
+	int vvwsize;
+
+	inline s3studiohdr_t Downgrade()
+	{
+		s3studiohdr_t out{};
+		out.flags = this->flags;
+		out.surfacepropindex = this->surfacepropindex;
+		out.contents = this->contents;
+		out.eyeposition = this->eyeposition;
+		out.illumposition = this->illumposition;
+		out.numbones = this->numbones;
+		out.boneindex = this->boneindex;
+		out.numbodyparts = this->numbodyparts;
+		out.bodypartindex = this->bodypartindex;
+		out.numlocalattachments = this->numlocalattachments;
+		out.localattachmentindex = this->localattachmentindex;
+		out.numskinfamilies = this->numskinfamilies;
+		out.skinindex = this->skinindex;
+		out.numskinref = this->numskinref;
+		out.numhitboxsets = this->numhitboxsets;
+		out.hitboxsetindex = this->hitboxsetindex;
+		out.textureindex = this->textureindex;
+		out.numtextures = this->numtextures;
+		out.ikchainindex = this->ikchainindex;
+		out.ikchainindex = this->numikchains;
+		out.localposeparamindex = this->localposeparamindex;
+		out.numlocalposeparameters = this->numlocalposeparameters;
+		return out;
+	}
+};
+
 struct studiohdr_t_v13
 {
 	int id; // Model format ID, such as "IDST" (0x49 0x44 0x53 0x54)

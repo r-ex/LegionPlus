@@ -192,7 +192,10 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 		hdr = reinterpret_cast<studiohdr_t_v16*>(rmdlBuf)->Downgrade();
 		break;
 	default:
-		hdr = *reinterpret_cast<s3studiohdr_t*>(rmdlBuf);
+		if(Asset.SubHeaderSize == 0x68)
+			hdr = reinterpret_cast<studiohdr_t_v121*>(rmdlBuf)->Downgrade();
+		else
+		    hdr = *reinterpret_cast<s3studiohdr_t*>(rmdlBuf);
 		break;
 	}
 
