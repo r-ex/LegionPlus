@@ -471,10 +471,11 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 
 		for (int i = 0; i < ValidTextures.Count(); i++)
 		{
-			std::string ValidTexture = ValidTextures[i];
-			string MaterialName = IO::Path::GetFileNameWithoutExtension(ValidTexture.c_str());
+			string ValidTexture = ValidTextures[i].c_str();
+			string MaterialName = IO::Path::GetFileNameWithoutExtension(ValidTexture);
+			ValidTexture = ValidTexture.Replace(TextureTypes[i].ToCString(), "") + TextureTypes[i];
 
-			qc.WriteFmt("$renamematerial \"%s\" \"%s\"\n", MaterialName.Replace(TextureTypes[i].ToCString(), "").ToCString(), ValidTexture.c_str());
+			qc.WriteFmt("$renamematerial \"%s\" \"%s\"\n", MaterialName.Replace(TextureTypes[i].ToCString(), "").ToCString(), ValidTexture.ToCString());
 		}
 			
 
