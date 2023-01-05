@@ -305,28 +305,30 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 
 		if (Assets.ContainsKey(PixelShaderGuid))
 			PixelShaderResBindings = ExtractShaderResourceBindings(Assets[PixelShaderGuid], D3D_SHADER_INPUT_TYPE::D3D_SIT_TEXTURE);
-		else
-			g_Logger.Warning("Shaderset for material '%s' referenced a pixel shader that is not currently loaded. Unable to associate texture types.\n", Result.MaterialName.ToCString());
+		//else
+		//	g_Logger.Warning("Shaderset for material '%s' referenced a pixel shader that is not currently loaded. Unable to associate texture types.\n", Result.MaterialName.ToCString());
 	}
 
-	g_Logger.Info("\n\nMaterial Info for '%s' (%llX)\n", Result.MaterialName.ToCString(), Asset.NameHash);
+	g_Logger.Info("Material Info for '%s' (%llX)\n", Result.MaterialName.ToCString(), Asset.NameHash);
+	g_Logger.Info("=================================\n");
+	g_Logger.Info("> ShaderSet: %llx : %llu (%s) \n", hdr.shaderSetGuid, hdr.shaderSetGuid, shadersetLoaded ? "LOADED" : "NOT LOADED");
+	g_Logger.Info("=================================\n");
 
 	if (Asset.Version == RpakGameVersion::Apex)
 	{
 		g_Logger.Info("> Flags         : 0x%08X : %d\n", hdr.flags, hdr.flags);
 		g_Logger.Info("> Flags2        : 0x%08X : %d\n", hdr.Flags2, hdr.Flags2);
-		g_Logger.Info("> VisFlags      : 0x%lX : %d\n", hdr.m_UnknownSections[0].visFlags, hdr.m_UnknownSections[0].visFlags);
+		g_Logger.Info("> VisFlags      : 0x%lX  : %d\n", hdr.m_UnknownSections[0].visFlags, hdr.m_UnknownSections[0].visFlags);
 		g_Logger.Info("> FaceDrawFlags : 0x%lX  : %d\n", hdr.m_UnknownSections[0].faceDrawFlags, hdr.m_UnknownSections[0].faceDrawFlags);
-		g_Logger.Info("> UnkFlags      : 0x%lX  : %d\n\n", hdr.m_UnknownSections[0].unkRenderFlags, hdr.m_UnknownSections[0].unkRenderFlags);
-
-		g_Logger.Info("> DepthShadow      : 0x%llX\n", hdr.materialGuids[0]);
-		g_Logger.Info("> DepthPrepass     : 0x%llX\n", hdr.materialGuids[1]);
-		g_Logger.Info("> DepthVSM         : 0x%llX\n", hdr.materialGuids[2]);
-		g_Logger.Info("> DepthShadowTight : 0x%llX\n\n", hdr.materialGuids[3]);
+		g_Logger.Info("> UnkFlags      : 0x%lX  : %d\n", hdr.m_UnknownSections[0].unkRenderFlags, hdr.m_UnknownSections[0].unkRenderFlags);
+		g_Logger.Info("=================================\n");
+		g_Logger.Info("> DepthShadow      : 0x%llX : %llu\n", hdr.materialGuids[0], hdr.materialGuids[0]);
+		g_Logger.Info("> DepthPrepass     : 0x%llX : %llu\n", hdr.materialGuids[1], hdr.materialGuids[1]);
+		g_Logger.Info("> DepthVSM         : 0x%llX : %llu\n", hdr.materialGuids[2], hdr.materialGuids[2]);
+		g_Logger.Info("> DepthShadowTight : 0x%llX : %llu\n", hdr.materialGuids[3], hdr.materialGuids[3]);
 	};
 
-	g_Logger.Info("> ShaderSet: %llx (%s)\n\n", hdr.shaderSetGuid, shadersetLoaded ? "LOADED" : "NOT LOADED");
-
+	g_Logger.Info("=================================\n");
 	const uint64_t TextureTable = this->GetFileOffset(Asset, hdr.textureHandles.Index, hdr.textureHandles.Offset); // (Asset.Version == RpakGameVersion::Apex) ? : this->GetFileOffset(Asset, hdr.TexturesTFIndex, hdr.TexturesTFOffset);
 	uint32_t TexturesCount = (hdr.streamingTextureHandles.Offset - hdr.textureHandles.Offset) / 8;
 	g_Logger.Info("> %i textures:\n", TexturesCount);
@@ -400,7 +402,7 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 		else
 		{
 			if (Asset.Version == RpakGameVersion::Apex)
-				g_Logger.Info(">> %i: 0x0 - %s\n", i, "(no assigned name)");
+				g_Logger.Info(">> %i: 0x0\n", i);
 		}
 
 		// Extract to disk if need be
@@ -415,7 +417,7 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 		}
 	}
 
-	g_Logger.Info("\n");
+	g_Logger.Info("=================================\n\n");
 
 	return Result;
 }
