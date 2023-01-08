@@ -238,7 +238,7 @@ void LegionMain::LoadApexFile(const List<string>& File)
 
 			Main->RefreshView();
 		}
-		else
+		else if (Main->LoadPath[0].EndsWith(".mbnk"))
 		{
 			Main->AssetsListView->SetVirtualListSize(0);
 			Main->RpakFileSystem = nullptr;
@@ -257,6 +257,11 @@ void LegionMain::LoadApexFile(const List<string>& File)
 				Forms::MessageBox::Show("An error occurred while loading the MBNK:\n\n" + string(e.what()), "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
 				Main->StatusLabel->SetText("Idle");
 			}
+		}
+		else
+		{
+			Forms::MessageBox::Show("Your Apex Legends installation isn't finished, wait till it's done", "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
+			Main->RefreshView();
 		}
 
 		Main->LoadRPakButton->SetEnabled(true);
@@ -610,7 +615,7 @@ void LegionMain::OnLoadClick(Forms::Control* Sender)
 {
 	LegionMain* ThisPtr = (LegionMain*)Sender->FindForm();
 
-	List<string> OpenFileD = OpenFileDialog::ShowMultiFileDialog("Legion+: Select file(s) to load", "", "Apex Legends Files (MBnk, RPak, Bsp)|*.mbnk;*.rpak;*.bsp", Sender->FindForm());
+	List<string> OpenFileD = OpenFileDialog::ShowMultiFileDialog("Legion+: Select file(s) to load", "", "Apex Legends Files (MBnk, RPak, Bsp)|*.mbnk;*.rpak;*.bsp;*.rpak_DiP_STAGED", Sender->FindForm());
 
 	for (uint32_t i = 0; i < OpenFileD.Count(); i++)
 	{
