@@ -53,7 +53,9 @@ void RpakLib::ExportDataTable(const RpakLoadAsset& Asset, const string& Path)
 			switch (cd.Type)
 			{
 			case DataTableColumnDataType::Bool:
-				dtbl_out << cd.bValue;
+				if (cd.bValue)
+					dtbl_out << "true";
+				else dtbl_out << "false";
 				break;
 			case DataTableColumnDataType::Int:
 				dtbl_out << cd.iValue;
