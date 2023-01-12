@@ -31,7 +31,7 @@ namespace Assets::Exporters
 			{
 				Rot = KeyFrame.Value.Vector4.ToEulerAngles();
 				break;
-			}	
+			}
 		}
 
 		for (Assets::CurveKeyframe& KeyFrame : Curves[1].Keyframes)
@@ -40,7 +40,7 @@ namespace Assets::Exporters
 			{
 				Pos.X = KeyFrame.Value.Float;
 				break;
-			}	
+			}
 		}
 
 		for (Assets::CurveKeyframe& KeyFrame : Curves[2].Keyframes)
@@ -105,15 +105,14 @@ namespace Assets::Exporters
 				{
 					Pos = Bone.LocalPosition();
 
-					if(Rot == Vector3(0, 0, 0))
+					if (Rot == Vector3(0, 0, 0))
 						Rot = Bone.LocalRotation().ToEulerAngles();
 
 					UsedFirstLocalPos[j] = true;
 				}
-				
+
 				if (Pos == Vector3(0, 0, 0) && Rot == Vector3(0, 0, 0))
 					continue;
-
 
 				Writer.WriteLineFmt("\t%d %f %f %f %f %f %f", j, Pos.X, Pos.Y, Pos.Z, MathHelper::DegreesToRadians(Rot.X), MathHelper::DegreesToRadians(Rot.Y), MathHelper::DegreesToRadians(Rot.Z));
 			}
@@ -184,16 +183,33 @@ namespace Assets::Exporters
 	bool ValveSMD::ExportModel(const Model& Model, const string& Path)
 	{
 		int bodypart_index = 0;
+		Assets::MatIndexBuffer NewMeshIds{};
 
 		for (auto& Submesh : Model.BodyPartNames)
 		{
-			auto& MeshIds = Model.BodyPartMeshIds[bodypart_index];
+			Assets::MatIndexBuffer& MeshIds = Model.BodyPartMeshIds[bodypart_index];
 
-			string NewPath = IO::Path::Combine(IO::Path::GetDirectoryName(Path), Submesh) + ModelExtension().ToCString();
+			if (MeshIds.Count() >= 3)
+			{
+				for (int i = 0; i < MeshIds.Count(); i++)
+				{
+					string NewPath = IO::Path::Combine(IO::Path::GetDirectoryName(Path), Submesh) + (string::Format("_%d",i).ToCString()) + ModelExtension().ToCString();
 
-			IO::StreamWriter Writer = IO::StreamWriter(IO::File::Create(NewPath));
+					NewMeshIds.EmplaceBack(MeshIds[i]);
 
-			WriteSubMesh(Writer, Model, MeshIds, NewPath);
+					IO::StreamWriter Writer = IO::StreamWriter(IO::File::Create(NewPath));
+					WriteSubMesh(Writer, Model, NewMeshIds, NewPath);
+
+					NewMeshIds.Clear();
+				}
+			}
+			else
+			{
+				string NewPath = IO::Path::Combine(IO::Path::GetDirectoryName(Path), Submesh) + ModelExtension().ToCString();
+
+				IO::StreamWriter Writer = IO::StreamWriter(IO::File::Create(NewPath));
+				WriteSubMesh(Writer, Model, MeshIds, NewPath);
+			}
 
 			bodypart_index++;
 		}

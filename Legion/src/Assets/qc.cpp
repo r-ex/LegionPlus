@@ -159,6 +159,8 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 	int AssetVersion = Asset.AssetVersion;
 	bool IsRig = Asset.AssetType == (uint32_t)AssetType_t::AnimationRig;
 
+	string extention = "";
+
 	if (IsRig) // stupid way of getting the highest Asset Version
 	{
 		int MaxVersion = 0;
@@ -169,8 +171,10 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 				MaxVersion = val.AssetVersion;
 		}
 
+		extention = this->AnimExporter->ModelExtension();
 		AssetVersion = MaxVersion;
 	}
+	else extention = this->ModelExporter->ModelExtension();
 
 	if (AssetVersion > 16)
 		return;
@@ -192,10 +196,10 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 		hdr = reinterpret_cast<studiohdr_t_v16*>(rmdlBuf)->Downgrade();
 		break;
 	default:
-		if(Asset.SubHeaderSize == 0x68 && AssetVersion == 12)
+		if (Asset.SubHeaderSize == 0x68 && AssetVersion == 12)
 			hdr = reinterpret_cast<studiohdr_t_v121*>(rmdlBuf)->Downgrade();
 		else
-		    hdr = *reinterpret_cast<s3studiohdr_t*>(rmdlBuf);
+			hdr = *reinterpret_cast<s3studiohdr_t*>(rmdlBuf);
 		break;
 	}
 
@@ -212,7 +216,6 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 
 	if (hdr.flags & STUDIOHDR_FLAGS_FORCE_OPAQUE)
 		qc.Write("$opaque\n\n");
-
 
 	std::vector<std::string> BoneNames(hdr.numbones);
 	std::vector<mstudiobonev54_t> Bones(hdr.numbones);
@@ -262,22 +265,22 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 		}
 	}
 
-	for (int i = 0; i < hdr.numbodyparts; i++)
+	for (int BodyPartIndex = 0; BodyPartIndex < hdr.numbodyparts; BodyPartIndex++)
 	{
 		char* pBodyPart = rmdlBuf + hdr.bodypartindex;
 		mstudiobodyparts_t bodyPart{};
 		switch (AssetVersion)
 		{
 		case 15:
-			pBodyPart = pBodyPart + (i * sizeof(mstudiobodyparts_t_v15));
+			pBodyPart = pBodyPart + (BodyPartIndex * sizeof(mstudiobodyparts_t_v15));
 			bodyPart = reinterpret_cast<mstudiobodyparts_t_v15*>(pBodyPart)->Downgrade();
 			break;
 		case 16:
-			pBodyPart = pBodyPart + (i * sizeof(mstudiobodyparts_t_v16));
+			pBodyPart = pBodyPart + (BodyPartIndex * sizeof(mstudiobodyparts_t_v16));
 			bodyPart = reinterpret_cast<mstudiobodyparts_t_v16*>(pBodyPart)->Downgrade();
 			break;
 		default:
-			pBodyPart = pBodyPart + (i * sizeof(mstudiobodyparts_t));
+			pBodyPart = pBodyPart + (BodyPartIndex * sizeof(mstudiobodyparts_t));
 			bodyPart = *reinterpret_cast<mstudiobodyparts_t*>(pBodyPart);
 			break;
 		}
@@ -286,8 +289,10 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 
 		qc.WriteFmt("$bodygroup \"%s\"\n{\n", bodyPartName);
 
+		int EmptyIndex = -1;
+		List<mstudiomodelv54_t> BodyPartmodels;
 		List<int> BodyPartMeshes;
-		for (int j = 0; j < bodyPart.nummodels; j++)
+		for (int ModelIndex = 0; ModelIndex < bodyPart.nummodels; ModelIndex++)
 		{
 			char* pModel = pBodyPart + bodyPart.modelindex;
 			mstudiomodelv54_t model{};
@@ -295,30 +300,30 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 			switch (AssetVersion)
 			{
 			case 13:
-				pModel = pModel + (j * sizeof(mstudiomodelv54_t_v13));
+				pModel = pModel + (ModelIndex * sizeof(mstudiomodelv54_t_v13));
 				model = reinterpret_cast<mstudiomodelv54_t_v13*>(pModel)->Downgrade();
 				break;
 			case 14:
 			case 15:
-				pModel = pModel + (j * sizeof(mstudiomodelv54_t_v14));
+				pModel = pModel + (ModelIndex * sizeof(mstudiomodelv54_t_v14));
 				model = reinterpret_cast<mstudiomodelv54_t_v14*>(pModel)->Downgrade();
 				break;
 			case 16:
-				pModel = pModel + (j * sizeof(mstudiomodelv54_t_v16));
+				pModel = pModel + (ModelIndex * sizeof(mstudiomodelv54_t_v16));
 				model = reinterpret_cast<mstudiomodelv54_t_v16*>(pModel)->Downgrade();
 				break;
 			default:
-				pModel = pModel + (j * sizeof(mstudiomodelv54_t));
+				pModel = pModel + (ModelIndex * sizeof(mstudiomodelv54_t));
 				model = *reinterpret_cast<mstudiomodelv54_t*>(pModel);
 				break;
 			}
 
-			if (model.nummeshes > 0 || *model.name)
-				qc.WriteFmt("\tstudio \"%s.smd\"\n", bodyPartName);
-			else
-				qc.Write("\tblank\n");
+			if (model.nummeshes == 0)
+				EmptyIndex = ModelIndex;
 
-			for (int a = 0; a < model.nummeshes; a++)
+			BodyPartmodels.EmplaceBack(model);
+
+			for (int MeshIndex = 0; MeshIndex < model.nummeshes; MeshIndex++)
 			{
 				char* pMesh = pModel + model.meshindex;
 				mstudiomeshv54_t mesh{};
@@ -326,18 +331,18 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 				switch (AssetVersion)
 				{
 				case 16:
-					pMesh = pMesh + (a * sizeof(mstudiomeshv54_t_v16));
+					pMesh = pMesh + (MeshIndex * sizeof(mstudiomeshv54_t_v16));
 					mesh = reinterpret_cast<mstudiomeshv54_t_v16*>(pMesh)->Downgrade();
 					break;
 				default:
 					if (AssetVersion <= 10)
 					{
-						pMesh = pMesh + (a * sizeof(mstudiomeshv54_t));
+						pMesh = pMesh + (MeshIndex * sizeof(mstudiomeshv54_t));
 						mesh = *reinterpret_cast<mstudiomeshv54_t*>(pMesh);
 					}
 					else
 					{
-						pMesh = pMesh + (a * sizeof(mstudiomeshv54_t_v121));
+						pMesh = pMesh + (MeshIndex * sizeof(mstudiomeshv54_t_v121));
 						mesh = reinterpret_cast<mstudiomeshv54_t_v121*>(pMesh)->Downgrade();
 					}
 					break;
@@ -345,6 +350,21 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 
 				BodyPartMeshes.EmplaceBack(mesh.meshid);
 			}
+		}
+
+		for (int ModelIndex = 0; ModelIndex < bodyPart.nummodels; ModelIndex++)
+		{
+			mstudiomodelv54_t model = BodyPartmodels[ModelIndex];
+
+			if (EmptyIndex != ModelIndex)
+			{
+				if (bodyPart.nummodels >= 3)
+					qc.WriteFmt("\tstudio \"%s_%d%s\"\n", bodyPartName, ModelIndex, extention.ToCString());
+				else
+				    qc.WriteFmt("\tstudio \"%s%s\"\n", bodyPartName, extention.ToCString());
+			}
+			else
+				qc.Write("\tblank\n");
 		}
 
 		Model->BodyPartNames.EmplaceBack(bodyPartName);
@@ -477,7 +497,6 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 
 			qc.WriteFmt("$renamematerial \"%s\" \"%s\"\n", MaterialName.Replace(TextureTypes[i].ToCString(), "").ToCString(), ValidTexture.ToCString());
 		}
-			
 
 		qc.Write("\n");
 	}
@@ -535,7 +554,6 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 			attachment.localmatrix.c3r0, attachment.localmatrix.c3r1, attachment.localmatrix.c3r2,
 			angles.X, angles.Y, angles.Z
 		);
-
 	}
 
 	if (hdr.numlocalattachments)
@@ -641,11 +659,9 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 	if (hdr.numlocalposeparameters)
 		qc.Write("\n");
 
-	qc.WriteFmt("$sequence \"ref\" \"%s_ref.smd\" \n\n", Model->Name.ToCString());
+	qc.WriteFmt("$sequence \"ref\" \"%s_ref%s\" \n\n", Model->Name.ToCString(), extention.ToCString());
 
 	SMDWriteRefAnim(Path, Model->Bones, Model->Name);
-
-
 
 	if (IsRig)
 	{
@@ -670,7 +686,6 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 			if (AnimHash == 0xDF5 || !Assets.ContainsKey(AnimHash))
 				continue;
 
-
 			this->QCWriteAseqData(qc, Path, AnimHash, Asset, {}, AnimationNames, true);
 
 			Hashes.EmplaceBack(AnimHash);
@@ -686,7 +701,6 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 
 			if (AnimHash == 0xDF5 || !Assets.ContainsKey(AnimHash))
 				continue;
-
 
 			this->QCWriteAseqData(qc, Path, AnimHash, Asset, PoseParameters, AnimationNames, false);
 
@@ -786,7 +800,6 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, const string& Path, uint64_t
 			AnimDescs.EmplaceBack(animdesc);
 		}
 
-
 		List<mstudioanimdescv54_t_v16> ValidAnimDescs;
 		List<string> ValidAnimNames;
 		for (int i = 0; i < AnimDescs.Count(); i++)
@@ -798,7 +811,6 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, const string& Path, uint64_t
 				ValidAnimDescs.EmplaceBack(AnimDescs[i]);
 				ValidAnimNames.EmplaceBack(AnimNames[i]);
 			}
-
 		}
 		AnimNames = ValidAnimNames;
 		AnimDescs = ValidAnimDescs;
@@ -806,7 +818,7 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, const string& Path, uint64_t
 		if (!AnimDescs.Count())
 			return;
 
-		if(WriteAnimations)
+		if (WriteAnimations)
 		{
 			// seperator
 			for (int i = 0; i < AnimDescs.Count(); i++)
@@ -841,10 +853,9 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, const string& Path, uint64_t
 			return;
 		}
 
-
 		qc.WriteFmt("$sequence \"%s\" {\n", AnimSetNameFull.ToCString());
 		{
-			for (int i = 0; i <1; i++)
+			for (int i = 0; i < 1; i++)
 			{
 				if (!(AnimDescs[i].flags & STUDIO_ALLZEROS))
 					qc.WriteFmt("\t\"%s\"\n", AnimNames[i].ToCString());
@@ -867,7 +878,6 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, const string& Path, uint64_t
 			//
 			//if (seqdesc.flags & STUDIO_SNAP)
 			//	qc.Write("\tsnap\n\n");
-
 
 			qc.WriteFmt("\tfadein %.1f\n\tfadeout %.1f\n\n", seqdesc.fadeintime, seqdesc.fadeouttime);
 
@@ -991,7 +1001,6 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, const string& Path, uint64_t
 					{
 						RpakStream->SetPosition(AseqDataOffset + seqdesc.eventindex + (i * sizeof(mstudioeventv54_t_v16)));
 					}
-
 
 					Event.Init(AseqAsset.AssetVersion, AseqAsset.SubHeaderSize, Reader);
 
