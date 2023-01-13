@@ -51,7 +51,7 @@ namespace Assets
 		{
 			string Name;
 			int NumModels;
-			List<int> MeshIds;
+			List<int> MeshIndexes;
 		};
 
 		List<BodyPartInfo> BodyParts;

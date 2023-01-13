@@ -289,8 +289,9 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 
 		qc.WriteFmt("$bodygroup \"%s\"\n{\n", bodyPartName);
 
+		Assets::Model::BodyPartInfo Bodypart{};
+
 		List<mstudiomodelv54_t> BodyPartmodels;
-		List<int> BodyPartMeshes;
 		for (int ModelIndex = 0; ModelIndex < bodyPart.nummodels; ModelIndex++)
 		{
 			char* pModel = pBodyPart + bodyPart.modelindex;
@@ -344,13 +345,12 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 					break;
 				}
 
-				BodyPartMeshes.EmplaceBack(mesh.meshid);
+				Bodypart.MeshIndexes.EmplaceBack(mesh.meshid);
 			}
 		}
 
-		Assets::Model::BodyPartInfo Bodypart{};
+
 		Bodypart.Name = bodyPartName;
-		Bodypart.MeshIds = BodyPartMeshes;
 		Bodypart.NumModels = bodyPart.nummodels;
 
 		for (int ModelIndex = 0; ModelIndex < bodyPart.nummodels; ModelIndex++)

@@ -183,23 +183,18 @@ namespace Assets::Exporters
 	bool ValveSMD::ExportModel(const Model& Model, const string& Path)
 	{
 		int bodypart_index = 0;
-		Assets::MatIndexBuffer MeshIds{};
-
 		for (auto& Bodypart : Model.BodyParts)
 		{
-			MeshIds = Bodypart.MeshIds[bodypart_index];
 			string NewPath = IO::Path::Combine(IO::Path::GetDirectoryName(Path), Bodypart.Name) + ModelExtension().ToCString();
 
 			if (Bodypart.NumModels >= 3)
 			{
-				for (int i = 0; i < MeshIds.Count(); i++)
+				for (int i = 0; i < Bodypart.MeshIndexes.Count(); i++)
 				{
 					NewPath = IO::Path::Combine(IO::Path::GetDirectoryName(Path), Bodypart.Name) + (string::Format("_%d", i).ToCString()) + ModelExtension().ToCString();
 
 					Assets::MatIndexBuffer NewMeshIds{};
-					NewMeshIds.EmplaceBack(MeshIds[i]);
-
-					MeshIds = NewMeshIds;
+					NewMeshIds.EmplaceBack(Bodypart.MeshIndexes[i]);
 
 					IO::StreamWriter Writer = IO::StreamWriter(IO::File::Create(NewPath));
 					WriteSubMesh(Writer, Model, NewMeshIds, NewPath);
@@ -208,7 +203,7 @@ namespace Assets::Exporters
 			else
 			{
 				IO::StreamWriter Writer = IO::StreamWriter(IO::File::Create(NewPath));
-				WriteSubMesh(Writer, Model, MeshIds, NewPath);
+				WriteSubMesh(Writer, Model, Bodypart.MeshIndexes, NewPath);
 			}
 
 			bodypart_index++;
