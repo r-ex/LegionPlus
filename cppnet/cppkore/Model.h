@@ -47,8 +47,14 @@ namespace Assets
 		List<List<int>> SkinMaterials;
 		List<string> SkinMaterialNames;
 
-		List<string> BodyPartNames;
-		List<List<int>> BodyPartMeshIds;
+		struct BodyPartInfo
+		{
+			string Name;
+			int NumModels;
+			List<int> MeshIds;
+		};
+
+		List<BodyPartInfo> BodyParts;
 
 		// Adds a material to the collection if it doesn't already exist, returning it's index.
 		template<typename T>

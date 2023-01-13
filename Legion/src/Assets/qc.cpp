@@ -289,7 +289,6 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 
 		qc.WriteFmt("$bodygroup \"%s\"\n{\n", bodyPartName);
 
-		int EmptyIndex = -1;
 		List<mstudiomodelv54_t> BodyPartmodels;
 		List<int> BodyPartMeshes;
 		for (int ModelIndex = 0; ModelIndex < bodyPart.nummodels; ModelIndex++)
@@ -317,9 +316,6 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 				model = *reinterpret_cast<mstudiomodelv54_t*>(pModel);
 				break;
 			}
-
-			if (model.nummeshes == 0)
-				EmptyIndex = ModelIndex;
 
 			BodyPartmodels.EmplaceBack(model);
 
@@ -352,23 +348,27 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 			}
 		}
 
+		Assets::Model::BodyPartInfo Bodypart{};
+		Bodypart.Name = bodyPartName;
+		Bodypart.MeshIds = BodyPartMeshes;
+		Bodypart.NumModels = bodyPart.nummodels;
+
 		for (int ModelIndex = 0; ModelIndex < bodyPart.nummodels; ModelIndex++)
 		{
 			mstudiomodelv54_t model = BodyPartmodels[ModelIndex];
 
-			if (EmptyIndex != ModelIndex)
+			if (model.nummeshes > 0)
 			{
 				if (bodyPart.nummodels >= 3)
 					qc.WriteFmt("\tstudio \"%s_%d%s\"\n", bodyPartName, ModelIndex, extention.ToCString());
 				else
-				    qc.WriteFmt("\tstudio \"%s%s\"\n", bodyPartName, extention.ToCString());
+					qc.WriteFmt("\tstudio \"%s%s\"\n", bodyPartName, extention.ToCString());
 			}
 			else
 				qc.Write("\tblank\n");
 		}
 
-		Model->BodyPartNames.EmplaceBack(bodyPartName);
-		Model->BodyPartMeshIds.EmplaceBack(BodyPartMeshes);
+		Model->BodyParts.EmplaceBack(Bodypart);
 
 		qc.Write("}\n\n");
 	}
