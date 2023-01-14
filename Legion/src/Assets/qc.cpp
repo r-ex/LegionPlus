@@ -296,6 +296,7 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 		{
 			char* pModel = pBodyPart + bodyPart.modelindex;
 			mstudiomodelv54_t model{};
+			Assets::Model::ModelInfo ModelInfo{};
 
 			switch (AssetVersion)
 			{
@@ -319,6 +320,9 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 			}
 
 			BodyPartmodels.EmplaceBack(model);
+
+			if (model.nummeshes == 0)
+				continue;
 
 			for (int MeshIndex = 0; MeshIndex < model.nummeshes; MeshIndex++)
 			{
@@ -345,13 +349,13 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 					break;
 				}
 
-				Bodypart.MeshIndexes.EmplaceBack(mesh.meshid);
+				ModelInfo.MeshIndexes.EmplaceBack(mesh.meshid);
 			}
+
+			Bodypart.Models.EmplaceBack(ModelInfo);
 		}
 
-
 		Bodypart.Name = bodyPartName;
-		Bodypart.NumModels = bodyPart.nummodels;
 
 		for (int ModelIndex = 0; ModelIndex < bodyPart.nummodels; ModelIndex++)
 		{
@@ -360,7 +364,7 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 			if (model.nummeshes > 0)
 			{
 				if (bodyPart.nummodels >= 3)
-					qc.WriteFmt("\tstudio \"%s_%d%s\"\n", bodyPartName, ModelIndex, extention.ToCString());
+					qc.WriteFmt("\tstudio \"%s_%d%s\"\n", bodyPartName, ModelIndex - 1, extention.ToCString());
 				else
 					qc.WriteFmt("\tstudio \"%s%s\"\n", bodyPartName, extention.ToCString());
 			}

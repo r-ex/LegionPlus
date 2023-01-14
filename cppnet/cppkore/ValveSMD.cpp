@@ -187,23 +187,20 @@ namespace Assets::Exporters
 		{
 			string NewPath = IO::Path::Combine(IO::Path::GetDirectoryName(Path), Bodypart.Name) + ModelExtension().ToCString();
 
-			if (Bodypart.NumModels >= 3)
+			if (Bodypart.Models.Count() >= 3)
 			{
-				for (int i = 0; i < Bodypart.MeshIndexes.Count(); i++)
+				for (int i = 0; i < Bodypart.Models.Count(); i++)
 				{
 					NewPath = IO::Path::Combine(IO::Path::GetDirectoryName(Path), Bodypart.Name) + (string::Format("_%d", i).ToCString()) + ModelExtension().ToCString();
 
-					Assets::MatIndexBuffer NewMeshIds{};
-					NewMeshIds.EmplaceBack(Bodypart.MeshIndexes[i]);
-
 					IO::StreamWriter Writer = IO::StreamWriter(IO::File::Create(NewPath));
-					WriteSubMesh(Writer, Model, NewMeshIds, NewPath);
+					WriteSubMesh(Writer, Model, Bodypart.Models[i].MeshIndexes, NewPath);
 				}
 			}
 			else
 			{
 				IO::StreamWriter Writer = IO::StreamWriter(IO::File::Create(NewPath));
-				WriteSubMesh(Writer, Model, Bodypart.MeshIndexes, NewPath);
+				WriteSubMesh(Writer, Model, Bodypart.Models[0].MeshIndexes, NewPath);
 			}
 
 			bodypart_index++;

@@ -47,11 +47,15 @@ namespace Assets
 		List<List<int>> SkinMaterials;
 		List<string> SkinMaterialNames;
 
+		struct ModelInfo
+		{
+			List<int> MeshIndexes;
+		};
+
 		struct BodyPartInfo
 		{
 			string Name;
-			int NumModels;
-			List<int> MeshIndexes;
+			List<ModelInfo> Models;
 		};
 
 		List<BodyPartInfo> BodyParts;
