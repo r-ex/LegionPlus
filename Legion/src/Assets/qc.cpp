@@ -388,9 +388,11 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 		List<string> Split = KeyValues.Replace("}", "").Split("{");
 
 		string Formated = Split[0] + "{\n\t" + Split[1] + "\n\t{";
+		Split.RemoveAt(0);
+		Split.RemoveAt(0);
 
-		for (int i = 2; i < Split.Count() - 2; i++)
-			Formated += "\t" + Split[i] + "\n";
+		for (int i = 0; i < Split.Count(); i++)
+			Formated += "\n\t\t" + Split[i] + "\n";
 
 		Formated += "\n\t}\n}\n\n";
 		qc.Write(Formated.ToCString());
