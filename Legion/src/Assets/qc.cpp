@@ -380,6 +380,22 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 	qc.WriteFmt("$eyeposition %f %f %f\n", hdr.eyeposition.X, hdr.eyeposition.Y, hdr.eyeposition.Z);
 	qc.WriteFmt("$illumposition %f %f %f\n\n", hdr.illumposition.X, hdr.illumposition.Y, hdr.illumposition.Z);
 
+	// keyvalues
+	if (hdr.keyvalueindex)
+	{
+		string KeyValues = string(rmdlBuf + hdr.keyvalueindex).Replace("mdlkeyvalue", "$keyvalues\n");
+
+		List<string> Split = KeyValues.Replace("}", "").Split("{");
+
+		string Formated = Split[0] + "{\n\t" + Split[1] + "\n\t{";
+
+		for (int i = 2; i < Split.Count() - 2; i++)
+			Formated += "\t" + Split[i] + "\n";
+
+		Formated += "\n\t}\n}\n\n";
+		qc.Write(Formated.ToCString());
+	}
+
 	qc.Write("$cdmaterials \"\"\n\n");
 
 	int MaxTextureResize = Model->Materials.Count() < hdr.numtextures ? hdr.numtextures : Model->Materials.Count();

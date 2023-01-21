@@ -750,6 +750,7 @@ struct studiohdr_t_v121
 		out.ikchainindex = this->numikchains;
 		out.localposeparamindex = this->localposeparamindex;
 		out.numlocalposeparameters = this->numlocalposeparameters;
+		out.keyvalueindex = this->keyvalueindex;
 		return out;
 	}
 };
@@ -955,6 +956,7 @@ struct studiohdr_t_v122
 		out.ikchainindex = this->numikchains;
 		out.localposeparamindex = this->localposeparamindex;
 		out.numlocalposeparameters = this->numlocalposeparameters;
+		out.keyvalueindex = this->keyvalueindex;
 		return out;
 	}
 };
@@ -1162,6 +1164,7 @@ struct studiohdr_t_v13
 		out.ikchainindex = this->numikchains;
 		out.localposeparamindex = this->localposeparamindex;
 		out.numlocalposeparameters = this->numlocalposeparameters;
+		out.keyvalueindex = this->keyvalueindex;
 		return out;
 	}
 };
@@ -1371,6 +1374,7 @@ struct studiohdr_t_v14
 		out.ikchainindex = this->numikchains;
 		out.localposeparamindex = this->localposeparamindex;
 		out.numlocalposeparameters = this->numlocalposeparameters;
+		out.keyvalueindex = this->keyvalueindex;
 		return out;
 	}
 };
@@ -1510,6 +1514,7 @@ struct studiohdr_t_v16
 		out.ikchainindex = (int)this->numikchains;
 		out.localposeparamindex = (int)this->localposeparamindex;
 		out.numlocalposeparameters = (int)this->numlocalposeparameters;
+		out.keyvalueindex = (int)this->keyvalueindex;
 		return out;
 	}
 };
