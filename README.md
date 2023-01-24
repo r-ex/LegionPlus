@@ -92,10 +92,15 @@ Right Click - copies the names of the currently selected assets to clipboard
 
 Preview
 ```
-Alt + Left Click - move mouse to pivot camera around target
-Alt + Right Click - move mouse to zoom in and out of the target
-Alt + Middle Click - move mouse to pan camera
-```
+Models
+Left Click - move mouse to rotate camera around target
+Right Click - move mouse to pan camera
+Middle Click - move mouse to zoom in and out of the target
+Alt - lock view
+
+Images
+Left Click - move mouse to pan camera
+Alt - lock view
 ---
 
 ## Support
