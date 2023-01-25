@@ -96,11 +96,11 @@ Models
 Left Click - move mouse to rotate camera around target
 Right Click - move mouse to pan camera
 Middle Click - move mouse to zoom in and out of the target
-Alt - lock view
+L - lock view
 
 Images
 Left Click - move mouse to pan camera
-Alt - lock view
+L - lock view
 ---
 
 ## Support
