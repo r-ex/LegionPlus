@@ -1581,6 +1581,8 @@ struct studiohdr_t // latest studiohdr
 	int numlocalattachments;
 	int localattachmentindex;
 
+	uint8_t Unknown2[0x18];
+
 	uint32_t SubmeshLodsOffset;
 
 	uint32_t OffsetToBoneRemapInfo;

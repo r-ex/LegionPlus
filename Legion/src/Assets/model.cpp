@@ -576,11 +576,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 	studiohdr_t studiohdr{};
 
-	if (Asset.SubHeaderSize == 120)
-		studiohdr.FromS3(Reader.Read<s3studiohdr_t>());
-	else if (Asset.AssetVersion <= 12)
-		studiohdr = Reader.Read<studiohdr_t>();
-	else
+	if (Asset.AssetVersion > 12)
 	{
 		switch (Asset.AssetVersion)
 		{
@@ -593,7 +589,10 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 		default:
 			break;
 		}
-	}
+	} else if (Asset.SubHeaderSize != 120)
+		studiohdr = Reader.Read<studiohdr_t>();
+	else
+		studiohdr.FromS3(Reader.Read<s3studiohdr_t>());
 
 	RpakStream->SetPosition(StudioOffset);
 
@@ -671,11 +670,7 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 
 	studiohdr_t SkeletonHeader{};
 
-	if (Asset.SubHeaderSize == 120)
-		SkeletonHeader.FromS3(Reader.Read<s3studiohdr_t>());
-	else if (Asset.AssetVersion <= 12)
-		SkeletonHeader = Reader.Read<studiohdr_t>();
-	else
+	if (Asset.AssetVersion > 12)
 	{
 		switch (Asset.AssetVersion)
 		{
@@ -689,6 +684,10 @@ std::unique_ptr<Assets::Model> RpakLib::ExtractModel(const RpakLoadAsset& Asset,
 			break;
 		}
 	}
+	else if (Asset.SubHeaderSize != 120)
+		SkeletonHeader = Reader.Read<studiohdr_t>();
+	else
+		SkeletonHeader.FromS3(Reader.Read<s3studiohdr_t>());
 
 	uint32_t SubmeshLodsOffset = SkeletonHeader.SubmeshLodsOffset;
 	uint32_t TexturesOffset = SkeletonHeader.textureindex;
