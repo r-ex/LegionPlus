@@ -383,8 +383,8 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 	// keyvalues
 	if (hdr.keyvalueindex)
 	{
-		string KeyValues = string(rmdlBuf + hdr.keyvalueindex).Replace("mdlkeyvalue", "$keyvalues ");
-		qc.Write(KeyValues.ToCString());
+		string KeyValues = string(rmdlBuf + hdr.keyvalueindex).Replace("mdlkeyvalue", "$keyvalues").Replace("}", " }").Replace("{", " { ");
+		qc.Write(string(KeyValues + "\n").ToCString());
 	}
 
 	qc.Write("$cdmaterials \"\"\n\n");
