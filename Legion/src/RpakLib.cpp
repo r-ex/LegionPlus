@@ -1137,7 +1137,7 @@ bool RpakLib::MountApexRpak(const string& Path, bool Dump)
 
 	rpak_decomp_state state;
 
-	uint32_t dSize = RTech::DecompressPakfileInit(&state, CompressedBuffer.get(), Header.CompressedSize, 0, sizeof(RpakApexHeader));
+	uint64_t dSize = RTech::DecompressPakfileInit(&state, CompressedBuffer.get(), Header.CompressedSize, 0, sizeof(RpakApexHeader));
 
 	std::vector<std::uint8_t> pakbuf(dSize, 0);
 
@@ -1185,7 +1185,7 @@ bool RpakLib::MountTitanfallRpak(const string& Path, bool Dump)
 
 	rpak_decomp_state state;
 
-	uint32_t dSize = RTech::DecompressPakfileInit(&state, CompressedBuffer.get(), Header.CompressedSize, 0, sizeof(RpakTitanfallHeader));
+	uint64_t dSize = RTech::DecompressPakfileInit(&state, CompressedBuffer.get(), Header.CompressedSize, 0, sizeof(RpakTitanfallHeader));
 
 	std::vector<std::uint8_t> pakbuf(dSize, 0);
 
