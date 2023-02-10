@@ -1672,7 +1672,7 @@ struct studiohdr_t // latest studiohdr
 		this->bodypartindex = n.bodypartindex;
 		this->numlocalattachments = n.numlocalattachments;
 		this->localattachmentindex = n.localattachmentindex;
-		this->SubmeshLodsOffset = n.unknodexindex; // what?
+		this->SubmeshLodsOffset = n.ikchainindex; // what?
 		this->OffsetToBoneRemapInfo = n.boneStateIndex;
 		this->BoneRemapCount = n.numBoneStates;
 	}
