@@ -383,19 +383,8 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 	// keyvalues
 	if (hdr.keyvalueindex)
 	{
-		string KeyValues = string(rmdlBuf + hdr.keyvalueindex).Replace("mdlkeyvalue", "$keyvalues\n");
-
-		List<string> Split = KeyValues.Replace("}", "").Split("{");
-
-		string Formated = Split[0] + "{\n\t" + Split[1] + "\n\t{";
-		Split.RemoveAt(0);
-		Split.RemoveAt(0);
-
-		for (int i = 0; i < Split.Count(); i++)
-			Formated += "\n\t\t" + Split[i] + "\n";
-
-		Formated += "\n\t}\n}\n\n";
-		qc.Write(Formated.ToCString());
+		string KeyValues = string(rmdlBuf + hdr.keyvalueindex).Replace("mdlkeyvalue", "$keyvalues ");
+		qc.Write(KeyValues.ToCString());
 	}
 
 	qc.Write("$cdmaterials \"\"\n\n");
@@ -423,7 +412,7 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 			if (Assets.ContainsKey(texture.guid))
 			{
 				RpakLoadAsset& MaterialAsset = Assets[texture.guid];
-				RMdlMaterial ParsedMaterial = this->ExtractMaterialSilent(MaterialAsset, "", false, true);
+				RMdlMaterial ParsedMaterial = this->ExtractMaterial(MaterialAsset, "", false, true, true);
 
 				TextureTypes[i] = MaterialTypes[ParsedMaterial.MaterialType];
 				TextureNames[i] = ParsedMaterial.FullMaterialName.ToLower();
@@ -975,21 +964,20 @@ void RpakLib::QCWriteAseqData(IO::StreamWriter& qc, const string& Path, uint64_t
 
 							mstudioanimdescv54_t_v16 AnimDesc = AnimDescs[0];
 
-							start = int(layer.start * (AnimDesc.fps * -1));
-							peak = int(layer.peak * (AnimDesc.fps * -1));
-							tail = int(layer.tail * (AnimDesc.fps * -1));
-							end = int(layer.end * (AnimDesc.fps * -1));
+							start = (int)(layer.start * (AnimDesc.fps * -1));
+							peak = (int)(layer.peak * (AnimDesc.fps * -1));
+							tail = (int)(layer.tail * (AnimDesc.fps * -1));
+							end = (int)(layer.end * (AnimDesc.fps * -1));
 						}
 						else
 						{
-							start = int(layer.start);
-							peak = int(layer.peak);
-							tail = int(layer.tail);
-							end = int(layer.end);
+							start = (int)layer.start;
+							peak = (int)layer.peak;
+							tail = (int)layer.tail;
+							end = (int)layer.end;
 						}
 
 						qc.WriteFmt("\n\taddlayer \"%s\"", this->ExtractAnimationSeq(LayerAsset).Replace(".rseq", "").ToCString());
-						//qc.WriteFmt("\n\tblendlayer \"%s\" %d %d %d %d %s", this->ExtractAnimationSeq(LayerAsset).Replace(".rseq", "").ToCString(), start, peak, tail, end, options.c_str());
 					}
 					else
 					{

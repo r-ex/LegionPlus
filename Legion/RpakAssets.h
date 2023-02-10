@@ -925,7 +925,7 @@ struct MaterialHeader
 
 	uint32_t unk4;
 
-	uint32_t Flags2;
+	uint32_t flags2;
 	uint32_t unk5;
 
 	UnknownMaterialSectionV15 m_UnknownSections[2];
@@ -953,7 +953,7 @@ struct MaterialHeader
 		height = mhn.height;
 		unk1 = mhn.unknown1;
 		flags = mhn.flags;
-		Flags2 = mhn.flags2;
+		flags2 = mhn.flags2;
 		unk2 = mhn.unknown2;
 		unk3 = mhn.unknown3;
 		unk4 = mhn.unknown4;

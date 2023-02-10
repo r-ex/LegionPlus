@@ -465,8 +465,7 @@ public:
 	List<ShaderResBinding> ExtractShaderResourceBindings(const RpakLoadAsset& Asset, D3D_SHADER_INPUT_TYPE InputType);
 
 	// Used by the BSP system.
-	RMdlMaterial ExtractMaterial(const RpakLoadAsset& Asset, const string& Path, bool IncludeImages, bool IncludeImageNames);
-	RMdlMaterial ExtractMaterialSilent(const RpakLoadAsset& Asset, const string& Path, bool IncludeImages, bool IncludeImageNames);
+	RMdlMaterial ExtractMaterial(const RpakLoadAsset& Asset, const string& Path, bool IncludeImages, bool IncludeImageNames, bool silent = false);
 	void QCWriteAseqData(IO::StreamWriter& qc, const string& Path, uint64_t AnimHash, const RpakLoadAsset& RigAsset, List<string> PoseParameters, List<string>& AnimationNames, bool WriteAnimations);
 private:
 	std::array<RpakFile, MAX_LOADED_FILES> LoadedFiles;

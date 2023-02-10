@@ -251,7 +251,7 @@ void RpakLib::ExportMaterial(const RpakLoadAsset& Asset, const string& Path)
 	(void)this->ExtractMaterial(Asset, OutPath, true, true);
 }
 
-RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& Path, bool IncludeImages, bool IncludeImageNames)
+RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& Path, bool IncludeImages, bool IncludeImageNames, bool silent)
 {
 	RMdlMaterial Result;
 
@@ -309,15 +309,18 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 		//	g_Logger.Warning("Shaderset for material '%s' referenced a pixel shader that is not currently loaded. Unable to associate texture types.\n", Result.MaterialName.ToCString());
 	}
 
-	g_Logger.Info("Material Info for '%s' (%llX)\n", Result.MaterialName.ToCString(), Asset.NameHash);
-	g_Logger.Info("=================================\n");
-	g_Logger.Info("> ShaderSet: %llx : %llu (%s) \n", hdr.shaderSetGuid, hdr.shaderSetGuid, shadersetLoaded ? "LOADED" : "NOT LOADED");
-	g_Logger.Info("=================================\n");
+	if (!silent)
+	{
+		g_Logger.Info("Material Info for '%s' (%llX)\n", Result.MaterialName.ToCString(), Asset.NameHash);
+		g_Logger.Info("=================================\n");
+		g_Logger.Info("> ShaderSet: %llx : %llu (%s) \n", hdr.shaderSetGuid, hdr.shaderSetGuid, shadersetLoaded ? "LOADED" : "NOT LOADED");
+		g_Logger.Info("=================================\n");
+	}
 
-	if (Asset.Version == RpakGameVersion::Apex)
+	if (Asset.Version == RpakGameVersion::Apex && !silent)
 	{
 		g_Logger.Info("> Flags         : 0x%08X : %d\n", hdr.flags, hdr.flags);
-		g_Logger.Info("> Flags2        : 0x%08X : %d\n", hdr.Flags2, hdr.Flags2);
+		g_Logger.Info("> Flags2        : 0x%08X : %d\n", hdr.flags2, hdr.flags2);
 		g_Logger.Info("> VisFlags      : 0x%lX  : %d\n", hdr.m_UnknownSections[0].visFlags, hdr.m_UnknownSections[0].visFlags);
 		g_Logger.Info("> FaceDrawFlags : 0x%lX  : %d\n", hdr.m_UnknownSections[0].faceDrawFlags, hdr.m_UnknownSections[0].faceDrawFlags);
 		g_Logger.Info("> UnkFlags      : 0x%lX  : %d\n", hdr.m_UnknownSections[0].unkRenderFlags, hdr.m_UnknownSections[0].unkRenderFlags);
@@ -326,12 +329,14 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 		g_Logger.Info("> DepthPrepass     : 0x%llX : %llu\n", hdr.materialGuids[1], hdr.materialGuids[1]);
 		g_Logger.Info("> DepthVSM         : 0x%llX : %llu\n", hdr.materialGuids[2], hdr.materialGuids[2]);
 		g_Logger.Info("> DepthShadowTight : 0x%llX : %llu\n", hdr.materialGuids[3], hdr.materialGuids[3]);
+		g_Logger.Info("=================================\n");
 	};
 
-	g_Logger.Info("=================================\n");
 	const uint64_t TextureTable = this->GetFileOffset(Asset, hdr.textureHandles.Index, hdr.textureHandles.Offset); // (Asset.Version == RpakGameVersion::Apex) ? : this->GetFileOffset(Asset, hdr.TexturesTFIndex, hdr.TexturesTFOffset);
 	uint32_t TexturesCount = (hdr.streamingTextureHandles.Offset - hdr.textureHandles.Offset) / 8;
-	g_Logger.Info("> %i textures:\n", TexturesCount);
+
+	if(!silent)
+	   g_Logger.Info("> %i textures:\n", TexturesCount);
 
 	uint32_t bindingIdx = 0;
 
@@ -362,7 +367,7 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 					bNormalRecalculate = true;
 			}
 
-			if (Asset.Version == RpakGameVersion::Apex)
+			if (Asset.Version == RpakGameVersion::Apex && !silent)
 				g_Logger.Info(">> %i: 0x%llx - %s\n", i, TextureHash, bOverridden ? TextureName.ToCString() : "(no assigned name)");
 
 			switch (i)
@@ -417,103 +422,8 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 		}
 	}
 
-	g_Logger.Info("=================================\n\n");
-
-	return Result;
-}
-
-RMdlMaterial RpakLib::ExtractMaterialSilent(const RpakLoadAsset& Asset, const string& Path, bool IncludeImages, bool IncludeImageNames)
-{
-	RMdlMaterial Result;
-
-	auto RpakStream = this->GetFileStream(Asset);
-	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
-
-	RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
-
-	MaterialHeader hdr;
-
-	if (Asset.Version == RpakGameVersion::Apex)
-	{
-		if (Asset.AssetVersion >= 16)
-		{
-			MaterialHeaderV16 hdr_v16 = Reader.Read<MaterialHeaderV16>();
-			hdr.FromV16(hdr_v16);
-		}
-		else hdr = Reader.Read<MaterialHeader>();
-
-		Result.MaterialType = hdr.materialType;
-	}
-	else
-	{
-		MaterialHeaderV12 temp = Reader.Read<MaterialHeaderV12>();
-
-		hdr.pName = temp.pName;
-		hdr.textureHandles = temp.textureHandles;
-		hdr.streamingTextureHandles = temp.streamingTextureHandles;
-		hdr.shaderSetGuid = temp.shaderSetGuid;
-	}
-
-	RpakStream->SetPosition(this->GetFileOffset(Asset, hdr.pName.Index, hdr.pName.Offset));
-
-	string fullMaterialName = Reader.ReadCString();
-	Result.MaterialName = IO::Path::GetFileNameWithoutExtension(fullMaterialName);
-	Result.FullMaterialName = fullMaterialName;
-
-	List<ShaderResBinding> PixelShaderResBindings;
-
-	const uint64_t TextureTable = this->GetFileOffset(Asset, hdr.textureHandles.Index, hdr.textureHandles.Offset);
-	uint32_t TexturesCount = (hdr.streamingTextureHandles.Offset - hdr.textureHandles.Offset) / 8;
-	uint32_t bindingIdx = 0;
-
-	// These textures have named slots
-	for (uint32_t i = 0; i < TexturesCount; i++)
-	{
-		RpakStream->SetPosition(TextureTable + ((uint64_t)i * 8));
-
-		uint64_t TextureHash = Reader.Read<uint64_t>();
-		string TextureName = "";
-		bool bOverridden = false;
-		bool bNormalRecalculate = false;
-
-		if (TextureHash != 0)
-		{
-			switch (i)
-			{
-			case 0:
-				Result.AlbedoHash = TextureHash;
-				Result.AlbedoMapName = TextureName;
-				break;
-			case 1:
-				Result.NormalHash = TextureHash;
-				Result.NormalMapName = TextureName;
-				break;
-			case 2:
-				Result.GlossHash = TextureHash;
-				Result.GlossMapName = TextureName;
-				break;
-			case 3:
-				Result.SpecularHash = TextureHash;
-				Result.SpecularMapName = TextureName;
-				break;
-			case 4:
-				Result.EmissiveHash = TextureHash;
-				Result.EmissiveMapName = TextureName;
-				break;
-			case 5:
-				Result.AmbientOcclusionHash = TextureHash;
-				Result.AmbientOcclusionMapName = TextureName;
-				break;
-			case 6:
-				Result.CavityHash = TextureHash;
-				Result.CavityMapName = TextureName;
-				break;
-			}
-			bindingIdx++;
-
-		}
-
-	}
+	if(!silent)
+	    g_Logger.Info("=================================\n\n");
 
 	return Result;
 }

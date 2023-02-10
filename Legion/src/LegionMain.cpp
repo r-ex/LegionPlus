@@ -595,8 +595,15 @@ void LegionMain::OnDumpAssetListClick(Forms::Control* Sender)
 {
 	List<string> OpenFileD = OpenFileDialog::ShowMultiFileDialog("Legion+: Select file(s) to dump", "", "Apex Legends Files (MBnk, RPak)|*.mbnk;*.rpak;", Sender->FindForm());
 
-	std::unique_ptr<RpakLib> Rpak = std::make_unique<RpakLib>();
-	std::unique_ptr<MilesLib> Audio = std::make_unique<MilesLib>();
+	if (OpenFileD.Count() == 0)
+		return;
+	else if (OpenFileD.Count() > MAX_LOADED_FILES)
+	{
+		string msg = string::Format("Please select %i or fewer files.", MAX_LOADED_FILES);
+		MessageBox::Show(msg, "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
+		return;
+	}
+
 	List<ExportAsset> ExportAssets;
 
 	std::array<bool, 11> bAssets = {
@@ -620,32 +627,23 @@ void LegionMain::OnDumpAssetListClick(Forms::Control* Sender)
 		string& filepath = OpenFileD[i];
 		string filename = IO::Path::GetFileNameWithoutExtension(filepath);
 
-		if (filepath.EndsWith(".rpak")) {
-
+		if (filepath.EndsWith(".rpak"))
+		{
+			std::unique_ptr<RpakLib> Rpak = std::make_unique<RpakLib>();
 			Rpak->LoadRpak(filepath);
 			Rpak->PatchAssets();
 			AssetList = Rpak->BuildAssetList(bAssets);
 
 			ExportManager::ExportAssetList(AssetList, filename, filepath);
 		}
-		else if (filepath.EndsWith(".mbnk")) {
-
-			auto Audio = std::make_unique<MilesLib>();
+		else if (filepath.EndsWith(".mbnk"))
+		{
+			std::unique_ptr<MilesLib> Audio = std::make_unique<MilesLib>();
 			Audio->MountBank(filepath);
 			AssetList = Audio->BuildAssetList();
 
 			ExportManager::ExportAssetList(AssetList, filename, filepath);
 		}
-	}
-
-	if (OpenFileD.Count() == 0)
-		return;
-
-	else if (OpenFileD.Count() > MAX_LOADED_FILES)
-	{
-		string msg = string::Format("Please select %i or fewer files.", MAX_LOADED_FILES);
-		MessageBox::Show(msg, "Legion+", Forms::MessageBoxButtons::OK, Forms::MessageBoxIcon::Warning);
-		return;
 	}
 }
 
