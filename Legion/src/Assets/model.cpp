@@ -1071,7 +1071,7 @@ void RpakLib::ExtractModelLod_V16(IO::BinaryReader& Reader, const std::unique_pt
 		{
 			NewMesh.MaterialIndices.EmplaceBack(rmdlMesh.material);
 			if (IncludeMaterials)
-				this->ExtractMaterial(Assets[Material.guid], Fixup.MaterialPath, IncludeMaterials, false);
+				this->ExtractMaterial(Assets[Material.guid], Fixup.MaterialPath, IncludeMaterials, false, true);
 		}
 		else
 			NewMesh.MaterialIndices.EmplaceBack(-1);
