@@ -1068,43 +1068,13 @@ void RpakLib::ExtractModelLod_V16(IO::BinaryReader& Reader, const std::unique_pt
 		mstudiomaterial_t& Material = (*Fixup.Materials)[rmdlMesh.material];
 
 		if (Assets.ContainsKey(Material.guid))
+		{
 			NewMesh.MaterialIndices.EmplaceBack(rmdlMesh.material);
+			if (IncludeMaterials)
+				this->ExtractMaterial(Assets[Material.guid], Fixup.MaterialPath, IncludeMaterials, false);
+		}
 		else
 			NewMesh.MaterialIndices.EmplaceBack(-1);
-
-		if (!ExportManager::Config.GetBool("SkinExport") && IncludeMaterials)
-		{
-			if (rmdlMesh.material < Fixup.Materials->Count() && Assets.ContainsKey(Material.guid))
-			{
-				RpakLoadAsset& MaterialAsset = Assets[Material.guid];
-
-				RMdlMaterial ParsedMaterial = this->ExtractMaterial(MaterialAsset, Fixup.MaterialPath, IncludeMaterials, false);
-				uint32_t MaterialIndex = Model->AddMaterial(ParsedMaterial.MaterialName, ParsedMaterial.AlbedoHash);
-
-				Assets::Material& MaterialInstance = Model->Materials[MaterialIndex];
-
-				if (ParsedMaterial.AlbedoMapName != "")
-					MaterialInstance.Slots.Add(Assets::MaterialSlotType::Albedo, { "_images\\" + ParsedMaterial.AlbedoMapName, ParsedMaterial.AlbedoHash });
-				if (ParsedMaterial.NormalMapName != "")
-					MaterialInstance.Slots.Add(Assets::MaterialSlotType::Normal, { "_images\\" + ParsedMaterial.NormalMapName, ParsedMaterial.NormalHash });
-				if (ParsedMaterial.GlossMapName != "")
-					MaterialInstance.Slots.Add(Assets::MaterialSlotType::Gloss, { "_images\\" + ParsedMaterial.GlossMapName, ParsedMaterial.GlossHash });
-				if (ParsedMaterial.SpecularMapName != "")
-					MaterialInstance.Slots.Add(Assets::MaterialSlotType::Specular, { "_images\\" + ParsedMaterial.SpecularMapName, ParsedMaterial.SpecularHash });
-				if (ParsedMaterial.EmissiveMapName != "")
-					MaterialInstance.Slots.Add(Assets::MaterialSlotType::Emissive, { "_images\\" + ParsedMaterial.EmissiveMapName, ParsedMaterial.EmissiveHash });
-				if (ParsedMaterial.AmbientOcclusionMapName != "")
-					MaterialInstance.Slots.Add(Assets::MaterialSlotType::AmbientOcclusion, { "_images\\" + ParsedMaterial.AmbientOcclusionMapName, ParsedMaterial.AmbientOcclusionHash });
-				if (ParsedMaterial.CavityMapName != "")
-					MaterialInstance.Slots.Add(Assets::MaterialSlotType::Cavity, { "_images\\" + ParsedMaterial.CavityMapName, ParsedMaterial.CavityHash });
-
-				NewMesh.MaterialIndices.EmplaceBack(MaterialIndex);
-			}
-			else
-			{
-				NewMesh.MaterialIndices.EmplaceBack(-1);
-			}
-		}
 
 		// Add an extra slot for the extra UV Layer if present
 		if ((mesh.flags & 0x200000000) == 0x200000000)
