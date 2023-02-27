@@ -980,7 +980,7 @@ void RpakLib::ExportAnimationSeq(const RpakLoadAsset& Asset, const string& Path)
 			RpakStream->Read((uint8_t*)externalBuf, 0, AnHeader.externalDataSize);
 		}
 
-		std::ofstream externalOut(IO::Path::ChangeExtension(AnimSetPath, ".SeqData"), std::ios::out | std::ios::binary);
+		std::ofstream externalOut(IO::Path::ChangeExtension(AnimSetPath, ".rseq_ext"), std::ios::out | std::ios::binary);
 		externalOut.write(externalBuf, AnHeader.externalDataSize);
 		externalOut.close();
 
