@@ -33,6 +33,7 @@ namespace IO
 		
 		// Reads data from the stream
 		std::unique_ptr<uint8_t[]> Read(uint64_t Count, uint64_t& Result);
+		std::unique_ptr<uint8_t[]> Read(uint64_t Count);
 		// Reads data from the stream to the specified buffer
 		uint64_t Read(uint8_t* Buffer, uint64_t Index, uint64_t Count);
 		// Reads data from the stream to the specified buffer

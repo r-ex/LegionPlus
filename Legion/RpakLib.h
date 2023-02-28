@@ -539,9 +539,9 @@ private:
 	void R_WriteRSONFile(const RpakLoadAsset& Asset, std::ofstream& out, IO::BinaryReader & Reader, RSONNode node, int level);
 
 	string GetSubtitlesNameFromHash(uint64_t Hash);
-	void CalcBonePosition(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex);
-	void CalcBoneQuaternion(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex);
-	void CalcBoneScale(const RAnimBoneFlag& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex);
+	void CalcBonePosition(const mstudio_rle_anim_t& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex);
+	void CalcBoneQuaternion(const mstudio_rle_anim_t& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex);
+	void CalcBoneScale(const mstudio_rle_anim_t& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex);
 
 	bool ValidateAssetPatchStatus(const RpakLoadAsset& Asset);
 	bool ValidateAssetStreamStatus(const RpakLoadAsset& Asset);

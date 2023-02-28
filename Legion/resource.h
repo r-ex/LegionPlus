@@ -3,7 +3,7 @@
 // Used by Legion.rc
 //
 #define IDI_ICON1                       101
-#define IDB_PNG1                        107
+#define IDB_JPEG1                        107
 
 // Next default values for new objects
 // 

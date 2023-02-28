@@ -620,8 +620,8 @@ struct ModelHeaderV16
 struct ModelHeader
 {
 	struct mdlversion_t {
-		int major;
-		__int8 minor;
+		int major = 0;
+		__int8 minor = 0;
 	};
 
 	RPakPtr studioData;
@@ -642,7 +642,7 @@ struct ModelHeader
 
 private:
 	mdlversion_t _version;
-	int _flags;
+	int _flags = 0;
 
 public:
 	inline mdlversion_t version() { return _version; };
@@ -655,7 +655,6 @@ public:
 	void ReadFromAssetStream(std::unique_ptr<IO::MemoryStream>* RpakStream, int headerSize, int assetVersion)
 	{
 		IO::BinaryReader Reader = IO::BinaryReader(RpakStream->get(), true);
-
 
 		switch (assetVersion)
 		{

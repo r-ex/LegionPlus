@@ -353,11 +353,82 @@ struct mstudioanimdesc_t_v16
 };
 
 
-struct RAnimBoneFlag
+// rle anim flags
+#define STUDIO_ANIM_SCALE 1
+#define STUDIO_ANIM_ROT 2
+#define STUDIO_ANIM_POS 4
+
+// bone anim flags
+#define STUDIO_ANIM_BONEPOS 1
+#define STUDIO_ANIM_BONEROT 2
+#define STUDIO_ANIM_BONESCALE 4
+
+struct mstudio_rle_anim_t
 {
-	uint16_t Size : 12;
+	uint16_t size : 12;
 	uint16_t bAdditiveCustom : 1;
-	uint16_t bDynamicScale : 1;			// If zero, one per data set
-	uint16_t bDynamicRotation : 1;		// If zero, one per data set
-	uint16_t bDynamicTranslation : 1;	// If zero, one per data set
+	uint16_t bAnimScale : 1;			// If zero, one per data set
+	uint16_t bAnimRotation : 1;		// If zero, one per data set
+	uint16_t bAnimPosition : 1;	// If zero, one per data set
+};
+
+struct mstudioanim_valueptr_t
+{
+	short offset : 13;
+	short flags : 3;
+	uint8_t axisIdx1;
+	uint8_t axisIdx2;
+};
+
+union mstudioanimvalue_t
+{
+	struct {
+		byte valid;
+		byte total;
+	} num;
+	short value;
+};
+
+struct RAnimTitanfallBoneFlag
+{
+	uint8_t Unused : 1;
+	uint8_t bStaticTranslation : 1;		// If zero, one per data set
+	uint8_t bStaticRotation : 1;		// If zero, one per data set
+	uint8_t bStaticScale : 1;			// If zero, one per data set
+	uint8_t Unused2 : 1;
+	uint8_t Unused3 : 1;
+	uint8_t Unused4 : 1;
+};
+
+struct RAnimBoneHeader
+{
+	float TranslationScale;
+
+	uint8_t BoneIndex;
+	RAnimTitanfallBoneFlag BoneFlags;
+	uint8_t Flags2;
+	uint8_t Flags3;
+
+	union
+	{
+		struct
+		{
+			uint16_t OffsetX;
+			uint16_t OffsetY;
+			uint16_t OffsetZ;
+			uint16_t OffsetL;
+		};
+
+		uint64_t PackedRotation;
+	} RotationInfo;
+
+	uint16_t TranslationX;
+	uint16_t TranslationY;
+	uint16_t TranslationZ;
+
+	uint16_t ScaleX;
+	uint16_t ScaleY;
+	uint16_t ScaleZ;
+
+	uint32_t DataSize;
 };
