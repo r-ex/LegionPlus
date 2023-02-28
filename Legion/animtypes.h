@@ -2,17 +2,36 @@
 #include <cstdint>
 typedef unsigned short uint16;
 
+#define STUDIO_LOOPING		0x0001		// ending frame should be the same as the starting frame
+#define STUDIO_SNAP			0x0002		// do not interpolate between previous animation and this one
+#define STUDIO_DELTA		0x0004		// this sequence "adds" to the base sequences, not slerp blends
+#define STUDIO_AUTOPLAY		0x0008		// temporary flag that forces the sequence to always play
+#define STUDIO_POST			0x0010		// 
+#define STUDIO_ALLZEROS		0x0020		// this animation/sequence has no real animation data
+#define STUDIO_FRAMEANIM	0x0040		// animation is encoded as by frame x bone instead of RLE bone x frame
+#define STUDIO_CYCLEPOSE	0x0080		// cycle index is taken from a pose parameter index
+#define STUDIO_REALTIME		0x0100		// cycle index is taken from a real-time clock, not the animations cycle index
+#define STUDIO_LOCAL		0x0200		// sequence has a local context sequence
+#define STUDIO_HIDDEN		0x0400		// don't show in default selection views
+#define STUDIO_OVERRIDE		0x0800		// a forward declared sequence (empty)
+#define STUDIO_ACTIVITY		0x1000		// Has been updated at runtime to activity index
+#define STUDIO_EVENT		0x2000		// Has been updated at runtime to event index on server
+#define STUDIO_WORLD		0x4000		// sequence blends in worldspace
+#define STUDIO_NOFORCELOOP	0x8000	// do not force the animation loop
+#define STUDIO_EVENT_CLIENT	0x10000	// Has been updated at runtime to event index on client
 
-enum eventtype : uint8_t
-{
-	NEW_EVENT_STYLE = (1 << 10),
-};
+// new in respawn models
+#define STUDIO_ANIM_UNK		0x20000 // actually first in v52
+#define STUDIO_ANIM_UNK1	0x40000
+#define STUDIO_ANIM_UNK2	0x80000 // cherry blossom v53, levi in v54
+
+#define NEW_EVENT_STYLE 0x400 // set if string instead of event id, zero otherwise
 
 struct mstudioeventv54_t
 {
 	float cycle;
 	int	event;
-	eventtype type; // this will be 0 if old style I'd imagine
+	int type; // this will be 0 if old style I'd imagine
 	char options[256];
 
 	int szeventindex;
@@ -23,7 +42,7 @@ struct mstudioevent54_t_v122
 {
 	float cycle;
 	int	event;
-	eventtype type; // this will be 0 if old style I'd imagine
+	int type; // this will be 0 if old style I'd imagine
 
 	int unk;
 
@@ -333,51 +352,6 @@ struct mstudioanimdesc_t_v16
 	uint16 sectionframes; // number of frames used in each fast lookup section, zero if not used
 };
 
-struct mstudioanimdescv53_t
-{
-	uint32_t Zero;
-	uint32_t NameOffset;
-
-	float Framerate;
-
-	uint32_t Flags;
-	uint32_t FrameCount;
-
-	uint32_t Zero1;
-	uint32_t Zero2;
-
-	uint32_t UnknownOffset;
-	uint32_t FirstChunkOffset;
-
-	uint32_t UnknownCount2;
-	uint32_t UnknownOffset2;
-
-	uint32_t Zero3;
-	uint32_t Zero4;
-
-	uint32_t OffsetToChunkOffsetsTable;
-	uint32_t FrameSplitCount;
-
-	uint8_t UnknownZero[0x20];
-};
-
-#define STUDIO_LOOPING	0x0001		// ending frame should be the same as the starting frame
-#define STUDIO_SNAP		0x0002		// do not interpolate between previous animation and this one
-#define STUDIO_DELTA	0x0004		// this sequence "adds" to the base sequences, not slerp blends
-#define STUDIO_AUTOPLAY	0x0008		// temporary flag that forces the sequence to always play
-#define STUDIO_POST		0x0010		// 
-#define STUDIO_ALLZEROS	0x0020		// this animation/sequence has no real animation data
-#define STUDIO_FRAMEANIM 0x0040		// animation is encoded as by frame x bone instead of RLE bone x frame
-#define STUDIO_CYCLEPOSE 0x0080		// cycle index is taken from a pose parameter index
-#define STUDIO_REALTIME	0x0100		// cycle index is taken from a real-time clock, not the animations cycle index
-#define STUDIO_LOCAL	0x0200		// sequence has a local context sequence
-#define STUDIO_HIDDEN	0x0400		// don't show in default selection views
-#define STUDIO_OVERRIDE	0x0800		// a forward declared sequence (empty)
-#define STUDIO_ACTIVITY	0x1000		// Has been updated at runtime to activity index
-#define STUDIO_EVENT	0x2000		// Has been updated at runtime to event index on server
-#define STUDIO_WORLD	0x4000		// sequence blends in worldspace
-#define STUDIO_NOFORCELOOP 0x8000	// do not force the animation loop
-#define STUDIO_EVENT_CLIENT 0x10000	// Has been updated at runtime to event index on client
 
 // rle anim flags
 #define STUDIO_ANIM_SCALE 1

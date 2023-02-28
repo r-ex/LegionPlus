@@ -888,7 +888,7 @@ void RpakLib::ExtractModelLod_V16(IO::BinaryReader& Reader, const std::unique_pt
 		BaseStream->SetPosition(meshOffset + (s * sizeof(VGMesh_t_v16)) + offsetof(VGMesh_t_v16, indexOffset) + mesh.indexOffset);
 		Reader.Read((uint8_t*)&IndexBuffer[0], 0, mesh.indexPacked.Count * sizeof(uint16_t));
 
-		List<RMdlExtendedWeight> ExtendedWeights(mesh.weightsCount / sizeof(RMdlExtendedWeight), true);
+		List<mstudioexternalboneweight_t> ExtendedWeights(mesh.weightsCount / sizeof(mstudioexternalboneweight_t), true);
 		BaseStream->SetPosition(meshOffset + (s * sizeof(VGMesh_t_v16)) + offsetof(VGMesh_t_v16, weightsOffset) + mesh.weightsOffset);
 		Reader.Read((uint8_t*)&ExtendedWeights[0], 0, mesh.weightsCount);
 
@@ -972,10 +972,10 @@ void RpakLib::ExtractModelLod_V16(IO::BinaryReader& Reader, const std::unique_pt
 						ExtendedIndexShift = ExtendedWeightsIndex + ExtendedCounter;
 						ExtendedIndexShift = ExtendedIndexShift + -1;
 
-						RMdlExtendedWeight& ExtendedWeight = ExtendedWeights[ExtendedIndexShift];
+						mstudioexternalboneweight_t& ExtendedWeight = ExtendedWeights[ExtendedIndexShift];
 
-						float ExtendedValue = (float)(ExtendedWeight.Weight + 1) / (float)0x8000;
-						uint32_t ExtendedIndex = BoneRemapBuffer[ExtendedWeight.BoneId];
+						float ExtendedValue = (float)(ExtendedWeight.weight + 1) / (float)0x8000;
+						uint32_t ExtendedIndex = BoneRemapBuffer[ExtendedWeight.bone];
 
 						Vertex.SetWeight({ ExtendedIndex, ExtendedValue }, WeightsIndex++);
 
@@ -1077,17 +1077,17 @@ void RpakLib::ExtractModelLod_V14(IO::BinaryReader& Reader, const std::unique_pt
 		BaseStream->SetPosition(meshOffset + (s * sizeof(RMdlVGMesh_V14)) + offsetof(RMdlVGMesh_V14, IndexOffset) + mesh.IndexOffset);
 		Reader.Read((uint8_t*)&IndexBuffer[0], 0, mesh.IndexPacked.Count * sizeof(uint16_t));
 
-		List<RMdlExtendedWeight> ExtendedWeights(mesh.ExtendedWeightsCount / sizeof(RMdlExtendedWeight), true);
+		List<mstudioexternalboneweight_t> ExtendedWeights(mesh.ExtendedWeightsCount / sizeof(mstudioexternalboneweight_t), true);
 		BaseStream->SetPosition(meshOffset + (s * sizeof(RMdlVGMesh_V14)) + offsetof(RMdlVGMesh_V14, ExtendedWeightsOffset) + mesh.ExtendedWeightsOffset);
 		Reader.Read((uint8_t*)&ExtendedWeights[0], 0, mesh.ExtendedWeightsCount);
 
-		List<RMdlVGExternalWeights> ExternalWeightsBuffer(mesh.ExternalWeightsCount, true);
+		List<apexlegends::v8::mstudioboneweight_t> ExternalWeightsBuffer(mesh.ExternalWeightsCount, true);
 		BaseStream->SetPosition(meshOffset + (s * sizeof(RMdlVGMesh_V14)) + offsetof(RMdlVGMesh_V14, ExternalWeightsOffset) + mesh.ExternalWeightsOffset);
-		Reader.Read((uint8_t*)&ExternalWeightsBuffer[0], 0, mesh.ExternalWeightsCount * sizeof(RMdlVGExternalWeights));
+		Reader.Read((uint8_t*)&ExternalWeightsBuffer[0], 0, mesh.ExternalWeightsCount * sizeof(apexlegends::v8::mstudioboneweight_t));
 
-		List<RMdlVGStrip> StripBuffer(mesh.StripsCount, true);
+		List<StripHeader_t> StripBuffer(mesh.StripsCount, true);
 		BaseStream->SetPosition(meshOffset + (s * sizeof(RMdlVGMesh_V14)) + offsetof(RMdlVGMesh_V14, StripsOffset) + mesh.StripsOffset);
-		Reader.Read((uint8_t*)&StripBuffer[0], 0, mesh.StripsCount * sizeof(RMdlVGStrip));
+		Reader.Read((uint8_t*)&StripBuffer[0], 0, mesh.StripsCount * sizeof(StripHeader_t));
 
 		// Ignore a mesh that has no strips, otherwise there is no mesh data.
 		// This is likely also determined by flags == 0x0, but this is a good check.
@@ -1099,7 +1099,7 @@ void RpakLib::ExtractModelLod_V14(IO::BinaryReader& Reader, const std::unique_pt
 		List<uint8_t>& BoneRemapBuffer = *Fixup.BoneRemaps;
 
 		Assets::Mesh& NewMesh = Model->Meshes.Emplace(0x10, (((mesh.Flags2 & 0x2) == 0x2) ? 2 : 1));	// max weights / max uvs
-		RMdlVGStrip& Strip = StripBuffer[0];
+		StripHeader_t& Strip = StripBuffer[0];
 
 		uint8_t* VertexBufferPtr = (uint8_t*)&VertexBuffer[0];
 		uint16_t* FaceBufferPtr = (uint16_t*)&IndexBuffer[0];
@@ -1183,10 +1183,10 @@ void RpakLib::ExtractModelLod_V14(IO::BinaryReader& Reader, const std::unique_pt
 						ExtendedIndexShift = ExtendedWeightsIndex + ExtendedCounter;
 						ExtendedIndexShift = ExtendedIndexShift + -1;
 
-						RMdlExtendedWeight& ExtendedWeight = ExtendedWeights[ExtendedIndexShift];
+						mstudioexternalboneweight_t& ExtendedWeight = ExtendedWeights[ExtendedIndexShift];
 
-						float ExtendedValue = (float)(ExtendedWeight.Weight + 1) / (float)0x8000;
-						uint32_t ExtendedIndex = BoneRemapBuffer[ExtendedWeight.BoneId];
+						float ExtendedValue = (float)(ExtendedWeight.weight + 1) / (float)0x8000;
+						uint32_t ExtendedIndex = BoneRemapBuffer[ExtendedWeight.bone];
 
 						Vertex.SetWeight({ ExtendedIndex, ExtendedValue }, WeightsIndex++);
 
@@ -1209,22 +1209,22 @@ void RpakLib::ExtractModelLod_V14(IO::BinaryReader& Reader, const std::unique_pt
 						// These models have 3 or less weights
 						//
 
-						if (ExternalWeights.NumWeights == 0x1)
+						if (ExternalWeights.numbones == 0x1)
 						{
 							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], 1.0f }, 0);
 						}
-						else if (ExternalWeights.NumWeights == 0x2)
+						else if (ExternalWeights.numbones == 0x2)
 						{
 							float CurrentWeightTotal = (float)(Weights.BlendWeights[0] + 1) / (float)0x8000;
 
 							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], CurrentWeightTotal }, 0);
 							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[1]], 1.0f - CurrentWeightTotal }, 1);
 						}
-						else if (ExternalWeights.NumWeights == 0x3)
+						else if (ExternalWeights.numbones == 0x3)
 						{
-							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], ExternalWeights.SimpleWeights[0] }, 0);
-							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[1]], ExternalWeights.SimpleWeights[1] }, 1);
-							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[2]], ExternalWeights.SimpleWeights[2] }, 2);
+							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], ExternalWeights.weights.weight[0] }, 0);
+							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[1]], ExternalWeights.weights.weight[1] }, 1);
+							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[2]], ExternalWeights.weights.weight[2] }, 2);
 						}
 					}
 					else if (externalWeightsBufferCount == 0) // simple 'else' could be enough?
@@ -1343,17 +1343,17 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 		BaseStream->SetPosition(meshOffset + (s * sizeof(RMdlVGMesh)) + offsetof(RMdlVGMesh, IndexOffset) + mesh.IndexOffset);
 		Reader.Read((uint8_t*)&IndexBuffer[0], 0, mesh.IndexPacked.Count * sizeof(uint16_t));
 
-		List<RMdlExtendedWeight> ExtendedWeights(mesh.ExtendedWeightsCount / sizeof(RMdlExtendedWeight), true);
+		List<mstudioexternalboneweight_t> ExtendedWeights(mesh.ExtendedWeightsCount / sizeof(mstudioexternalboneweight_t), true);
 		BaseStream->SetPosition(meshOffset + (s * sizeof(RMdlVGMesh)) + offsetof(RMdlVGMesh, ExtendedWeightsOffset) + mesh.ExtendedWeightsOffset);
 		Reader.Read((uint8_t*)&ExtendedWeights[0], 0, mesh.ExtendedWeightsCount);
 
-		List<RMdlVGExternalWeights> ExternalWeightsBuffer(mesh.ExternalWeightsCount, true);
+		List<apexlegends::v8::mstudioboneweight_t> ExternalWeightsBuffer(mesh.ExternalWeightsCount, true);
 		BaseStream->SetPosition(meshOffset + (s * sizeof(RMdlVGMesh)) + offsetof(RMdlVGMesh, ExternalWeightsOffset) + mesh.ExternalWeightsOffset);
-		Reader.Read((uint8_t*)&ExternalWeightsBuffer[0], 0, mesh.ExternalWeightsCount * sizeof(RMdlVGExternalWeights));
+		Reader.Read((uint8_t*)&ExternalWeightsBuffer[0], 0, mesh.ExternalWeightsCount * sizeof(apexlegends::v8::mstudioboneweight_t));
 
-		List<RMdlVGStrip> StripBuffer(mesh.StripsCount, true);
+		List<StripHeader_t> StripBuffer(mesh.StripsCount, true);
 		BaseStream->SetPosition(meshOffset + (s * sizeof(RMdlVGMesh)) + offsetof(RMdlVGMesh, StripsOffset) + mesh.StripsOffset);
-		Reader.Read((uint8_t*)&StripBuffer[0], 0, mesh.StripsCount * sizeof(RMdlVGStrip));
+		Reader.Read((uint8_t*)&StripBuffer[0], 0, mesh.StripsCount * sizeof(StripHeader_t));
 
 		// Ignore a mesh that has no strips, otherwise there is no mesh.
 		// This is likely also determined by flags == 0x0, but this is a good check.
@@ -1365,7 +1365,7 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 		List<uint8_t>& BoneRemapBuffer = *Fixup.BoneRemaps;
 
 		Assets::Mesh& NewMesh = Model->Meshes.Emplace(0x10, (((mesh.Flags2 & 0x2) == 0x2) ? 2 : 1));	// max weights / max uvs
-		RMdlVGStrip& Strip = StripBuffer[0];
+		StripHeader_t& Strip = StripBuffer[0];
 
 		uint8_t* VertexBufferPtr = (uint8_t*)&VertexBuffer[0];
 		uint16_t* FaceBufferPtr = (uint16_t*)&IndexBuffer[0];
@@ -1449,10 +1449,10 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 						ExtendedIndexShift = ExtendedWeightsIndex + ExtendedCounter;
 						ExtendedIndexShift = ExtendedIndexShift + -1;
 
-						RMdlExtendedWeight& ExtendedWeight = ExtendedWeights[ExtendedIndexShift];
+						mstudioexternalboneweight_t& ExtendedWeight = ExtendedWeights[ExtendedIndexShift];
 
-						float ExtendedValue = (float)(ExtendedWeight.Weight + 1) / (float)0x8000;
-						uint32_t ExtendedIndex = BoneRemapBuffer[ExtendedWeight.BoneId];
+						float ExtendedValue = (float)(ExtendedWeight.weight + 1) / (float)0x8000;
+						uint32_t ExtendedIndex = BoneRemapBuffer[ExtendedWeight.bone];
 
 						Vertex.SetWeight({ ExtendedIndex, ExtendedValue }, WeightsIndex++);
 
@@ -1471,22 +1471,22 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 					// These models have 3 or less weights
 					//
 
-					if (ExternalWeights.NumWeights == 0x1)
+					if (ExternalWeights.numbones == 0x1)
 					{
 						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], 1.0f }, 0);
 					}
-					else if (ExternalWeights.NumWeights == 0x2)
+					else if (ExternalWeights.numbones == 0x2)
 					{
 						float CurrentWeightTotal = (float)(Weights.BlendWeights[0] + 1) / (float)0x8000;
 
 						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], CurrentWeightTotal }, 0);
 						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[1]], 1.0f - CurrentWeightTotal }, 1);
 					}
-					else if (ExternalWeights.NumWeights == 0x3)
+					else if (ExternalWeights.numbones == 0x3)
 					{
-						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], ExternalWeights.SimpleWeights[0] }, 0);
-						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[1]], ExternalWeights.SimpleWeights[1] }, 1);
-						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[2]], ExternalWeights.SimpleWeights[2] }, 2);
+						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], ExternalWeights.weights.weight[0] }, 0);
+						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[1]], ExternalWeights.weights.weight[1] }, 1);
+						Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[2]], ExternalWeights.weights.weight[2] }, 2);
 					}
 				}
 			}
@@ -1499,7 +1499,7 @@ void RpakLib::ExtractModelLod(IO::BinaryReader& Reader, const std::unique_ptr<IO
 			VertexBufferPtr += mesh.VertexBufferStride;
 		}
 
-		for (uint32_t f = 0; f < (Strip.IndexCount / 3); f++)
+		for (uint32_t f = 0; f < (Strip.numIndices / 3); f++)
 		{
 			uint16_t i1 = *(uint16_t*)FaceBufferPtr;
 			uint16_t i2 = *(uint16_t*)(FaceBufferPtr + 1);
@@ -1585,27 +1585,27 @@ void RpakLib::ExtractModelLodOld(IO::BinaryReader& Reader, const std::unique_ptr
 	BaseStream->SetPosition(Offset + VGHeader.IndexOffset);
 	Reader.Read((uint8_t*)&IndexBuffer[0], 0, VGHeader.IndexCount * sizeof(uint16_t));
 
-	List<RMdlExtendedWeight> ExtendedWeights(VGHeader.ExtendedWeightsCount / sizeof(RMdlExtendedWeight), true);
+	List<mstudioexternalboneweight_t> ExtendedWeights(VGHeader.ExtendedWeightsCount / sizeof(mstudioexternalboneweight_t), true);
 	BaseStream->SetPosition(Offset + VGHeader.ExtendedWeightsOffset);
 	Reader.Read((uint8_t*)&ExtendedWeights[0], 0, VGHeader.ExtendedWeightsCount);
 
-	List<RMdlVGExternalWeights> ExternalWeightsBuffer(VGHeader.ExternalWeightsCount, true);
+	List<apexlegends::v8::mstudioboneweight_t> ExternalWeightsBuffer(VGHeader.ExternalWeightsCount, true);
 	BaseStream->SetPosition(Offset + VGHeader.ExternalWeightsOffset);
-	Reader.Read((uint8_t*)&ExternalWeightsBuffer[0], 0, VGHeader.ExternalWeightsCount * sizeof(RMdlVGExternalWeights));
+	Reader.Read((uint8_t*)&ExternalWeightsBuffer[0], 0, VGHeader.ExternalWeightsCount * sizeof(apexlegends::v8::mstudioboneweight_t));
 
-	List<RMdlVGStrip> StripBuffer(VGHeader.StripsCount, true);
+	List<StripHeader_t> StripBuffer(VGHeader.StripsCount, true);
 	BaseStream->SetPosition(Offset + VGHeader.StripsOffset);
-	Reader.Read((uint8_t*)&StripBuffer[0], 0, VGHeader.StripsCount * sizeof(RMdlVGStrip));
+	Reader.Read((uint8_t*)&StripBuffer[0], 0, VGHeader.StripsCount * sizeof(StripHeader_t));
 
-	List<RMdlVGLod> LodBuffer(VGHeader.LodCount, true);
+	List<ModelLODHeader_t> LodBuffer(VGHeader.LodCount, true);
 	BaseStream->SetPosition(Offset + VGHeader.LodOffset);
-	Reader.Read((uint8_t*)&LodBuffer[0], 0, VGHeader.LodCount * sizeof(RMdlVGLod));
+	Reader.Read((uint8_t*)&LodBuffer[0], 0, VGHeader.LodCount * sizeof(ModelLODHeader_t));
 
 	if (VGHeader.LodCount == 0)
 		return;
 
-	size_t LodSubmeshCount = LodBuffer[0].MeshCount;
-	size_t LodSubmeshStart = LodBuffer[0].MeshIndex;
+	size_t LodSubmeshCount = LodBuffer[0].numMeshes;
+	size_t LodSubmeshStart = LodBuffer[0].numMeshes;
 
 	if (LodSubmeshCount == 0)
 		return;
@@ -1710,8 +1710,8 @@ void RpakLib::ExtractModelLodOld(IO::BinaryReader& Reader, const std::unique_ptr
 
 						auto& ExtendedWeight = ExtendedWeights[ExtendedIndexShift];
 
-						float ExtendedValue = (float)(ExtendedWeight.Weight + 1) / (float)0x8000;
-						uint32_t ExtendedIndex = BoneRemapBuffer[ExtendedWeight.BoneId];
+						float ExtendedValue = (float)(ExtendedWeight.weight + 1) / (float)0x8000;
+						uint32_t ExtendedIndex = BoneRemapBuffer[ExtendedWeight.bone];
 
 						Vertex.SetWeight({ ExtendedIndex, ExtendedValue }, WeightsIndex++);
 
@@ -1734,22 +1734,22 @@ void RpakLib::ExtractModelLodOld(IO::BinaryReader& Reader, const std::unique_ptr
 					{
 						auto& ExternalWeights = ExternalWeightsBuffer[v];
 
-						if (ExternalWeights.NumWeights == 0x1)
+						if (ExternalWeights.numbones == 0x1)
 						{
 							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], 1.0f }, 0);
 						}
-						else if (ExternalWeights.NumWeights == 0x2)
+						else if (ExternalWeights.numbones == 0x2)
 						{
 							float CurrentWeightTotal = (float)(Weights.BlendWeights[0] + 1) / (float)0x8000;
 
 							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], CurrentWeightTotal }, 0);
 							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[1]], 1.0f - CurrentWeightTotal }, 1);
 						}
-						else if (ExternalWeights.NumWeights == 0x3)
+						else if (ExternalWeights.numbones == 0x3)
 						{
-							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], ExternalWeights.SimpleWeights[0] }, 0);
-							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[1]], ExternalWeights.SimpleWeights[1] }, 1);
-							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[2]], ExternalWeights.SimpleWeights[2] }, 2);
+							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[0]], ExternalWeights.weights.weight[0] }, 0);
+							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[1]], ExternalWeights.weights.weight[1] }, 1);
+							Vertex.SetWeight({ BoneRemapBuffer[Weights.BlendIds[2]], ExternalWeights.weights.weight[2] }, 2);
 						}
 
 					}
@@ -1764,7 +1764,7 @@ void RpakLib::ExtractModelLodOld(IO::BinaryReader& Reader, const std::unique_ptr
 			VertexBufferPtr += Submesh.VertexBufferStride;
 		}
 
-		for (uint32_t f = 0; f < (Strip.IndexCount / 3); f++)
+		for (uint32_t f = 0; f < (Strip.numIndices / 3); f++)
 		{
 			auto i1 = *(uint16_t*)FaceBufferPtr;
 			auto i2 = *(uint16_t*)(FaceBufferPtr + 1);
