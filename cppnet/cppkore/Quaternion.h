@@ -31,6 +31,9 @@ namespace Math
 		Quaternion& operator-=(const Quaternion& Rhs);
 		Quaternion& operator*=(const Quaternion& Rhs);
 
+		float operator[](int i) const;
+		float& operator[](int i);
+
 		// Equality operator
 		bool operator==(const Quaternion& Rhs) const;
 		// Inequality operator
