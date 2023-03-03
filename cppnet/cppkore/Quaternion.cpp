@@ -14,18 +14,6 @@ namespace Math
 	{
 	}
 
-	float& Quaternion::operator[](int Index)
-	{
-		if (Index == 0)
-			return X;
-		else if (Index == 1)
-			return Y;
-		else if (Index == 2)
-			return Z;
-
-		return W;
-	}
-
 	Quaternion Quaternion::operator+(const Quaternion& Rhs) const
 	{
 		return Quaternion(X + Rhs.X, Y + Rhs.Y, Z + Rhs.Z, W + Rhs.W);
