@@ -75,7 +75,7 @@ void MdlLib::ExtractValveVertexData(titanfall2::studiohdr_t* pHdr, vtx::FileHead
 {
 	string ExportModelPath = IO::Path::Combine(Path, "models");
 
-	for (int i = 0; i < pVtx->numLODs; i++)
+	for (int i = 0; i < /*pVtx->numLODs*/1; i++)
 	{
 		std::vector<vvd::mstudiovertex_t*> vvdVerts;
 		std::vector<vvc::VertexColor_t*> vvcColors;
@@ -250,16 +250,6 @@ inline bool isValidVec(Vector3 vec)
 	return isfinite(vec.X) && isfinite(vec.Y) && isfinite(vec.Z);
 }
 
-// set initial value of Vector
-inline Vector3 initVec(float ix, float iy, float iz)
-{
-	Vector3 vec;
-
-	vec.X = ix;
-	vec.Y = iy;
-	vec.Z = iz;
-}
-
 // unpack Vector48 into Vector3
 inline Vector3 UnpackVector48(Vector48 vec48)
 {
@@ -299,7 +289,7 @@ inline Quaternion UnpackQuat64(Quaternion64 quat64)
 	quat.X = ((int)quat64.x - 1048576) * (1 / 1048576.5f);
 	quat.Y = ((int)quat64.y - 1048576) * (1 / 1048576.5f);
 	quat.Z = ((int)quat64.z - 1048576) * (1 / 1048576.5f);
-	quat.W = sqrt(1 - quat64.x * quat64.x - quat64.y * quat64.y - quat64.z * quat64.z);
+	quat.W = sqrt(1 - quat.X * quat.X - quat.Y * quat.Y - quat.Z * quat.Z);
 	if (quat64.wneg)
 		quat.W = -quat.W;
 
@@ -379,20 +369,22 @@ inline void QuaternionBlend(const Quaternion& p, const Quaternion& q, float t, Q
 }
 
 // maybe wrong
-inline void SinCos(float x, float fsin, float fcos)
+inline void SinCos(float x, float* fsin, float* fcos)
 {
-	fsin = sin(x);
-	fcos = cos(x);
+	*fsin = sin(x);
+	*fcos = cos(x);
 }
 
+// this is the same func as 'RTech::DecompressConvertRotation'
 void AngleQuaternion(const RadianEuler& angles, Quaternion& outQuat)
 {
-	float sr = 0, sp = 0, sy = 0, cr = 0, cp = 0, cy = 0;
+	float sr, sp, sy, cr, cp, cy;
+	// pitch = x, yaw = y, roll = z
 
-	SinCos(angles.Z * 0.5f, sy, cy);
-	SinCos(angles.Y * 0.5f, sp, cp);
-	SinCos(angles.X * 0.5f, sr, cr);
-
+	SinCos(angles.Z * 0.5f, &sy, &cy);
+	SinCos(angles.Y * 0.5f, &sp, &cp);
+	SinCos(angles.X * 0.5f, &sr, &cr);
+	
 	float srXcp = sr * cp, crXsp = cr * sp;
 	outQuat.X = srXcp * cy - crXsp * sy; // X
 	outQuat.Y = crXsp * cy + srXcp * sy; // Y
@@ -401,8 +393,6 @@ void AngleQuaternion(const RadianEuler& angles, Quaternion& outQuat)
 	outQuat.Z = crXcp * sy - srXsp * cy; // Z
 	outQuat.W = crXcp * cy + srXsp * sy; // W (real component)
 }
-
-
 
 // extract mstudioanimvalue_t
 void MdlLib::ExtractAnimValue(int frame, mstudioanimvalue_t* panimvalue, float scale, float& v1, float& v2)
@@ -430,7 +420,7 @@ void MdlLib::ExtractAnimValue(int frame, mstudioanimvalue_t* panimvalue, float s
 		panimvalue += panimvalue->num.valid + 1;
 		if (panimvalue->num.total == 0)
 		{
-			assert(0); // running off the end of the animation stream is bad
+			//assert(0); // running off the end of the animation stream is bad
 			v1 = v2 = 0;
 			return;
 		}
@@ -493,7 +483,7 @@ void MdlLib::ExtractAnimValue(int frame, mstudioanimvalue_t* panimvalue, float s
 		panimvalue += panimvalue->num.valid + 1;
 		if (panimvalue->num.total == 0)
 		{
-			assert(0); // running off the end of the animation stream is bad
+			//assert(0); // running off the end of the animation stream is bad
 			v1 = 0;
 			return;
 		}
@@ -526,7 +516,7 @@ void MdlLib::CalcBoneQuaternion(int frame, float s,
 	{
 		if (panim->flags & STUDIO_ANIM_DELTA)
 		{
-			q = initQuat(0.0f, 0.0f, 0.0f, 1.0f);
+			q = { 0.0f, 0.0f, 0.0f, 1.0f };
 		}
 		else
 		{
@@ -576,6 +566,8 @@ void MdlLib::CalcBoneQuaternion(int frame, float s,
 		ExtractAnimValue(frame, pValuesPtr->pAnimvalue(0), baseRotScale.X, angle.X);
 		ExtractAnimValue(frame, pValuesPtr->pAnimvalue(1), baseRotScale.Y, angle.Y);
 		ExtractAnimValue(frame, pValuesPtr->pAnimvalue(2), baseRotScale.Z, angle.Z);
+
+		//printf("rot: x %f, y %f, z %f\n", angle.X, angle.Y, angle.Z);
 
 		if (!(panim->flags & STUDIO_ANIM_DELTA))
 		{
@@ -679,7 +671,7 @@ void MdlLib::CalcBoneScale(int frame, float s,
 {
 	if (panim->flags & STUDIO_ANIM_RAWSCALE)
 	{
-		scale = UnpackVector48(*(panim->pPos()));
+		scale = UnpackVector48(*(panim->pScale()));
 		assert(isValidVec(scale));
 
 		return;
@@ -715,13 +707,15 @@ void MdlLib::CalcBoneScale(int frame, float s,
 	assert(isValidVec(scale));
 }
 
-inline titanfall2::mstudio_rle_anim_t* MdlLib::pAnim(titanfall2::mstudioanimdesc_t* pAnimDesc, int* piFrame)
+titanfall2::mstudio_rle_anim_t* titanfall2::mstudioanimdesc_t::pAnim(int* piFrame/*, float& flStall*/) const
 {
-	int numframes = pAnimDesc->numframes;
-	int sectionframes = pAnimDesc->sectionframes;
+	mstudio_rle_anim_t* panim = nullptr;
+
+	//int block = animblock;
+	int index = animindex;
 	int section = 0;
 
-	if (sectionframes)
+	if (sectionframes != 0)
 	{
 		if (numframes > sectionframes && *piFrame == numframes - 1)
 		{
@@ -735,12 +729,15 @@ inline titanfall2::mstudio_rle_anim_t* MdlLib::pAnim(titanfall2::mstudioanimdesc
 			*piFrame -= section * sectionframes;
 		}
 
-		return reinterpret_cast<titanfall2::mstudio_rle_anim_t*>((char*)pAnimDesc + pAnimDesc->pSection(section)->animindex);
+		//block = pSection(section)->animblock;
+		index = pSection(section)->animindex;
 	}
-	else
-	{
-		return reinterpret_cast<titanfall2::mstudio_rle_anim_t*>((char*)pAnimDesc + pAnimDesc->animindex);
-	}
+
+	printf("section %i\n", section);
+
+	panim = reinterpret_cast<mstudio_rle_anim_t*>((char*)this + index);
+
+	return panim;
 }
 
 void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
@@ -769,7 +766,7 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 		titanfall2::mstudiobone_t* newBone = pHdr->pBone(i);
 		titanfall2::mstudiobone_t bone = *newBone;
 
-		Model->Bones.EmplaceBack(newBone->boneName(), bone.parent, bone.pos, bone.quat);
+		Model->Bones.EmplaceBack(newBone->pszName(), bone.parent, bone.pos, bone.quat/*, bone.scale, Assets::BoneFlags::HasScale*/);
 		bones.push_back(bone);
 	}
 
@@ -811,47 +808,60 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 
 			for (int frameIdx = 0; frameIdx < animdesc->numframes; frameIdx++)
 			{
-				/*int					i;
-				int					iFrame;
-				float				s;
+				printf("%i\n", frameIdx + 1);
 
-				float fFrame = cycle * (animdesc.numframes - 1);
+				// cut this if it doesn't affect anything?
+				float cycle = static_cast<float>(frameIdx / animdesc->numframes); // don't think this is correct
 
-				iFrame = (int)fFrame;
-				s = (fFrame - iFrame);*/
+				float fFrame = cycle * (animdesc->numframes - 1);
 
-				float s = 0; // should change this, unsure where cyle comes from though
+				int iFrame = (int)fFrame;
+				//float s = (fFrame - iFrame);
+				float s = 0;
 
-				titanfall2::mstudio_rle_anim_t* pAnim = MdlLib::pAnim(animdesc, &frameIdx);			
+				int iLocalFrame = frameIdx;
+
+				printf("%i\n", iLocalFrame + 1);
+
+				titanfall2::mstudio_rle_anim_t* pAnim = animdesc->pAnim(&iLocalFrame);
+
+				printf("local frame %i\n", iLocalFrame + 1);
 
 				for (int boneIdx = 0; boneIdx < pHdr->numbones; boneIdx++)
 				{
 					unsigned char boneId = pAnim->bone; // unsigned char as bone limit is 256
+
+					//printf("bone: %i; ", boneId);
 
 					// rotation
 					Quaternion quat;
 
 					CalcBoneQuaternion(frameIdx, s, pHdr->pBone(boneId), pHdr->pLinearBones(), pAnim, quat);
 
-					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[0].Keyframes.Emplace(static_cast<uint32_t>(frameIdx), quat);
+					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[0].Keyframes.Emplace(static_cast<uint32_t>(iLocalFrame), quat);
 
 					// position
 					Vector3 pos;
 
 					CalcBonePosition(frameIdx, s, pHdr->pBone(boneId), pHdr->pLinearBones(), pAnim, pos);
 
-					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[1].Keyframes.EmplaceBack(static_cast<uint32_t>(frameIdx), pos.X);
-					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[2].Keyframes.EmplaceBack(static_cast<uint32_t>(frameIdx), pos.Y);
-					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[3].Keyframes.EmplaceBack(static_cast<uint32_t>(frameIdx), pos.Z);
+					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[1].Keyframes.EmplaceBack(static_cast<uint32_t>(iLocalFrame), pos.X);
+					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[2].Keyframes.EmplaceBack(static_cast<uint32_t>(iLocalFrame), pos.Y);
+					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[3].Keyframes.EmplaceBack(static_cast<uint32_t>(iLocalFrame), pos.Z);
+
+					if (!iLocalFrame)
+						printf("bone: %i; pos: x %f, y %f, z %f\n", boneId, pos.X, pos.Y, pos.Z);
 
 					// scale
 					Vector3 scale;
 
 					CalcBoneScale(frameIdx, s, pHdr->pBone(boneId)->scale, pHdr->pBone(boneId)->scalescale, pAnim, scale);
 
-					//Anim->GetNodeCurves(Anim->Bones[boneId].Name())[4].Keyframes.EmplaceBack(static_cast<uint32_t>(frameIdx), scale.X);
-					//Anim->GetNodeCurves(Anim->Bones[boneId].Name())[5].Keyframes.EmplaceBack(static_cast<uint32_t>(frameIdx), scale.Y);
-					//Anim->GetNodeCurves(Anim->Bones[boneId].Name())[6].Keyframes.EmplaceBack(static_cast<uint32_t>(frameIdx), scale.Z);
+					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[4].Keyframes.EmplaceBack(static_cast<uint32_t>(iLocalFrame), scale.X);
+					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[5].Keyframes.EmplaceBack(static_cast<uint32_t>(iLocalFrame), scale.Y);
+					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[6].Keyframes.EmplaceBack(static_cast<uint32_t>(iLocalFrame), scale.Z);
+
+					//printf("bone: %i \n rot: rx %f, ry %f, rz %f, rw %f\n pos: px %f, py %f, pz %f\n scale: sx %f, sy %f, sz %f\n", boneId, quat.X, quat.Y, quat.Z, quat.W, pos.X, pos.Y, pos.Z, scale.X, scale.Y, scale.Z);
 
 					if (!(*pAnim->pNextOffset()))
 						break;

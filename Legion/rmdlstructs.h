@@ -1738,7 +1738,7 @@ namespace titanfall2
 
 		// broken
 		inline char* pData() const { return ((char*)this + sizeof(mstudio_rle_anim_t)); } // gets start of animation data, this should have a '+2' if aligned to 4
-		mstudioanim_valueptr_t* pRotV() const { return reinterpret_cast<mstudioanim_valueptr_t*>((char*)this + 28); } // returns rot as mstudioanim_valueptr_t
+		mstudioanim_valueptr_t* pRotV() const { return reinterpret_cast<mstudioanim_valueptr_t*>(pData()); } // returns rot as mstudioanim_valueptr_t
 		mstudioanim_valueptr_t* pPosV() const { return reinterpret_cast<mstudioanim_valueptr_t*>(pData() + 8); } // returns pos as mstudioanim_valueptr_t
 		mstudioanim_valueptr_t* pScaleV() const { return reinterpret_cast<mstudioanim_valueptr_t*>(pData() + 14); } // returns scale as mstudioanim_valueptr_t
 
@@ -1774,6 +1774,8 @@ namespace titanfall2
 		int framemovementindex; // new in v52
 
 		int animindex; // non-zero when anim data isn't in sections
+		//mstudio_rle_anim_t* pAnim(int* piFrame, float& flStall) const; // returns pointer to data and new frame index
+		mstudio_rle_anim_t* pAnim(int* piFrame) const; // returns pointer to data and new frame index
 
 		int numikrules;
 		int ikruleindex; // non-zero when IK data is stored in the mdl
@@ -1786,34 +1788,6 @@ namespace titanfall2
 		inline const mstudioanimsections_t* pSection(int i) const { return reinterpret_cast<mstudioanimsections_t*>((char*)this + sectionindex) + i; }
 
 		int unused[8];
-	};
-
-	struct mstudioanimdescv53_t
-	{
-		uint32_t Zero; // baseptr
-		uint32_t NameOffset; // sznameindex
-
-		float Framerate; // fps
-
-		uint32_t Flags; // flags
-		uint32_t FrameCount; // numframes
-
-		uint32_t Zero1;
-		uint32_t Zero2;
-
-		uint32_t UnknownOffset; // framemovementindex
-		uint32_t FirstChunkOffset; // animindex
-
-		uint32_t UnknownCount2;
-		uint32_t UnknownOffset2;
-
-		uint32_t Zero3;
-		uint32_t Zero4;
-
-		uint32_t OffsetToChunkOffsetsTable; // sectionindex
-		uint32_t FrameSplitCount; // sectionframes
-
-		uint8_t UnknownZero[0x20]; // unused
 	};
 
 	struct mstudiolinearbone_t
@@ -1928,9 +1902,9 @@ namespace titanfall2
 	{
 		int sznameindex;
 
-		char* boneName()
+		char* pszName()
 		{
-			return reinterpret_cast<char*>((char*)this + sznameindex);
+			return ((char*)this + sznameindex);
 		}
 
 		int parent; // parent bone
