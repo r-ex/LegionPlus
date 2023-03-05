@@ -317,7 +317,6 @@ inline float QuaternionNormalize(Quaternion& q)
 	return radius;
 }
 
-
 inline void QuaternionBlendNoAlign(const Quaternion& p, const Quaternion& q, float t, Quaternion& qt)
 {
 	float sclp, sclq;
@@ -368,7 +367,7 @@ inline void QuaternionBlend(const Quaternion& p, const Quaternion& q, float t, Q
 	QuaternionBlendNoAlign(p, q2, t, qt);
 }
 
-// maybe wrong
+// could probably not have this but replicating source functionality is nice
 inline void SinCos(float x, float* fsin, float* fcos)
 {
 	*fsin = sin(x);
@@ -378,8 +377,8 @@ inline void SinCos(float x, float* fsin, float* fcos)
 // this is the same func as 'RTech::DecompressConvertRotation'
 void AngleQuaternion(const RadianEuler& angles, Quaternion& outQuat)
 {
-	float sr, sp, sy, cr, cp, cy;
 	// pitch = x, yaw = y, roll = z
+	float sr, sp, sy, cr, cp, cy;
 
 	SinCos(angles.Z * 0.5f, &sy, &cy);
 	SinCos(angles.Y * 0.5f, &sp, &cp);
@@ -404,7 +403,6 @@ void MdlLib::ExtractAnimValue(int frame, mstudioanimvalue_t* panimvalue, float s
 	}
 
 	// Avoids a crash reading off the end of the data
-	// There is probably a better long-term solution; Ken is going to look into it.
 	if ((panimvalue->num.total == 1) && (panimvalue->num.valid == 1))
 	{
 		v1 = v2 = panimvalue[1].value * scale;
@@ -420,7 +418,7 @@ void MdlLib::ExtractAnimValue(int frame, mstudioanimvalue_t* panimvalue, float s
 		panimvalue += panimvalue->num.valid + 1;
 		if (panimvalue->num.total == 0)
 		{
-			//assert(0); // running off the end of the animation stream is bad
+			assert(0); // running off the end of the animation stream is bad
 			v1 = v2 = 0;
 			return;
 		}
@@ -483,7 +481,7 @@ void MdlLib::ExtractAnimValue(int frame, mstudioanimvalue_t* panimvalue, float s
 		panimvalue += panimvalue->num.valid + 1;
 		if (panimvalue->num.total == 0)
 		{
-			//assert(0); // running off the end of the animation stream is bad
+			assert(0); // running off the end of the animation stream is bad
 			v1 = 0;
 			return;
 		}
@@ -516,7 +514,7 @@ void MdlLib::CalcBoneQuaternion(int frame, float s,
 	{
 		if (panim->flags & STUDIO_ANIM_DELTA)
 		{
-			q = { 0.0f, 0.0f, 0.0f, 1.0f };
+			q = initQuat(0.0f, 0.0f, 0.0f, 1.0f);
 		}
 		else
 		{
@@ -566,8 +564,6 @@ void MdlLib::CalcBoneQuaternion(int frame, float s,
 		ExtractAnimValue(frame, pValuesPtr->pAnimvalue(0), baseRotScale.X, angle.X);
 		ExtractAnimValue(frame, pValuesPtr->pAnimvalue(1), baseRotScale.Y, angle.Y);
 		ExtractAnimValue(frame, pValuesPtr->pAnimvalue(2), baseRotScale.Z, angle.Z);
-
-		//printf("rot: x %f, y %f, z %f\n", angle.X, angle.Y, angle.Z);
 
 		if (!(panim->flags & STUDIO_ANIM_DELTA))
 		{
@@ -648,7 +644,6 @@ void MdlLib::CalcBonePosition(int frame, float s,
 	assert(isValidVec(pos));
 }
 
-
 // parse rle animation
 inline void MdlLib::CalcBonePosition(int frame, float s,
 	const titanfall2::mstudiobone_t* pBone,
@@ -707,11 +702,10 @@ void MdlLib::CalcBoneScale(int frame, float s,
 	assert(isValidVec(scale));
 }
 
-titanfall2::mstudio_rle_anim_t* titanfall2::mstudioanimdesc_t::pAnim(int* piFrame/*, float& flStall*/) const
+titanfall2::mstudio_rle_anim_t* titanfall2::mstudioanimdesc_t::pAnim(int* piFrame) const
 {
 	mstudio_rle_anim_t* panim = nullptr;
 
-	//int block = animblock;
 	int index = animindex;
 	int section = 0;
 
@@ -723,21 +717,20 @@ titanfall2::mstudio_rle_anim_t* titanfall2::mstudioanimdesc_t::pAnim(int* piFram
 			*piFrame = 0;
 			section = (numframes / sectionframes) + 1;
 		}
-		else
+		/*else
 		{
 			section = *piFrame / sectionframes;
 			*piFrame -= section * sectionframes;
-		}
+		}*/
+		
+		// looks like this in ida
+		section = *piFrame / sectionframes;
+		*piFrame -= section * sectionframes;
 
-		//block = pSection(section)->animblock;
 		index = pSection(section)->animindex;
 	}
 
-	printf("section %i\n", section);
-
-	panim = reinterpret_cast<mstudio_rle_anim_t*>((char*)this + index);
-
-	return panim;
+	return panim = reinterpret_cast<mstudio_rle_anim_t*>((char*)this + index);
 }
 
 void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
@@ -816,50 +809,43 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 				float fFrame = cycle * (animdesc->numframes - 1);
 
 				int iFrame = (int)fFrame;
-				//float s = (fFrame - iFrame);
-				float s = 0;
+				float s = (fFrame - iFrame);
+				//float s = 0;
 
 				int iLocalFrame = frameIdx;
 
-				printf("%i\n", iLocalFrame + 1);
-
 				titanfall2::mstudio_rle_anim_t* pAnim = animdesc->pAnim(&iLocalFrame);
 
-				printf("local frame %i\n", iLocalFrame + 1);
+				//printf("local frame %i\n", iLocalFrame + 1);
 
 				for (int boneIdx = 0; boneIdx < pHdr->numbones; boneIdx++)
 				{
 					unsigned char boneId = pAnim->bone; // unsigned char as bone limit is 256
 
-					//printf("bone: %i; ", boneId);
-
 					// rotation
 					Quaternion quat;
 
-					CalcBoneQuaternion(frameIdx, s, pHdr->pBone(boneId), pHdr->pLinearBones(), pAnim, quat);
+					CalcBoneQuaternion(iLocalFrame, s, pHdr->pBone(boneId), pHdr->pLinearBones(), pAnim, quat);
 
-					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[0].Keyframes.Emplace(static_cast<uint32_t>(iLocalFrame), quat);
+					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[0].Keyframes.Emplace(static_cast<uint32_t>(frameIdx), quat);
 
 					// position
 					Vector3 pos;
 
-					CalcBonePosition(frameIdx, s, pHdr->pBone(boneId), pHdr->pLinearBones(), pAnim, pos);
+					CalcBonePosition(iLocalFrame, s, pHdr->pBone(boneId), pHdr->pLinearBones(), pAnim, pos);
 
-					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[1].Keyframes.EmplaceBack(static_cast<uint32_t>(iLocalFrame), pos.X);
-					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[2].Keyframes.EmplaceBack(static_cast<uint32_t>(iLocalFrame), pos.Y);
-					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[3].Keyframes.EmplaceBack(static_cast<uint32_t>(iLocalFrame), pos.Z);
-
-					if (!iLocalFrame)
-						printf("bone: %i; pos: x %f, y %f, z %f\n", boneId, pos.X, pos.Y, pos.Z);
+					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[1].Keyframes.EmplaceBack(static_cast<uint32_t>(frameIdx), pos.X);
+					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[2].Keyframes.EmplaceBack(static_cast<uint32_t>(frameIdx), pos.Y);
+					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[3].Keyframes.EmplaceBack(static_cast<uint32_t>(frameIdx), pos.Z);
 
 					// scale
 					Vector3 scale;
 
-					CalcBoneScale(frameIdx, s, pHdr->pBone(boneId)->scale, pHdr->pBone(boneId)->scalescale, pAnim, scale);
+					CalcBoneScale(iLocalFrame, s, pHdr->pBone(boneId)->scale, pHdr->pBone(boneId)->scalescale, pAnim, scale);
 
-					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[4].Keyframes.EmplaceBack(static_cast<uint32_t>(iLocalFrame), scale.X);
-					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[5].Keyframes.EmplaceBack(static_cast<uint32_t>(iLocalFrame), scale.Y);
-					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[6].Keyframes.EmplaceBack(static_cast<uint32_t>(iLocalFrame), scale.Z);
+					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[4].Keyframes.EmplaceBack(static_cast<uint32_t>(frameIdx), scale.X);
+					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[5].Keyframes.EmplaceBack(static_cast<uint32_t>(frameIdx), scale.Y);
+					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[6].Keyframes.EmplaceBack(static_cast<uint32_t>(frameIdx), scale.Z);
 
 					//printf("bone: %i \n rot: rx %f, ry %f, rz %f, rw %f\n pos: px %f, py %f, pz %f\n scale: sx %f, sy %f, sz %f\n", boneId, quat.X, quat.Y, quat.Z, quat.W, pos.X, pos.Y, pos.Z, scale.X, scale.Y, scale.Z);
 
@@ -878,247 +864,4 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 			g_Logger.Info("Exported: " + animName + ".\n");
 		}
 	}
-
-	/*if (hdr.numlocalanim)
-	{
-		string ExportAnimPath = IO::Path::Combine(Path, "animations");
-		string ExportBasePath = IO::Path::Combine(ExportAnimPath, IO::Path::GetFileNameWithoutExtension(hdr.name));
-
-		IO::Directory::CreateDirectory(ExportBasePath);
-
-		for (uint32_t i = 0; i < hdr.numlocalanim; i++)
-		{
-			uint64_t Position = hdr.localanimindex + (i * sizeof(mstudioanimdescv53_t));
-
-			Stream->SetPosition(Position);
-			mstudioanimdescv53_t ASeqHeader = Reader.Read<mstudioanimdescv53_t>();
-
-			auto Anim = std::make_unique<Assets::Animation>(Model->Bones.Count(), ASeqHeader.Framerate);
-			Assets::AnimationCurveMode AnimCurveType = Assets::AnimationCurveMode::Absolute;
-
-			for (auto& Bone : Model->Bones)
-			{
-				Anim->Bones.EmplaceBack(Bone.Name(), Bone.Parent(), Bone.LocalPosition(), Bone.LocalRotation());
-
-				auto& CurveNodes = Anim->GetNodeCurves(Bone.Name());
-
-				CurveNodes.EmplaceBack(Bone.Name(), Assets::CurveProperty::RotateQuaternion, AnimCurveType);
-				CurveNodes.EmplaceBack(Bone.Name(), Assets::CurveProperty::TranslateX, AnimCurveType);
-				CurveNodes.EmplaceBack(Bone.Name(), Assets::CurveProperty::TranslateY, AnimCurveType);
-				CurveNodes.EmplaceBack(Bone.Name(), Assets::CurveProperty::TranslateZ, AnimCurveType);
-				CurveNodes.EmplaceBack(Bone.Name(), Assets::CurveProperty::ScaleX, AnimCurveType);
-				CurveNodes.EmplaceBack(Bone.Name(), Assets::CurveProperty::ScaleY, AnimCurveType);
-				CurveNodes.EmplaceBack(Bone.Name(), Assets::CurveProperty::ScaleZ, AnimCurveType);
-			}
-
-			Anim->Looping = (bool)(ASeqHeader.Flags & 0x20000);
-
-			Stream->SetPosition(Position + ASeqHeader.NameOffset);
-			string AnimName = Reader.ReadCString();
-
-			List<uint64_t> AnimChunkOffsets;
-
-			if (ASeqHeader.FrameSplitCount)
-			{
-				Stream->SetPosition(Position + ASeqHeader.OffsetToChunkOffsetsTable);
-
-				while (true)
-				{
-					uint32_t Result = Reader.Read<uint32_t>();
-
-					if (Result == 0)
-						break;
-
-					AnimChunkOffsets.Add(Position + Result);
-				}
-			}
-			else
-				AnimChunkOffsets.Add(ASeqHeader.FirstChunkOffset + Position);
-
-			for (uint32_t Frame = 0; Frame < ASeqHeader.FrameCount; Frame++)
-			{
-				uint32_t ChunkTableIndex = 0;
-				uint32_t ChunkFrameChunkFrame = Frame;
-				uint32_t FrameCountOneLess = 0;
-
-				if (ASeqHeader.FrameSplitCount)
-				{
-					uint32_t FrameCount = ASeqHeader.FrameCount;
-					if (FrameCount <= ASeqHeader.FrameSplitCount || (FrameCountOneLess = FrameCount - 1, ChunkFrame != FrameCountOneLess))
-					{
-						ChunkTableIndex = ChunkFrame / ASeqHeader.FrameSplitCount;
-						ChunkFrame -= ASeqHeader.FrameSplitCount * (ChunkFrame / ASeqHeader.FrameSplitCount);
-					}
-					else
-					{
-						ChunkFrame = 0;
-						ChunkTableIndex = FrameCountOneLess / ASeqHeader.FrameSplitCount + 1;
-					}
-				}
-
-				Stream->SetPosition(AnimChunkOffsets[ChunkTableIndex]);
-
-				while (true)
-				{
-					uint64_t TrackDataRead = 0;
-
-					RAnimBoneHeader BoneTrackHeader = Reader.Read<RAnimBoneHeader>();
-					uint64_t BoneDataSize = BoneTrackHeader.DataSize - sizeof(RAnimBoneHeader);
-
-					if (BoneTrackHeader.BoneFlags.bStaticTranslation)
-					{
-						List<Assets::Curve>& Curves = Anim->GetNodeCurves(Anim->Bones[BoneTrackHeader.BoneIndex].Name());
-
-						Curves[1].Keyframes.EmplaceBack(Frame, Math::Half(BoneTrackHeader.TranslationX).ToFloat());
-						Curves[2].Keyframes.EmplaceBack(Frame, Math::Half(BoneTrackHeader.TranslationY).ToFloat());
-						Curves[3].Keyframes.EmplaceBack(Frame, Math::Half(BoneTrackHeader.TranslationZ).ToFloat());
-					}
-
-					if (BoneTrackHeader.BoneFlags.bStaticRotation)
-					{
-						struct Quat64
-						{
-							uint64_t X : 21;
-							uint64_t Y : 21;
-							uint64_t Z : 21;
-							uint64_t WNeg : 1;
-						};
-
-						Quat64 PackedQuat = *(Quat64*)&BoneTrackHeader.RotationInfo.PackedRotation;
-
-						Math::Quaternion Quat;
-
-						Quat.X = ((int)PackedQuat.X - 1048576) * (1 / 1048576.5f);
-						Quat.Y = ((int)PackedQuat.Y - 1048576) * (1 / 1048576.5f);
-						Quat.Z = ((int)PackedQuat.Z - 1048576) * (1 / 1048576.5f);
-						Quat.W = std::sqrt(1 - Quat.X * Quat.X - Quat.Y * Quat.Y - Quat.Z * Quat.Z);
-
-						if (PackedQuat.WNeg)
-							Quat.W = -Quat.W;
-
-						Anim->GetNodeCurves(Anim->Bones[BoneTrackHeader.BoneIndex].Name())[0].Keyframes.Emplace(Frame, Quat);
-					}
-
-					if (BoneTrackHeader.BoneFlags.bStaticScale)
-					{
-						List<Assets::Curve>& Curves = Anim->GetNodeCurves(Anim->Bones[BoneTrackHeader.BoneIndex].Name());
-
-						Curves[4].Keyframes.EmplaceBack(Frame, Math::Half(BoneTrackHeader.ScaleX).ToFloat());
-						Curves[5].Keyframes.EmplaceBack(Frame, Math::Half(BoneTrackHeader.ScaleY).ToFloat());
-						Curves[6].Keyframes.EmplaceBack(Frame, Math::Half(BoneTrackHeader.ScaleZ).ToFloat());
-					}
-
-					if (BoneTrackHeader.DataSize == 0)
-					{
-						break;
-					}
-
-					auto BoneTrackData = Reader.Read(BoneDataSize, TrackDataRead);
-
-					uint16_t* BoneTrackDataPtr = (uint16_t*)BoneTrackData.get();
-
-					if (TrackDataRead > 0)
-					{
-						if (!BoneTrackHeader.BoneFlags.bStaticTranslation)
-						{
-							ParseRAnimBoneTranslationTrack(BoneTrackHeader, BoneBuffer[BoneTrackHeader.BoneIndex], &BoneTrackDataPtr, Anim, BoneTrackHeader.BoneIndex, ChunkFrame, Frame);
-						}
-						
-						if (!BoneTrackHeader.BoneFlags.bStaticRotation)
-						{
-							ParseRAnimBoneRotationTrack(BoneTrackHeader, BoneBuffer[BoneTrackHeader.BoneIndex], &BoneTrackDataPtr, Anim, BoneTrackHeader.BoneIndex, ChunkFrame, Frame);
-						}
-
-						if (!BoneTrackHeader.BoneFlags.bStaticScale)
-						{
-						}
-					}
-				}
-			}
-
-			Anim->RemoveEmptyNodes();
-
-			this->AnimExporter->ExportAnimation(*Anim.get(), IO::Path::Combine(ExportBasePath, AnimName + (const char*)this->AnimExporter->AnimationExtension()));
-		}
-	}*/
 }
-
-/*void MdlLib::ParseRAnimBoneTranslationTrack(const RAnimBoneHeader& BoneFlags, const titanfall2::mstudiobone_t& Bone, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
-{
-	printf("***** ParseRAnimBoneTranslationTrack is STUBBED.\n");
-
-
-	uint16_t* TranslationDataPtr = *BoneTrackData;
-	uint8_t* DataPointer = (uint8_t*)TranslationDataPtr;
-
-	uint8_t* TranslationDataX = &DataPointer[BoneFlags.TranslationX - 0x10];
-
-	float Result[3]{ Bone.pos.X, Bone.pos.Y, Bone.pos.Z };
-
-	float v37 = 0, v34 = 0;
-
-	if (BoneFlags.TranslationX)
-	{
-		//Titanfall2TrackDecompress(Frame, TranslationDataX, BoneFlags.TranslationScale, &v37, &v34);
-		Result[0] += v37;
-	}
-
-	if (BoneFlags.TranslationY)
-	{
-		//Titanfall2TrackDecompress(Frame, TranslationDataY, BoneFlags.TranslationScale, &v37, &v34);
-		Result[1] += v37;
-	}
-
-	if (BoneFlags.TranslationZ)
-	{
-		//Titanfall2TrackDecompress(Frame, TranslationDataZ, BoneFlags.TranslationScale, &v37, &v34);
-		Result[2] += v37;
-	}
-
-	auto& Curves = Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name());
-
-	Curves[1].Keyframes.EmplaceBack(FrameIndex, Result[0]);
-	Curves[2].Keyframes.EmplaceBack(FrameIndex, Result[1]);
-	Curves[3].Keyframes.EmplaceBack(FrameIndex, Result[2]);
-}
-
-void MdlLib::ParseRAnimBoneRotationTrack(const RAnimBoneHeader& BoneFlags, const titanfall2::mstudiobone_t& Bone, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
-{
-	printf("ParseRAnimBoneRotationTrack is STUBBED.\n");
-
-	uint16_t* RotationDataPtr = *BoneTrackData;
-	uint8_t* DataPointer = (uint8_t*)RotationDataPtr;
-
-	uint8_t* TranslationDataX = &DataPointer[(BoneFlags.RotationInfo.OffsetX - 0x18)];
-	uint8_t* TranslationDataY = &DataPointer[(BoneFlags.RotationInfo.OffsetY - 0x18)];
-	uint8_t* TranslationDataZ = &DataPointer[(BoneFlags.RotationInfo.OffsetZ - 0x18)];	
-
-	Vector3 BoneRotation = Bone.quat.ToEulerAngles();
-
-	float EulerResult[4]{ Math::MathHelper::DegreesToRadians(BoneRotation.X),Math::MathHelper::DegreesToRadians(BoneRotation.Y),Math::MathHelper::DegreesToRadians(BoneRotation.Z),0 };
-
-	float v37 = 0, v34 = 0;
-	
-	if (BoneFlags.RotationInfo.OffsetX)
-	{
-		//Titanfall2TrackDecompress(Frame, TranslationDataX, Bone.RotationScale[0], &v37, &v34);
-		EulerResult[0] += v37;
-	}
-
-	if (BoneFlags.RotationInfo.OffsetY)
-	{
-		//Titanfall2TrackDecompress(Frame, TranslationDataY, Bone.RotationScale[1], &v37, &v34);
-		EulerResult[1] += v37;
-	}
-
-	if (BoneFlags.RotationInfo.OffsetZ)
-	{
-		//Titanfall2TrackDecompress(Frame, TranslationDataZ, Bone.RotationScale[2], &v37, &v34);
-		EulerResult[2] += v37;
-	}
-
-	Math::Quaternion Result;
-	RTech::DecompressConvertRotation((const __m128i*) & EulerResult[0], (float*)&Result);
-
-	Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name())[0].Keyframes.Emplace(FrameIndex, Result);
-}*/

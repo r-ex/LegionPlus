@@ -2465,7 +2465,7 @@ float* __fastcall RTech::ExtractAnimValue(int frame_count, uint8_t* in_translati
 //-----------------------------------------------------------------------------
 // Purpose: convert bone rotations from input
 //-----------------------------------------------------------------------------
-void __fastcall RTech::DecompressConvertRotation(const __m128i* in_rotation_buffer, float* out_rotation_buffer)
+void __fastcall RTech::DecompressConvertRotation(const __m128i* in_rotation_buffer, float* out_rotation_buffer) // AngleQuaternion
 {
 	__m128  v2; // xmm4
 	__m128i v3; // xmm9
