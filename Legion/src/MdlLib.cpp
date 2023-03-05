@@ -75,7 +75,7 @@ void MdlLib::ExtractValveVertexData(titanfall2::studiohdr_t* pHdr, vtx::FileHead
 {
 	string ExportModelPath = IO::Path::Combine(Path, "models");
 
-	for (int i = 0; i < /*pVtx->numLODs*/1; i++)
+	for (int i = 0; i < pVtx->numLODs; i++)
 	{
 		std::vector<vvd::mstudiovertex_t*> vvdVerts;
 		std::vector<vvc::VertexColor_t*> vvcColors;
@@ -744,7 +744,7 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 	titanfall2::studiohdr_t* pHdr = reinterpret_cast<titanfall2::studiohdr_t*>(mdlBuff.get());
 
 	// id = IDST or version = 53
-	if (pHdr->id != 0x54534449 || pHdr->version != 0x35)
+	if (pHdr->id != 0x54534449 || pHdr->version != STUDIO_VERSION_TITANFALL2)
 		return;
 	
 	auto Model = std::make_unique<Assets::Model>(0, 0);
@@ -757,7 +757,7 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 	for (int i = 0; i < pHdr->numbones; i++)
 	{
 		titanfall2::mstudiobone_t* newBone = pHdr->pBone(i);
-		titanfall2::mstudiobone_t bone = *newBone;
+		titanfall2::mstudiobone_t bone = *newBone; // do something better with this
 
 		Model->Bones.EmplaceBack(newBone->pszName(), bone.parent, bone.pos, bone.quat/*, bone.scale, Assets::BoneFlags::HasScale*/);
 		bones.push_back(bone);
@@ -801,8 +801,6 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 
 			for (int frameIdx = 0; frameIdx < animdesc->numframes; frameIdx++)
 			{
-				printf("%i\n", frameIdx + 1);
-
 				// cut this if it doesn't affect anything?
 				float cycle = static_cast<float>(frameIdx / animdesc->numframes); // don't think this is correct
 
@@ -821,6 +819,10 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 				for (int boneIdx = 0; boneIdx < pHdr->numbones; boneIdx++)
 				{
 					unsigned char boneId = pAnim->bone; // unsigned char as bone limit is 256
+
+					// this may not be the best solution
+					if (!pAnim->flags && (boneId == 0xff))
+						break;
 
 					// rotation
 					Quaternion quat;
