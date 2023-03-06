@@ -293,6 +293,14 @@ inline Quaternion UnpackQuat64(Quaternion64 quat64)
 	if (quat64.wneg)
 		quat.W = -quat.W;
 
+	// this is not normal source, putting this here as a just in case.
+	// if it's not finite then it's (probably) a small decimal close to 0
+	// maybe we should do rounding here?
+	if (!isfinite(quat.W))
+		quat.W = 0;
+
+	//printf("%f, %f, %f, %f\n", quat.X, quat.Y, quat.Z, quat.W);
+
 	return quat;
 }
 
@@ -747,7 +755,7 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 	if (pHdr->id != 0x54534449 || pHdr->version != STUDIO_VERSION_TITANFALL2)
 		return;
 	
-	auto Model = std::make_unique<Assets::Model>(0, 0);
+	std::unique_ptr<Assets::Model> Model = std::make_unique<Assets::Model>(0, 0);
 
 	// get name from sznameindex incase it exceeds 64 bytes (for whatever reason)
 	Model->Name = IO::Path::GetFileNameWithoutExtension(pHdr->mdlName());
