@@ -293,13 +293,10 @@ inline Quaternion UnpackQuat64(Quaternion64 quat64)
 	if (quat64.wneg)
 		quat.W = -quat.W;
 
-	// this is not normal source, putting this here as a just in case.
-	// if it's not finite then it's (probably) a small decimal close to 0
-	// maybe we should do rounding here?
+	// this is not normal source, putting this here as a failsafe.
+	// if it's not finite then it's (probably) a small decimal close to 0, maybe we should do rounding here?
 	if (!isfinite(quat.W))
 		quat.W = 0;
-
-	//printf("%f, %f, %f, %f\n", quat.X, quat.Y, quat.Z, quat.W);
 
 	return quat;
 }
@@ -710,7 +707,186 @@ void MdlLib::CalcBoneScale(int frame, float s,
 	assert(isValidVec(scale));
 }
 
-titanfall2::mstudio_rle_anim_t* titanfall2::mstudioanimdesc_t::pAnim(int* piFrame) const
+// is there not more to this?
+void MdlLib::Studio_FrameMovement(const titanfall2::mstudioframemovement_t* pFrameMovement, int frame, Vector3& vecPos, float& yaw)
+{
+	for (int i = 0; i < 3; i++)
+	{
+		ExtractAnimValue(frame, pFrameMovement->pAnimvalue(i), pFrameMovement->scale[i], vecPos[i]);
+	}
+
+	ExtractAnimValue(frame, pFrameMovement->pAnimvalue(3), pFrameMovement->scale[3], yaw);
+}
+
+void MdlLib::Studio_FrameMovement(const titanfall2::mstudioframemovement_t* pFrameMovement, int iFrame, Vector3& v1Pos, Vector3& v2Pos, float& v1Yaw, float& v2Yaw)
+{
+	for (int i = 0; i < 3; i++)
+	{
+		ExtractAnimValue(iFrame, pFrameMovement->pAnimvalue(i), pFrameMovement->scale[i], v1Pos[i], v2Pos[i]);
+	}
+
+	ExtractAnimValue(iFrame, pFrameMovement->pAnimvalue(3), pFrameMovement->scale[3], v1Yaw, v2Yaw);
+}
+
+inline float NormalizeAngle(float ang1, float ang2)
+{
+	float remainder = fmodf(ang1 - ang2, 360.0);
+
+	// I don't understand this check
+	if (ang1 <= ang2)
+	{
+		if (remainder <= -180.0)
+			remainder + 360.0;
+	}
+	else if (remainder >= 180.0)
+	{
+		remainder - 360.0;
+	}
+
+	return remainder;
+}
+
+bool MdlLib::Studio_AnimPosition(titanfall2::mstudioanimdesc_t* panim, float flCycle, Vector3& vecPos, Vector3& vecAngle)
+{
+	float	prevframe = 0;
+	vecPos = { 0.0f, 0.0f, 0.0f };
+	vecAngle = { 0.0f, 0.0f, 0.0f };
+
+	int iLoops = 0;
+	if (flCycle > 1.0)
+	{
+		iLoops = (int)flCycle;
+	}
+	else if (flCycle < 0.0)
+	{
+		iLoops = (int)flCycle - 1;
+	}
+	flCycle = flCycle - iLoops;
+
+	float	flFrame = flCycle * (panim->numframes - 1);
+
+	if (panim->flags & STUDIO_FRAMEMOVEMENT)
+	{
+		int iFrame = (int)flFrame;
+		float s = (flFrame - iFrame);
+
+		if (s == 0)
+		{
+			Studio_FrameMovement(panim->pFrameMovement(), iFrame, vecPos, vecAngle.Y);
+			return true;
+		}
+		else
+		{
+			Vector3 v1Pos, v2Pos;
+			float v1Yaw, v2Yaw;
+
+			Studio_FrameMovement(panim->pFrameMovement(), iFrame, v1Pos, v2Pos, v1Yaw, v2Yaw);
+
+			vecPos.X = ((v2Pos.X - v1Pos.X) * s) + v1Pos.X;
+			vecPos.Y = ((v2Pos.Y - v1Pos.Y) * s) + v1Pos.Y;
+			vecPos.Z = ((v2Pos.Z - v1Pos.Z) * s) + v1Pos.Z;
+
+			float yawNormalized = NormalizeAngle(v2Yaw, v1Yaw);
+			vecAngle.Y = (yawNormalized * s) + v1Yaw;
+
+			return true;
+		}
+	}
+	else
+	{
+		for (int i = 0; i < panim->nummovements; i++)
+		{
+			titanfall2::mstudiomovement_t* pmove = panim->pMovement(i);
+
+			if (pmove->endframe >= flFrame)
+			{
+				float f = (flFrame - prevframe) / (pmove->endframe - prevframe);
+
+				float d = pmove->v0 * f + 0.5 * (pmove->v1 - pmove->v0) * f * f;
+
+				vecPos.X = vecPos.X + d * pmove->vector.X;
+				vecPos.Y = vecPos.Y + d * pmove->vector.Y;
+				vecPos.Z = vecPos.Z + d * pmove->vector.Z;
+
+				vecAngle.Y = vecAngle.Y * (1 - f) + pmove->angle * f;
+				if (iLoops != 0)
+				{
+					titanfall2::mstudiomovement_t* pmove = panim->pMovement(panim->nummovements - 1);
+
+					vecPos.X = vecPos.X + iLoops * pmove->position.X;
+					vecPos.Y = vecPos.Y + iLoops * pmove->position.Y;
+					vecPos.Z = vecPos.Z + iLoops * pmove->position.Z;
+
+					vecAngle.Y = vecAngle.Y + iLoops * pmove->angle;
+				}
+				return true;
+			}
+			else
+			{
+				prevframe = pmove->endframe;
+				vecPos = pmove->position;
+				vecAngle.Y = pmove->angle;
+			}
+		}
+	}
+
+	return false;
+}
+
+inline float DEG2RAD(float degree)
+{
+	return degree * (acos(-1)) / 180.0;
+}
+
+// Rotate a vector around the Z axis (YAW)
+//void VectorYawRotate(const Vector3& in, float flYaw, Vector3& out)
+//{
+//	//Assert(s_bMathlibInitialized);
+//	if (&in == &out)
+//	{
+//		Vector3 tmp;
+//		tmp = in;
+//		VectorYawRotate(tmp, flYaw, out);
+//		return;
+//	}
+//
+//	float sy, cy;
+//
+//	SinCos(DEG2RAD(flYaw), &sy, &cy);
+//
+//	out.X = in.X * cy - in.Y * sy;
+//	out.Y = in.X * sy + in.Y * cy;
+//	out.Z = in.Z;
+//}
+
+void MdlLib::AdjustOriginBone(titanfall2::mstudioanimdesc_t* panim, float flCycle, Vector3& posBase, Quaternion& rotBase)
+{
+	Vector3 vecPos, vecAngle;
+
+	if (panim->nummovements > 0 || (panim->flags & STUDIO_FRAMEMOVEMENT))
+		Studio_AnimPosition(panim, flCycle, vecPos, vecAngle);
+
+	posBase.X = posBase.X + vecPos.X;
+	posBase.Y = posBase.Y + vecPos.Y;
+	posBase.Z = posBase.Z + vecPos.Z;
+
+	//adjust position as we are rotating on the Z axis
+	float x = posBase.X;
+	float y = posBase.Y;
+
+	posBase.X = y;
+	posBase.Y = -x;
+
+	Vector3 baseEuler = rotBase.ToEulerAngles();
+
+	baseEuler.X = DEG2RAD(baseEuler.X);
+	baseEuler.Y = DEG2RAD(baseEuler.Y);
+	baseEuler.Z = DEG2RAD(baseEuler.Z + vecAngle.Y - 90); // rotate by 90 for easier recompile (if desired)
+
+	AngleQuaternion(baseEuler, rotBase);
+}
+
+inline titanfall2::mstudio_rle_anim_t* titanfall2::mstudioanimdesc_t::pAnim(int* piFrame) const
 {
 	mstudio_rle_anim_t* panim = nullptr;
 
@@ -725,15 +901,11 @@ titanfall2::mstudio_rle_anim_t* titanfall2::mstudioanimdesc_t::pAnim(int* piFram
 			*piFrame = 0;
 			section = (numframes / sectionframes) + 1;
 		}
-		/*else
+		else
 		{
 			section = *piFrame / sectionframes;
 			*piFrame -= section * sectionframes;
-		}*/
-		
-		// looks like this in ida
-		section = *piFrame / sectionframes;
-		*piFrame -= section * sectionframes;
+		}
 
 		index = pSection(section)->animindex;
 	}
@@ -752,42 +924,34 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 	titanfall2::studiohdr_t* pHdr = reinterpret_cast<titanfall2::studiohdr_t*>(mdlBuff.get());
 
 	// id = IDST or version = 53
-	if (pHdr->id != 0x54534449 || pHdr->version != STUDIO_VERSION_TITANFALL2)
+	if (pHdr->id != MODEL_FILE_ID || pHdr->version != STUDIO_VERSION_TITANFALL2)
 		return;
 	
 	std::unique_ptr<Assets::Model> Model = std::make_unique<Assets::Model>(0, 0);
 
 	// get name from sznameindex incase it exceeds 64 bytes (for whatever reason)
-	Model->Name = IO::Path::GetFileNameWithoutExtension(pHdr->mdlName());
-
-	std::vector<titanfall2::mstudiobone_t> bones;
+	Model->Name = IO::Path::GetFileNameWithoutExtension(pHdr->pszName());
 
 	for (int i = 0; i < pHdr->numbones; i++)
 	{
-		titanfall2::mstudiobone_t* newBone = pHdr->pBone(i);
-		titanfall2::mstudiobone_t bone = *newBone; // do something better with this
-
-		Model->Bones.EmplaceBack(newBone->pszName(), bone.parent, bone.pos, bone.quat/*, bone.scale, Assets::BoneFlags::HasScale*/);
-		bones.push_back(bone);
+		Model->Bones.EmplaceBack(pHdr->pBone(i)->pszName(), pHdr->pBone(i)->parent, pHdr->pBone(i)->pos, pHdr->pBone(i)->quat/*, bone.scale, Assets::BoneFlags::HasScale*/);
 	}
 
-	if (pHdr->numbodyparts)
-	{
-		ExtractValveVertexData(pHdr, pHdr->GetVTX(), pHdr->GetVVD(), pHdr->GetVVC(), nullptr, Model, Path);
-	}
+	if (pHdr->numbodyparts > 0)
+		ExtractValveVertexData(pHdr, pHdr->pVTX(), pHdr->pVVD(), pHdr->pVVC(), nullptr, Model, Path);
 
-	if (pHdr->numlocalanim)
+	if (pHdr->numlocalanim > 0)
 	{
 		string ExportAnimPath = IO::Path::Combine(Path, "animations");
-		string ExportBasePath = IO::Path::Combine(ExportAnimPath, IO::Path::GetFileNameWithoutExtension(pHdr->mdlName()));
+		string ExportBasePath = IO::Path::Combine(ExportAnimPath, IO::Path::GetFileNameWithoutExtension(pHdr->pszName()));
 
 		IO::Directory::CreateDirectory(ExportBasePath);
 
 		for (int i = 0; i < pHdr->numlocalanim; i++)
 		{
-			titanfall2::mstudioanimdesc_t* animdesc = pHdr->anim(i);
+			titanfall2::mstudioanimdesc_t* animdesc = pHdr->pAnimdesc(i);
 
-			auto Anim = std::make_unique<Assets::Animation>(Model->Bones.Count(), animdesc->fps);
+			std::unique_ptr<Assets::Animation> Anim = std::make_unique<Assets::Animation>(Model->Bones.Count(), animdesc->fps);
 			Assets::AnimationCurveMode AnimCurveType = (animdesc->flags & STUDIO_DELTA) ? Assets::AnimationCurveMode::Additive : Assets::AnimationCurveMode::Absolute; // technically this should change based on flags
 
 			for (Assets::Bone& Bone : Model->Bones)
@@ -809,20 +973,20 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 
 			for (int frameIdx = 0; frameIdx < animdesc->numframes; frameIdx++)
 			{
-				// cut this if it doesn't affect anything?
-				float cycle = static_cast<float>(frameIdx / animdesc->numframes); // don't think this is correct
+				float cycle = (1 / (float)animdesc->numframes) * (frameIdx + 1);
+
+				//printf("cycle %f, idx %i\n", cycle, frameIdx);
 
 				float fFrame = cycle * (animdesc->numframes - 1);
 
 				int iFrame = (int)fFrame;
 				float s = (fFrame - iFrame);
-				//float s = 0;
 
-				int iLocalFrame = frameIdx;
+				int iLocalFrame = iFrame;
 
 				titanfall2::mstudio_rle_anim_t* pAnim = animdesc->pAnim(&iLocalFrame);
 
-				//printf("local frame %i\n", iLocalFrame + 1);
+				//printf("local frame %i\n", iLocalFrame + 1); // local to any potential sections
 
 				for (int boneIdx = 0; boneIdx < pHdr->numbones; boneIdx++)
 				{
@@ -837,21 +1001,26 @@ void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
 
 					CalcBoneQuaternion(iLocalFrame, s, pHdr->pBone(boneId), pHdr->pLinearBones(), pAnim, quat);
 
-					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[0].Keyframes.Emplace(static_cast<uint32_t>(frameIdx), quat);
-
 					// position
 					Vector3 pos;
-
+					
 					CalcBonePosition(iLocalFrame, s, pHdr->pBone(boneId), pHdr->pLinearBones(), pAnim, pos);
+
+					// scale
+					Vector3 scale;
+					
+					CalcBoneScale(iLocalFrame, s, pHdr->pBone(boneId)->scale, pHdr->pBone(boneId)->scalescale, pAnim, scale);
+
+					// adjust origin bones
+					if (pHdr->pBone(boneId)->parent == -1) // check if it has no parents
+						AdjustOriginBone(animdesc, cycle, pos, quat);
+					
+					// set values
+					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[0].Keyframes.Emplace(static_cast<uint32_t>(frameIdx), quat);
 
 					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[1].Keyframes.EmplaceBack(static_cast<uint32_t>(frameIdx), pos.X);
 					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[2].Keyframes.EmplaceBack(static_cast<uint32_t>(frameIdx), pos.Y);
 					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[3].Keyframes.EmplaceBack(static_cast<uint32_t>(frameIdx), pos.Z);
-
-					// scale
-					Vector3 scale;
-
-					CalcBoneScale(iLocalFrame, s, pHdr->pBone(boneId)->scale, pHdr->pBone(boneId)->scalescale, pAnim, scale);
 
 					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[4].Keyframes.EmplaceBack(static_cast<uint32_t>(frameIdx), scale.X);
 					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[5].Keyframes.EmplaceBack(static_cast<uint32_t>(frameIdx), scale.Y);

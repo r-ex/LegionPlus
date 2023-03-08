@@ -58,13 +58,17 @@ public:
 					const Vector3& baseScale, Vector3& baseScaleScale,
 					const  titanfall2::mstudio_rle_anim_t* panim, Vector3& scale);
 
+	void Studio_FrameMovement(const titanfall2::mstudioframemovement_t* pFrameMovement, int frame, Vector3& vecPos, float& yaw);
+	void Studio_FrameMovement(const titanfall2::mstudioframemovement_t * pFrameMovement, int iFrame, Vector3& v1Pos, Vector3& v2Pos, float& v1Yaw, float& v2Yaw);
+	bool Studio_AnimPosition(titanfall2::mstudioanimdesc_t* panim, float flCycle, Vector3& vecPos, Vector3& vecAngle);
+	bool Studio_AnimMovement(titanfall2::mstudioanimdesc_t* panim, float flCycleFrom, float flCycleTo, Vector3& deltaPos, Vector3& deltaAngle);
+
+	void AdjustOriginBone(titanfall2::mstudioanimdesc_t* panim, float flCycle, Vector3& poseBase, Quaternion& rotBase); // for legion parsing
+
 	inline titanfall2::mstudio_rle_anim_t* pAnim(titanfall2::mstudioanimdesc_t* pAnimDesc, int* piFrame);
 
 	// Exports an on-disk mdl asset
 	void ExportMDLv53(const string& Asset, const string& Path);
 
 //private:
-	/*void ParseRAnimBoneTranslationTrack(const RAnimBoneHeader& BoneFlags, const titanfall2::mstudiobone_t& Bone, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex);
-	void ParseRAnimBoneRotationTrack(const RAnimBoneHeader& BoneFlags, const titanfall2::mstudiobone_t& Bone, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex);
-	void ParseRAnimBoneScaleTrack(const RAnimBoneHeader& BoneFlags, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex);*/
 };

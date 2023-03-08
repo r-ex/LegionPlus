@@ -21,9 +21,9 @@ typedef unsigned short uint16;
 #define STUDIO_EVENT_CLIENT	0x10000	// Has been updated at runtime to event index on client
 
 // new in respawn models
-#define STUDIO_ANIM_UNK		0x20000 // actually first in v52
-#define STUDIO_ANIM_UNK1	0x40000
-#define STUDIO_ANIM_UNK2	0x80000 // cherry blossom v53, levi in v54
+#define STUDIO_ANIM_UNK			0x20000 // actually first in v52
+#define STUDIO_FRAMEMOVEMENT	0x40000
+#define STUDIO_ANIM_UNK2		0x80000 // cherry blossom v53, levi in v54
 
 #define NEW_EVENT_STYLE 0x400 // set if string instead of event id, zero otherwise
 
