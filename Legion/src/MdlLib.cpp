@@ -838,27 +838,6 @@ inline float DEG2RAD(float degree)
 	return degree * (acos(-1)) / 180.0;
 }
 
-// Rotate a vector around the Z axis (YAW)
-//void VectorYawRotate(const Vector3& in, float flYaw, Vector3& out)
-//{
-//	//Assert(s_bMathlibInitialized);
-//	if (&in == &out)
-//	{
-//		Vector3 tmp;
-//		tmp = in;
-//		VectorYawRotate(tmp, flYaw, out);
-//		return;
-//	}
-//
-//	float sy, cy;
-//
-//	SinCos(DEG2RAD(flYaw), &sy, &cy);
-//
-//	out.X = in.X * cy - in.Y * sy;
-//	out.Y = in.X * sy + in.Y * cy;
-//	out.Z = in.Z;
-//}
-
 void MdlLib::AdjustOriginBone(titanfall2::mstudioanimdesc_t* panim, float flCycle, Vector3& posBase, Quaternion& rotBase)
 {
 	Vector3 vecPos, vecAngle;
