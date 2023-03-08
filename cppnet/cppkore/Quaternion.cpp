@@ -87,13 +87,13 @@ namespace Math
 
 	float Quaternion::operator[](int i) const
 	{
-		assert((i > 0) && (i < 4));
+		assert((i >= 0) && (i < 4));
 		return ((float*)this)[i];
 	}
 
 	float& Quaternion::operator[](int i)
 	{
-		assert((i > 0) && (i < 4));
+		assert((i >= 0) && (i < 4));
 		return ((float*)this)[i];
 	}
 
