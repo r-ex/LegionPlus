@@ -73,8 +73,6 @@ void MdlLib::InitializeAnimExporter(AnimExportFormat_t Format)
 void MdlLib::ExtractValveVertexData(titanfall2::studiohdr_t* pHdr, vtx::FileHeader_t* pVtx, vvd::vertexFileHeader_t* pVVD, vvc::vertexColorFileHeader_t* pVVC, vvw::vertexBoneWeightsExtraFileHeader_t* pVVW, 
 									std::unique_ptr<Assets::Model> &ExportModel, const string& Path)
 {
-	string ExportModelPath = IO::Path::Combine(Path, "models");
-
 	for (int i = 0; i < pVtx->numLODs; i++)
 	{
 		std::vector<vvd::mstudiovertex_t*> vvdVerts;
@@ -236,10 +234,14 @@ void MdlLib::ExtractValveVertexData(titanfall2::studiohdr_t* pHdr, vtx::FileHead
 		}
 	}
 
-	string ModelDirectory = IO::Path::Combine(ExportModelPath, ExportModel->Name);
-	IO::Directory::CreateDirectory(ModelDirectory);
+	// directory that contains all model export directories
+	string modelsExportDirectory = IO::Path::Combine(Path, "models");
 
-	this->ModelExporter->ExportModel(*ExportModel.get(), IO::Path::Combine(ModelDirectory, ExportModel->Name + (const char*)ModelExporter->ModelExtension()));
+	// directory that contains this model's exported files
+	string modelDirectory = IO::Path::Combine(modelsExportDirectory, ExportModel->Name);
+	IO::Directory::CreateDirectory(modelDirectory);
+
+	this->ModelExporter->ExportModel(*ExportModel.get(), IO::Path::Combine(modelDirectory, ExportModel->Name + (const char*)ModelExporter->ModelExtension()));
 	g_Logger.Info("Exported: " + ExportModel->Name + ".mdl\n");
 }
 
