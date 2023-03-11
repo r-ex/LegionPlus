@@ -501,7 +501,7 @@ void RpakLib::CalcBoneQuaternion(const mstudio_rle_anim_t& pAnim, uint16_t** Bon
 
 		Math::Vector3 BoneRotation = Anim->Bones[BoneIndex].LocalRotation().ToEulerAngles();
 
-		float EulerResult[4]{ Math::MathHelper::DegreesToRadians(BoneRotation.X),Math::MathHelper::DegreesToRadians(BoneRotation.Y),Math::MathHelper::DegreesToRadians(BoneRotation.Z),0 };
+		Vector3 EulerResult = { Math::MathHelper::DegreesToRadians(BoneRotation.X),Math::MathHelper::DegreesToRadians(BoneRotation.Y),Math::MathHelper::DegreesToRadians(BoneRotation.Z) };
 
 		uint8_t* dataPtrs[] = { (uint8_t*)pAnimValues,(uint8_t*)pAnimValues_Axis1,(uint8_t*)pAnimValues_Axis2 };
 
@@ -518,7 +518,7 @@ void RpakLib::CalcBoneQuaternion(const mstudio_rle_anim_t& pAnim, uint16_t** Bon
 
 		Math::Quaternion Result;
 
-		RTech::DecompressConvertRotation((const __m128i*) & EulerResult[0], (float*)&Result);
+		RTech::AngleQuaternion(EulerResult, Result);
 
 		Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name())[0].Keyframes.Emplace(FrameIndex, Result);
 

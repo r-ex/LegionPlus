@@ -283,7 +283,7 @@ public:
 	static int64_t DecompressSnowflakeInit(int64_t param_buf, int64_t data_buf, uint64_t data_size);
 	static bool DecompressSnowflake(int64_t param_buffer, uint64_t data_size, uint64_t buffer_size);
 	static float* __fastcall ExtractAnimValue(int frame_count, uint8_t* in_translation_buffer, float translation_scale, float* out_translation_buffer, float* time_scale/*'time_scale' might nit be correct*/);
-	static void __fastcall DecompressConvertRotation(const __m128i* rotation_buffer, float* result_buffer);
+	static void __fastcall AngleQuaternion(const Vector3& angles, Quaternion& outQuat);
 	static std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, uint64_t& DataSize, uint8_t Format);
 
 	static uint64_t __fastcall StringToGuid(const char* asset_name);

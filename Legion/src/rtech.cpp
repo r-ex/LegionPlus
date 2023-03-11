@@ -2465,72 +2465,28 @@ float* __fastcall RTech::ExtractAnimValue(int frame_count, uint8_t* in_translati
 //-----------------------------------------------------------------------------
 // Purpose: convert bone rotations from input
 //-----------------------------------------------------------------------------
-void __fastcall RTech::DecompressConvertRotation(const __m128i* in_rotation_buffer, float* out_rotation_buffer) // AngleQuaternion
+// could probably not have this but replicating source functionality is nice
+inline void SinCos(float x, float* fsin, float* fcos)
 {
-	__m128  v2; // xmm4
-	__m128i v3; // xmm9
-	__m128i v4; // xmm1
-	__m128i v5; // xmm8
-	__m128i v6; // xmm5
-	__m128i v7; // xmm9
-	__m128  v8; // xmm2
-	__m128  v9; // xmm8
-	__m128 v10; // xmm4
-	__m128 v11; // xmm2
-	__m128 v12; // xmm3
-	__m128 v13; // xmm1
-	__m128 v14; // xmm7
-	__m128 v15; // xmm6
+	*fsin = sin(x);
+	*fcos = cos(x);
+}
+void RTech::AngleQuaternion(const RadianEuler& angles, Quaternion& outQuat)
+{
+	// pitch = x, yaw = y, roll = z
+	float sr, sp, sy, cr, cp, cy;
 
-	v2 = _mm_mul_ps(_mm_and_ps(_mm_castsi128_ps(_mm_set_epi32(0x0, 0xffffffff, 0xffffffff, 0xffffffff)), _mm_castsi128_ps(_mm_lddqu_si128(in_rotation_buffer))), _mm_castsi128_ps(_mm_set_epi32(0x3F000000, 0x3F000000, 0x3F000000, 0x3F000000)));
-	__m128i m1 = _mm_set_epi32(0x1, 0x1, 0x1, 0x1);
-	v3 = _mm_load_si128(&m1);
-	v4 = _mm_cvtps_epi32(_mm_mul_ps((__m128)_mm_castsi128_ps(_mm_set_epi32(0x3F22F983, 0x3F22F983, 0x3F22F983, 0x3F22F983)), v2));
-	v5 = v3;
-	__m128i m2 = _mm_set_epi32(0x2, 0x2, 0x2, 0x2);
-	__m128i m3 = _mm_set_epi32(0x2, 0x2, 0x2, 0x2);
-	v6 = _mm_and_si128(_mm_load_si128(&m2), v4);
-	v7 = _mm_and_si128(_mm_add_epi32(v3, v4), m3);
-	v8 = _mm_cvtepi32_ps(v4);
-	v9 = _mm_castsi128_ps(_mm_cmpeq_epi32(_mm_and_si128(v5, v4), _mm_setzero_si128()));
-	v10 = _mm_sub_ps(
-		_mm_sub_ps(
-			_mm_sub_ps(v2, _mm_mul_ps(_mm_castsi128_ps(_mm_set_epi32(0x3FC91000, 0x3FC91000, 0x3FC91000, 0x3FC91000)), v8)),
-			_mm_mul_ps(_mm_castsi128_ps(_mm_set_epi32(0xB6957000, 0xB6957000, 0xB6957000, 0xB6957000)), v8)),
-		_mm_mul_ps(_mm_castsi128_ps(_mm_set_epi32(0xB06F4B9E, 0xB06F4B9E, 0xB06F4B9E, 0xB06F4B9E)), v8));
-	v11 = _mm_mul_ps(v10, v10);
-	v12 = _mm_add_ps(
-		_mm_mul_ps(
-			_mm_add_ps(
-				_mm_mul_ps(_mm_add_ps(_mm_mul_ps(_mm_castsi128_ps(_mm_set_epi32(0xB94D6102, 0xB94D6102, 0xB94D6102, 0xB94D6102)), v11), _mm_castsi128_ps(_mm_set_epi32(0x3C0885D2, 0x3C0885D2, 0x3C0885D2, 0x3C0885D2))), v11),
-				_mm_castsi128_ps(_mm_set_epi32(0xBE2AAAA8, 0xBE2AAAA8, 0xBE2AAAA8, 0xBE2AAAA8))),
-			_mm_mul_ps(v11, v10)),
-		v10);
-	v13 = _mm_add_ps(
-		_mm_mul_ps(
-			_mm_add_ps(
-				_mm_mul_ps(
-					_mm_add_ps(
-						_mm_mul_ps(_mm_add_ps(_mm_mul_ps(_mm_castsi128_ps(_mm_set_epi32(0x37CF14C2, 0x37CF14C2, 0x37CF14C2, 0x37CF14C2)), v11), _mm_castsi128_ps(_mm_set_epi32(0xBAB60B22, 0xBAB60B22, 0xBAB60B22, 0xBAB60B22))), v11),
-						_mm_castsi128_ps(_mm_set_epi32(0x3D2AAAA9, 0x3D2AAAA9, 0x3D2AAAA9, 0x3D2AAAA9))),
-					v11),
-				_mm_castsi128_ps(_mm_set_epi32(0xBF000000, 0xBF000000, 0xBF000000, 0xBF000000))),
-			v11),
-		_mm_castsi128_ps(_mm_set_epi32(0x3F800000, 0x3F800000, 0x3F800000, 0x3F800000)));
-	v14 = _mm_xor_ps(_mm_or_ps(_mm_andnot_ps(v9, v13), _mm_and_ps(v12, v9)), _mm_castsi128_ps(_mm_slli_epi32(v6, 0x1Eu)));
-	v15 = _mm_xor_ps(_mm_or_ps(_mm_andnot_ps(v9, v12), _mm_and_ps(v13, v9)), _mm_castsi128_ps(_mm_slli_epi32(v7, 0x1Eu)));
-	v6.m128i_i32[0] = _mm_extract_ps(_mm_shuffle_ps(v15, v15, 85), 0);
-	v10.m128_i32[0] = _mm_extract_ps(_mm_shuffle_ps(v14, v14, 85), 0);
-	v11.m128_f32[0] = v15.m128_f32[0] * v10.m128_f32[0];
-	v12.m128_f32[0] = *(float*)v6.m128i_i8 * v14.m128_f32[0];
-	*(float*)v6.m128i_i8 = *(float*)v6.m128i_i8 * v15.m128_f32[0];
-	v10.m128_f32[0] = v10.m128_f32[0] * v14.m128_f32[0];
-	v14.m128_i32[0] = _mm_extract_ps(_mm_shuffle_ps(v14, v14, 170), 0);
-	v15.m128_i32[0] = _mm_extract_ps(_mm_shuffle_ps(v15, v15, 170), 0);
-	out_rotation_buffer[0] = (float)(v15.m128_f32[0] * v12.m128_f32[0]) - (float)(v14.m128_f32[0] * v11.m128_f32[0]);
-	out_rotation_buffer[1] = (float)(v15.m128_f32[0] * v11.m128_f32[0]) + (float)(v14.m128_f32[0] * v12.m128_f32[0]);
-	out_rotation_buffer[2] = (float)(v14.m128_f32[0] * *(float*)v6.m128i_i8) - (float)(v15.m128_f32[0] * v10.m128_f32[0]);
-	out_rotation_buffer[3] = (float)(v15.m128_f32[0] * *(float*)v6.m128i_i8) + (float)(v14.m128_f32[0] * v10.m128_f32[0]);
+	SinCos(angles.Z * 0.5f, &sy, &cy);
+	SinCos(angles.Y * 0.5f, &sp, &cp);
+	SinCos(angles.X * 0.5f, &sr, &cr);
+
+	float srXcp = sr * cp, crXsp = cr * sp;
+	outQuat.X = srXcp * cy - crXsp * sy; // X
+	outQuat.Y = crXsp * cy + srXcp * sy; // Y
+
+	float crXcp = cr * cp, srXsp = sr * sp;
+	outQuat.Z = crXcp * sy - srXsp * cy; // Z
+	outQuat.W = crXcp * cy + srXsp * sy; // W (real component)
 }
 
 //-----------------------------------------------------------------------------

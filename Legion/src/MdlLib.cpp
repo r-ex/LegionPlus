@@ -374,32 +374,6 @@ inline void QuaternionBlend(const Quaternion& p, const Quaternion& q, float t, Q
 	QuaternionBlendNoAlign(p, q2, t, qt);
 }
 
-// could probably not have this but replicating source functionality is nice
-inline void SinCos(float x, float* fsin, float* fcos)
-{
-	*fsin = sin(x);
-	*fcos = cos(x);
-}
-
-// this is the same func as 'RTech::DecompressConvertRotation'
-void AngleQuaternion(const RadianEuler& angles, Quaternion& outQuat)
-{
-	// pitch = x, yaw = y, roll = z
-	float sr, sp, sy, cr, cp, cy;
-
-	SinCos(angles.Z * 0.5f, &sy, &cy);
-	SinCos(angles.Y * 0.5f, &sp, &cp);
-	SinCos(angles.X * 0.5f, &sr, &cr);
-	
-	float srXcp = sr * cp, crXsp = cr * sp;
-	outQuat.X = srXcp * cy - crXsp * sy; // X
-	outQuat.Y = crXsp * cy + srXcp * sy; // Y
-
-	float crXcp = cr * cp, srXsp = sr * sp;
-	outQuat.Z = crXcp * sy - srXsp * cy; // Z
-	outQuat.W = crXcp * cy + srXsp * sy; // W (real component)
-}
-
 // extract mstudioanimvalue_t
 void MdlLib::ExtractAnimValue(int frame, mstudioanimvalue_t* panimvalue, float scale, float& v1, float& v2)
 {
@@ -554,14 +528,14 @@ void MdlLib::CalcBoneQuaternion(int frame, float s,
 		assert(isValidVec(angle1) && isValidVec(angle2));
 		if (angle1.X != angle2.X || angle1.Y != angle2.Y || angle1.Z != angle2.Z)
 		{
-			AngleQuaternion(angle1, q1);
-			AngleQuaternion(angle2, q2);
+			RTech::AngleQuaternion(angle1, q1);
+			RTech::AngleQuaternion(angle2, q2);
 
 			QuaternionBlend(q1, q2, s, q);
 		}
 		else
 		{
-			AngleQuaternion(angle1, q);
+			RTech::AngleQuaternion(angle1, q);
 		}
 	}
 	else
@@ -580,7 +554,7 @@ void MdlLib::CalcBoneQuaternion(int frame, float s,
 		}
 
 		assert(isValidVec(angle));
-		AngleQuaternion(angle, q);
+		RTech::AngleQuaternion(angle, q);
 	}
 
 	assert(isValidQuat(q));
@@ -835,11 +809,6 @@ bool MdlLib::Studio_AnimPosition(titanfall2::mstudioanimdesc_t* panim, float flC
 	return false;
 }
 
-inline float DEG2RAD(float degree)
-{
-	return degree * (acos(-1)) / 180.0;
-}
-
 void MdlLib::AdjustOriginBone(titanfall2::mstudioanimdesc_t* panim, float flCycle, Vector3& posBase, Quaternion& rotBase)
 {
 	Vector3 vecPos, vecAngle;
@@ -860,11 +829,11 @@ void MdlLib::AdjustOriginBone(titanfall2::mstudioanimdesc_t* panim, float flCycl
 
 	Vector3 baseEuler = rotBase.ToEulerAngles();
 
-	baseEuler.X = DEG2RAD(baseEuler.X);
-	baseEuler.Y = DEG2RAD(baseEuler.Y);
-	baseEuler.Z = DEG2RAD(baseEuler.Z + vecAngle.Y - 90); // rotate by 90 for easier recompile (if desired)
+	baseEuler.X = Math::MathHelper::DegreesToRadians(baseEuler.X);
+	baseEuler.Y = Math::MathHelper::DegreesToRadians(baseEuler.Y);
+	baseEuler.Z = Math::MathHelper::DegreesToRadians(baseEuler.Z + vecAngle.Y - 90); // rotate by 90 for easier recompile (if desired)
 
-	AngleQuaternion(baseEuler, rotBase);
+	RTech::AngleQuaternion(baseEuler, rotBase);
 }
 
 inline titanfall2::mstudio_rle_anim_t* titanfall2::mstudioanimdesc_t::pAnim(int* piFrame) const
