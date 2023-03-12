@@ -160,7 +160,7 @@ void MdlLib::ExtractValveVertexData(titanfall2::studiohdr_t* pHdr, vtx::FileHead
 					{
 						// maxinfluences is max weights, check if has extra weights, if yes 16 weights max, if no 3 weights max
 						// also sets uv count depending on flags
-						Assets::Mesh& exportMesh = ExportModel->Meshes.Emplace(((pHdr->flags & STUDIOHDR_FLAGS_USES_EXTRA_BONE_WEIGHTS) && (pHdr->version == 54)) ? 16 : 3, (pHdr->flags & STUDIOHDR_FLAGS_USES_UV2) ? 2 : 1); // set uv count, two uvs used rarely in v53
+						Assets::Mesh& exportMesh = ExportModel->Meshes.Emplace(((pHdr->flags & STUDIOHDR_FLAGS_USES_EXTRA_BONE_WEIGHTS) && (pHdr->version == 54)) ? MAX_NUM_EXTRA_BONE_WEIGHTS : MAX_NUM_BONES_PER_VERT, (pHdr->flags & STUDIOHDR_FLAGS_USES_UV2) ? 2 : 1); // set uv count, two uvs used rarely in v53
 
 						// set "texture" aka material
 						titanfall2::mstudiotexture_t* meshMaterial = pHdr->texture(mdlMesh->material);

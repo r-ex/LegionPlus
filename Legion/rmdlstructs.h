@@ -16,8 +16,9 @@ typedef Math::Vector3 RadianEuler;
 typedef uint16_t float16; // it really does not like Math::Half
 
 
-#define MAX_NUM_LODS 8
-#define MAX_NUM_BONES_PER_VERT 3
+#define MAX_NUM_LODS				8
+#define MAX_NUM_BONES_PER_VERT		3
+#define MAX_NUM_EXTRA_BONE_WEIGHTS	16
 
 #define STUDIO_VERSION_TITANFALL	52
 #define STUDIO_VERSION_TITANFALL2	53
