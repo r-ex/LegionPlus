@@ -309,7 +309,8 @@ void RpakLib::ExtractTexture(const RpakLoadAsset& asset, std::unique_ptr<Assets:
 
 			if (this->LoadedFiles[asset.FileIndex].StarpakMap.ContainsKey(asset.StarpakOffset))
 			{
-				highestMipOffset += (this->LoadedFiles[asset.FileIndex].StarpakMap[asset.StarpakOffset] - blockSize);
+				if (!txtrHdr.unkMip)
+					highestMipOffset += (this->LoadedFiles[asset.FileIndex].StarpakMap[asset.StarpakOffset] - blockSize);
 			}
 			else
 			{
