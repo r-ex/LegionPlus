@@ -72,10 +72,18 @@ namespace Themes
 	*/
 
 	// S15 Theme
+	/*
 	const static auto BorderBrush = Drawing::Color(166, 103, 128);
 	const static auto DarkBorderBrush = Drawing::Color(166, 103, 128);
 	const static auto ProgressGrad1 = Drawing::Color(166, 103, 128);
 	const static auto ProgressGrad2 = Drawing::Color(166, 103, 128);
+	*/
+
+	// S16 Theme
+	const static auto BorderBrush = Drawing::Color(255, 71, 26);
+	const static auto DarkBorderBrush = Drawing::Color(255, 71, 26);
+	const static auto ProgressGrad1 = Drawing::Color(255, 71, 26);
+	const static auto ProgressGrad2 = Drawing::Color(255, 71, 26);
 
 	
 	// Constants for images
