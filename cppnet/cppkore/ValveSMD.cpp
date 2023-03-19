@@ -185,6 +185,9 @@ namespace Assets::Exporters
 		int bodypart_index = 0;
 		for (auto& Bodypart : Model.BodyParts)
 		{
+			if (Bodypart.Models.Count() < 1)
+				continue;
+
 			string NewPath = IO::Path::Combine(IO::Path::GetDirectoryName(Path), Bodypart.Name) + ModelExtension().ToCString();
 
 			if (Bodypart.Models.Count() >= 3)
