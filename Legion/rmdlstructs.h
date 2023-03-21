@@ -1571,7 +1571,17 @@ namespace vtx
 //============
 // 'VG' (0tVG)
 //============
+namespace vg
+{
+	struct ModelLODHeader_t
+	{
+		//Mesh array
+		short meshIndex;
+		short numMeshes;
 
+		float switchPoint;
+	};
+}
 // soon tm
 
 

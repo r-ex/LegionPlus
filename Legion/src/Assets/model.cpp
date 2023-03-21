@@ -1597,30 +1597,25 @@ void RpakLib::ExtractModelLodOld(IO::BinaryReader& Reader, const std::unique_ptr
 	BaseStream->SetPosition(Offset + VGHeader.StripsOffset);
 	Reader.Read((uint8_t*)&StripBuffer[0], 0, VGHeader.StripsCount * sizeof(vtx::StripHeader_t));
 
-	List<vtx::ModelLODHeader_t> LodBuffer(VGHeader.LodCount, true);
+	List<vg::ModelLODHeader_t> lods(VGHeader.LodCount, true);
 	BaseStream->SetPosition(Offset + VGHeader.LodOffset);
-	Reader.Read((uint8_t*)&LodBuffer[0], 0, VGHeader.LodCount * sizeof(vtx::ModelLODHeader_t));
+	Reader.Read((uint8_t*)&lods[0], 0, VGHeader.LodCount * sizeof(vg::ModelLODHeader_t));
 
 	if (VGHeader.LodCount == 0)
 		return;
 
-	size_t LodSubmeshCount = LodBuffer[0].numMeshes;
-	size_t LodSubmeshStart = LodBuffer[0].numMeshes;
-
-	if (LodSubmeshCount == 0)
+	if (lods[0].numMeshes == 0)
 		return;
 
 	// Loop and read submeshes
-	for (uint32_t s = LodSubmeshStart; s < LodSubmeshCount; s++)
+	for (uint32_t s = lods[0].meshIndex; s < lods[0].numMeshes; s++)
 	{
-		auto& Submesh = SubmeshBuffer[s];
+		RMdlVGMeshOld& Submesh = SubmeshBuffer[s];
 
 		// Ignore a submesh that has no strips, otherwise there is no mesh.
 		// This is likely also determined by flags == 0x0, but this is a good check.
 		if (Submesh.StripsCount == 0)
-		{
 			continue;
-		}
 
 		auto& BoneRemapBuffer = *Fixup.BoneRemaps;
 
