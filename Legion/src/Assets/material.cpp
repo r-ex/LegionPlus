@@ -312,7 +312,7 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 		}
 	}
 
-	g_Logger.Info("\nMaterial Info for '%s' (%llX)\n", Result.MaterialName.ToCString(), Asset.NameHash);
+	g_Logger.Info("Material Info for '%s' (%llX)\n", Result.MaterialName.ToCString(), Asset.NameHash);
 
 	if (Asset.Version == RpakGameVersion::Apex)
 	{
