@@ -41,6 +41,7 @@ void RpakLib::BuildModelInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 				studiohdr.FromV13(Reader.Read<studiohdr_t_v13>());
 				break;
 			case 14:
+			case 15:
 				studiohdr.FromV14(Reader.Read<studiohdr_t_v14>());
 				break;
 			default:
