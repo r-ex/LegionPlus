@@ -39,15 +39,6 @@ void WriteCommonJiggle(IO::StreamWriter& qc, mstudiojigglebonev54_t*& JiggleBone
 
 void WriteJiggleBoneData(IO::StreamWriter& qc, mstudiojigglebonev54_t*& JiggleBone)
 {
-	if ((JiggleBone->flags & JIGGLE_IS_RIGID) && !(JiggleBone->flags & JIGGLE_IS_FLEXIBLE))
-	{
-		qc.Write("\tis_rigid {\n");
-
-		WriteCommonJiggle(qc, JiggleBone);
-
-		qc.Write("\t}\n\n");
-	}
-
 	if (JiggleBone->flags & JIGGLE_IS_FLEXIBLE)
 	{
 		qc.Write("\tis_flexible {\n");
@@ -205,11 +196,11 @@ void RpakLib::ExportQC(const RpakLoadAsset& Asset, const string& Path, const str
 
 	qc.WriteFmt("$modelname \"%s\"\n\n", modelPath.ToCString());
 
-	char* surfaceProp = reinterpret_cast<char*>(rmdlBuf + hdr.surfacepropindex);
+	string surfaceProp = string(rmdlBuf + hdr.surfacepropindex);
 
 	qc.Write("$maxverts 65535 65535\n\n");
 
-	qc.WriteFmt("$surfaceprop \"%s\"\n", surfaceProp);
+	qc.WriteFmt("$surfaceprop \"%s\"\n", surfaceProp.ToCString());
 
 	if (hdr.flags & STUDIOHDR_FLAGS_STATIC_PROP)
 		qc.WriteFmt("$staticprop\n\n");

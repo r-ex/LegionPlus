@@ -11,7 +11,7 @@ namespace Assets::Exporters
 {
 	void ProcessVertex(IO::StreamWriter& Writer, const Vertex& Vertex)
 	{
-		auto Normal = Vertex.Normal().GetNormalized();
+		const Vector3 Normal = Vertex.Normal().GetNormalized();
 		const Vector3& Position = Vertex.Position();
 		const Vector2& UVLayer = Vertex.UVLayers(0);
 
@@ -182,19 +182,20 @@ namespace Assets::Exporters
 
 	bool ValveSMD::ExportModel(const Model& Model, const string& Path)
 	{
-		int bodypart_index = 0;
 		for (auto& Bodypart : Model.BodyParts)
 		{
 			if (Bodypart.Models.Count() < 1)
 				continue;
 
-			string NewPath = IO::Path::Combine(IO::Path::GetDirectoryName(Path), Bodypart.Name) + ModelExtension().ToCString();
+			const string BodyPath = IO::Path::Combine(IO::Path::GetDirectoryName(Path), Bodypart.Name);
+
+			string NewPath = BodyPath + ModelExtension().ToCString();
 
 			if (Bodypart.Models.Count() >= 3)
 			{
 				for (int i = 0; i < Bodypart.Models.Count(); i++)
 				{
-					NewPath = IO::Path::Combine(IO::Path::GetDirectoryName(Path), Bodypart.Name) + (string::Format("_%d", i).ToCString()) + ModelExtension().ToCString();
+					NewPath = BodyPath + (string::Format("_%d", i).ToCString()) + ModelExtension().ToCString();
 
 					IO::StreamWriter Writer = IO::StreamWriter(IO::File::Create(NewPath));
 					WriteSubMesh(Writer, Model, Bodypart.Models[i].MeshIndexes, NewPath);
@@ -205,8 +206,6 @@ namespace Assets::Exporters
 				IO::StreamWriter Writer = IO::StreamWriter(IO::File::Create(NewPath));
 				WriteSubMesh(Writer, Model, Bodypart.Models[0].MeshIndexes, NewPath);
 			}
-
-			bodypart_index++;
 		}
 
 		return true;
