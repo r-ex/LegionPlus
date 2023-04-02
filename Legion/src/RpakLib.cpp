@@ -35,20 +35,81 @@ RpakLib::RpakLib()
 {
 }
 
+Dictionary<string, std::pair<uint16_t, string>> RpakLib::GetRpaksLatestPatch(const List<string>& Paths)
+{
+	Dictionary<string, std::pair<uint16_t, string>> RpaksLatestPatch;
+
+	if (Paths.Count() < 1)
+		return RpaksLatestPatch;
+
+	// the UI only allows to select multiple files from the same folder
+	// no need to handle multiple directories
+	std::filesystem::path Directory = IO::Path::GetDirectoryName(Paths[0]).ToCString();
+
+	std::regex RpakRegex("^(.+?)(?:\\((\\d+)\\))?\\.rpak$");
+	std::smatch Matches;
+
+	for (const auto& Entry : std::filesystem::directory_iterator(Directory))
+	{
+		if (Entry.path().extension() != ".rpak")
+			continue;
+
+		string OriginalFilename = string(Entry.path().filename().string());
+		string RpakName = OriginalFilename;
+		uint16_t PatchNumber = 0u;
+
+		std::string RpakNameSearch = RpakName.ToCString();
+		if (std::regex_search(RpakNameSearch, Matches, RpakRegex))
+		{
+			if (Matches[0] == "" || Matches[1] == "")
+				throw std::exception("RPak regex failed. (Empty result for a match or capture group expecting value.)");
+
+			if (Matches[2] != "")
+			{
+				PatchNumber = std::stoi(Matches[2]);
+				RpakName = Matches[1].str() + ".rpak";
+			}
+		}
+		else
+			throw std::exception("RPak regex failed. (Did not match entire sequence.)");
+
+		std::pair<uint16_t, string> value;
+		if (RpaksLatestPatch.TryGetValue(RpakName, value))
+		{
+			if (PatchNumber > value.first)
+				RpaksLatestPatch[RpakName] = { PatchNumber, OriginalFilename };
+		}
+		else
+			RpaksLatestPatch.Add(RpakName, { PatchNumber, OriginalFilename });
+	}
+	return RpaksLatestPatch;
+}
+
 void RpakLib::LoadRpaks(const List<string>& Paths)
 {
+	// TODO: Load order is wrong but should be easy to fix once patching logic is reversed & implemented in Legion+...
+	List<string> LoadedFiles;
+	Dictionary<string, std::pair<uint16_t, string>> RpakHighestPatches = GetRpaksLatestPatch(Paths);
+
 	for (auto& Rpak : Paths)
 	{
-		// Ignore duplicate files triggered by loading multiple rpaks at once.
-		if (this->LoadedFilePaths.Contains(Rpak))
+		// Ignore duplicate files triggered by either loading multiple at once or loading patch rpaks.
+		if (LoadedFiles.Contains(Rpak))
 			continue;
+
+		string RpakName = IO::Path::GetFileName(Rpak);
+		if (RpakName.Contains("("))
+			RpakName = RpakName.Substring(0, RpakName.IndexOf("(")) + ".rpak";
+
+		if (RpakHighestPatches.ContainsKey(RpakName))
+			Rpak = IO::Path::Combine(IO::Path::GetDirectoryName(Rpak), RpakHighestPatches[RpakName].second);
 
 		this->LoadRpak(Rpak, false);
 
 		// Copy over to loaded, clear for next file
 		for (auto& Loaded : this->LoadFileQueue)
 		{
-			this->LoadedFilePaths.EmplaceBack(Loaded);
+			LoadedFiles.EmplaceBack(Loaded);
 		}
 		this->LoadFileQueue.Clear();
 	}
@@ -828,7 +889,6 @@ bool RpakLib::ParseApexRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 
 	ParseStream->Read(File->SegmentData.get(), 0, BufferRemaining);
 
-
 	string BasePath = IO::Path::GetDirectoryName(RpakPath);
 	string FileNameNoExt = IO::Path::GetFileNameWithoutExtension(RpakPath);
 
@@ -842,10 +902,10 @@ bool RpakLib::ParseApexRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 	{
 		uint16_t PatchIndexToFile = PatchIndicesToFile[i];
 		string AdditionalRpakToLoad = string::Format(PatchIndexToFile == 0 ? "%s.rpak" : "%s(%02d).rpak", FinalPath.ToCString(), PatchIndexToFile);
-
-		if (this->LoadedFilePaths.Contains(AdditionalRpakToLoad) || this->LoadFileQueue.Contains(AdditionalRpakToLoad))
-			continue;
 		
+		if (this->LoadFileQueue.Contains(AdditionalRpakToLoad))
+			continue;
+
 		this->LoadFileQueue.EmplaceBack(AdditionalRpakToLoad);
 	}
 

@@ -471,7 +471,6 @@ private:
 	uint32_t LoadedFileIndex;
 
 	List<string> LoadFileQueue;
-	List<string> LoadedFilePaths;
 
 	// The exporter formats for models and anims
 	std::unique_ptr<Assets::Exporters::Exporter> ModelExporter;
@@ -489,6 +488,8 @@ private:
 
 	string ReadStringFromPointer(const RpakLoadAsset& Asset, const RPakPtr& ptr);
 	string ReadStringFromPointer(const RpakLoadAsset& Asset, uint32_t index, uint32_t offset);
+
+	Dictionary<string, std::pair<uint16_t, string>> GetRpaksLatestPatch(const List<string>& Paths);
 
 private:
 	// purpose: set up asset list entries
