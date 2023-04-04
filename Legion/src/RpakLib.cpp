@@ -46,41 +46,34 @@ Dictionary<string, std::pair<uint16_t, string>> RpakLib::GetRpaksLatestPatch(con
 	// no need to handle multiple directories
 	std::filesystem::path Directory = IO::Path::GetDirectoryName(Paths[0]).ToCString();
 
-	std::regex RpakRegex("^(.+?)(?:\\((\\d+)\\))?\\.rpak$");
-	std::smatch Matches;
+	std::regex RpakRegex("^(.+?)(?:\\(([0-9]{2})\\))?\\.rpak$");
 
 	for (const auto& Entry : std::filesystem::directory_iterator(Directory))
 	{
 		if (Entry.path().extension() != ".rpak")
 			continue;
 
-		string OriginalFilename = string(Entry.path().filename().string());
-		string RpakName = OriginalFilename;
-		uint16_t PatchNumber = 0u;
+		string originalFilename = string(Entry.path().filename().string());
+		std::smatch sm;
+		std::string s = originalFilename.ToCString();
 
-		std::string RpakNameSearch = RpakName.ToCString();
-		if (std::regex_search(RpakNameSearch, Matches, RpakRegex))
-		{
-			if (Matches[0] == "" || Matches[1] == "")
-				throw std::exception("RPak regex failed. (Empty result for a match or capture group expecting value.)");
-
-			if (Matches[2] != "")
-			{
-				PatchNumber = std::stoi(Matches[2]);
-				RpakName = Matches[1].str() + ".rpak";
-			}
-		}
-		else
+		if (!std::regex_search(s, sm, RpakRegex))
 			throw std::exception("RPak regex failed. (Did not match entire sequence.)");
 
+		if (sm.size() != 3)
+			throw std::exception("RPak regex failed.");
+
+		uint16_t patchNumber = sm[2].matched ? stoi(sm[2]) : 0u;
+		string rpakName = sm[2].matched ? string(sm[1].str().append(".rpak")) : originalFilename;
+
 		std::pair<uint16_t, string> value;
-		if (RpaksLatestPatch.TryGetValue(RpakName, value))
+		if (RpaksLatestPatch.TryGetValue(rpakName, value))
 		{
-			if (PatchNumber > value.first)
-				RpaksLatestPatch[RpakName] = { PatchNumber, OriginalFilename };
+			if (patchNumber > value.first)
+				RpaksLatestPatch[rpakName] = { patchNumber, originalFilename };
 		}
 		else
-			RpaksLatestPatch.Add(RpakName, { PatchNumber, OriginalFilename });
+			RpaksLatestPatch.Add(rpakName, { patchNumber, originalFilename });
 	}
 	return RpaksLatestPatch;
 }
