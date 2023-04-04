@@ -376,6 +376,7 @@ enum class NormalRecalcType_t
 // this is bad
 enum class SubtitleLanguageHash : uint64_t
 {
+	Arabic = 0x846884d5d2e179d8,
 	English = 0x655f79f11377196a,
 	French = 0x3d5404cd608d7068,
 	German = 0x2f5ecc4608e4c647,
@@ -392,6 +393,7 @@ enum class SubtitleLanguageHash : uint64_t
 };
 
 static std::map<SubtitleLanguageHash, string> SubtitleLanguageMap{
+	{SubtitleLanguageHash::Arabic, "arabic"},
 	{SubtitleLanguageHash::English, "english"},
 	{SubtitleLanguageHash::French, "french"},
 	{SubtitleLanguageHash::German, "german"},

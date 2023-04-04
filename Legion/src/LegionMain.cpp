@@ -582,6 +582,22 @@ void LegionMain::RefreshView()
 	}
 }
 
+void LegionMain::RefreshLoad()
+{
+	if (this->RpakFileSystem != nullptr)
+	{
+		this->RpakFileSystem = std::make_unique<RpakLib>();
+		this->RpakFileSystem->LoadRpaks(this->LoadPath);
+		this->RpakFileSystem->PatchAssets();
+	}
+	else if (this->MilesFileSystem != nullptr)
+	{
+		this->MilesFileSystem = std::make_unique<MilesLib>();
+		this->MilesFileSystem->Initialize();
+		this->MilesFileSystem->MountBank(this->LoadPath[0]);
+	}
+}
+
 void LegionMain::ResetDisplayIndices()
 {
 	this->AssetsListView->SetVirtualListSize(0);

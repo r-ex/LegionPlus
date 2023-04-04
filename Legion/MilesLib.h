@@ -72,8 +72,9 @@ enum class MilesLanguageID : int16_t
 	Russian = 7,
 	Mandarin = 8,
 	Korean = 9,
-	UNKNOWN = 10,
-	COUNT = 11,
+	Arabic = 10,
+	UNKNOWN = 11,
+	COUNT = 12,
 };
 
 const String&

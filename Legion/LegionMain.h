@@ -24,6 +24,8 @@ public:
 
 	// Reloads the view
 	void RefreshView();
+	// Reloads the load
+	void RefreshLoad();
 	// Resets display indices
 	void ResetDisplayIndices();
 	// Internal routine to load a file

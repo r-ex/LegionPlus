@@ -450,7 +450,7 @@ void LegionSettings::InitializeComponent()
 	this->AudioLanguage->SetTabIndex(0);
 	this->AudioLanguage->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->AudioLanguage->SetDropDownStyle(Forms::ComboBoxStyle::DropDownList);
-	for (int i = (int)MilesLanguageID::English; i <= (int)MilesLanguageID::Korean; i++) {
+	for (int i = (int)MilesLanguageID::English; i <= (int)MilesLanguageID::Arabic; i++) {
 		this->AudioLanguage->Items.Add(imstring(LanguageName((MilesLanguageID)i)));
 	}
 	this->groupBox5->AddControl(this->AudioLanguage);
@@ -780,6 +780,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 
 	// have the settings actually changed?
 	bool bRefreshView = false;
+	bool bRefreshLoad = false;
 
 	if (ThisPtr->LoadModels->Checked() != ExportManager::Config.GetBool("LoadModels"))
 		bRefreshView = true;
@@ -805,6 +806,8 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		bRefreshView = true;
 	if (ThisPtr->ToggleUseFullPaths->Checked() != ExportManager::Config.GetBool("UseFullPaths"))
 		bRefreshView = true;
+	if ((uint32_t)AudioLanguage != ExportManager::Config.Get<System::SettingType::Integer>("AudioLanguage"))
+		bRefreshLoad = true;
 
 	ExportManager::Config.SetBool("LoadModels", ThisPtr->LoadModels->Checked());
 	ExportManager::Config.SetBool("LoadAnimations", ThisPtr->LoadAnimations->Checked());
@@ -846,6 +849,8 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 
 	if(bRefreshView)
 		g_pLegionMain->RefreshView();
+	if(bRefreshLoad)
+		g_pLegionMain->RefreshLoad();
 }
 
 void LegionSettings::OnGithubClick(Forms::Control* Sender)
