@@ -450,7 +450,7 @@ void LegionSettings::InitializeComponent()
 	this->AudioLanguage->SetTabIndex(0);
 	this->AudioLanguage->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->AudioLanguage->SetDropDownStyle(Forms::ComboBoxStyle::DropDownList);
-	for (int i = (int)MilesLanguageID::English; i <= (int)MilesLanguageID::Arabic; i++) {
+	for (int i = (int)MilesLanguageID::English; i <= (int)MilesLanguageID::COUNT - 2; i++) {
 		this->AudioLanguage->Items.Add(imstring(LanguageName((MilesLanguageID)i)));
 	}
 	this->groupBox5->AddControl(this->AudioLanguage);
@@ -778,7 +778,6 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		}
 	}
 
-	// have the settings actually changed?
 	bool bRefreshView = false;
 	bool bRefreshLoad = false;
 
