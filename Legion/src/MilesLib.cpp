@@ -737,7 +737,10 @@ std::unique_ptr<List<ApexAsset>> MilesLib::BuildAssetList()
 
 		ApexAsset NewAsset;
 		NewAsset.Hash = AssetKvp.first;
-		NewAsset.Name = AssetKvp.second.Name;
+		if (ExportManager::Config.GetBool("UseFullPaths"))
+			NewAsset.Name = AssetKvp.second.LocalizeIndex == -1 ? AssetKvp.second.Name : LanguageName((MilesLanguageID)AssetKvp.second.LocalizeIndex) + "/" + AssetKvp.second.Name;
+		else
+			NewAsset.Name = AssetKvp.second.Name;
 		NewAsset.Type = ApexAssetType::Sound;
 		String Language = AssetKvp.second.LocalizeIndex == -1 ? String("None") : LanguageName((MilesLanguageID)AssetKvp.second.LocalizeIndex);
 		NewAsset.Info = string::Format("Language: %s, Sample Rate: %d, Channels: %d", Language.ToCString(), AssetKvp.second.SampleRate, AssetKvp.second.ChannelCount);

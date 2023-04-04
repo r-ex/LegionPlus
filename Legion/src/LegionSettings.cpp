@@ -806,7 +806,10 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	if (ThisPtr->ToggleUseFullPaths->Checked() != ExportManager::Config.GetBool("UseFullPaths"))
 		bRefreshView = true;
 	if ((uint32_t)AudioLanguage != ExportManager::Config.Get<System::SettingType::Integer>("AudioLanguage"))
+	{
 		bRefreshLoad = true;
+		bRefreshView = true;
+	}
 
 	ExportManager::Config.SetBool("LoadModels", ThisPtr->LoadModels->Checked());
 	ExportManager::Config.SetBool("LoadAnimations", ThisPtr->LoadAnimations->Checked());
@@ -846,10 +849,10 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 
 	ExportManager::SaveConfigToDisk();
 
-	if(bRefreshView)
-		g_pLegionMain->RefreshView();
 	if(bRefreshLoad)
 		g_pLegionMain->RefreshLoad();
+	if(bRefreshView)
+		g_pLegionMain->RefreshView();
 }
 
 void LegionSettings::OnGithubClick(Forms::Control* Sender)
