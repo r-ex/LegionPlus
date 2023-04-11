@@ -472,6 +472,7 @@ private:
 	uint32_t LoadedFileIndex;
 
 	List<string> LoadFileQueue;
+	List<string> LoadedFilePaths;
 
 	// The exporter formats for models and anims
 	std::unique_ptr<Assets::Exporters::Exporter> ModelExporter;

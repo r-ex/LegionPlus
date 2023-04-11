@@ -4,6 +4,7 @@
 #include "Directory.h"
 #include "Path.h"
 #include "Half.h"
+#include <math.h>
 
 #include "SEAsset.h"
 #include "AutodeskMaya.h"
@@ -71,236 +72,846 @@ void MdlLib::InitializeAnimExporter(AnimExportFormat_t Format)
 	}
 }
 
-void MdlLib::ExportRMdl(const string& Asset, const string& Path)
+// extract vertex data from normal source style models: vtx, vvd, vvc, vvw.
+void MdlLib::ExtractValveVertexData(titanfall2::studiohdr_t* pHdr, vtx::FileHeader_t* pVtx, vvd::vertexFileHeader_t* pVVD, vvc::vertexColorFileHeader_t* pVVC, vvw::vertexBoneWeightsExtraFileHeader_t* pVVW, 
+									std::unique_ptr<Assets::Model> &ExportModel, const string& Path)
 {
-	IO::BinaryReader Reader = IO::BinaryReader(IO::File::OpenRead(Asset));
-	IO::Stream* Stream = Reader.GetBaseStream();
-	r2studiohdr_t hdr = Reader.Read<r2studiohdr_t>();
-
-	if (hdr.id != 0x54534449 || hdr.version != 0x35)
-		return;
-
-	auto Model = std::make_unique<Assets::Model>(0, 0);
-	Model->Name = IO::Path::GetFileNameWithoutExtension(hdr.name);
-
-	List<r2mstudiobone_t> BoneBuffer;
-
-	for (int i = 0; i < hdr.numbones; i++)
+	for (int i = 0; i < pVtx->numLODs; i++)
 	{
-		uint64_t Position = hdr.boneindex + (i * sizeof(r2mstudiobone_t));
+		std::vector<vvd::mstudiovertex_t*> vvdVerts;
+		std::vector<vvc::VertexColor_t*> vvcColors;
+		std::vector<Vector2*> vvcUV2s;
 
-		Stream->SetPosition(Position);
-		r2mstudiobone_t bone = Reader.Read<r2mstudiobone_t>();
-		Stream->SetPosition(Position + bone.NameOffset);
+		int vertexOffset = 0;
 
-		string TagName = Reader.ReadCString();
-
-		Model->Bones.EmplaceBack(TagName, bone.ParentIndex, bone.Position, bone.Rotation);
-		BoneBuffer.EmplaceBack(bone);
-	}
-
-	if (hdr.numbodyparts)
-	{
-		string ExportModelPath = IO::Path::Combine(Path, "models");
-
-		List<string> Materials;
-		for (int i = 0; i < hdr.numtextures; i++)
+		// rebuild vertex vector per lod just incase it has fixups
+		if (pVVD->numFixups)
 		{
-			uint64_t Position = (uint64_t)hdr.textureindex + (i * 0x2C);
-
-			Stream->SetPosition(Position);
-			uint32_t nameOffset = Reader.Read<uint32_t>();
-			Stream->SetPosition(Position + nameOffset);
-
-			Materials.EmplaceBack(IO::Path::GetFileNameWithoutExtension(Reader.ReadCString()));
-		}
-
-		Stream->SetPosition(hdr.vvdindex);
-
-		vertexFileHeader_t MeshHeader = Reader.Read<vertexFileHeader_t>(); // actually vvd file header
-
-		Stream->SetPosition(hdr.vvdindex + MeshHeader.fixupTableStart);
-
-		List<RMdlFixup> Fixups;
-		for (uint32_t i = 0; i < MeshHeader.numFixups; i++)
-			Fixups.EmplaceBack(Reader.Read<RMdlFixup>());
-
-		List<List<RMdlVertex>> VertexBuffers;
-		for (uint32_t i = 0; i < MeshHeader.numLODs; i++)
-		{
-			List<RMdlVertex>& Buffer = VertexBuffers.Emplace();
-
-			if (MeshHeader.numFixups)
+			for (int j = 0; j < pVVD->numFixups; j++)
 			{
-				for (uint32_t j = 0; j < MeshHeader.numFixups; j++)
-				{
-					if (Fixups[j].LodIndex >= i)
-					{
-						Stream->SetPosition(hdr.vvdindex + MeshHeader.vertexDataStart + Fixups[j].VertexIndex * sizeof(RMdlVertex));
+				vvd::vertexFileFixup_t* vertexFixup = pVVD->fixup(j);
 
-						for (uint32_t v = 0; v < Fixups[j].VertexCount; v++)
-							Buffer.EmplaceBack(Reader.Read<RMdlVertex>());
+				if (vertexFixup->lod >= i)
+				{
+					for (int k = 0; k < vertexFixup->numVertexes; k++)
+					{
+						vvd::mstudiovertex_t* vvdVert = pVVD->vertex(vertexFixup->sourceVertexID + k);
+
+						vvdVerts.push_back(vvdVert);
+
+						// vvc
+						if (pVVC)
+						{
+							// doesn't matter which we pack as long as it has vvc, we will only used what's needed later
+							vvc::VertexColor_t* vvcColor = pVVC->color(vertexFixup->sourceVertexID + k);
+							Vector2* vvcUV2 = pVVC->uv2(vertexFixup->sourceVertexID + k);
+
+							vvcColors.push_back(vvcColor);
+							vvcUV2s.push_back(vvcUV2);
+						}
 					}
 				}
 			}
-			else
-			{
-				Stream->SetPosition(hdr.vvdindex + MeshHeader.vertexDataStart);
-
-				for (uint32_t v = 0; v < MeshHeader.numLODVertexes[i]; v++)
-					Buffer.EmplaceBack(Reader.Read<RMdlVertex>());
-			}
 		}
-
-		struct ModelSubmeshList
+		else
 		{
-			RMdlTitanfallModel Model;
-			List<RMdlTitanfallLodSubmesh> Meshes;
-		};
-
-		List<List<ModelSubmeshList>> PartModelMeshes;
-
-		for (uint32_t i = 0; i < hdr.numbodyparts; i++)
-		{
-			List<ModelSubmeshList>& NewPart = PartModelMeshes.Emplace();
-			uint64_t Position = hdr.bodypartindex + (i * sizeof(mstudiobodyparts_t));
-
-			Stream->SetPosition(Position);
-			mstudiobodyparts_t Part = Reader.Read<mstudiobodyparts_t>();
-
-			for (uint32_t p = 0; p < Part.nummodels; p++)
+			// using per lod vertex count may have issues (tbd)
+			for (int j = 0; j < pVVD->numLODVertexes[i]; j++)
 			{
-				ModelSubmeshList& NewModel = NewPart.Emplace();
-				uint64_t ModelPosition = Position + Part.modelindex + (p * sizeof(RMdlTitanfallModel));
+				vvd::mstudiovertex_t* vvdVert = pVVD->vertex(j);
 
-				Stream->SetPosition(ModelPosition);
-				NewModel.Model = Reader.Read<RMdlTitanfallModel>();
+				vvdVerts.push_back(vvdVert);
 
-				for (uint32_t m = 0; m < NewModel.Model.nummeshes; m++)
+				// vvc
+				if (pVVC)
 				{
-					uint64_t MeshPosition = ModelPosition + NewModel.Model.meshindex + (m * sizeof(RMdlTitanfallLodSubmesh));
+					// doesn't matter which we pack as long as it has vvc, we will only used what's needed later
+					vvc::VertexColor_t* vvcColor = pVVC->color(j);
+					Vector2* vvcUV2 = pVVC->uv2(j);
 
-					Stream->SetPosition(MeshPosition);
-					NewModel.Meshes.EmplaceBack(Reader.Read<RMdlTitanfallLodSubmesh>());
+					vvcColors.push_back(vvcColor);
+					vvcUV2s.push_back(vvcUV2);
 				}
 			}
 		}
 
-		Stream->SetPosition(hdr.vtxindex);
+		// some basic error checks to avoid crashes
+		if (vvdVerts.empty() || (vvcColors.empty() && (pHdr->flags & STUDIOHDR_FLAGS_USES_VERTEX_COLOR)) || (vvcUV2s.empty() && (pHdr->flags & STUDIOHDR_FLAGS_USES_UV2)))
+			return;
 
-		RMdlMeshStreamHeader LodHeader = Reader.Read<RMdlMeshStreamHeader>();
-
-		for (uint32_t i = 0; i < LodHeader.NumBodyParts; i++)
+		// eventually we should do checks on all of these to confirm they match
+		for (int j = 0; j < pHdr->numbodyparts; j++)
 		{
-			uint64_t Position = (uint64_t)hdr.vtxindex + LodHeader.BodyPartOffset + (i * sizeof(mstudiobodyparts_short_t));
+			titanfall2::mstudiobodyparts_t* mdlBodypart = pHdr->mdlBodypart(j);
+			vtx::BodyPartHeader_t* vtxBodypart = pVtx->vtxBodypart(j);
 
-			Stream->SetPosition(Position);
-			mstudiobodyparts_short_t Part = Reader.Read<mstudiobodyparts_short_t>();
-
-			for (uint32_t m = 0; m < Part.nummodels; m++)
+			for (int k = 0; k < mdlBodypart->nummodels; k++)
 			{
-				uint64_t ModelPosition = Position + Part.modelindex + (m * sizeof(RMdlModel));
+				titanfall2::mstudiomodel_t* mdlModel = mdlBodypart->mdlModel(k);
+				vtx::ModelHeader_t* vtxModel = vtxBodypart->vtxModel(k);
 
-				Stream->SetPosition(ModelPosition);
-				RMdlModel RModel = Reader.Read<RMdlModel>();
+				// lod
+				vtx::ModelLODHeader_t* vtxLod = vtxModel->vtxLOD(i);
 
-				uint64_t LodPosition = ModelPosition + RModel.LodOffset;
-
-				Stream->SetPosition(LodPosition);
-				RMdlLod Lod = Reader.Read<RMdlLod>();
-
-				ModelSubmeshList& PartMesh = PartModelMeshes[i][m];
-				uint32_t VertexOffset = PartMesh.Model.vertexindex / sizeof(RMdlVertex);
-
-				for (uint32_t s = 0; s < Lod.SubmeshCount; s++)
+				for (int l = 0; l < mdlModel->nummeshes; l++)
 				{
-					uint64_t SubmeshPosition = LodPosition + Lod.SubmeshOffset + (s * sizeof(RMdlSubmesh));
+					titanfall2::mstudiomesh_t* mdlMesh = mdlModel->mdlMesh(l);
+					vtx::MeshHeader_t* vtxMesh = vtxLod->vtxMesh(l);
 
-					Stream->SetPosition(SubmeshPosition);
-					RMdlSubmesh Submesh = Reader.Read<RMdlSubmesh>();
-
-					// there's a good chance that this isn't a good way of doing it, however:
-					// it works well enough for now so it will do.
-					// this should probably be checked later and likely changed
-					// - rex
-					Assets::Mesh m;
-
-					// todo: check this
-					Model->Meshes.EmplaceBack(m);
-
-					for (uint32_t g = 0; g < Submesh.NumStripGroups; g++)
+					// so we don't make empty meshes
+					if (mdlMesh->vertexloddata.numLODVertexes[i] > 0)
 					{
-						uint64_t StripGroupPosition = SubmeshPosition + Submesh.StripGroupOffset + (g * sizeof(RMdlStripGroup));
+						// maxinfluences is max weights, check if has extra weights, if yes 16 weights max, if no 3 weights max
+						// also sets uv count depending on flags
+						Assets::Mesh& exportMesh = ExportModel->Meshes.Emplace(((pHdr->flags & STUDIOHDR_FLAGS_USES_EXTRA_BONE_WEIGHTS) && (pHdr->version == 54)) ? MAX_NUM_EXTRA_BONE_WEIGHTS : MAX_NUM_BONES_PER_VERT, (pHdr->flags & STUDIOHDR_FLAGS_USES_UV2) ? 2 : 1); // set uv count, two uvs used rarely in v53
 
-						Stream->SetPosition(StripGroupPosition);
-						RMdlStripGroup StripGroup = Reader.Read<RMdlStripGroup>();
+						// set "texture" aka material
+						titanfall2::mstudiotexture_t* meshMaterial = pHdr->texture(mdlMesh->material);
+						exportMesh.MaterialIndices.EmplaceBack(ExportModel->AddMaterial(IO::Path::GetFileNameWithoutExtension(meshMaterial->textureName()), ""));
 
-						Stream->SetPosition(StripGroupPosition + StripGroup.VertexOffset);
-
-						for (uint32_t v = 0; v < StripGroup.VertexCount; v++)
+						for (int m = 0; m < vtxMesh->numStripGroups; m++)
 						{
-							RMdlStripVert Vtx = Reader.Read<RMdlStripVert>();
-							RMdlVertex& Vertex = VertexBuffers[0][(uint64_t)Vtx.VertexIndex + VertexOffset];
+							vtx::StripGroupHeader_t* vtxStripGroup = vtxMesh->vtxStripGrp(m);
 
-
-							// todo: check this
-							Assets::Vertex NewVertex = Model->Meshes[s].Vertices.Emplace(Vertex.Position, Vertex.Normal, Assets::VertexColor(), Vertex.UVs);
-
-							for (uint8_t w = 0; w < Vertex.NumWeights; w++)
+							for (int n = 0; n < vtxStripGroup->numVerts; n++)
 							{
-								NewVertex.SetWeight({ Vertex.WeightIds[w], Vertex.SimpleWeights[w] }, w);
+								vtx::Vertex_t* vtxVert = vtxStripGroup->vtxVert(n);
+								vvd::mstudiovertex_t* vvdVert = vvdVerts.at(vertexOffset + vtxVert->origMeshVertID);
+
+								Assets::VertexColor vertexColor;
+
+								// inserts color data into mesh if needed
+								if (pHdr->flags & STUDIOHDR_FLAGS_USES_VERTEX_COLOR)
+								{
+									vvc::VertexColor_t* vvcColor = vvcColors.at(vertexOffset + vtxVert->origMeshVertID);
+									vertexColor = Assets::VertexColor::VertexColor(vvcColor->r, vvcColor->g, vvcColor->b, vvcColor->a);
+								}
+
+								Assets::Vertex newVert = exportMesh.Vertices.Emplace(vvdVert->m_vecPosition, vvdVert->m_vecNormal, vertexColor, vvdVert->m_vecTexCoord);
+
+								// inserts uv data into mesh if needed, should work but needs testing
+								if (pHdr->flags & STUDIOHDR_FLAGS_USES_UV2)
+								{
+									Vector2* vvcUV2 = vvcUV2s.at(vertexOffset + vtxVert->origMeshVertID);
+									newVert.SetUVLayer(*vvcUV2, 1);
+								}
+
+								// check if this model has extra bone weights (verts exceeding three bone weights), extra weights part untested
+								if ((pHdr->flags & STUDIOHDR_FLAGS_USES_EXTRA_BONE_WEIGHTS) && (pHdr->version == STUDIO_VERSION_APEX_LEGENDS))
+								{
+									for (char w = 0; w < vvdVert->m_BoneWeights.numbones; w++)
+									{
+										if (w >= 3)
+										{
+											newVert.SetWeight({ (uint32_t)(pVVW->GetWeightData(vvdVert->m_BoneWeights.weightextra.extraweightindex + (w - 3))->bone), static_cast<float>(pVVW->GetWeightData(vvdVert->m_BoneWeights.weightextra.extraweightindex + (w - 3))->weight / 32767.0) }, w);
+										}
+										else
+										{
+											newVert.SetWeight({ vvdVert->m_BoneWeights.bone[w], static_cast<float>(vvdVert->m_BoneWeights.weightextra.weight[w] / 32767.0) }, w);
+										}
+									}
+								}
+								else // do weights normally is flag isn't set, this is pretty straight forward thankfully
+								{
+									for (char w = 0; w < vvdVert->m_BoneWeights.numbones; w++)
+									{
+										newVert.SetWeight({ vvdVert->m_BoneWeights.bone[w], vvdVert->m_BoneWeights.weight[w] }, w);
+									}
+								}
+							}
+
+							for (int n = 0; n < vtxStripGroup->numIndices; n += 3)
+							{
+								unsigned short i1 = *vtxStripGroup->vtxIndice(n);
+								unsigned short i2 = *vtxStripGroup->vtxIndice(n + 1);
+								unsigned short i3 = *vtxStripGroup->vtxIndice(n + 2);
+
+								exportMesh.Faces.EmplaceBack(i1, i2, i3);
 							}
 						}
 
-						Stream->SetPosition(StripGroupPosition + StripGroup.IndexOffset);
-
-						for (uint32_t v = 0; v < (StripGroup.IndexCount / 3); v++)
-						{
-							uint32_t i1 = Reader.Read<uint16_t>();
-							uint32_t i2 = Reader.Read<uint16_t>();
-							uint32_t i3 = Reader.Read<uint16_t>();
-
-							// todo: check this
-							Model->Meshes[s].Faces.EmplaceBack(i1, i2, i3);
-						}
+						vertexOffset += mdlMesh->vertexloddata.numLODVertexes[i];
 					}
-
-					VertexOffset += PartMesh.Meshes[s].LodVertCounts[0];
-
-					// todo: check this
-					Model->Meshes[s].MaterialIndices.EmplaceBack(Model->AddMaterial(Materials[PartMesh.Meshes[s].Index], ""));
 				}
 			}
 		}
-
-		string ModelDirectory = IO::Path::Combine(ExportModelPath, Model->Name);
-		IO::Directory::CreateDirectory(ModelDirectory);
-
-		this->ModelExporter->ExportModel(*Model.get(), IO::Path::Combine(ModelDirectory, Model->Name + "_LOD0" + (const char*)ModelExporter->ModelExtension()));
 	}
 
-	if (hdr.numlocalanim)
+	// directory that contains all model export directories
+	string modelsExportDirectory = IO::Path::Combine(Path, "models");
+
+	// directory that contains this model's exported files
+	string modelDirectory = IO::Path::Combine(modelsExportDirectory, ExportModel->Name);
+	IO::Directory::CreateDirectory(modelDirectory);
+
+	this->ModelExporter->ExportModel(*ExportModel.get(), IO::Path::Combine(modelDirectory, ExportModel->Name + (const char*)ModelExporter->ModelExtension()));
+	g_Logger.Info("Exported: " + ExportModel->Name + ".mdl\n");
+}
+
+// because I can't be asked to port source's vec/quat classes
+// check if the Vector3 has valid values
+inline bool isValidVec(Vector3 vec)
+{
+	return isfinite(vec.X) && isfinite(vec.Y) && isfinite(vec.Z);
+}
+
+// unpack Vector48 into Vector3
+inline Vector3 UnpackVector48(Vector48 vec48)
+{
+	Vector3 vec;
+
+	vec.X = Math::Half::ToFloat(vec48.x);
+	vec.Y = Math::Half::ToFloat(vec48.y);
+	vec.Z = Math::Half::ToFloat(vec48.z);
+
+	return vec;
+}
+
+// check if the Quaternion has valid values
+inline bool isValidQuat(Quaternion quat)
+{
+	return isfinite(quat.X) && isfinite(quat.Y) && isfinite(quat.Z) && isfinite(quat.W);
+}
+
+// set initial values of Quaternion
+inline Quaternion initQuat(float ix, float iy, float iz, float iw)
+{
+	Quaternion quat;
+
+	quat.X = ix;
+	quat.Y = iy;
+	quat.Z = iz;
+	quat.W = iw;
+
+	return quat;
+}
+
+// unpack Quaternion64 into Quaternion
+inline Quaternion UnpackQuat64(Quaternion64 quat64)
+{
+	Quaternion quat;
+
+	quat.X = ((int)quat64.x - 1048576) * (1 / 1048576.5f);
+	quat.Y = ((int)quat64.y - 1048576) * (1 / 1048576.5f);
+	quat.Z = ((int)quat64.z - 1048576) * (1 / 1048576.5f);
+	quat.W = sqrt(1 - quat.X * quat.X - quat.Y * quat.Y - quat.Z * quat.Z);
+	if (quat64.wneg)
+		quat.W = -quat.W;
+
+	// this is not normal source, putting this here as a failsafe.
+	// if it's not finite then it's (probably) a small decimal close to 0, maybe we should do rounding here?
+	if (!isfinite(quat.W))
+		quat.W = 0;
+
+	return quat;
+}
+
+// this is so awful
+inline float QuaternionNormalize(Quaternion& q)
+{
+	float radius, iradius;
+
+	assert(isValidQuat(q));
+
+	radius = q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3];
+
+	if (radius) // > FLT_EPSILON && ((radius < 1.0f - 4*FLT_EPSILON) || (radius > 1.0f + 4*FLT_EPSILON))
+	{
+		radius = sqrt(radius);
+		iradius = 1.0f / radius;
+		q[3] *= iradius;
+		q[2] *= iradius;
+		q[1] *= iradius;
+		q[0] *= iradius;
+	}
+	return radius;
+}
+
+inline void QuaternionBlendNoAlign(const Quaternion& p, const Quaternion& q, float t, Quaternion& qt)
+{
+	float sclp, sclq;
+	int i;
+
+	// 0.0 returns p, 1.0 return q.
+	sclp = 1.0f - t;
+	sclq = t;
+	for (i = 0; i < 4; i++) {
+		qt[i] = sclp * p[i] + sclq * q[i];
+	}
+	QuaternionNormalize(qt);
+}
+
+inline void QuaternionAlign(const Quaternion& p, const Quaternion& q, Quaternion& qt)
+{
+	int i;
+	// decide if one of the quaternions is backwards
+	float a = 0;
+	float b = 0;
+	for (i = 0; i < 4; i++)
+	{
+		a += (p[i] - q[i]) * (p[i] - q[i]);
+		b += (p[i] + q[i]) * (p[i] + q[i]);
+	}
+	if (a > b)
+	{
+		for (i = 0; i < 4; i++)
+		{
+			qt[i] = -q[i];
+		}
+	}
+	else if (&qt != &q)
+	{
+		for (i = 0; i < 4; i++)
+		{
+			qt[i] = q[i];
+		}
+	}
+}
+
+inline void QuaternionBlend(const Quaternion& p, const Quaternion& q, float t, Quaternion& qt)
+{
+
+	// decide if one of the quaternions is backwards
+	Quaternion q2;
+	QuaternionAlign(p, q, q2);
+	QuaternionBlendNoAlign(p, q2, t, qt);
+}
+
+// extract mstudioanimvalue_t
+void MdlLib::ExtractAnimValue(int frame, mstudioanimvalue_t* panimvalue, float scale, float& v1, float& v2)
+{
+	if (!panimvalue)
+	{
+		v1 = v2 = 0;
+		return;
+	}
+
+	// Avoids a crash reading off the end of the data
+	if ((panimvalue->num.total == 1) && (panimvalue->num.valid == 1))
+	{
+		v1 = v2 = panimvalue[1].value * scale;
+		return;
+	}
+
+	int k = frame;
+
+	// find the data list that has the frame
+	while (panimvalue->num.total <= k)
+	{
+		k -= panimvalue->num.total;
+		panimvalue += panimvalue->num.valid + 1;
+		if (panimvalue->num.total == 0)
+		{
+			assert(0); // running off the end of the animation stream is bad
+			v1 = v2 = 0;
+			return;
+		}
+	}
+	if (panimvalue->num.valid > k)
+	{
+		// has valid animation data
+		v1 = panimvalue[k + 1].value * scale;
+
+		if (panimvalue->num.valid > k + 1)
+		{
+			// has valid animation blend data
+			v2 = panimvalue[k + 2].value * scale;
+		}
+		else
+		{
+			if (panimvalue->num.total > k + 1)
+			{
+				// data repeats, no blend
+				v2 = v1;
+			}
+			else
+			{
+				// pull blend from first data block in next list
+				v2 = panimvalue[panimvalue->num.valid + 2].value * scale;
+			}
+		}
+	}
+	else
+	{
+		// get last valid data block
+		v1 = panimvalue[panimvalue->num.valid].value * scale;
+		if (panimvalue->num.total > k + 1)
+		{
+			// data repeats, no blend
+			v2 = v1;
+		}
+		else
+		{
+			// pull blend from first data block in next list
+			v2 = panimvalue[panimvalue->num.valid + 2].value * scale;
+		}
+	}
+}
+
+// extract mstudioanimvalue_t
+void MdlLib::ExtractAnimValue(int frame, mstudioanimvalue_t* panimvalue, float scale, float& v1)
+{
+	if (!panimvalue)
+	{
+		v1 = 0;
+		return;
+	}
+
+	int k = frame;
+
+	while (panimvalue->num.total <= k)
+	{
+		k -= panimvalue->num.total;
+		panimvalue += panimvalue->num.valid + 1;
+		if (panimvalue->num.total == 0)
+		{
+			assert(0); // running off the end of the animation stream is bad
+			v1 = 0;
+			return;
+		}
+	}
+	if (panimvalue->num.valid > k)
+	{
+		v1 = panimvalue[k + 1].value * scale;
+	}
+	else
+	{
+		// get last valid data block
+		v1 = panimvalue[panimvalue->num.valid].value * scale;
+	}
+}
+
+// parse rle animation
+void MdlLib::CalcBoneQuaternion(int frame, float s,
+								const Quaternion& baseQuat, const RadianEuler& baseRot, const Vector3& baseRotScale,
+								int iBaseFlags, const Quaternion& baseAlignment,
+								const titanfall2::mstudio_rle_anim_t* panim, Quaternion& q)
+{
+	if (panim->flags & STUDIO_ANIM_RAWROT)
+	{
+		q = UnpackQuat64(*(panim->pQuat64()));
+		assert(isValidQuat(q));
+		return;
+	}
+
+	if (panim->flags & STUDIO_ANIM_NOROT)
+	{
+		if (panim->flags & STUDIO_ANIM_DELTA)
+		{
+			q = initQuat(0.0f, 0.0f, 0.0f, 1.0f);
+		}
+		else
+		{
+			q = baseQuat;
+		}
+		return;
+	}
+
+	titanfall2::mstudioanim_valueptr_t* pValuesPtr = panim->pRotV();
+
+	if (s > 0.001f)
+	{
+		Quaternion			q1, q2; // QuaternionAligned, please no simd for now (thank you)
+		RadianEuler			angle1, angle2;
+
+		ExtractAnimValue(frame, pValuesPtr->pAnimvalue(0), baseRotScale.X, angle1.X, angle2.X);
+		ExtractAnimValue(frame, pValuesPtr->pAnimvalue(1), baseRotScale.Y, angle1.Y, angle2.Y);
+		ExtractAnimValue(frame, pValuesPtr->pAnimvalue(2), baseRotScale.Z, angle1.Z, angle2.Z);
+
+		if (!(panim->flags & STUDIO_ANIM_DELTA))
+		{
+			angle1.X = angle1.X + baseRot.X;
+			angle1.Y = angle1.Y + baseRot.Y;
+			angle1.Z = angle1.Z + baseRot.Z;
+			angle2.X = angle2.X + baseRot.X;
+			angle2.Y = angle2.Y + baseRot.Y;
+			angle2.Z = angle2.Z + baseRot.Z;
+		}
+
+		assert(isValidVec(angle1) && isValidVec(angle2));
+		if (angle1.X != angle2.X || angle1.Y != angle2.Y || angle1.Z != angle2.Z)
+		{
+			RTech::AngleQuaternion(angle1, q1);
+			RTech::AngleQuaternion(angle2, q2);
+
+			QuaternionBlend(q1, q2, s, q);
+		}
+		else
+		{
+			RTech::AngleQuaternion(angle1, q);
+		}
+	}
+	else
+	{
+		RadianEuler			angle;
+
+		ExtractAnimValue(frame, pValuesPtr->pAnimvalue(0), baseRotScale.X, angle.X);
+		ExtractAnimValue(frame, pValuesPtr->pAnimvalue(1), baseRotScale.Y, angle.Y);
+		ExtractAnimValue(frame, pValuesPtr->pAnimvalue(2), baseRotScale.Z, angle.Z);
+
+		if (!(panim->flags & STUDIO_ANIM_DELTA))
+		{
+			angle.X = angle.X + baseRot.X;
+			angle.Y = angle.Y + baseRot.Y;
+			angle.Z = angle.Z + baseRot.Z;
+		}
+
+		assert(isValidVec(angle));
+		RTech::AngleQuaternion(angle, q);
+	}
+
+	assert(isValidQuat(q));
+
+	// align to unified bone
+	if (!(panim->flags & STUDIO_ANIM_DELTA) && (iBaseFlags & BONE_FIXED_ALIGNMENT))
+	{
+		QuaternionAlign(baseAlignment, q, q);
+	}
+}
+
+// parse rle animation
+inline void MdlLib::CalcBoneQuaternion(int frame, float s,
+	const titanfall2::mstudiobone_t* pBone,
+	const titanfall2::mstudiolinearbone_t* pLinearBones,
+	const titanfall2::mstudio_rle_anim_t* panim, Quaternion& q)
+{
+	if (pLinearBones)
+	{
+		MdlLib::CalcBoneQuaternion(frame, s, *pLinearBones->pQuat(panim->bone), *pLinearBones->pRot(panim->bone), *pLinearBones->pRotScale(panim->bone), *pLinearBones->pFlags(panim->bone), *pLinearBones->pQAlignment(panim->bone), panim, q);
+	}
+	else
+	{
+		MdlLib::CalcBoneQuaternion(frame, s, pBone->quat, pBone->rot, pBone->rotscale, pBone->flags, pBone->qAlignment, panim, q);
+	}
+}
+
+// parse rle animation
+void MdlLib::CalcBonePosition(int frame, float s,
+					const Vector3& basePos, const float& baseBoneScale,
+					const titanfall2::mstudio_rle_anim_t* panim, Vector3& pos)
+{
+	if (panim->flags & STUDIO_ANIM_RAWPOS)
+	{
+		pos = UnpackVector48(*(panim->pPos()));
+		assert(isValidVec(pos));
+
+		return;
+	}
+
+	titanfall2::mstudioanim_valueptr_t* pPosV = panim->pPosV();
+	int					j;
+
+	if (s > 0.001f)
+	{
+		float v1, v2;
+		for (j = 0; j < 3; j++)
+		{
+			MdlLib::ExtractAnimValue(frame, pPosV->pAnimvalue(j), baseBoneScale, v1, v2);
+			pos[j] = v1 * (1.0 - s) + v2 * s;
+		}
+	}
+	else
+	{
+		for (j = 0; j < 3; j++)
+		{
+			MdlLib::ExtractAnimValue(frame, pPosV->pAnimvalue(j), baseBoneScale, pos[j]);
+		}
+	}
+
+	if (!(panim->flags & STUDIO_ANIM_DELTA))
+	{
+		pos.X = pos.X + basePos.X;
+		pos.Y = pos.Y + basePos.Y;
+		pos.Z = pos.Z + basePos.Z;
+	}
+
+	assert(isValidVec(pos));
+}
+
+// parse rle animation
+inline void MdlLib::CalcBonePosition(int frame, float s,
+	const titanfall2::mstudiobone_t* pBone,
+	const titanfall2::mstudiolinearbone_t* pLinearBones,
+	const titanfall2::mstudio_rle_anim_t* panim, Vector3& pos)
+{
+	if (pLinearBones)
+	{
+		MdlLib::CalcBonePosition(frame, s, *pLinearBones->pPos(panim->bone), panim->posscale, panim, pos);
+	}
+	else
+	{
+		MdlLib::CalcBonePosition(frame, s, pBone->pos, panim->posscale, panim, pos);
+	}
+}
+
+void MdlLib::CalcBoneScale(int frame, float s,
+	const Vector3& baseScale, Vector3& baseScaleScale,
+	const titanfall2::mstudio_rle_anim_t* panim, Vector3& scale)
+{
+	if (panim->flags & STUDIO_ANIM_RAWSCALE)
+	{
+		scale = UnpackVector48(*(panim->pScale()));
+		assert(isValidVec(scale));
+
+		return;
+	}
+
+	titanfall2::mstudioanim_valueptr_t* pScaleV = panim->pScaleV();
+	int					j;
+
+	if (s > 0.001f)
+	{
+		float v1, v2;
+		for (j = 0; j < 3; j++)
+		{
+			ExtractAnimValue(frame, pScaleV->pAnimvalue(j), baseScaleScale[j], v1, v2);
+			scale[j] = v1 * (1.0 - s) + v2 * s;
+		}
+	}
+	else
+	{
+		for (j = 0; j < 3; j++)
+		{
+			ExtractAnimValue(frame, pScaleV->pAnimvalue(j), baseScaleScale[j], scale[j]);
+		}
+	}
+
+	if (!(panim->flags & STUDIO_ANIM_DELTA))
+	{
+		scale.X = scale.X + baseScale.X;
+		scale.Y = scale.Y + baseScale.Y;
+		scale.Z = scale.Z + baseScale.Z;
+	}
+
+	assert(isValidVec(scale));
+}
+
+// is there not more to this?
+void MdlLib::Studio_FrameMovement(const titanfall2::mstudioframemovement_t* pFrameMovement, int frame, Vector3& vecPos, float& yaw)
+{
+	for (int i = 0; i < 3; i++)
+	{
+		ExtractAnimValue(frame, pFrameMovement->pAnimvalue(i), pFrameMovement->scale[i], vecPos[i]);
+	}
+
+	ExtractAnimValue(frame, pFrameMovement->pAnimvalue(3), pFrameMovement->scale[3], yaw);
+}
+
+void MdlLib::Studio_FrameMovement(const titanfall2::mstudioframemovement_t* pFrameMovement, int iFrame, Vector3& v1Pos, Vector3& v2Pos, float& v1Yaw, float& v2Yaw)
+{
+	for (int i = 0; i < 3; i++)
+	{
+		ExtractAnimValue(iFrame, pFrameMovement->pAnimvalue(i), pFrameMovement->scale[i], v1Pos[i], v2Pos[i]);
+	}
+
+	ExtractAnimValue(iFrame, pFrameMovement->pAnimvalue(3), pFrameMovement->scale[3], v1Yaw, v2Yaw);
+}
+
+inline float NormalizeAngle(float ang1, float ang2)
+{
+	float remainder = fmodf(ang1 - ang2, 360.0);
+
+	// I don't understand this check
+	if (ang1 <= ang2)
+	{
+		if (remainder <= -180.0)
+			remainder + 360.0;
+	}
+	else if (remainder >= 180.0)
+	{
+		remainder - 360.0;
+	}
+
+	return remainder;
+}
+
+bool MdlLib::Studio_AnimPosition(titanfall2::mstudioanimdesc_t* panim, float flCycle, Vector3& vecPos, Vector3& vecAngle)
+{
+	float	prevframe = 0;
+	vecPos = { 0.0f, 0.0f, 0.0f };
+	vecAngle = { 0.0f, 0.0f, 0.0f };
+
+	int iLoops = 0;
+	if (flCycle > 1.0)
+	{
+		iLoops = (int)flCycle;
+	}
+	else if (flCycle < 0.0)
+	{
+		iLoops = (int)flCycle - 1;
+	}
+	flCycle = flCycle - iLoops;
+
+	float	flFrame = flCycle * (panim->numframes - 1);
+
+	if (panim->flags & STUDIO_FRAMEMOVEMENT)
+	{
+		int iFrame = (int)flFrame;
+		float s = (flFrame - iFrame);
+
+		if (s == 0)
+		{
+			Studio_FrameMovement(panim->pFrameMovement(), iFrame, vecPos, vecAngle.Y);
+			return true;
+		}
+		else
+		{
+			Vector3 v1Pos, v2Pos;
+			float v1Yaw, v2Yaw;
+
+			Studio_FrameMovement(panim->pFrameMovement(), iFrame, v1Pos, v2Pos, v1Yaw, v2Yaw);
+
+			vecPos.X = ((v2Pos.X - v1Pos.X) * s) + v1Pos.X;
+			vecPos.Y = ((v2Pos.Y - v1Pos.Y) * s) + v1Pos.Y;
+			vecPos.Z = ((v2Pos.Z - v1Pos.Z) * s) + v1Pos.Z;
+
+			float yawNormalized = NormalizeAngle(v2Yaw, v1Yaw);
+			vecAngle.Y = (yawNormalized * s) + v1Yaw;
+
+			return true;
+		}
+	}
+	else
+	{
+		for (int i = 0; i < panim->nummovements; i++)
+		{
+			titanfall2::mstudiomovement_t* pmove = panim->pMovement(i);
+
+			if (pmove->endframe >= flFrame)
+			{
+				float f = (flFrame - prevframe) / (pmove->endframe - prevframe);
+
+				float d = pmove->v0 * f + 0.5 * (pmove->v1 - pmove->v0) * f * f;
+
+				vecPos.X = vecPos.X + d * pmove->vector.X;
+				vecPos.Y = vecPos.Y + d * pmove->vector.Y;
+				vecPos.Z = vecPos.Z + d * pmove->vector.Z;
+
+				vecAngle.Y = vecAngle.Y * (1 - f) + pmove->angle * f;
+				if (iLoops != 0)
+				{
+					titanfall2::mstudiomovement_t* pmove = panim->pMovement(panim->nummovements - 1);
+
+					vecPos.X = vecPos.X + iLoops * pmove->position.X;
+					vecPos.Y = vecPos.Y + iLoops * pmove->position.Y;
+					vecPos.Z = vecPos.Z + iLoops * pmove->position.Z;
+
+					vecAngle.Y = vecAngle.Y + iLoops * pmove->angle;
+				}
+				return true;
+			}
+			else
+			{
+				prevframe = pmove->endframe;
+				vecPos = pmove->position;
+				vecAngle.Y = pmove->angle;
+			}
+		}
+	}
+
+	return false;
+}
+
+void MdlLib::AdjustOriginBone(titanfall2::mstudioanimdesc_t* panim, float flCycle, Vector3& posBase, Quaternion& rotBase)
+{
+	Vector3 vecPos, vecAngle;
+
+	if (panim->nummovements > 0 || (panim->flags & STUDIO_FRAMEMOVEMENT))
+		Studio_AnimPosition(panim, flCycle, vecPos, vecAngle);
+
+	posBase.X = posBase.X + vecPos.X;
+	posBase.Y = posBase.Y + vecPos.Y;
+	posBase.Z = posBase.Z + vecPos.Z;
+
+	//adjust position as we are rotating on the Z axis
+	float x = posBase.X;
+	float y = posBase.Y;
+
+	posBase.X = y;
+	posBase.Y = -x;
+
+	Vector3 baseEuler = rotBase.ToEulerAngles();
+
+	baseEuler.X = Math::MathHelper::DegreesToRadians(baseEuler.X);
+	baseEuler.Y = Math::MathHelper::DegreesToRadians(baseEuler.Y);
+	baseEuler.Z = Math::MathHelper::DegreesToRadians(baseEuler.Z + vecAngle.Y - 90); // rotate by 90 for easier recompile (if desired)
+
+	RTech::AngleQuaternion(baseEuler, rotBase);
+}
+
+inline titanfall2::mstudio_rle_anim_t* titanfall2::mstudioanimdesc_t::pAnim(int* piFrame) const
+{
+	mstudio_rle_anim_t* panim = nullptr;
+
+	int index = animindex;
+	int section = 0;
+
+	if (sectionframes != 0)
+	{
+		if (numframes > sectionframes && *piFrame == numframes - 1)
+		{
+			// last frame on long anims is stored separately
+			*piFrame = 0;
+			section = (numframes / sectionframes) + 1;
+		}
+		else
+		{
+			section = *piFrame / sectionframes;
+			*piFrame -= section * sectionframes;
+		}
+
+		index = pSection(section)->animindex;
+	}
+
+	return panim = reinterpret_cast<mstudio_rle_anim_t*>((char*)this + index);
+}
+
+void MdlLib::ExportMDLv53(const string& Asset, const string& Path)
+{
+	IO::BinaryReader Reader = IO::BinaryReader(IO::File::OpenRead(Asset));
+
+	int modelLength = IO::File::OpenRead(Asset)->GetLength();;
+
+	std::unique_ptr<char[]> mdlBuff(new char[modelLength]);
+	Reader.Read(mdlBuff.get(), 0, modelLength);
+	titanfall2::studiohdr_t* pHdr = reinterpret_cast<titanfall2::studiohdr_t*>(mdlBuff.get());
+
+	// id = IDST or version = 53
+	if (pHdr->id != MODEL_FILE_ID || pHdr->version != STUDIO_VERSION_TITANFALL2)
+		return;
+	
+	std::unique_ptr<Assets::Model> Model = std::make_unique<Assets::Model>(0, 0);
+
+	// get name from sznameindex incase it exceeds 64 bytes (for whatever reason)
+	Model->Name = IO::Path::GetFileNameWithoutExtension(pHdr->pszName());
+
+	for (int i = 0; i < pHdr->numbones; i++)
+	{
+		Model->Bones.EmplaceBack(pHdr->pBone(i)->pszName(), pHdr->pBone(i)->parent, pHdr->pBone(i)->pos, pHdr->pBone(i)->quat/*, bone.scale, Assets::BoneFlags::HasScale*/);
+	}
+
+	if (pHdr->numbodyparts > 0)
+		ExtractValveVertexData(pHdr, pHdr->pVTX(), pHdr->pVVD(), pHdr->pVVC(), nullptr, Model, Path);
+
+	if (pHdr->numlocalanim > 0)
 	{
 		string ExportAnimPath = IO::Path::Combine(Path, "animations");
-		string ExportBasePath = IO::Path::Combine(ExportAnimPath, IO::Path::GetFileNameWithoutExtension(hdr.name));
+		string ExportBasePath = IO::Path::Combine(ExportAnimPath, IO::Path::GetFileNameWithoutExtension(pHdr->pszName()));
 
 		IO::Directory::CreateDirectory(ExportBasePath);
 
-		for (uint32_t i = 0; i < hdr.numlocalanim; i++)
+		for (int i = 0; i < pHdr->numlocalanim; i++)
 		{
-			uint64_t Position = hdr.localanimindex + (i * sizeof(mstudioanimdescv53_t));
+			titanfall2::mstudioanimdesc_t* animdesc = pHdr->pAnimdesc(i);
 
-			Stream->SetPosition(Position);
-			mstudioanimdescv53_t ASeqHeader = Reader.Read<mstudioanimdescv53_t>();
+			std::unique_ptr<Assets::Animation> Anim = std::make_unique<Assets::Animation>(Model->Bones.Count(), animdesc->fps);
+			Assets::AnimationCurveMode AnimCurveType = (animdesc->flags & STUDIO_DELTA) ? Assets::AnimationCurveMode::Additive : Assets::AnimationCurveMode::Absolute; // technically this should change based on flags
 
-			auto Anim = std::make_unique<Assets::Animation>(Model->Bones.Count(), ASeqHeader.Framerate);
-			Assets::AnimationCurveMode AnimCurveType = Assets::AnimationCurveMode::Absolute;
-
-			for (auto& Bone : Model->Bones)
+			for (Assets::Bone& Bone : Model->Bones)
 			{
 				Anim->Bones.EmplaceBack(Bone.Name(), Bone.Parent(), Bone.LocalPosition(), Bone.LocalRotation());
 
-				auto& CurveNodes = Anim->GetNodeCurves(Bone.Name());
+				List<Assets::Curve>& CurveNodes = Anim->GetNodeCurves(Bone.Name());
 
 				CurveNodes.EmplaceBack(Bone.Name(), Assets::CurveProperty::RotateQuaternion, AnimCurveType);
 				CurveNodes.EmplaceBack(Bone.Name(), Assets::CurveProperty::TranslateX, AnimCurveType);
@@ -311,214 +922,78 @@ void MdlLib::ExportRMdl(const string& Asset, const string& Path)
 				CurveNodes.EmplaceBack(Bone.Name(), Assets::CurveProperty::ScaleZ, AnimCurveType);
 			}
 
-			Anim->Looping = (bool)(ASeqHeader.Flags & 0x20000);
+			Anim->Looping = (animdesc->flags & STUDIO_LOOPING) ? true : false; // previously '0x20000', why?
 
-			Stream->SetPosition(Position + ASeqHeader.NameOffset);
-			string AnimName = Reader.ReadCString();
-
-			List<uint64_t> AnimChunkOffsets;
-
-			if (ASeqHeader.FrameSplitCount)
+			for (int frameIdx = 0; frameIdx < animdesc->numframes; frameIdx++)
 			{
-				Stream->SetPosition(Position + ASeqHeader.OffsetToChunkOffsetsTable);
+				float cycle = (1 / (float)animdesc->numframes) * (frameIdx + 1);
 
-				while (true)
+				//printf("cycle %f, idx %i\n", cycle, frameIdx);
+
+				float fFrame = cycle * (animdesc->numframes - 1);
+
+				int iFrame = (int)fFrame;
+				float s = (fFrame - iFrame);
+
+				int iLocalFrame = iFrame;
+
+				titanfall2::mstudio_rle_anim_t* pAnim = animdesc->pAnim(&iLocalFrame);
+
+				//printf("local frame %i\n", iLocalFrame + 1); // local to any potential sections
+
+				for (int boneIdx = 0; boneIdx < pHdr->numbones; boneIdx++)
 				{
-					uint32_t Result = Reader.Read<uint32_t>();
+					unsigned char boneId = pAnim->bone; // unsigned char as bone limit is 256
 
-					if (Result == 0)
+					// this may not be the best solution
+					if (!pAnim->flags && (boneId == 0xff))
 						break;
 
-					AnimChunkOffsets.Add(Position + Result);
-				}
-			}
-			else
-				AnimChunkOffsets.Add(ASeqHeader.FirstChunkOffset + Position);
+					// rotation
+					Quaternion quat;
 
-			for (uint32_t Frame = 0; Frame < ASeqHeader.FrameCount; Frame++)
-			{
-				uint32_t ChunkTableIndex = 0;
-				uint32_t ChunkFrame = Frame;
-				uint32_t FrameCountOneLess = 0;
+					CalcBoneQuaternion(iLocalFrame, s, pHdr->pBone(boneId), pHdr->pLinearBones(), pAnim, quat);
 
-				if (ASeqHeader.FrameSplitCount)
-				{
-					uint32_t FrameCount = ASeqHeader.FrameCount;
-					if (FrameCount <= ASeqHeader.FrameSplitCount || (FrameCountOneLess = FrameCount - 1, ChunkFrame != FrameCountOneLess))
-					{
-						ChunkTableIndex = ChunkFrame / ASeqHeader.FrameSplitCount;
-						ChunkFrame -= ASeqHeader.FrameSplitCount * (ChunkFrame / ASeqHeader.FrameSplitCount);
-					}
-					else
-					{
-						ChunkFrame = 0;
-						ChunkTableIndex = FrameCountOneLess / ASeqHeader.FrameSplitCount + 1;
-					}
-				}
+					// position
+					Vector3 pos;
+					
+					CalcBonePosition(iLocalFrame, s, pHdr->pBone(boneId), pHdr->pLinearBones(), pAnim, pos);
 
-				Stream->SetPosition(AnimChunkOffsets[ChunkTableIndex]);
+					// scale
+					Vector3 scale;
+					
+					CalcBoneScale(iLocalFrame, s, pHdr->pBone(boneId)->scale, pHdr->pBone(boneId)->scalescale, pAnim, scale);
 
-				while (true)
-				{
-					uint64_t TrackDataRead = 0;
+					// adjust origin bones
+					if (pHdr->pBone(boneId)->parent == -1) // check if it has no parents
+						AdjustOriginBone(animdesc, cycle, pos, quat);
+					
+					// set values
+					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[0].Keyframes.Emplace(static_cast<uint32_t>(frameIdx), quat);
 
-					RAnimBoneHeader BoneTrackHeader = Reader.Read<RAnimBoneHeader>();
-					uint64_t BoneDataSize = BoneTrackHeader.DataSize - sizeof(RAnimBoneHeader);
+					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[1].Keyframes.EmplaceBack(static_cast<uint32_t>(frameIdx), pos.X);
+					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[2].Keyframes.EmplaceBack(static_cast<uint32_t>(frameIdx), pos.Y);
+					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[3].Keyframes.EmplaceBack(static_cast<uint32_t>(frameIdx), pos.Z);
 
-					if (BoneTrackHeader.BoneFlags.bStaticTranslation)
-					{
-						List<Assets::Curve>& Curves = Anim->GetNodeCurves(Anim->Bones[BoneTrackHeader.BoneIndex].Name());
+					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[4].Keyframes.EmplaceBack(static_cast<uint32_t>(frameIdx), scale.X);
+					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[5].Keyframes.EmplaceBack(static_cast<uint32_t>(frameIdx), scale.Y);
+					Anim->GetNodeCurves(Anim->Bones[boneId].Name())[6].Keyframes.EmplaceBack(static_cast<uint32_t>(frameIdx), scale.Z);
 
-						Curves[1].Keyframes.EmplaceBack(Frame, Math::Half(BoneTrackHeader.TranslationX).ToFloat());
-						Curves[2].Keyframes.EmplaceBack(Frame, Math::Half(BoneTrackHeader.TranslationY).ToFloat());
-						Curves[3].Keyframes.EmplaceBack(Frame, Math::Half(BoneTrackHeader.TranslationZ).ToFloat());
-					}
+					//printf("bone: %i \n rot: rx %f, ry %f, rz %f, rw %f\n pos: px %f, py %f, pz %f\n scale: sx %f, sy %f, sz %f\n", boneId, quat.X, quat.Y, quat.Z, quat.W, pos.X, pos.Y, pos.Z, scale.X, scale.Y, scale.Z);
 
-					if (BoneTrackHeader.BoneFlags.bStaticRotation)
-					{
-						struct Quat64
-						{
-							uint64_t X : 21;
-							uint64_t Y : 21;
-							uint64_t Z : 21;
-							uint64_t WNeg : 1;
-						};
-
-						Quat64 PackedQuat = *(Quat64*)&BoneTrackHeader.RotationInfo.PackedRotation;
-
-						Math::Quaternion Quat;
-
-						Quat.X = ((int)PackedQuat.X - 1048576) * (1 / 1048576.5f);
-						Quat.Y = ((int)PackedQuat.Y - 1048576) * (1 / 1048576.5f);
-						Quat.Z = ((int)PackedQuat.Z - 1048576) * (1 / 1048576.5f);
-						Quat.W = std::sqrt(1 - Quat.X * Quat.X - Quat.Y * Quat.Y - Quat.Z * Quat.Z);
-
-						if (PackedQuat.WNeg)
-							Quat.W = -Quat.W;
-
-						Anim->GetNodeCurves(Anim->Bones[BoneTrackHeader.BoneIndex].Name())[0].Keyframes.Emplace(Frame, Quat);
-					}
-
-					if (BoneTrackHeader.BoneFlags.bStaticScale)
-					{
-						List<Assets::Curve>& Curves = Anim->GetNodeCurves(Anim->Bones[BoneTrackHeader.BoneIndex].Name());
-
-						Curves[4].Keyframes.EmplaceBack(Frame, Math::Half(BoneTrackHeader.ScaleX).ToFloat());
-						Curves[5].Keyframes.EmplaceBack(Frame, Math::Half(BoneTrackHeader.ScaleY).ToFloat());
-						Curves[6].Keyframes.EmplaceBack(Frame, Math::Half(BoneTrackHeader.ScaleZ).ToFloat());
-					}
-
-					if (BoneTrackHeader.DataSize == 0)
-					{
+					if (!(*pAnim->pNextOffset()))
 						break;
-					}
 
-					auto BoneTrackData = Reader.Read(BoneDataSize, TrackDataRead);
-
-					uint16_t* BoneTrackDataPtr = (uint16_t*)BoneTrackData.get();
-
-					if (TrackDataRead > 0)
-					{
-						if (!BoneTrackHeader.BoneFlags.bStaticTranslation)
-						{
-							ParseRAnimBoneTranslationTrack(BoneTrackHeader, BoneBuffer[BoneTrackHeader.BoneIndex], &BoneTrackDataPtr, Anim, BoneTrackHeader.BoneIndex, ChunkFrame, Frame);
-						}
-						
-						if (!BoneTrackHeader.BoneFlags.bStaticRotation)
-						{
-							ParseRAnimBoneRotationTrack(BoneTrackHeader, BoneBuffer[BoneTrackHeader.BoneIndex], &BoneTrackDataPtr, Anim, BoneTrackHeader.BoneIndex, ChunkFrame, Frame);
-						}
-
-						if (!BoneTrackHeader.BoneFlags.bStaticScale)
-						{
-						}
-					}
+					pAnim = reinterpret_cast<titanfall2::mstudio_rle_anim_t*>((char*)pAnim + *pAnim->pNextOffset());
 				}
 			}
 
 			Anim->RemoveEmptyNodes();
 
-			this->AnimExporter->ExportAnimation(*Anim.get(), IO::Path::Combine(ExportBasePath, AnimName + (const char*)this->AnimExporter->AnimationExtension()));
+			string animName = animdesc->pszName();
+			this->AnimExporter->ExportAnimation(*Anim.get(), IO::Path::Combine(ExportBasePath, animName + (const char*)this->AnimExporter->AnimationExtension()));
+
+			g_Logger.Info("Exported: " + animName + ".\n");
 		}
 	}
-}
-
-void MdlLib::ParseRAnimBoneTranslationTrack(const RAnimBoneHeader& BoneFlags, const r2mstudiobone_t& Bone, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
-{
-	printf("***** ParseRAnimBoneTranslationTrack is STUBBED.\n");
-
-
-	uint16_t* TranslationDataPtr = *BoneTrackData;
-	uint8_t* DataPointer = (uint8_t*)TranslationDataPtr;
-
-	uint8_t* TranslationDataX = &DataPointer[BoneFlags.TranslationX - 0x10];
-
-	float Result[3]{ Bone.Position.X, Bone.Position.Y, Bone.Position.Z };
-
-	float v37 = 0, v34 = 0;
-
-	if (BoneFlags.TranslationX)
-	{
-		//Titanfall2TrackDecompress(Frame, TranslationDataX, BoneFlags.TranslationScale, &v37, &v34);
-		Result[0] += v37;
-	}
-
-	if (BoneFlags.TranslationY)
-	{
-		//Titanfall2TrackDecompress(Frame, TranslationDataY, BoneFlags.TranslationScale, &v37, &v34);
-		Result[1] += v37;
-	}
-
-	if (BoneFlags.TranslationZ)
-	{
-		//Titanfall2TrackDecompress(Frame, TranslationDataZ, BoneFlags.TranslationScale, &v37, &v34);
-		Result[2] += v37;
-	}
-
-	auto& Curves = Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name());
-
-	Curves[1].Keyframes.EmplaceBack(FrameIndex, Result[0]);
-	Curves[2].Keyframes.EmplaceBack(FrameIndex, Result[1]);
-	Curves[3].Keyframes.EmplaceBack(FrameIndex, Result[2]);
-}
-
-void MdlLib::ParseRAnimBoneRotationTrack(const RAnimBoneHeader& BoneFlags, const r2mstudiobone_t& Bone, uint16_t** BoneTrackData, const std::unique_ptr<Assets::Animation>& Anim, uint32_t BoneIndex, uint32_t Frame, uint32_t FrameIndex)
-{
-	printf("ParseRAnimBoneRotationTrack is STUBBED.\n");
-
-	uint16_t* RotationDataPtr = *BoneTrackData;
-	uint8_t* DataPointer = (uint8_t*)RotationDataPtr;
-
-	uint8_t* TranslationDataX = &DataPointer[(BoneFlags.RotationInfo.OffsetX - 0x18)];
-	uint8_t* TranslationDataY = &DataPointer[(BoneFlags.RotationInfo.OffsetY - 0x18)];
-	uint8_t* TranslationDataZ = &DataPointer[(BoneFlags.RotationInfo.OffsetZ - 0x18)];	
-
-	Vector3 BoneRotation = Bone.Rotation.ToEulerAngles();
-
-	float EulerResult[4]{ Math::MathHelper::DegreesToRadians(BoneRotation.X),Math::MathHelper::DegreesToRadians(BoneRotation.Y),Math::MathHelper::DegreesToRadians(BoneRotation.Z),0 };
-
-	float v37 = 0, v34 = 0;
-	
-	if (BoneFlags.RotationInfo.OffsetX)
-	{
-		//Titanfall2TrackDecompress(Frame, TranslationDataX, Bone.RotationScale[0], &v37, &v34);
-		EulerResult[0] += v37;
-	}
-
-	if (BoneFlags.RotationInfo.OffsetY)
-	{
-		//Titanfall2TrackDecompress(Frame, TranslationDataY, Bone.RotationScale[1], &v37, &v34);
-		EulerResult[1] += v37;
-	}
-
-	if (BoneFlags.RotationInfo.OffsetZ)
-	{
-		//Titanfall2TrackDecompress(Frame, TranslationDataZ, Bone.RotationScale[2], &v37, &v34);
-		EulerResult[2] += v37;
-	}
-
-	Math::Quaternion Result;
-	RTech::DecompressConvertRotation((const __m128i*) & EulerResult[0], (float*)&Result);
-
-	Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name())[0].Keyframes.Emplace(FrameIndex, Result);
 }

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Quaternion.h"
+#include <cassert>
 
 namespace Math
 {
@@ -11,18 +12,6 @@ namespace Math
 	Quaternion::Quaternion(float X, float Y, float Z, float W)
 		: X(X), Y(Y), Z(Z), W(W)
 	{
-	}
-
-	float& Quaternion::operator[](int Index)
-	{
-		if (Index == 0)
-			return X;
-		else if (Index == 1)
-			return Y;
-		else if (Index == 2)
-			return Z;
-
-		return W;
 	}
 
 	Quaternion Quaternion::operator+(const Quaternion& Rhs) const
@@ -94,6 +83,18 @@ namespace Math
 	Quaternion Quaternion::operator~() const
 	{
 		return Quaternion(-X, -Y, -Z, W);
+	}
+
+	float Quaternion::operator[](int i) const
+	{
+		assert((i >= 0) && (i < 4));
+		return ((float*)this)[i];
+	}
+
+	float& Quaternion::operator[](int i)
+	{
+		assert((i >= 0) && (i < 4));
+		return ((float*)this)[i];
 	}
 
 	float Quaternion::Length() const

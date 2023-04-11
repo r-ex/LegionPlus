@@ -4,28 +4,30 @@ typedef unsigned short uint16;
 
 #define FIX_OFFSET(offset) ((offset & 0xFFFE) << (4 * (offset & 1)))
 
+#define STUDIO_LOOPING		0x0001		// ending frame should be the same as the starting frame
+#define STUDIO_SNAP			0x0002		// do not interpolate between previous animation and this one
+#define STUDIO_DELTA		0x0004		// this sequence "adds" to the base sequences, not slerp blends
+#define STUDIO_AUTOPLAY		0x0008		// temporary flag that forces the sequence to always play
+#define STUDIO_POST			0x0010		// 
+#define STUDIO_ALLZEROS		0x0020		// this animation/sequence has no real animation data
+#define STUDIO_FRAMEANIM	0x0040		// animation is encoded as by frame x bone instead of RLE bone x frame
+#define STUDIO_CYCLEPOSE	0x0080		// cycle index is taken from a pose parameter index
+#define STUDIO_REALTIME		0x0100		// cycle index is taken from a real-time clock, not the animations cycle index
+#define STUDIO_LOCAL		0x0200		// sequence has a local context sequence
+#define STUDIO_HIDDEN		0x0400		// don't show in default selection views
+#define STUDIO_OVERRIDE		0x0800		// a forward declared sequence (empty)
+#define STUDIO_ACTIVITY		0x1000		// Has been updated at runtime to activity index
+#define STUDIO_EVENT		0x2000		// Has been updated at runtime to event index on server
+#define STUDIO_WORLD		0x4000		// sequence blends in worldspace
+#define STUDIO_NOFORCELOOP	0x8000	// do not force the animation loop
+#define STUDIO_EVENT_CLIENT	0x10000	// Has been updated at runtime to event index on client
 
-// sequence and autolayer flags
-#define STUDIO_LOOPING	0x0001		// ending frame should be the same as the starting frame
-#define STUDIO_SNAP		0x0002		// do not interpolate between previous animation and this one
-#define STUDIO_DELTA	0x0004		// this sequence "adds" to the base sequences, not slerp blends
-#define STUDIO_AUTOPLAY	0x0008		// temporary flag that forces the sequence to always play
-#define STUDIO_POST		0x0010		// 
-#define STUDIO_ALLZEROS	0x0020		// this animation/sequence has no real animation data
-#define STUDIO_FRAMEANIM 0x0040		// animation is encoded as by frame x bone instead of RLE bone x frame
-#define STUDIO_CYCLEPOSE 0x0080		// cycle index is taken from a pose parameter index
-#define STUDIO_REALTIME	0x0100		// cycle index is taken from a real-time clock, not the animations cycle index
-#define STUDIO_LOCAL	0x0200		// sequence has a local context sequence
-#define STUDIO_HIDDEN	0x0400		// don't show in default selection views
-#define STUDIO_OVERRIDE	0x0800		// a forward declared sequence (empty)
-#define STUDIO_ACTIVITY	0x1000		// Has been updated at runtime to activity index
-#define STUDIO_EVENT	0x2000		// Has been updated at runtime to event index on server
-#define STUDIO_WORLD	0x4000		// sequence blends in worldspace
-#define STUDIO_NOFORCELOOP 0x8000	// do not force the animation loop
-#define STUDIO_EVENT_CLIENT 0x10000	// Has been updated at runtime to event index on client
-#define STUDIO_WORLD_AND_RELATIVE 0x20000 // do worldspace blend, then do normal blend on top
-#define STUDIO_ROOTXFORM 0x40000	// sequence wants to derive a root re-xform from a given bone
+// new in respawn models
+#define STUDIO_ANIM_UNK			0x20000 // actually first in v52
+#define STUDIO_FRAMEMOVEMENT	0x40000
+#define STUDIO_ANIM_UNK2		0x80000 // cherry blossom v53, levi in v54
 
+#define NEW_EVENT_STYLE 0x400 // set if string instead of event id, zero otherwise
 // autolayer flags
 //							0x0001
 //							0x0002
@@ -127,7 +129,7 @@ struct mstudioeventv54_t_v122
 {
 	float cycle;
 	int	event;
-	eventtype type; // this will be 0 if old style I'd imagine
+	int type; // this will be 0 if old style I'd imagine
 
 	int unk;
 
@@ -564,7 +566,6 @@ struct mstudioanimsectionsv54_t_v121
 	int isExternal; // 0 or 1, if 1 section is not in rseq (I think)
 };
 
-
 // rle anim flags
 #define STUDIO_ANIM_SCALE 1
 #define STUDIO_ANIM_ROT 2
@@ -599,48 +600,4 @@ union mstudioanimvalue_t
 		byte total;
 	} num;
 	short value;
-};
-
-struct RAnimTitanfallBoneFlag
-{
-	uint8_t Unused : 1;
-	uint8_t bStaticTranslation : 1;		// If zero, one per data set
-	uint8_t bStaticRotation : 1;		// If zero, one per data set
-	uint8_t bStaticScale : 1;			// If zero, one per data set
-	uint8_t Unused2 : 1;
-	uint8_t Unused3 : 1;
-	uint8_t Unused4 : 1;
-};
-
-struct RAnimBoneHeader
-{
-	float TranslationScale;
-
-	uint8_t BoneIndex;
-	RAnimTitanfallBoneFlag BoneFlags;
-	uint8_t Flags2;
-	uint8_t Flags3;
-
-	union
-	{
-		struct
-		{
-			uint16_t OffsetX;
-			uint16_t OffsetY;
-			uint16_t OffsetZ;
-			uint16_t OffsetL;
-		};
-
-		uint64_t PackedRotation;
-	} RotationInfo;
-
-	uint16_t TranslationX;
-	uint16_t TranslationY;
-	uint16_t TranslationZ;
-
-	uint16_t ScaleX;
-	uint16_t ScaleY;
-	uint16_t ScaleZ;
-
-	uint32_t DataSize;
 };

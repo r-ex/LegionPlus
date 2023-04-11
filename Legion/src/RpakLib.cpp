@@ -37,12 +37,10 @@ RpakLib::RpakLib()
 
 void RpakLib::LoadRpaks(const List<string>& Paths)
 {
-	List<string> LoadedFiles;
-
 	for (auto& Rpak : Paths)
 	{
 		// Ignore duplicate files triggered by loading multiple rpaks at once.
-		if (LoadedFiles.Contains(Rpak))
+		if (this->LoadedFilePaths.Contains(Rpak))
 			continue;
 
 		this->LoadRpak(Rpak, false);
@@ -50,7 +48,7 @@ void RpakLib::LoadRpaks(const List<string>& Paths)
 		// Copy over to loaded, clear for next file
 		for (auto& Loaded : this->LoadFileQueue)
 		{
-			LoadedFiles.EmplaceBack(Loaded);
+			this->LoadedFilePaths.EmplaceBack(Loaded);
 		}
 		this->LoadFileQueue.Clear();
 	}
@@ -504,7 +502,7 @@ void RpakLib::CalcBoneQuaternion(const mstudio_rle_anim_t& pAnim, uint16_t** Bon
 
 		Math::Vector3 BoneRotation = Anim->Bones[BoneIndex].LocalRotation().ToEulerAngles();
 
-		float EulerResult[4]{ Math::MathHelper::DegreesToRadians(BoneRotation.X),Math::MathHelper::DegreesToRadians(BoneRotation.Y),Math::MathHelper::DegreesToRadians(BoneRotation.Z),0 };
+		Vector3 EulerResult = { Math::MathHelper::DegreesToRadians(BoneRotation.X),Math::MathHelper::DegreesToRadians(BoneRotation.Y),Math::MathHelper::DegreesToRadians(BoneRotation.Z) };
 
 		uint8_t* dataPtrs[] = { (uint8_t*)pAnimValues,(uint8_t*)pAnimValues_Axis1,(uint8_t*)pAnimValues_Axis2 };
 
@@ -521,7 +519,7 @@ void RpakLib::CalcBoneQuaternion(const mstudio_rle_anim_t& pAnim, uint16_t** Bon
 
 		Math::Quaternion Result;
 
-		RTech::DecompressConvertRotation((const __m128i*) & EulerResult[0], (float*)&Result);
+		RTech::AngleQuaternion(EulerResult, Result);
 
 		Anim->GetNodeCurves(Anim->Bones[BoneIndex].Name())[0].Keyframes.Emplace(FrameIndex, Result);
 
@@ -833,26 +831,25 @@ bool RpakLib::ParseApexRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 
 	ParseStream->Read(File->SegmentData.get(), 0, BufferRemaining);
 
-	if (this->LoadedFileIndex == 1)
-	{
-		string BasePath = IO::Path::GetDirectoryName(RpakPath);
-		string FileNameNoExt = IO::Path::GetFileNameWithoutExtension(RpakPath);
+
+	string BasePath = IO::Path::GetDirectoryName(RpakPath);
+	string FileNameNoExt = IO::Path::GetFileNameWithoutExtension(RpakPath);
 
 		// Trim off the () if exists
-		if (FileNameNoExt.Contains("("))
-			FileNameNoExt = FileNameNoExt.Substring(0, FileNameNoExt.IndexOf("("));
+	if (FileNameNoExt.Contains("("))
+		FileNameNoExt = FileNameNoExt.Substring(0, FileNameNoExt.IndexOf("("));
 
-		string FinalPath = IO::Path::Combine(BasePath, FileNameNoExt);
+	string FinalPath = IO::Path::Combine(BasePath, FileNameNoExt);
 
-		for (uint32_t i = 0; i < Header.PatchIndex; i++)
-		{
-			uint16_t PatchIndexToFile = PatchIndicesToFile[i];
+	for (uint32_t i = 0; i < Header.PatchIndex; i++)
+	{
+		uint16_t PatchIndexToFile = PatchIndicesToFile[i];
+		string AdditionalRpakToLoad = string::Format(PatchIndexToFile == 0 ? "%s.rpak" : "%s(%02d).rpak", FinalPath.ToCString(), PatchIndexToFile);
 
-			if (PatchIndexToFile == 0)
-				this->LoadFileQueue.EmplaceBack(string::Format("%s.rpak", FinalPath.ToCString()));
-			else
-				this->LoadFileQueue.EmplaceBack(string::Format("%s(%02d).rpak", FinalPath.ToCString(), PatchIndexToFile));
-		}
+		if (this->LoadedFilePaths.Contains(AdditionalRpakToLoad) || this->LoadFileQueue.Contains(AdditionalRpakToLoad))
+			continue;
+		
+		this->LoadFileQueue.EmplaceBack(AdditionalRpakToLoad);
 	}
 
 	return true;
