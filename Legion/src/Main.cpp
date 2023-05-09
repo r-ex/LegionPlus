@@ -230,8 +230,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 					SubtFmt = MilesLanguageID::Mandarin;
 				if (sFmt == L"korean")
 					SubtFmt = MilesLanguageID::Korean;
-				if (sFmt == L"arabic")
-					SubtFmt = MilesLanguageID::Arabic;
 
 				if (SubtFmt != (MilesLanguageID)ExportManager::Config.Get<System::SettingType::Integer>("AudioLanguage"))
 					ExportManager::Config.Set<System::SettingType::Integer>("AudioLanguage", (uint32_t)SubtFmt);

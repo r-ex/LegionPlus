@@ -213,7 +213,6 @@ LanguageName(MilesLanguageID lang) {
 		"Russian",
 		"Mandarin",
 		"Korean",
-		"Arabic",
 		"Unknown",
 		"Sounds"
 	};
