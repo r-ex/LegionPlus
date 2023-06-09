@@ -7,7 +7,11 @@
 #include "LegionSettings.h"
 #include "LegionTitanfallConverter.h"
 #include "LegionTablePreview.h"
+#include <filesystem>
+#include <fstream>
 #include <version.h>
+
+static const char* AssetTypes[] = { "Model", "AnimationSet","AnimationSeq", "Image", "Material", "DataTable", "Sound", "Subtitles", "ShaderSet", "UI Image", "UI Image Atlas", "Settings","Settings Layout", "RSON", "RUI" , "Map", "Effect" };
 
 LegionMain::LegionMain()
 	: Forms::Form(), IsInExportMode(false)
@@ -88,6 +92,15 @@ void LegionMain::InitializeComponent()
 	this->ExportAllButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
 	this->ExportAllButton->Click += &OnExpAllClick;
 	this->AddControl(this->ExportAllButton);
+
+	this->ExportListButton = new UIX::UIXButton();
+	this->ExportListButton->SetSize({ 78, 27 });
+	this->ExportListButton->SetLocation({ 458, 446 });
+	this->ExportListButton->SetTabIndex(9);
+	this->ExportListButton->SetText("Export List");
+	this->ExportListButton->SetAnchor(Forms::AnchorStyles::Bottom | Forms::AnchorStyles::Left);
+	this->ExportListButton->Click += &OnExportListClick;
+	this->AddControl(this->ExportListButton);
 
 	this->ExportSelectedButton = new UIX::UIXButton();
 	this->ExportSelectedButton->SetSize({ 97, 27 });
@@ -408,6 +421,45 @@ void LegionMain::SearchForAssets()
 	this->ClearSearchButton->SetVisible(true);
 }
 
+std::string GetAssetType(ApexAssetType assetType)
+{
+	static const std::size_t NumAssetTypes = sizeof(AssetTypes) / sizeof(AssetTypes[0]);
+
+	std::size_t index = static_cast<std::size_t>(assetType);
+	if (index < NumAssetTypes)
+		return AssetTypes[index];
+
+	return "unknown";
+}
+
+void LegionMain::ExportAssetList()
+{
+	char appPath[MAX_PATH];
+	GetModuleFileNameA(NULL, appPath, MAX_PATH);
+
+	// Extract the directory path
+	std::filesystem::path appDir = std::filesystem::path(appPath).parent_path();
+
+	// Construct the file path
+	std::string filePath = (appDir / "AssetList.txt").string();
+	std::ofstream outputFile(filePath);
+	if (!outputFile.is_open())
+	{
+		g_Logger.Info("Failed to open file for writing: %s\n", filePath.c_str());
+		return;
+	}
+
+	// Write the LoadedAssets to the file
+	for (auto& Asset : *LoadedAssets)
+	{
+		outputFile << GetAssetType(Asset.Type) << ": " << Asset.Name << std::endl;
+	}
+
+	outputFile.close();
+
+	g_Logger.Info("List written to file: %s\n", filePath.c_str());
+}
+
 void LegionMain::ExportSingleAsset()
 {
 	if (!this->LoadRPakButton->Enabled())
@@ -646,6 +698,11 @@ void LegionMain::OnExpAllClick(Forms::Control* Sender)
 	((LegionMain*)Sender->FindForm())->ExportAllAssets();
 }
 
+void LegionMain::OnExportListClick(Forms::Control* Sender)
+{
+	((LegionMain*)Sender->FindForm())->ExportAssetList();
+}
+
 void LegionMain::OnSearchClick(Forms::Control* Sender)
 {
 	((LegionMain*)Sender->FindForm())->SearchForAssets();
@@ -792,7 +849,6 @@ void LegionMain::GetVirtualItem(const std::unique_ptr<Forms::RetrieveVirtualItem
 
 	uint32_t RemappedDisplayIndex = ThisPtr->DisplayIndices[EventArgs->ItemIndex];
 
-	static const char* AssetTypes[] = { "Model", "AnimationSet","AnimationSeq", "Image", "Material", "DataTable", "Sound", "Subtitles", "ShaderSet", "UI Image", "UI Image Atlas", "Settings","Settings Layout", "RSON", "RUI" , "Map", "Effect" };
 	static const Drawing::Color AssetTypesColors[] = 
 	{
 		Drawing::Color(0, 157, 220),  // Model
