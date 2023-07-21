@@ -450,7 +450,8 @@ void LegionSettings::InitializeComponent()
 	this->AudioLanguage->SetTabIndex(0);
 	this->AudioLanguage->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->AudioLanguage->SetDropDownStyle(Forms::ComboBoxStyle::DropDownList);
-	for (int i = (int)MilesLanguageID::English; i <= (int)MilesLanguageID::Korean; i++) {
+	// UNKNOWN should always be after the last valid type
+	for (int i = (int)MilesLanguageID::English; i < (int)MilesLanguageID::UNKNOWN; i++) {
 		this->AudioLanguage->Items.Add(imstring(LanguageName((MilesLanguageID)i)));
 	}
 	this->groupBox5->AddControl(this->AudioLanguage);
