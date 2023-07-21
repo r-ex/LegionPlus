@@ -202,8 +202,6 @@ struct BinkASIReader
 
 MilesLanguageID ApexLangFromTF(MilesLanguageIDTitanfall langIn)
 {
-	//MilesLanguageIDTitanfall langTF = static_cast<MilesLanguageIDTitanfall>(langIn);
-
 	switch (langIn)
 	{
 	case MilesLanguageIDTitanfall::None:
@@ -361,9 +359,6 @@ void MilesLib::MountBank(const string& Path)
 
 	auto SelectedLanguage = (MilesLanguageID)ExportManager::Config.Get<System::SettingType::Integer>("AudioLanguage");
 
-	//if (this->MbnkVersion >= 11 && this->MbnkVersion <= 13)
-	//	SelectedLanguage = FixTitanfallLang(SelectedLanguage);
-
 	if (BankHeader.Version == 0xB)
 	{
 		// R2TT - only english audio exists
@@ -502,7 +497,7 @@ void MilesLib::MountBank(const string& Path)
 			g_Logger.Warning("File %s has .mstr extension but wrong magic number\n", Path.ToCString());
 			continue;
 		}
-		if (StreamHeader.LocalizeIndex != MilesLanguageID::None &&  StreamHeader.LocalizeIndex != SelectedLanguage) continue;
+		if (StreamHeader.LocalizeIndex != MilesLanguageID::None && StreamHeader.LocalizeIndex != SelectedLanguage) continue;
 
 		g_Logger.Info("Loaded %s (patch %d) audio bank: %s\n", LanguageName(StreamHeader.LocalizeIndex).ToCString(), StreamHeader.PatchIndex, Path.ToCString());
 
