@@ -76,6 +76,28 @@ enum class MilesLanguageID : int16_t
 	COUNT = 11,
 };
 
+enum class MilesLanguageIDTitanfall : short
+{
+	None_TF = -1,
+	English_TF = 0,
+	French_TF = 1,
+	German_TF = 2,
+	Spanish_TF = 3,
+	Italian_TF = 4,
+	Japanese_TF = 5,
+	Polish_TF = 6,
+	Portuguese_TF = 7,
+	Russian_TF = 8,
+	TChinese_TF = 9, // traditional chinese (mandarin)
+	MSpanish_TF = 10, // latin/mexican spanish
+
+	_MILESLANGCOUNT_TF
+};
+
+MilesLanguageID ApexLangFromTF(MilesLanguageIDTitanfall langIn);
+MilesLanguageIDTitanfall TFLangFromApex(MilesLanguageID langIn);
+
+
 const String&
 LanguageName(MilesLanguageID lang);
 
