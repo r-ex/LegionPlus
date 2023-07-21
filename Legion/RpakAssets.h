@@ -858,6 +858,76 @@ struct MaterialHeaderV16
 	int unk1_v16[6];
 };
 
+// structs taken from repak - thanks Rika
+struct UnknownMaterialSectionV12
+{
+	// not sure how these work but 0xF0 -> 0x00 toggles them off and vice versa.
+	// they seem to affect various rendering filters, said filters might actually be the used shaders.
+	// the duplicate one is likely for the second set of textures which (probably) never gets used.
+	uint32_t UnkRenderLighting;
+	uint32_t UnkRenderAliasing;
+	uint32_t UnkRenderDoF;
+	uint32_t UnkRenderUnknown;
+
+	uint32_t UnkRenderFlags; // this changes sometimes.
+	uint16_t VisibilityFlags; // different render settings, such as opacity and transparency.
+	uint16_t FaceDrawingFlags; // how the face is drawn, culling, wireframe, etc.
+
+	uint64_t Padding;
+};
+
+struct MaterialHeaderV12
+{
+	__int64 m_VtblReserved; // Gets set to CMaterialGlue vtbl ptr
+	char m_Padding[0x8]; // unused
+
+	uint64_t guid; // guid of this material asset
+
+	RPakPtr pName; // pointer to partial asset path
+	RPakPtr pSurfaceProp; // pointer to surfaceprop (as defined in surfaceproperties.txt)
+	RPakPtr pSurfaceProp2; // pointer to surfaceprop2
+
+	// IDX 1: DepthShadow
+	// IDX 2: DepthPrepass
+	// IDX 3: DepthVSM
+	// IDX 4: ColPass
+	// Titanfall is does not have 'DepthShadowTight'
+
+	uint64_t guidRefs[4]; // Required to have proper textures.
+
+	// these blocks dont seem to change often but are the same?
+	// these blocks relate to different render filters and flags. still not well understood.
+	UnknownMaterialSectionV12 m_UnknownSections[2];
+
+	uint64_t shadersetGuid; // guid of the shaderset asset that this material uses
+
+	RPakPtr textureHandles; // TextureGUID Map 1
+
+	// should be reserved - used to store the handles for any textures that have streaming mip levels
+	RPakPtr streamingTextureHandles;
+
+	short streamingTextureHandleCount; // Number of textures with streamed mip levels.
+	int flags; // see ImageFlags in the apex struct.
+	short unk1; // might be "m_Unknown2"
+
+	uint64_t unk2; // haven't observed anything here, however I really doubt this is actually padding.
+
+	// seems to be 0xFBA63181 for loadscreens
+	int unk3; // name carried over from apex struct.
+
+	int unk4; // this might actually be "m_Unknown4"
+
+	__int64 flags2;
+
+	short width;
+	short height;
+	int unk5; // might be padding but could also be something else such as "m_Unknown1"?.
+
+	/* ImageFlags
+	0x050300 for loadscreens, 0x1D0300 for normal materials.
+	0x1D has been observed, seems to invert lighting? used on some exceptionally weird materials.*/
+};
+
 struct MaterialHeader
 {
 	__int64 m_VtblReserved;
@@ -925,77 +995,28 @@ struct MaterialHeader
 		materialType = mhn.materialType;
 		textureAnimationGuid = mhn.textureAnimationGuid;
 	}
-};
 
-// structs taken from repak - thanks Rika
-struct UnknownMaterialSectionV12
-{
-	// not sure how these work but 0xF0 -> 0x00 toggles them off and vice versa.
-	// they seem to affect various rendering filters, said filters might actually be the used shaders.
-	// the duplicate one is likely for the second set of textures which (probably) never gets used.
-	uint32_t UnkRenderLighting;
-	uint32_t UnkRenderAliasing;
-	uint32_t UnkRenderDoF;
-	uint32_t UnkRenderUnknown;
+	void FromV12(MaterialHeaderV12& mhn)
+	{
+		guid = mhn.guid;
+		pName = mhn.pName;
+		pSurfaceProp = mhn.pSurfaceProp;
+		pSurfaceProp2 = mhn.pSurfaceProp2;
 
-	uint32_t UnkRenderFlags; // this changes sometimes.
-	uint16_t VisibilityFlags; // different render settings, such as opacity and transparency.
-	uint16_t FaceDrawingFlags; // how the face is drawn, culling, wireframe, etc.
+		std::memcpy(&materialGuids, &mhn.guidRefs, sizeof(mhn.guidRefs));
 
-	uint64_t Padding;
-};
-
-struct MaterialHeaderV12
-{
-	__int64 m_VtblReserved; // Gets set to CMaterialGlue vtbl ptr
-	char m_Padding[0x8]; // unused
-
-	uint64_t guid; // guid of this material asset
-
-	RPakPtr pName; // pointer to partial asset path
-	RPakPtr pSurfaceProp; // pointer to surfaceprop (as defined in surfaceproperties.txt)
-	RPakPtr pSurfaceProp2; // pointer to surfaceprop2
-
-	// IDX 1: DepthShadow
-	// IDX 2: DepthPrepass
-	// IDX 3: DepthVSM
-	// IDX 4: ColPass
-	// Titanfall is does not have 'DepthShadowTight'
-
-	uint64_t materialGuids[4]; // Required to have proper textures.
-
-	// these blocks dont seem to change often but are the same?
-	// these blocks relate to different render filters and flags. still not well understood.
-	UnknownMaterialSectionV12 m_UnknownSections[2];
-
-	uint64_t shaderSetGuid; // guid of the shaderset asset that this material uses
-
-	RPakPtr textureHandles; // TextureGUID Map 1
-
-	// should be reserved - used to store the handles for any textures that have streaming mip levels
-	RPakPtr streamingTextureHandles;
-
-	short streamingTextureHandleCount; // Number of textures with streamed mip levels.
-	int flags; // see ImageFlags in the apex struct.
-	short unk1; // might be "m_Unknown2"
-
-	uint64_t unk2; // haven't observed anything here, however I really doubt this is actually padding.
-
-	// seems to be 0xFBA63181 for loadscreens
-	int unk3; // name carried over from apex struct.
-
-	int unk4; // this might actually be "m_Unknown4"
-
-	int flags2;
-	int something2; // seems mostly unchanged between all materials, including apex, however there are some edge cases where this is 0x0.
-
-	short m_nWidth;
-	short m_nHeight;
-	int unk5; // might be padding but could also be something else such as "m_Unknown1"?.
-
-	/* ImageFlags
-	0x050300 for loadscreens, 0x1D0300 for normal materials.
-	0x1D has been observed, seems to invert lighting? used on some exceptionally weird materials.*/
+		shaderSetGuid = mhn.shadersetGuid;
+		textureHandles = mhn.textureHandles;
+		streamingTextureHandles = mhn.streamingTextureHandles;
+		streamingTextureCount = mhn.streamingTextureHandleCount;
+		width = mhn.width;
+		height = mhn.height;
+		unk1 = mhn.unk1;
+		someFlags = mhn.flags;
+		unk2 = mhn.unk2;
+		unk3 = mhn.unk3;
+		unk4 = mhn.unk4;
+	}
 };
 
 // Credits to IJARika
