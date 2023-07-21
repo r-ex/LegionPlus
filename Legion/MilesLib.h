@@ -75,11 +75,11 @@ enum class MilesLanguageID : int16_t
 	Korean = 9,
 
 	// for r2 export, these don't exist in apex (why respawn???)
-	FAKEPORTUGUESE = 10,
-	FAKELATINSPAN = 11,
+	FAKEPORTUGUESE,
+	FAKELATINSPAN,
 
-	UNKNOWN = 12,
-	COUNT = 13,
+	UNKNOWN,
+	COUNT,
 
 	
 };
