@@ -206,31 +206,32 @@ MilesLanguageID ApexLangFromTF(MilesLanguageIDTitanfall langIn)
 
 	switch (langIn)
 	{
-	case MilesLanguageIDTitanfall::None_TF:
-	case MilesLanguageIDTitanfall::English_TF:
-	case MilesLanguageIDTitanfall::French_TF:
-	case MilesLanguageIDTitanfall::German_TF:
-	case MilesLanguageIDTitanfall::Spanish_TF:
-	case MilesLanguageIDTitanfall::Italian_TF:
-	case MilesLanguageIDTitanfall::Japanese_TF:
-	case MilesLanguageIDTitanfall::Polish_TF:
+	case MilesLanguageIDTitanfall::None:
+	case MilesLanguageIDTitanfall::English:
+	case MilesLanguageIDTitanfall::French:
+	case MilesLanguageIDTitanfall::German:
+	case MilesLanguageIDTitanfall::Spanish:
+	case MilesLanguageIDTitanfall::Italian:
+	case MilesLanguageIDTitanfall::Japanese:
+	case MilesLanguageIDTitanfall::Polish:
 		return static_cast<MilesLanguageID>(langIn);
 		break;
-	case MilesLanguageIDTitanfall::Portuguese_TF:
-		// unsure
+	case MilesLanguageIDTitanfall::Portuguese:
+		return MilesLanguageID::FAKEPORTUGUESE;
 		break;
-	case MilesLanguageIDTitanfall::Russian_TF:
+	case MilesLanguageIDTitanfall::Russian:
 		return MilesLanguageID::Russian;
 		break;
-	case MilesLanguageIDTitanfall::TChinese_TF:
+	case MilesLanguageIDTitanfall::TChinese:
 		return MilesLanguageID::Mandarin;
 		// unsure
 		break;
-	case MilesLanguageIDTitanfall::MSpanish_TF:
-		// unsure
+	case MilesLanguageIDTitanfall::MSpanish:
+		return MilesLanguageID::FAKELATINSPAN;
 		break;
-	case MilesLanguageIDTitanfall::_MILESLANGCOUNT_TF:
+	case MilesLanguageIDTitanfall::_MILESLANGCOUNT:
 	default:
+		return MilesLanguageID::INVAILD;
 		break;
 	}
 
@@ -252,19 +253,26 @@ MilesLanguageIDTitanfall TFLangFromApex(MilesLanguageID langIn)
 		return static_cast<MilesLanguageIDTitanfall>(langIn);
 		break;
 	case MilesLanguageID::Russian:
-		return MilesLanguageIDTitanfall::Russian_TF;
+		return MilesLanguageIDTitanfall::Russian;
 		break;
 	case MilesLanguageID::Mandarin:
-		return MilesLanguageIDTitanfall::TChinese_TF;
+		return MilesLanguageIDTitanfall::TChinese;
+		break;
+	case MilesLanguageID::FAKEPORTUGUESE:
+		return MilesLanguageIDTitanfall::Portuguese;
+		break;
+	case MilesLanguageID::FAKELATINSPAN:
+		return MilesLanguageIDTitanfall::MSpanish;
 		break;
 	case MilesLanguageID::Korean:
 	case MilesLanguageID::UNKNOWN:
 	case MilesLanguageID::COUNT:
 	default:
+		return MilesLanguageIDTitanfall::INVAILD;
 		break;
 	}
 
-	return MilesLanguageIDTitanfall::None_TF;
+	return MilesLanguageIDTitanfall::None;
 }
 
 const String&
@@ -280,8 +288,10 @@ LanguageName(MilesLanguageID lang) {
 		"Russian",
 		"Mandarin",
 		"Korean",
+		"Portuguese(TF2)",
+		"Latin Spanish(TF2)",
 		"Unknown",
-		"Sounds"
+		"Sounds",
 	};
 	if (MilesLanguageID::English <= lang && lang < MilesLanguageID::COUNT) {
 		return LanguageNames[(int32_t)lang];
@@ -397,7 +407,7 @@ void MilesLib::MountBank(const string& Path)
 
 			if (fixedLang == MilesLanguageID::None || fixedLang == SelectedLanguage)
 			{
-				MilesAudioAsset Asset{ Name, Entry.SampleRate, Entry.ChannelCount, Entry.StreamHeaderOffset, Entry.StreamHeaderSize, Entry.StreamDataOffset, Entry.StreamDataSize, Entry.PatchIndex, (int32_t)Entry.EntryLocal};
+				MilesAudioAsset Asset{ Name, Entry.SampleRate, Entry.ChannelCount, Entry.StreamHeaderOffset, Entry.StreamHeaderSize, Entry.StreamDataOffset, Entry.StreamDataSize, Entry.PatchIndex, (int32_t)fixedLang};
 				Assets.Add(Hashing::XXHash::HashString(Name), Asset);
 			}
 		}
@@ -416,7 +426,7 @@ void MilesLib::MountBank(const string& Path)
 				{
 					ReaderStream->SetPosition(BankHeader.NameTableOffset + Entry.NameOffset);
 					auto Name = Reader.ReadCString();
-					MilesAudioAsset Asset{ Name, Entry.SampleRate, Entry.ChannelCount, Entry.StreamHeaderOffset, Entry.StreamHeaderSize, Entry.StreamDataOffset, Entry.StreamDataSize, Entry.PatchIndex, (uint32_t)Entry.EntryLocal };
+					MilesAudioAsset Asset{ Name, Entry.SampleRate, Entry.ChannelCount, Entry.StreamHeaderOffset, Entry.StreamHeaderSize, Entry.StreamDataOffset, Entry.StreamDataSize, Entry.PatchIndex, (int32_t)Entry.EntryLocal };
 					Assets.Add(Hashing::XXHash::HashString(Name), Asset);
 				}
 			}
@@ -430,7 +440,7 @@ void MilesLib::MountBank(const string& Path)
 				{
 					ReaderStream->SetPosition(BankHeader.NameTableOffset + Entry.NameOffset);
 					auto Name = Reader.ReadCString();
-					MilesAudioAsset Asset{ Name, Entry.SampleRate, Entry.ChannelCount, Entry.StreamHeaderOffset, Entry.StreamHeaderSize, Entry.StreamDataOffset, Entry.StreamDataSize, Entry.PatchIndex, (uint32_t)Entry.EntryLocal };
+					MilesAudioAsset Asset{ Name, Entry.SampleRate, Entry.ChannelCount, Entry.StreamHeaderOffset, Entry.StreamHeaderSize, Entry.StreamDataOffset, Entry.StreamDataSize, Entry.PatchIndex, (int32_t)Entry.EntryLocal };
 					Assets.Add(Hashing::XXHash::HashString(Name), Asset);
 				}
 			}
@@ -492,7 +502,7 @@ void MilesLib::MountBank(const string& Path)
 			g_Logger.Warning("File %s has .mstr extension but wrong magic number\n", Path.ToCString());
 			continue;
 		}
-		if (StreamHeader.LocalizeIndex != MilesLanguageID::None && StreamHeader.LocalizeIndex != SelectedLanguage) continue;
+		if (StreamHeader.LocalizeIndex != MilesLanguageID::None &&  StreamHeader.LocalizeIndex != SelectedLanguage) continue;
 
 		g_Logger.Info("Loaded %s (patch %d) audio bank: %s\n", LanguageName(StreamHeader.LocalizeIndex).ToCString(), StreamHeader.PatchIndex, Path.ToCString());
 
