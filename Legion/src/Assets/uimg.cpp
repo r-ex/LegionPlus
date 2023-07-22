@@ -130,7 +130,7 @@ void RpakLib::ExtractUIImageAtlas(const RpakLoadAsset& Asset, const string& Path
 	string Name;
 
 	this->ExtractTexture(Assets[Header.TextureGuid], Texture, Name);
-	Texture->ConvertToFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
+	Texture->ConvertToFormat(DirectX::IsSRGB(Texture->Format()) ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM);
 
 	for (auto& img : UIAtlasImages)
 	{
