@@ -151,19 +151,10 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 		RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.RawDataIndex, Asset.RawDataOffset));
 		RpakStream->Read((uint8_t*)&RImage, 0, sizeof(RUIImage));
 
-		if (RImage.HighResolutionWidth + UnpackedShiftWidth > 2)
-			RImage.HighResolutionWidth += UnpackedShiftWidth;
-		if (RImage.HighResolutionHeight + UnpackedShiftHeight > 2)
-			RImage.HighResolutionHeight += UnpackedShiftHeight;
-		if (RImage.LowResolutionWidth + UnpackedShiftWidth > 2)
-			RImage.LowResolutionWidth += UnpackedShiftWidth;
-		if (RImage.LowResolutionHeight + UnpackedShiftHeight > 2)
-			RImage.LowResolutionHeight += UnpackedShiftHeight;
-
 		bool UseHighResolution = StarpakStream != nullptr;
 
-		uint32_t WidthBlocks = UseHighResolution ? (RImage.HighResolutionWidth + 29) / 31 : (RImage.LowResolutionWidth + 29) / 31;
-		uint32_t HeightBlocks = UseHighResolution ? (RImage.HighResolutionHeight + 29) / 31 : (RImage.LowResolutionHeight + 29) / 31;
+		uint32_t WidthBlocks = ((UseHighResolution ? RImage.HighResolutionWidth : RImage.LowResolutionWidth) + UnpackedShiftWidth + 29) / 31;
+		uint32_t HeightBlocks = ((UseHighResolution ? RImage.HighResolutionHeight : RImage.LowResolutionHeight) + UnpackedShiftHeight + 29) / 31;
 		uint32_t TotalBlocks = WidthBlocks * HeightBlocks;
 		uint32_t Width = WidthBlocks * 32;
 		uint32_t Height = HeightBlocks * 32;
@@ -439,5 +430,20 @@ void RpakLib::ExtractUIIA(const RpakLoadAsset& Asset, std::unique_ptr<Assets::Te
 				Texture = std::move(Bc7Texture);
 			}
 		}
+
+		uint16_t OutWidth = UseHighResolution ? RImage.HighResolutionWidth : RImage.LowResolutionWidth;
+		uint16_t OutHeight = UseHighResolution ? RImage.HighResolutionHeight : RImage.LowResolutionHeight;
+		auto FinalTexture = std::make_unique<Assets::Texture>(OutWidth, OutHeight, DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM);
+		
+		for (uint32_t y = 0; y < HeightBlocks; y++)
+		{
+			uint32_t SizeY = y * 31 + 30 < OutHeight ? 31 : OutHeight - y * 31;
+			for (uint32_t x = 0; x < WidthBlocks; x++)
+			{
+				uint32_t SizeX = x * 31 + 30 < OutWidth ? 31 : OutWidth - x * 31;
+				FinalTexture->CopyTextureSlice(Texture, { (x * 32), (y * 32), SizeX, SizeY }, (x * 31), (y * 31));
+			}
+		}
+		Texture = std::move(FinalTexture);
 	}
 }
