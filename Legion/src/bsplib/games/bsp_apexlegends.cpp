@@ -70,7 +70,7 @@ void ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std::unique_p
 	// make sure that RpakFileSystem actually exists (i.e. an rpak is loaded)
 	if (RpakFileSystem)
 	{
-		std::array<bool, 11> bAssets = {
+		std::array<bool, 12> bAssets = {
 			false, // Model
 			false, // Animation
 			false, // Animation Req
@@ -81,7 +81,8 @@ void ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std::unique_p
 			false, // ShaderSets
 			false, // SettingsSets
 			false, // RSONs
-			false, // Effects
+			false, // Effects,
+			false, // Wrapped Files,
 		};
 
 		assetList = RpakFileSystem->BuildAssetList(bAssets);
@@ -246,7 +247,7 @@ void ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std::unique_p
 	if (!RpakFileSystem)
 		return;
 
-	std::array<bool, 11> bAssets = {
+	std::array<bool, 12> bAssets = {
 		true,  // Model
 		false, // Animation
 		false, // Animation Seq
@@ -258,6 +259,7 @@ void ExportApexBsp(const std::unique_ptr<RpakLib>& RpakFileSystem, std::unique_p
 		false, // SettingsSets
 		false, // RSONs
 		false, // Effects
+		false, // Wrapped Files
 	};
 
 	auto RpakModels = RpakFileSystem->BuildAssetList(bAssets);

@@ -180,7 +180,8 @@ struct RpakApexAssetEntry
 	uint32_t UsesCount;
 
 	uint32_t SubHeaderSize;
-	uint32_t Version;
+	uint8_t Version;
+	char unk[3];
 	uint32_t Magic;
 };
 
@@ -317,6 +318,7 @@ enum class AssetType_t : uint32_t
 	RUI = 'iu', // ui - 0x75690000
 	Map = 'pamr', // rmap - 0x70616D72
 	Effect = 'tcfe', // efct - 0x74636665
+	Wrap = 'parw', // wrap - 
 };
 
 enum class ModelExportFormat_t
@@ -425,7 +427,7 @@ public:
 	bool m_bImageExporterInitialized = false;
 
 	// Builds the viewer list of assets
-	std::unique_ptr<List<ApexAsset>> BuildAssetList(const std::array<bool, 11>& arrAssets);
+	std::unique_ptr<List<ApexAsset>> BuildAssetList(const std::array<bool, 12>& arrAssets);
 	// Builds the preview model mesh
 	std::unique_ptr<Assets::Model> BuildPreviewModel(uint64_t Hash);
 	// Builds the preview texture
@@ -459,6 +461,7 @@ public:
 	void ExportRSON(const RpakLoadAsset& Asset, const string& Path);
 	void ExportQC(int assetVersion, const string& Path, const string& modelPath, char* rmdlBuf, char* phyBuf = nullptr);
 	void ExportRUI(const RpakLoadAsset& Asset, const string& Path);
+	void ExportWrappedFile(const RpakLoadAsset& Asset, const string& Path);
 
 	List<List<DataTableColumnData>> ExtractDataTable(const RpakLoadAsset& Asset);
 	List<ShaderVar> ExtractShaderVars(const RpakLoadAsset& Asset, const std::string& CBufName = "", D3D_SHADER_VARIABLE_TYPE Type = D3D_SVT_FORCE_DWORD); // default value as a type that should never be used
@@ -509,6 +512,7 @@ private:
 	void BuildSettingsLayoutInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildRSONInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 	void BuildRUIInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
+	void BuildWrapInfo(const RpakLoadAsset& Asset, ApexAsset& Info);
 
 	std::unique_ptr<Assets::Model> ExtractModel(const RpakLoadAsset& Asset, const string& Path, const string& AnimPath, bool IncludeMaterials, bool IncludeAnimations);
 	std::unique_ptr<Assets::Model> ExtractModel_V16(const RpakLoadAsset& Asset, const string& Path, const string& AnimPath, bool IncludeMaterials, bool IncludeAnimations);

@@ -63,6 +63,7 @@ void ExportManager::InitializeExporter()
 	INIT_SETTING(Boolean, "LoadSettingsSets", true);
 	INIT_SETTING(Boolean, "LoadEffects", true);
 	INIT_SETTING(Boolean, "LoadRSONs", true);
+	INIT_SETTING(Boolean, "LoadWrappedFiles", true);
 	INIT_SETTING(Boolean, "OverwriteExistingFiles", false);
 
 	Config.Save(ConfigPath);
@@ -169,6 +170,7 @@ void ExportManager::ExportRpakAssets(const std::unique_ptr<RpakLib>& RpakFileSys
 	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "settings"));
 	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "rson"));
 	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "rui"));
+	IO::Directory::CreateDirectory(IO::Path::Combine(ExportDirectory, "wrap"));
 
 	RpakFileSystem->InitializeModelExporter((ModelExportFormat_t)Config.Get<System::SettingType::Integer>("ModelFormat"));
 	RpakFileSystem->InitializeAnimExporter((AnimExportFormat_t)Config.Get<System::SettingType::Integer>("AnimFormat"));
@@ -233,6 +235,9 @@ void ExportManager::ExportRpakAssets(const std::unique_ptr<RpakLib>& RpakFileSys
 				break;
 			case (uint32_t)AssetType_t::RUI:
 				RpakFileSystem->ExportRUI(AssetToExport, IO::Path::Combine(ExportDirectory, "rui"));
+				break;
+			case (uint32_t)AssetType_t::Wrap:
+				RpakFileSystem->ExportWrappedFile(AssetToExport, IO::Path::Combine(ExportDirectory, "wrap"));
 				break;
 			}
 

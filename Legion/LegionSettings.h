@@ -60,6 +60,7 @@ private:
 	UIX::UIXCheckBox* LoadUIImages;
 	UIX::UIXCheckBox* LoadDataTables;
 	UIX::UIXCheckBox* LoadSettingsSets;
+	UIX::UIXCheckBox* LoadWrappedFiles;
 	// Toggles
 	UIX::UIXCheckBox* ToggleOverwriting;
 	UIX::UIXCheckBox* ToggleAudioLanguageFolders;

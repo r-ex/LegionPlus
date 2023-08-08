@@ -277,6 +277,15 @@ void LegionSettings::InitializeComponent()
 	this->LoadSettingsSets->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
 	this->groupBox4->AddControl(this->LoadSettingsSets);
 
+	//	Load SettingsSets
+	this->LoadWrappedFiles = new UIX::UIXCheckBox();
+	this->LoadWrappedFiles->SetSize({ 108, 18 });
+	this->LoadWrappedFiles->SetLocation({ 130, 135 });
+	this->LoadWrappedFiles->SetTabIndex(2);
+	this->LoadWrappedFiles->SetText("Load Wrapped Files");
+	this->LoadWrappedFiles->SetAnchor(Forms::AnchorStyles::Top | Forms::AnchorStyles::Left);
+	this->groupBox4->AddControl(this->LoadWrappedFiles);
+
 	//
 	//	Assets Export Settings Box
 	//
@@ -629,6 +638,7 @@ void LegionSettings::LoadSettings()
 	this->LoadSettingsSets->SetChecked(ExportManager::Config.GetBool("LoadSettingsSets"));
 	this->LoadEffects->SetChecked(ExportManager::Config.GetBool("LoadEffects"));
 	this->LoadRSONs->SetChecked(ExportManager::Config.GetBool("LoadRSONs"));
+	this->LoadWrappedFiles->SetChecked(ExportManager::Config.GetBool("LoadWrappedFiles"));
 	this->ToggleOverwriting->SetChecked(ExportManager::Config.GetBool("OverwriteExistingFiles"));
 	this->ToggleAudioLanguageFolders->SetChecked(ExportManager::Config.GetBool("AudioLanguageFolders"));
 	this->ToggleUseFullPaths->SetChecked(ExportManager::Config.GetBool("UseFullPaths"));
@@ -804,6 +814,8 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 		bRefreshView = true;
 	if (ThisPtr->LoadRSONs->Checked() != ExportManager::Config.GetBool("LoadRSONs"))
 		bRefreshView = true;
+	if (ThisPtr->LoadWrappedFiles->Checked() != ExportManager::Config.GetBool("LoadWrappedFiles"))
+		bRefreshView = true;
 	if (ThisPtr->ToggleUseFullPaths->Checked() != ExportManager::Config.GetBool("UseFullPaths"))
 		bRefreshView = true;
 
@@ -818,6 +830,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	ExportManager::Config.SetBool("LoadSettingsSets", ThisPtr->LoadSettingsSets->Checked());
 	ExportManager::Config.SetBool("LoadEffects", ThisPtr->LoadEffects->Checked());
 	ExportManager::Config.SetBool("LoadRSONs", ThisPtr->LoadRSONs->Checked());
+	ExportManager::Config.SetBool("LoadRSONs", ThisPtr->LoadWrappedFiles->Checked());
 	ExportManager::Config.SetBool("OverwriteExistingFiles", ThisPtr->ToggleOverwriting->Checked());
 	ExportManager::Config.SetBool("AudioLanguageFolders", ThisPtr->ToggleAudioLanguageFolders->Checked());
 	ExportManager::Config.SetBool("UseFullPaths", ThisPtr->ToggleUseFullPaths->Checked());

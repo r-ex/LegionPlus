@@ -153,6 +153,9 @@
     <ClCompile Include="src\bsplib\games\bsp_titanfall2.cpp">
       <Filter>bsplib\games</Filter>
     </ClCompile>
+    <ClCompile Include="src\Assets\wrap.cpp">
+      <Filter>RPak\Assets</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MilesLib.h">

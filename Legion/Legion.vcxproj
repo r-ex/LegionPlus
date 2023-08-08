@@ -175,6 +175,7 @@
     <ClCompile Include="src\Assets\texture.cpp" />
     <ClCompile Include="src\Assets\uiia.cpp" />
     <ClCompile Include="src\Assets\uimg.cpp" />
+    <ClCompile Include="src\Assets\wrap.cpp" />
     <ClCompile Include="src\bsplib\games\bsp_apexlegends.cpp" />
     <ClCompile Include="src\bsplib\games\bsp_titanfall2.cpp" />
     <ClCompile Include="src\CommandLine.cpp" />

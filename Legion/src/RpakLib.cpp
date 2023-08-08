@@ -153,7 +153,7 @@ void RpakLib::PatchAssets()
 }
 
 //std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(bool Models, bool Anims, bool Images, bool Materials, bool UIImages, bool DataTables)
-std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(const std::array<bool, 11> &arrAssets)
+std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(const std::array<bool, 12> &arrAssets)
 {
 	auto Result = std::make_unique<List<ApexAsset>>();
 
@@ -241,6 +241,11 @@ std::unique_ptr<List<ApexAsset>> RpakLib::BuildAssetList(const std::array<bool, 
 			break;
 		case (uint32_t)AssetType_t::Map:
 			BuildMapInfo(Asset, NewAsset);
+			break;
+		case (uint32_t)AssetType_t::Wrap:
+			if (!arrAssets[11])
+				continue;
+			BuildWrapInfo(Asset, NewAsset);
 			break;
 		default:
 			continue;
@@ -662,6 +667,7 @@ bool RpakLib::ValidateAssetPatchStatus(const RpakLoadAsset& Asset)
 		case (uint32_t)AssetType_t::RSON:
 		case (uint32_t)AssetType_t::RUI:
 		case (uint32_t)AssetType_t::Map:
+		case (uint32_t)AssetType_t::Wrap:
 			return true;
 		default:
 			return false;
