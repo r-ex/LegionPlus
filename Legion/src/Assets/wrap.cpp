@@ -60,6 +60,8 @@ void RpakLib::ExportWrappedFile(const RpakLoadAsset& Asset, const string& Path)
 			stream->Read((uint8_t*)decompressedBuffer, 0, Header.dcmpSize);
 			stream->Close();
 			ofs.write(decompressedBuffer, Header.dcmpSize - 1);
+
+			delete[] decompressedBuffer;
 		}
 		else
 		{
