@@ -2,6 +2,7 @@
 #include "RpakLib.h"
 #include "Path.h"
 #include "Directory.h"
+#include <rtech.h>
 
 void RpakLib::BuildWrapInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 {
@@ -49,7 +50,18 @@ void RpakLib::ExportWrappedFile(const RpakLoadAsset& Asset, const string& Path)
 		std::unique_ptr<IO::MemoryStream> stream;
 		if (Header.flags & 1) // compressed
 		{
+			auto compressedBuffer = new uint8_t[Header.cmpSize];
+			Reader.Read(compressedBuffer, 0, Header.cmpSize);
+			uint64_t bufferSize = Header.dcmpSize;
 
+			std::unique_ptr<IO::MemoryStream> stream = RTech::DecompressStreamedBuffer(compressedBuffer, bufferSize, (uint8_t)CompressionType::OODLE);
+			
+			char* decompressedBuffer = new char[Header.dcmpSize];
+			stream->Read((uint8_t*)decompressedBuffer, 0, Header.dcmpSize);
+			stream->Close();
+			ofs.write(decompressedBuffer, Header.dcmpSize - 1);
+
+			delete[] decompressedBuffer;
 		}
 		else
 		{
