@@ -18,7 +18,7 @@ void RpakLib::BuildWrapInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	Info.Type = ApexAssetType::Wrap;
 	Info.Status = ApexAssetStatus::Loaded;
-	Info.Info = "";
+	Info.Info = string::Format("Size: 0x%x", Header.dcmpSize);
 }
 
 void RpakLib::ExportWrappedFile(const RpakLoadAsset& Asset, const string& Path)
@@ -31,8 +31,12 @@ void RpakLib::ExportWrappedFile(const RpakLoadAsset& Asset, const string& Path)
 
 	string name = string::Format("0x%llx.bin", Asset.NameHash);
 
-	if(Header.name.Index || Header.name.Offset)
+	if (Header.name.Index || Header.name.Offset)
+	{
 		name = this->ReadStringFromPointer(Asset, Header.name);
+		if (Header.nameLength)
+			name = name.Substring(0, Header.nameLength);
+	}
 
 	string exportPath = IO::Path::Combine(Path, name);
 
