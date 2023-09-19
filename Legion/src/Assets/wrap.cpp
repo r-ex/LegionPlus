@@ -50,11 +50,11 @@ void RpakLib::ExportWrappedFile(const RpakLoadAsset& Asset, const string& Path)
 		std::unique_ptr<IO::MemoryStream> stream;
 		if (Header.flags & 1) // compressed
 		{
-			auto compressedBuffer = new uint8_t[Header.cmpSize];
+			char* compressedBuffer = new char[Header.cmpSize];
 			Reader.Read(compressedBuffer, 0, Header.cmpSize);
 			uint64_t bufferSize = Header.dcmpSize;
 
-			std::unique_ptr<IO::MemoryStream> stream = RTech::DecompressStreamedBuffer(compressedBuffer, bufferSize, (uint8_t)CompressionType::OODLE);
+			std::unique_ptr<IO::MemoryStream> stream = RTech::DecompressStreamedBuffer((uint8_t*)compressedBuffer, bufferSize, (uint8_t)CompressionType::OODLE);
 			
 			char* decompressedBuffer = new char[Header.dcmpSize];
 			stream->Read((uint8_t*)decompressedBuffer, 0, Header.dcmpSize);
@@ -62,6 +62,7 @@ void RpakLib::ExportWrappedFile(const RpakLoadAsset& Asset, const string& Path)
 			ofs.write(decompressedBuffer, Header.dcmpSize - 1);
 
 			delete[] decompressedBuffer;
+			delete[] compressedBuffer;
 		}
 		else
 		{
