@@ -830,7 +830,7 @@ void LegionSettings::OnClose(const std::unique_ptr<FormClosingEventArgs>& EventA
 	ExportManager::Config.SetBool("LoadSettingsSets", ThisPtr->LoadSettingsSets->Checked());
 	ExportManager::Config.SetBool("LoadEffects", ThisPtr->LoadEffects->Checked());
 	ExportManager::Config.SetBool("LoadRSONs", ThisPtr->LoadRSONs->Checked());
-	ExportManager::Config.SetBool("LoadRSONs", ThisPtr->LoadWrappedFiles->Checked());
+	ExportManager::Config.SetBool("LoadWrappedFiles", ThisPtr->LoadWrappedFiles->Checked());
 	ExportManager::Config.SetBool("OverwriteExistingFiles", ThisPtr->ToggleOverwriting->Checked());
 	ExportManager::Config.SetBool("AudioLanguageFolders", ThisPtr->ToggleAudioLanguageFolders->Checked());
 	ExportManager::Config.SetBool("UseFullPaths", ThisPtr->ToggleUseFullPaths->Checked());
