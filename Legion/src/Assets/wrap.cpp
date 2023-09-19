@@ -19,7 +19,7 @@ void RpakLib::BuildWrapInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	Info.Type = ApexAssetType::Wrap;
 	Info.Status = ApexAssetStatus::Loaded;
-	Info.Info = string::Format("Size: 0x%x", Header.dcmpSize);
+	Info.Info = string::Format("Size: %i", Header.dcmpSize);
 }
 
 void RpakLib::ExportWrappedFile(const RpakLoadAsset& Asset, const string& Path)
