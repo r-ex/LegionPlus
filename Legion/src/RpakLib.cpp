@@ -37,12 +37,10 @@ RpakLib::RpakLib()
 
 void RpakLib::LoadRpaks(const List<string>& Paths)
 {
-	List<string> LoadedFiles;
-
 	for (auto& Rpak : Paths)
 	{
 		// Ignore duplicate files triggered by loading multiple rpaks at once.
-		if (LoadedFiles.Contains(Rpak))
+		if (this->LoadedFilePaths.Contains(Rpak))
 			continue;
 
 		this->LoadRpak(Rpak, false);
@@ -50,7 +48,7 @@ void RpakLib::LoadRpaks(const List<string>& Paths)
 		// Copy over to loaded, clear for next file
 		for (auto& Loaded : this->LoadFileQueue)
 		{
-			LoadedFiles.EmplaceBack(Loaded);
+			this->LoadedFilePaths.EmplaceBack(Loaded);
 		}
 		this->LoadFileQueue.Clear();
 	}
@@ -725,6 +723,7 @@ bool RpakLib::ParseApexRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 	RpakFile* File = &this->LoadedFiles[this->LoadedFileIndex++];
 
 	File->CreatedTime = Header.CreatedFileTime;
+	File->Hash = Header.Hash;
 
 	RpakPatchHeader PatchHeader{};
 	RpakPatchCompressPair PatchCompressPairs[16]{};
@@ -830,26 +829,25 @@ bool RpakLib::ParseApexRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 
 	ParseStream->Read(File->SegmentData.get(), 0, BufferRemaining);
 
-	if (this->LoadedFileIndex == 1)
-	{
-		string BasePath = IO::Path::GetDirectoryName(RpakPath);
-		string FileNameNoExt = IO::Path::GetFileNameWithoutExtension(RpakPath);
+
+	string BasePath = IO::Path::GetDirectoryName(RpakPath);
+	string FileNameNoExt = IO::Path::GetFileNameWithoutExtension(RpakPath);
 
 		// Trim off the () if exists
-		if (FileNameNoExt.Contains("("))
-			FileNameNoExt = FileNameNoExt.Substring(0, FileNameNoExt.IndexOf("("));
+	if (FileNameNoExt.Contains("("))
+		FileNameNoExt = FileNameNoExt.Substring(0, FileNameNoExt.IndexOf("("));
 
-		string FinalPath = IO::Path::Combine(BasePath, FileNameNoExt);
+	string FinalPath = IO::Path::Combine(BasePath, FileNameNoExt);
 
-		for (uint32_t i = 0; i < Header.PatchIndex; i++)
-		{
-			uint16_t PatchIndexToFile = PatchIndicesToFile[i];
+	for (uint32_t i = 0; i < Header.PatchIndex; i++)
+	{
+		uint16_t PatchIndexToFile = PatchIndicesToFile[i];
+		string AdditionalRpakToLoad = string::Format(PatchIndexToFile == 0 ? "%s.rpak" : "%s(%02d).rpak", FinalPath.ToCString(), PatchIndexToFile);
 
-			if (PatchIndexToFile == 0)
-				this->LoadFileQueue.EmplaceBack(string::Format("%s.rpak", FinalPath.ToCString()));
-			else
-				this->LoadFileQueue.EmplaceBack(string::Format("%s(%02d).rpak", FinalPath.ToCString(), PatchIndexToFile));
-		}
+		if (this->LoadedFilePaths.Contains(AdditionalRpakToLoad) || this->LoadFileQueue.Contains(AdditionalRpakToLoad))
+			continue;
+		
+		this->LoadFileQueue.EmplaceBack(AdditionalRpakToLoad);
 	}
 
 	return true;
@@ -863,6 +861,7 @@ bool RpakLib::ParseTitanfallRpak(const string& RpakPath, std::unique_ptr<IO::Mem
 	RpakFile* File = &this->LoadedFiles[this->LoadedFileIndex++];
 
 	File->CreatedTime = Header.CreatedFileTime;
+	File->Hash = Header.Hash;
 
 	// Default version is apex, 0x8, must make sure this is set.
 	File->Version = RpakGameVersion::Titanfall;
@@ -989,6 +988,7 @@ bool RpakLib::ParseR2TTRpak(const string& RpakPath, std::unique_ptr<IO::MemorySt
 	RpakFile* File = &this->LoadedFiles[this->LoadedFileIndex++];
 
 	File->CreatedTime = Header.CreatedFileTime;
+	File->Hash = Header.Hash;
 
 	// Default version is apex, 0x8, must make sure this is set.
 	File->Version = RpakGameVersion::R2TT;

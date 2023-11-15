@@ -44,10 +44,7 @@ void RpakLib::BuildMaterialInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	else
 	{
 		MaterialHeaderV12 temp = Reader.Read<MaterialHeaderV12>();
-
-		hdr.pName = temp.pName;
-		hdr.textureHandles = temp.textureHandles;
-		hdr.streamingTextureHandles = temp.streamingTextureHandles;
+		hdr.FromV12(temp);
 	}
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, hdr.pName.Index, hdr.pName.Offset));
@@ -91,7 +88,7 @@ void RpakLib::ExportMatCPUAsStruct(const RpakLoadAsset& Asset, MaterialHeader& M
 		RpakStream->SetPosition(this->GetFileOffset(Asset, Asset.SubHeaderIndex, Asset.SubHeaderOffset));
 		MaterialHeaderV12 mathdr = Reader.Read<MaterialHeaderV12>();
 
-		MatHdr.shaderSetGuid = mathdr.shaderSetGuid;
+		MatHdr.FromV12(mathdr);
 	}
 
 	if (!Assets.ContainsKey(MatHdr.shaderSetGuid)) // no shaderset loaded
@@ -274,11 +271,7 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 	else
 	{
 		MaterialHeaderV12 temp = Reader.Read<MaterialHeaderV12>();
-
-		hdr.pName = temp.pName;
-		hdr.textureHandles = temp.textureHandles;
-		hdr.streamingTextureHandles = temp.streamingTextureHandles;
-		hdr.shaderSetGuid = temp.shaderSetGuid;
+		hdr.FromV12(temp);
 	}
 
 	RpakStream->SetPosition(this->GetFileOffset(Asset, hdr.pName.Index, hdr.pName.Offset));
@@ -321,6 +314,11 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 		g_Logger.Info("> Unk3: %X\n", hdr.unk3);
 	};
 
+	for (int i = 0; i < 5; i++)
+	{
+		g_Logger.Info("> MaterialRef %i: %llx (%s)\n", i, hdr.materialGuids[i], Assets.ContainsKey(hdr.materialGuids[i]) ? "LOADED" : "NOT LOADED");
+
+	}
 
 	g_Logger.Info("> ShaderSet: %llx (%s)\n", hdr.shaderSetGuid, shadersetLoaded ? "LOADED" : "NOT LOADED");
 

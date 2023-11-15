@@ -236,6 +236,7 @@ public:
 	RpakGameVersion Version;
 
 	uint64_t CreatedTime; // actually FILETIME but uint64_t is easier to compare
+	uint64_t Hash;
 
 	uint32_t StartSegmentIndex;
 	List<RpakSegmentBlock> SegmentBlocks;
@@ -471,6 +472,7 @@ private:
 	uint32_t LoadedFileIndex;
 
 	List<string> LoadFileQueue;
+	List<string> LoadedFilePaths;
 
 	// The exporter formats for models and anims
 	std::unique_ptr<Assets::Exporters::Exporter> ModelExporter;

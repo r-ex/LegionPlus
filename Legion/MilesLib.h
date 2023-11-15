@@ -61,6 +61,7 @@ struct MilesStreamBank
 
 enum class MilesLanguageID : int16_t
 {
+	INVAILD = -2,
 	None = -1,
 	English = 0,
 	French = 1,
@@ -72,9 +73,39 @@ enum class MilesLanguageID : int16_t
 	Russian = 7,
 	Mandarin = 8,
 	Korean = 9,
-	UNKNOWN = 10,
-	COUNT = 11,
+
+	// for r2 export, these don't exist in apex (why respawn???)
+	FAKEPORTUGUESE,
+	FAKELATINSPAN,
+
+	UNKNOWN,
+	COUNT,
+
+	
 };
+
+enum class MilesLanguageIDTitanfall : short
+{
+	INVAILD = -2,
+	None = -1,
+	English = 0,
+	French = 1,
+	German = 2,
+	Spanish = 3,
+	Italian = 4,
+	Japanese = 5,
+	Polish = 6,
+	Portuguese = 7,
+	Russian = 8,
+	TChinese = 9, // traditional chinese (mandarin)
+	MSpanish = 10, // latin/mexican spanish
+
+	_MILESLANGCOUNT
+};
+
+MilesLanguageID ApexLangFromTF(MilesLanguageIDTitanfall langIn);
+MilesLanguageIDTitanfall TFLangFromApex(MilesLanguageID langIn);
+
 
 const String&
 LanguageName(MilesLanguageID lang);

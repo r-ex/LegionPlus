@@ -928,50 +928,30 @@ struct RMdlPackedVertexTBN
 	//                                    norm2  ^^^^^^^^^^
 	//                                           packedTangent
 
+	// 140455C30
 	Math::Vector3 UnpackNormal()
 	{
-		float x, y, z;
+		Math::Vector3 nml;
 
-		float v87 = ((2 * _Value) >> 30);
-		int v88 = 255;
-		if (((8 * _Value) >> 31) != 0.0)
-			v88 = -255;
-		float v89 = (float)v88;
-		float v90 = ((_Value << 13) >> 23) + -256.0;
-		float v91 = ((16 * _Value) >> 23) + -256.0;
-		float v92 = ((v91 * v91) + (255.0 * 255.0)) + (v90 * v90);
+		// check sign bit on first component
+		bool sign = (_Value >> 28) & 1;
 
-		float v93 = sqrtf(v92);
-		int v97 = 0;
+		float val1 = sign ? -255.f : 255.f; // normal value 1
+		float val2 = ((_Value >> 19) & 0x1FF) - 256.f;
+		float val3 = ((_Value >> 10) & 0x1FF) - 256.f;
 
-		float v1, v2, v3;
+		int idx1 = (_Value >> 29) & 3;
+		int idx2 = (0x124u >> (2 * idx1 + 2)) & 3;
+		int idx3 = (0x124u >> (2 * idx1 + 4)) & 3;
 
-		v1 = v90 * (1.0 / v93);
-		v2 = v89 * (1.0 / v93);
-		v3 = v91 * (1.0 / v93);
-		if (v87 == 1.0)
-			v97 = -1;
-		else
-			v97 = 0;
-		if (v87 == 2.0)
-		{
-			x = v3;
-			y = v1;
-			z = v2;
-		}
-		else
-		{
-			x = v2;
-			y = v3;
-			z = v1;
-		}
-		if (!v97)
-		{
-			v1 = x;
-			v2 = y;
-			v3 = z;
-		}
-		return Math::Vector3(v1, v2, v3);
+		// normalise the normal
+		float normalised = 1.0 / sqrtf((255.0 * 255.0) + (val2 * val2) + (val3 * val3));
+
+		nml[idx1] = val1 * normalised;
+		nml[idx2] = val2 * normalised;
+		nml[idx3] = val3 * normalised;
+
+		return nml;
 	}
 
 	Math::Vector3 UnpackTangent(Math::Vector3 Normal)
@@ -987,38 +967,44 @@ struct RMdlPackedVertexTBN
 		float r3z = r2z * Normal.X + 1;
 		float r3y;
 		float r3w = r4y;
+
+		Vector3 r2;
 		if (Normal.Z < -0.999899983)
 		{
-			r2y = 0;
-			r2z = -1;
-			r2w = 0;
+			r2.X = 0;
+			r2.Y = -1;
+			r2.Z = 0;
 		}
 		else
 		{
-			r2y = r3z;
-			r2z = r3x;
-			r2w = r3w;
+			r2.X = r3z;
+			r2.Y = r3x;
+			r2.Z = r3w;
 		}
+
+		Vector3 r3;
 		float r4w = r3x;
 		if (Normal.Z < -0.999899983)
 		{
-			r3x = -1;
-			r3y = 0;
-			r3z = 0;
+			r3.X = -1;
+			r3.Y = 0;
+			r3.Z = 0;
 		}
 		else
 		{
-			r3x = r4w;
-			r3y = r4x;
-			r3z = r4z;
+			r3.X = r4w;
+			r3.Y = r4x;
+			r3.Z = r4z;
 		}
 
 		float x = (_Value & 1023) * 0.00614192151;
 		float r2x = sin(x);
 		r4x = cos(x);
+
 		r3x *= r2x;
 		r3y *= r2x;
 		r3z *= r2x;
+
 		r2x = r2y * r4x + r3x;
 		r2y = r2z * r4x + r3y;
 		r2z = r2w * r4x + r3z;
@@ -1571,7 +1557,17 @@ namespace vtx
 //============
 // 'VG' (0tVG)
 //============
+namespace vg
+{
+	struct ModelLODHeader_t
+	{
+		//Mesh array
+		short meshIndex;
+		short numMeshes;
 
+		float switchPoint;
+	};
+}
 // soon tm
 
 

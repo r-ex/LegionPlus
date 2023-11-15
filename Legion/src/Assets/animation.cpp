@@ -445,7 +445,7 @@ void RpakLib::ExportAnimationSeq(const RpakLoadAsset& Asset, const string& Path)
 
 	std::vector<int> Blends;
 	RpakStream->SetPosition(AnimationOffset + seqdesc.animindexindex);
-	for (int j = 0; j < numanims; j++)
+	for (int j = 0; j < seqdesc.numblends; j++)
 		Blends.push_back(Reader.Read<int>());
 
 	size_t RSeqSize = 0;//sizeof(mstudioseqdesc_t);
