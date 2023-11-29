@@ -17,7 +17,7 @@ namespace Themes
 	const static auto BackgroundGrad2 = Drawing::Color(36, 36, 36);
 
 	const static auto BackgroundOverGrad1 = Drawing::Color(49, 49, 49);
-	const static auto BackgroundOverGrad2 = Drawing::Color(40, 40, 40);
+	const static auto BackgroundOverGrad2 = Drawing::Color(151, 115, 153);
 
 	const static auto TextEnabledBrush = Drawing::Color(Drawing::Color::White);
 	const static auto TextDisabledBrush = Drawing::Color(Drawing::Color::Gray);
@@ -96,10 +96,18 @@ namespace Themes
 	*/
 	
 	// S18 Theme
+	/*
 	const static auto BorderBrush = Drawing::Color(198, 40, 40);
 	const static auto DarkBorderBrush = Drawing::Color(198, 40, 40);
 	const static auto ProgressGrad1 = Drawing::Color(198, 40, 40);
 	const static auto ProgressGrad2 = Drawing::Color(77, 6, 12);
+	*/
+
+	// S19 Theme
+	const static auto BorderBrush = Drawing::Color(178, 134, 207);
+	const static auto DarkBorderBrush = Drawing::Color(178, 134, 207);
+	const static auto ProgressGrad1 = Drawing::Color(178, 134, 207);
+	const static auto ProgressGrad2 = Drawing::Color(136, 87, 150);
 
 	
 	// Constants for images
