@@ -16,6 +16,8 @@
 #include "Exporter.h"
 #include "rmdlstructs.h"
 
+#include <assets/shader.h>
+
 #define MAX_LOADED_FILES 4096
 
 #pragma pack(push, 1)

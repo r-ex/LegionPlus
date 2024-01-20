@@ -6,6 +6,8 @@
 #include <typeinfo>
 #include <typeindex>
 
+#include <assets/shader.h>
+
 const char* s_MaterialTypes[] = {
 	"RGDU",
 	"RGDP",
@@ -51,6 +53,7 @@ void RpakLib::BuildMaterialInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 
 	string MaterialName = Reader.ReadCString();
 
+	uint32_t textureSlotCount = (hdr.streamingTextureHandles.Offset - hdr.textureHandles.Offset) / 8;
 	if (ExportManager::Config.GetBool("UseFullPaths"))
 		Info.Name = MaterialName;
 	else
@@ -59,9 +62,7 @@ void RpakLib::BuildMaterialInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 	Info.Type = ApexAssetType::Material;
 	Info.Status = ApexAssetStatus::Loaded;
 
-	uint32_t TexturesCount = (hdr.streamingTextureHandles.Offset - hdr.textureHandles.Offset) / 8;
-
-	Info.Info = string::Format("Textures: %i", TexturesCount);
+	Info.Info = string::Format("Textures: %i", textureSlotCount);
 }
 
 void RpakLib::ExportMatCPUAsRaw(const RpakLoadAsset& Asset, MaterialHeader& MatHdr, MaterialCPUHeader& MatCPUHdr, std::ofstream& oStream)
@@ -342,19 +343,16 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 
 			if (PixelShaderResBindings.Count() > 0 && PixelShaderResBindings.ContainsKey(i))
 			{
-				string ResName = PixelShaderResBindings[i].Name;
-				if (!ExportManager::Config.GetBool("UseTxtrGuids"))
-				{
-					TextureName = string::Format("%s_%s%s", Result.MaterialName.ToCString(), ResName.ToCString(), (const char*)ImageExtension);
-				}
 				bOverridden = true;
 
-				if (ResName == "normalTexture")
+				string resourceName = PixelShaderResBindings[i].Name;
+
+				if (!ExportManager::Config.GetBool("UseTxtrGuids"))
+					TextureName = string::Format("%s_%s%s", Result.MaterialName.ToCString(), resourceName.ToCString(), (const char*)ImageExtension);
+
+				if (resourceName == "normalTexture")
 					bNormalRecalculate = true;
 			}
-
-			if (Asset.Version == RpakGameVersion::Apex)
-				g_Logger.Info(">> %i: 0x%llx - %s\n", i, TextureHash, bOverridden ? TextureName.ToCString() : "(no assigned name)");
 
 			switch (i)
 			{
@@ -387,6 +385,10 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 				Result.CavityMapName = TextureName;
 				break;
 			}
+
+
+			if (Asset.Version == RpakGameVersion::Apex)
+				g_Logger.Info(">> %i: 0x%llx - %s\n", i, TextureHash, bOverridden ? TextureName.ToCString() : "(no assigned name)");
 		}
 		else
 		{

@@ -28,14 +28,14 @@
     <Filter Include="Legion\Preview">
       <UniqueIdentifier>{72c346a6-6ed2-46f8-a4c3-489f7b11a713}</UniqueIdentifier>
     </Filter>
-    <Filter Include="RPak\Assets">
-      <UniqueIdentifier>{1d655a94-b625-497a-ac5a-d9484a7c36c4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="bsplib">
       <UniqueIdentifier>{f59c98a7-f049-459a-b95c-b439ba81ba60}</UniqueIdentifier>
     </Filter>
     <Filter Include="bsplib\games">
       <UniqueIdentifier>{ea19d614-6142-4a5f-a7c6-8d36427be121}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RPak\assets">
+      <UniqueIdentifier>{1d655a94-b625-497a-ac5a-d9484a7c36c4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -103,49 +103,49 @@
       <Filter>Miles</Filter>
     </ClCompile>
     <ClCompile Include="src\Assets\model.cpp">
-      <Filter>RPak\Assets</Filter>
+      <Filter>RPak\assets</Filter>
     </ClCompile>
     <ClCompile Include="src\Assets\material.cpp">
-      <Filter>RPak\Assets</Filter>
+      <Filter>RPak\assets</Filter>
     </ClCompile>
     <ClCompile Include="src\Assets\texture.cpp">
-      <Filter>RPak\Assets</Filter>
+      <Filter>RPak\assets</Filter>
     </ClCompile>
     <ClCompile Include="src\Assets\uiia.cpp">
-      <Filter>RPak\Assets</Filter>
+      <Filter>RPak\assets</Filter>
     </ClCompile>
     <ClCompile Include="src\Assets\animation.cpp">
-      <Filter>RPak\Assets</Filter>
+      <Filter>RPak\assets</Filter>
     </ClCompile>
     <ClCompile Include="src\Assets\datatable.cpp">
-      <Filter>RPak\Assets</Filter>
+      <Filter>RPak\assets</Filter>
     </ClCompile>
     <ClCompile Include="src\Assets\subtitles.cpp">
-      <Filter>RPak\Assets</Filter>
+      <Filter>RPak\assets</Filter>
     </ClCompile>
     <ClCompile Include="src\Assets\shader.cpp">
-      <Filter>RPak\Assets</Filter>
+      <Filter>RPak\assets</Filter>
     </ClCompile>
     <ClCompile Include="src\Assets\uimg.cpp">
-      <Filter>RPak\Assets</Filter>
+      <Filter>RPak\assets</Filter>
     </ClCompile>
     <ClCompile Include="src\assets\settings.cpp">
-      <Filter>RPak\Assets</Filter>
+      <Filter>RPak\assets</Filter>
     </ClCompile>
     <ClCompile Include="src\assets\rson.cpp">
-      <Filter>RPak\Assets</Filter>
+      <Filter>RPak\assets</Filter>
     </ClCompile>
     <ClCompile Include="src\Assets\qc.cpp">
-      <Filter>RPak\Assets</Filter>
+      <Filter>RPak\assets</Filter>
     </ClCompile>
     <ClCompile Include="src\Assets\rui.cpp">
-      <Filter>RPak\Assets</Filter>
+      <Filter>RPak\assets</Filter>
     </ClCompile>
     <ClCompile Include="src\Assets\rmap.cpp">
-      <Filter>RPak\Assets</Filter>
+      <Filter>RPak\assets</Filter>
     </ClCompile>
     <ClCompile Include="src\Assets\effect.cpp">
-      <Filter>RPak\Assets</Filter>
+      <Filter>RPak\assets</Filter>
     </ClCompile>
     <ClCompile Include="src\bsplib\games\bsp_apexlegends.cpp">
       <Filter>bsplib\games</Filter>
@@ -235,6 +235,12 @@
     </ClInclude>
     <ClInclude Include="bsplib.h">
       <Filter>bsplib</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Assets\shader.h">
+      <Filter>RPak\assets</Filter>
+    </ClInclude>
+    <ClInclude Include="src\assets\texture.h">
+      <Filter>RPak\assets</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -3,6 +3,8 @@
 #include "Path.h"
 #include "Directory.h"
 
+#include <assets/shader.h>
+
 void RpakLib::BuildShaderSetInfo(const RpakLoadAsset& Asset, ApexAsset& Info)
 {
 	auto RpakStream = this->GetFileStream(Asset);
