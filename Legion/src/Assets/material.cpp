@@ -7,6 +7,7 @@
 #include <typeindex>
 
 #include <assets/shader.h>
+#include <assets/texture.h>
 
 const char* s_MaterialTypes[] = {
 	"RGDU",
@@ -356,31 +357,31 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 
 			switch (i)
 			{
-			case 0:
+			case eTextureType::ALBEDO:
 				Result.AlbedoHash = TextureHash;
 				Result.AlbedoMapName = TextureName;
 				break;
-			case 1:
+			case eTextureType::NORMAL:
 				Result.NormalHash = TextureHash;
 				Result.NormalMapName = TextureName;
 				break;
-			case 2:
+			case eTextureType::GLOSS:
 				Result.GlossHash = TextureHash;
 				Result.GlossMapName = TextureName;
 				break;
-			case 3:
+			case eTextureType::SPECULAR:
 				Result.SpecularHash = TextureHash;
 				Result.SpecularMapName = TextureName;
 				break;
-			case 4:
+			case eTextureType::EMISSIVE:
 				Result.EmissiveHash = TextureHash;
 				Result.EmissiveMapName = TextureName;
 				break;
-			case 5:
+			case eTextureType::AO:
 				Result.AmbientOcclusionHash = TextureHash;
 				Result.AmbientOcclusionMapName = TextureName;
 				break;
-			case 6:
+			case eTextureType::CAVITY:
 				Result.CavityHash = TextureHash;
 				Result.CavityMapName = TextureName;
 				break;
