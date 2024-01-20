@@ -211,12 +211,12 @@ List<ShaderVar> RpakLib::ExtractShaderVars(const RpakLoadAsset& Asset, const std
 	return Vars;
 }
 
-List<ShaderResBinding> RpakLib::ExtractShaderResourceBindings(const RpakLoadAsset& Asset, D3D_SHADER_INPUT_TYPE InputType)
+Dictionary<uint32_t, ShaderResBinding> RpakLib::ExtractShaderResourceBindings(const RpakLoadAsset& Asset, D3D_SHADER_INPUT_TYPE InputType)
 {
 	auto RpakStream = this->GetFileStream(Asset);
 	IO::BinaryReader Reader = IO::BinaryReader(RpakStream.get(), true);
 
-	List<ShaderResBinding> ResBindings;
+	Dictionary<uint32_t, ShaderResBinding> ResBindings;
 
 	if (Asset.RawDataIndex >= (this->LoadedFiles[Asset.FileIndex].SegmentBlocks.Count() + this->LoadedFiles[Asset.FileIndex].StartSegmentIndex))
 		return ResBindings;
@@ -269,10 +269,12 @@ List<ShaderResBinding> RpakLib::ExtractShaderResourceBindings(const RpakLoadAsse
 				ShaderResBinding Res;
 				Res.Name = Name;
 				Res.Type = ResBinding.InputType;
+				Res.BindPoint = ResBinding.BindPoint;
+				Res.BindCount = ResBinding.BindCount;
 
 				if (Res.Type == InputType)
 				{
-					ResBindings.EmplaceBack(Res);
+					ResBindings.Add(Res.BindPoint, Res);
 				}
 			}
 			break;

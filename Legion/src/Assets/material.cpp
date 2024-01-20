@@ -280,7 +280,7 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 	Result.MaterialName = IO::Path::GetFileNameWithoutExtension(fullMaterialName);
 	Result.FullMaterialName = fullMaterialName;
 
-	List<ShaderResBinding> PixelShaderResBindings;
+	Dictionary<uint32_t, ShaderResBinding> PixelShaderResBindings;
 
 	bool shadersetLoaded = Assets.ContainsKey(hdr.shaderSetGuid);
 
@@ -324,14 +324,12 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 
 	const uint64_t TextureTable = this->GetFileOffset(Asset, hdr.textureHandles.Index, hdr.textureHandles.Offset); // (Asset.Version == RpakGameVersion::Apex) ? : this->GetFileOffset(Asset, hdr.TexturesTFIndex, hdr.TexturesTFOffset);
 	uint32_t TexturesCount = (hdr.streamingTextureHandles.Offset - hdr.textureHandles.Offset) / 8;
-	g_Logger.Info("> %i textures:\n", TexturesCount);
-
-	uint32_t bindingIdx = 0;
+	g_Logger.Info("> %i texture slots:\n", TexturesCount);
 
 	// These textures have named slots
 	for (uint32_t i = 0; i < TexturesCount; i++)
 	{
-		RpakStream->SetPosition(TextureTable + ((uint64_t)i * 8));
+		RpakStream->SetPosition(TextureTable + (i * 8ull));
 
 		uint64_t TextureHash = Reader.Read<uint64_t>();
 		string TextureName = "";
@@ -342,9 +340,9 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 		{
 			TextureName = string::Format("0x%llx%s", TextureHash, (const char*)ImageExtension);
 
-			if (PixelShaderResBindings.Count() > 0 && bindingIdx < PixelShaderResBindings.Count())
+			if (PixelShaderResBindings.Count() > 0 && PixelShaderResBindings.ContainsKey(i))
 			{
-				string ResName = PixelShaderResBindings[bindingIdx].Name;
+				string ResName = PixelShaderResBindings[i].Name;
 				if (!ExportManager::Config.GetBool("UseTxtrGuids"))
 				{
 					TextureName = string::Format("%s_%s%s", Result.MaterialName.ToCString(), ResName.ToCString(), (const char*)ImageExtension);
@@ -389,13 +387,11 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 				Result.CavityMapName = TextureName;
 				break;
 			}
-			bindingIdx++;
-
 		}
 		else
 		{
 			if (Asset.Version == RpakGameVersion::Apex)
-				g_Logger.Info(">> %i: 0x0 - %s\n", i, "(no assigned name)");
+				g_Logger.Info(">> %i: empty\n", i);
 		}
 
 		// Extract to disk if need be

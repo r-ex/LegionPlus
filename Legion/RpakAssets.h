@@ -1348,6 +1348,8 @@ struct ShaderResBinding
 {
 	string Name;
 	D3D_SHADER_INPUT_TYPE Type;
+	uint32_t BindPoint;
+	uint32_t BindCount;
 };
 
 // uimg - ui image atlas
