@@ -322,7 +322,22 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 
 	}
 
-	g_Logger.Info("> ShaderSet: %llx (%s)\n", hdr.shaderSetGuid, shadersetLoaded ? "LOADED" : "NOT LOADED");
+	string shadersetName = "(no debug name)";
+	if (shadersetLoaded)
+	{
+		const RpakLoadAsset& shadersetAsset = Assets[hdr.shaderSetGuid];
+
+		RpakStream->SetPosition(this->GetFileOffset(shadersetAsset, shadersetAsset.SubHeaderIndex, shadersetAsset.SubHeaderOffset));
+		ShaderSetHeader ShdsHeader = Reader.Read<ShaderSetHeader>();
+		if (ShdsHeader.NameIndex || ShdsHeader.NameOffset)
+		{
+			RpakStream->SetPosition(this->GetFileOffset(shadersetAsset, ShdsHeader.NameIndex, ShdsHeader.NameOffset));
+
+			shadersetName = Reader.ReadCString();
+		}
+	}
+
+	g_Logger.Info("> ShaderSet: %llx, %s (%s) \n", hdr.shaderSetGuid, shadersetName.ToCString(), shadersetLoaded ? "LOADED" : "NOT LOADED");
 
 	const uint64_t TextureTable = this->GetFileOffset(Asset, hdr.textureHandles.Index, hdr.textureHandles.Offset); // (Asset.Version == RpakGameVersion::Apex) ? : this->GetFileOffset(Asset, hdr.TexturesTFIndex, hdr.TexturesTFOffset);
 	uint32_t TexturesCount = (hdr.streamingTextureHandles.Offset - hdr.textureHandles.Offset) / 8;
