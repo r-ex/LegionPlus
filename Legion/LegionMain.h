@@ -46,6 +46,7 @@ protected:
 	static void OnSearchKeyPressed(const std::unique_ptr<KeyPressEventArgs>& EventArgs, Forms::Control* Sender);
 	static void OnSelectedIndicesChanged(const std::unique_ptr<Forms::ListViewVirtualItemsSelectionRangeChangedEventArgs>& EventArgs, Forms::Control* Sender);
 	static void GetVirtualItem(const std::unique_ptr<Forms::RetrieveVirtualItemEventArgs>& EventArgs, Forms::Control* Sender);
+	static void OnExportListClick(Forms::Control* Sender);
 
 	// A trampoline for the callback, then, invoke normal method...
 	static void ExportProgressCallback(uint32_t Progress, Forms::Form* MainForm, bool Finished);
@@ -62,6 +63,8 @@ private:
 	void SearchForAssets();
 	// Internal routine to export a single asset
 	void ExportSingleAsset();
+	// export list
+	void ExportAssetList();
 
 	// A lock for exporting
 	bool IsInExportMode;
@@ -85,6 +88,7 @@ private:
 	UIX::UIXButton* SettingsButton;
 	UIX::UIXButton* RefreshAssetsButton;
 	UIX::UIXListView* AssetsListView;
+	UIX::UIXButton* ExportListButton;
 
 	// Internal RPak buffer
 	std::unique_ptr<RpakLib> RpakFileSystem;
