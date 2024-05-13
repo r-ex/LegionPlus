@@ -28,12 +28,19 @@ struct RpakBaseHeader
 	uint16_t Flags;
 };
 
+enum class RpakCompressionType : uint8_t
+{
+	None = 0x0,
+	Respawn = 0x1,
+	Oodle = 0x2,
+};
+
 struct RpakApexHeader
 {
 	uint32_t Magic;
 	uint16_t Version;
 	uint8_t Flags;
-	bool IsCompressed;
+	RpakCompressionType CompressionType;
 	uint64_t CreatedFileTime;
 	uint64_t Hash;
 
