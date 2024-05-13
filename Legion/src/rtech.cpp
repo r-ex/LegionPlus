@@ -2643,7 +2643,7 @@ void RTech::UnswizzleBlock(uint32_t x, uint32_t y, uint32_t a3, uint32_t power, 
 };
 
 
-std::unique_ptr<IO::MemoryStream> RTech::DecompressStreamedBuffer(const uint8_t* Data, uint64_t& DataSize, uint8_t Format)
+std::unique_ptr<IO::MemoryStream> RTech::DecompressStreamedBuffer(const uint8_t* Data, uint64_t& DataSize, uint8_t Format, bool OodleReturnDataOnError, uint64_t OodleOutBufOffset)
 {
 	switch ((CompressionType)Format)
 	{
@@ -2694,7 +2694,8 @@ std::unique_ptr<IO::MemoryStream> RTech::DecompressStreamedBuffer(const uint8_t*
 		int SizeNeeded = OodleLZDecoder_MemorySizeNeeded(OodleLZ_Compressor_Invalid, -1);
 
 		uint8_t* Decoder = new uint8_t[SizeNeeded]{};
-		uint8_t* OutBuf = new uint8_t[DataSize]{};
+		uint8_t* OutBuf_ = new uint8_t[DataSize + OodleOutBufOffset]{};
+		uint8_t* OutBuf = OutBuf_ + OodleOutBufOffset;
 
 		OodleLZDecoder_Create(OodleLZ_Compressor::OodleLZ_Compressor_Invalid, DataSize, Decoder, SizeNeeded);
 
@@ -2706,7 +2707,12 @@ std::unique_ptr<IO::MemoryStream> RTech::DecompressStreamedBuffer(const uint8_t*
 		{
 			// If it fails it shouldn't be compressed?
 			delete[] Decoder;
-			delete[] OutBuf;
+			delete[] OutBuf_;
+
+			if (!OodleReturnDataOnError)
+			{
+				return nullptr;
+			}
 
 			return std::make_unique<IO::MemoryStream>(const_cast<uint8_t*>(Data), 0, DataSize, true, true);
 		}
@@ -2727,7 +2733,7 @@ std::unique_ptr<IO::MemoryStream> RTech::DecompressStreamedBuffer(const uint8_t*
 
 		delete[] Decoder;
 		delete[] Data;
-		return std::make_unique<IO::MemoryStream>(OutBuf, 0, DataSize, true, false);
+		return std::make_unique<IO::MemoryStream>(OutBuf_, 0, DataSize + OodleOutBufOffset, true, false);
 	}
 	default:
 	{

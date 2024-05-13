@@ -284,7 +284,7 @@ public:
 	static bool DecompressSnowflake(int64_t param_buffer, uint64_t data_size, uint64_t buffer_size);
 	static float* __fastcall ExtractAnimValue(int frame_count, uint8_t* in_translation_buffer, float translation_scale, float* out_translation_buffer, float* time_scale/*'time_scale' might nit be correct*/);
 	static void __fastcall AngleQuaternion(const Vector3& angles, Quaternion& outQuat);
-	static std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, uint64_t& DataSize, uint8_t Format);
+	static std::unique_ptr<IO::MemoryStream> DecompressStreamedBuffer(const uint8_t* Data, uint64_t& DataSize, uint8_t Format, bool OodleReturnDataOnError = true, uint64_t OodleOutBufOffset = 0);
 
 	static uint64_t __fastcall StringToGuid(const char* asset_name);
 	static float __fastcall FrameToEulerTranslation(uint8_t* translation_buffer, int frame_count, float translation_scale);

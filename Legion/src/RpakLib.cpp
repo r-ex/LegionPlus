@@ -1117,7 +1117,7 @@ bool RpakLib::MountApexRpak(const string& Path, bool Dump)
 	IO::BinaryReader Reader = IO::BinaryReader(IO::File::OpenRead(Path));
 	RpakApexHeader Header = Reader.Read<RpakApexHeader>();
 
-	if (!Header.IsCompressed && Header.CompressedSize == Header.DecompressedSize)
+	if (Header.CompressionType == RpakCompressionType::None && Header.CompressedSize == Header.DecompressedSize)
 	{
 		auto Stream = std::make_unique<IO::MemoryStream>();
 
@@ -1128,25 +1128,55 @@ bool RpakLib::MountApexRpak(const string& Path, bool Dump)
 		return ParseApexRpak(Path, Stream);
 	}
 
-	auto CompressedBuffer = std::make_unique<uint8_t[]>(Header.CompressedSize);
+	std::unique_ptr<IO::MemoryStream> ResultStream = nullptr;
 
-	Reader.Read(CompressedBuffer.get() + sizeof(RpakApexHeader), 0, Header.CompressedSize - sizeof(RpakApexHeader));
+	switch (Header.CompressionType)
+	{
+	case RpakCompressionType::Respawn:
+	{
+		auto CompressedBuffer = std::make_unique<uint8_t[]>(Header.CompressedSize);
 
-	rpak_decomp_state state;
+		Reader.Read(CompressedBuffer.get() + sizeof(RpakApexHeader), 0, Header.CompressedSize - sizeof(RpakApexHeader));
 
-	uint64_t dSize = RTech::DecompressPakfileInit(&state, CompressedBuffer.get(), Header.CompressedSize, 0, sizeof(RpakApexHeader));
+		rpak_decomp_state state;
 
-	std::vector<std::uint8_t> pakbuf(dSize, 0);
+		uint64_t dSize = RTech::DecompressPakfileInit(&state, CompressedBuffer.get(), Header.CompressedSize, 0, sizeof(RpakApexHeader));
 
-	state.out_mask = UINT64_MAX;
-	state.out = uint64_t(pakbuf.data());
+		auto pakbuf = new uint8_t[dSize];
 
-	std::uint8_t decomp_result = RTech::DecompressPakFile(&state, dSize, pakbuf.size());
+		state.out_mask = UINT64_MAX;
+		state.out = uint64_t(pakbuf);
+
+		uint8_t decomp_result = RTech::DecompressPakFile(&state, dSize, dSize);
+
+		ResultStream = std::move(std::make_unique<IO::MemoryStream>(pakbuf, 0, Header.DecompressedSize, true, false));
+		break;
+	}
+	case RpakCompressionType::Oodle:
+	{
+		auto CompressedBuffer = new uint8_t[Header.CompressedSize];
+		Reader.Read(CompressedBuffer, 0, Header.CompressedSize);
+
+		// there are 520 unk bytes at the end of the archive
+
+		ResultStream = RTech::DecompressStreamedBuffer(CompressedBuffer, Header.DecompressedSize, (uint8_t)CompressionType::OODLE, false, sizeof(RpakApexHeader));
+
+		if (!ResultStream) {  // ???
+			Header.DecompressedSize -= sizeof(RpakApexHeader);
+			ResultStream = RTech::DecompressStreamedBuffer(CompressedBuffer, Header.DecompressedSize, (uint8_t)CompressionType::OODLE, true, sizeof(RpakApexHeader));
+		}
+		break;
+	}
+	default:
+		g_Logger.Warning("Unknown compression type %d\n", Header.CompressionType);
+		return false;
+	}
 
 	Header.CompressedSize = Header.DecompressedSize;
-	std::memcpy(pakbuf.data(), &Header, sizeof(RpakApexHeader));
+	Header.CompressionType = RpakCompressionType::None;
 
-	auto ResultStream = std::make_unique<IO::MemoryStream>(pakbuf.data(), 0, Header.DecompressedSize, true, true, true);
+	ResultStream->Write((uint8_t*)&Header, 0, sizeof(RpakApexHeader), 0);
+	ResultStream->SetPosition(0);
 
 #if _DEBUG
 	if (Dump)
