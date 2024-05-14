@@ -435,33 +435,51 @@ namespace Assets
 
 	void AssetRenderer::OnMouseMove(const std::unique_ptr<Forms::MouseEventArgs>& EventArgs)
 	{
-		auto IsAltKey = (GetKeyState(VK_MENU) & 0x8000);
+		int LockCam = (GetKeyState(0x4C) & 1);
 
-		if (EventArgs->Button == Forms::MouseButtons::Left && IsAltKey)
+		if (this->_DrawingMode == DrawMode::Model)
 		{
-			float dPhi = ((float)(this->_TargetMousePosition.Y - EventArgs->Y) / 200.f);
-			float dTheta = ((float)(this->_TargetMousePosition.X - EventArgs->X) / 200.f);
-
-			this->_Camera.Rotate(dTheta, dPhi);
-			this->Redraw();
+			if (EventArgs->Button == Forms::MouseButtons::Left && !LockCam)
+			{
+				float dPhi = ((float)(this->_TargetMousePosition.Y - EventArgs->Y) / 200.f);
+				float dTheta = ((float)(this->_TargetMousePosition.X - EventArgs->X) / 200.f);
+			
+				this->_Camera.Rotate(dTheta, dPhi);
+				this->Redraw();
+			}
+			else if (EventArgs->Button == Forms::MouseButtons::Middle && !LockCam)
+			{
+				float dx = ((float)(this->_TargetMousePosition.X - EventArgs->X) / 2.f);
+			
+				this->_Camera.Zoom(-dx);
+				this->Redraw();
+			}
+			else if (EventArgs->Button == Forms::MouseButtons::Right && !LockCam)
+			{
+				float dx = ((float)(this->_TargetMousePosition.X - EventArgs->X));
+				float dy = ((float)(this->_TargetMousePosition.Y - EventArgs->Y));
+			
+				this->_DrawInformation.Position.X += dx * .5f;
+				this->_DrawInformation.Position.Y += dy * .5f;
+			
+				this->_Camera.Pan(dx * .1f, dy * .1f);
+				this->Redraw();
+			}
 		}
-		else if (EventArgs->Button == Forms::MouseButtons::Middle && IsAltKey)
+
+		if (this->_DrawingMode == DrawMode::Texture)
 		{
-			float dx = ((float)(this->_TargetMousePosition.X - EventArgs->X));
-			float dy = ((float)(this->_TargetMousePosition.Y - EventArgs->Y));
+			if (EventArgs->Button == Forms::MouseButtons::Left && !LockCam)
+			{
+				float dx = ((float)(this->_TargetMousePosition.X - EventArgs->X));
+				float dy = ((float)(this->_TargetMousePosition.Y - EventArgs->Y));
 
-			this->_DrawInformation.Position.X += dx * .5f;
-			this->_DrawInformation.Position.Y += dy * .5f;
+				this->_DrawInformation.Position.X -= dx * .9f;
+				this->_DrawInformation.Position.Y -= dy * .9f;
 
-			this->_Camera.Pan(dx * .1f, dy * .1f);
-			this->Redraw();
-		}
-		else if (EventArgs->Button == Forms::MouseButtons::Right && IsAltKey)
-		{
-			float dx = ((float)(this->_TargetMousePosition.X - EventArgs->X) / 2.f);
-
-			this->_Camera.Zoom(-dx);
-			this->Redraw();
+				this->_Camera.Pan(dx * .1f, dy * .1f);
+				this->Redraw();
+			}
 		}
 
 		this->_TargetMousePosition = Vector2((float)EventArgs->X, (float)EventArgs->Y);
@@ -723,7 +741,7 @@ namespace Assets
 
 			glColor4f(35 / 255.f, 206 / 255.f, 107 / 255.f, 1);
 
-			_RenderFont.RenderString(string((this->_ShowBones) ? "Hide Bones (b), " : "Draw Bones (b), ") + string((this->_ShowMaterials) ? "Shaded View (t), " : "Material View (t), ") + string((this->_UseWireframe) ? "Hide Wireframe (w)" : "Draw Wireframe (w)") + string((this->_MaterialSkinList.Count() > 1) ? ", Cycle Skin (s, d)" : ""), 22, this->_Height - 44.f, FontScale);
+			_RenderFont.RenderString(string((this->_ShowBones) ? "Hide Bones (b), " : "Draw Bones (b), ") + string((this->_ShowMaterials) ? "Shaded View (t), " : "Material View (t), ") + string((this->_UseWireframe) ? "Hide Wireframe (w)" : "Draw Wireframe (w)") + string((this->_MaterialSkinList.Count() > 1) ? ", Cycle Skin (s, d)" : "") + ", Lock Camera (l)", 22, this->_Height - 44.f, FontScale);
 
 			glColor4f(0.9f, 0.9f, 0.9f, 1);
 
@@ -745,6 +763,10 @@ namespace Assets
 			_RenderFont.RenderString("Height", 22, 54, FontScale); _RenderFont.RenderString(":", 80, 54, FontScale);
 			_RenderFont.RenderString("Scale", 22, 70, FontScale); _RenderFont.RenderString(":", 80, 70, FontScale);
 			_RenderFont.RenderString("Version", 22, 86, FontScale); _RenderFont.RenderString(":", 80, 86, FontScale);
+
+			glColor4f(35 / 255.f, 206 / 255.f, 107 / 255.f, 1);
+
+			_RenderFont.RenderString("Lock Camera (l)", 22, this->_Height - 44.f, FontScale);
 
 			glColor4f(0.9f, 0.9f, 0.9f, 1);
 
