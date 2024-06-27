@@ -286,9 +286,10 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 
 	bool shadersetLoaded = Assets.ContainsKey(hdr.shaderSetGuid);
 
+	string shadersetName = "(no debug name)";
 	if (shadersetLoaded)
 	{
-		RpakLoadAsset ShaderSetAsset = Assets[hdr.shaderSetGuid];
+		const RpakLoadAsset& ShaderSetAsset = Assets[hdr.shaderSetGuid];
 		ShaderSetHeader ShaderSetHeader = ExtractShaderSet(ShaderSetAsset);
 
 		uint64_t PixelShaderGuid = ShaderSetHeader.PixelShaderHash;
@@ -296,6 +297,13 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 		if (ShaderSetAsset.AssetVersion <= 11)
 		{
 			PixelShaderGuid = ShaderSetHeader.OldPixelShaderHash;
+		}
+
+		if (ShaderSetHeader.NameIndex || ShaderSetHeader.NameOffset)
+		{
+			RpakStream->SetPosition(this->GetFileOffset(ShaderSetAsset, ShaderSetHeader.NameIndex, ShaderSetHeader.NameOffset));
+
+			shadersetName = Reader.ReadCString();
 		}
 
 		if (Assets.ContainsKey(PixelShaderGuid))
@@ -320,23 +328,6 @@ RMdlMaterial RpakLib::ExtractMaterial(const RpakLoadAsset& Asset, const string& 
 	{
 		g_Logger.Info("> MaterialRef %i: %llx (%s)\n", i, hdr.materialGuids[i], Assets.ContainsKey(hdr.materialGuids[i]) ? "LOADED" : "NOT LOADED");
 
-	}
-
-	string shadersetName = "(no debug name)";
-	if (shadersetLoaded)
-	{
-		const RpakLoadAsset& shadersetAsset = Assets[hdr.shaderSetGuid];
-
-		RpakStream->SetPosition(this->GetFileOffset(shadersetAsset, shadersetAsset.SubHeaderIndex, shadersetAsset.SubHeaderOffset));
-		ShaderSetHeader ShdsHeader = Reader.Read<ShaderSetHeader>();
-		if ((ShdsHeader.NameIndex || ShdsHeader.NameOffset)
-			&& ShdsHeader.NameIndex < shadersetAsset.PakFile->SegmentBlocks.Count()  // TODO
-		)
-		{
-			RpakStream->SetPosition(this->GetFileOffset(shadersetAsset, ShdsHeader.NameIndex, ShdsHeader.NameOffset));
-
-			shadersetName = Reader.ReadCString();
-		}
 	}
 
 	g_Logger.Info("> ShaderSet: %llx, %s (%s) \n", hdr.shaderSetGuid, shadersetName.ToCString(), shadersetLoaded ? "LOADED" : "NOT LOADED");
