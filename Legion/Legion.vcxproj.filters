@@ -37,6 +37,9 @@
     <Filter Include="RPak\assets">
       <UniqueIdentifier>{1d655a94-b625-497a-ac5a-d9484a7c36c4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="RadAudio">
+      <UniqueIdentifier>{37f6cee8-4686-4bd5-81ba-e913ace5a7e0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\ApexAsset.cpp">
@@ -153,6 +156,9 @@
     <ClCompile Include="src\bsplib\games\bsp_titanfall2.cpp">
       <Filter>bsplib\games</Filter>
     </ClCompile>
+    <ClCompile Include="src\RadAudio\RadAudioDecoder.cpp">
+      <Filter>RadAudio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MilesLib.h">
@@ -241,6 +247,9 @@
     </ClInclude>
     <ClInclude Include="src\assets\texture.h">
       <Filter>RPak\assets</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RadAudio\RadAudioDecoder.h">
+      <Filter>RadAudio</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

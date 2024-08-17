@@ -80,7 +80,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(SolutionDir)Legion\src;$(SolutionDir)cppnet\cppkore;$(IncludePath);$(ProjectDir)</IncludePath>
-    <LibraryPath>$(SolutionDir)bin\x64\Debug;$(SolutionDir)cppnet\cppkore_libs;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(ProjectDir)thirdparty\lib;$(SolutionDir)bin\x64\Debug;$(SolutionDir)cppnet\cppkore_libs;$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
     <TargetName>LegionPlus</TargetName>
@@ -88,7 +88,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(SolutionDir)Legion\src;$(SolutionDir)cppnet\cppkore;$(ProjectDir);$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)bin\x64\Release;$(SolutionDir)cppnet\cppkore_libs;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(ProjectDir)thirdparty\lib;$(SolutionDir)bin\x64\Release;$(SolutionDir)cppnet\cppkore_libs;$(LibraryPath)</LibraryPath>
     <IntDir>$(SolutionDir)build\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
     <TargetName>LegionPlus</TargetName>
@@ -125,7 +125,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>RADA_WRAP=MIRA;_DEBUG;_CONSOLE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -134,7 +134,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>cppkore.lib;..\\cppkore_libs\\LZHAM_ALPHA\\lzhamcomp_x64D.lib;..\\cppkore_libs\\LZHAM_ALPHA\\lzhamdecomp_x64D.lib;..\\cppkore_libs\\LZHAM_ALPHA\\lzhamlib_x64D.lib;..\\cppkore_libs\\OODLE\\oo2core_x64D.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>radaudio.lib;cppkore.lib;..\\cppkore_libs\\LZHAM_ALPHA\\lzhamcomp_x64D.lib;..\\cppkore_libs\\LZHAM_ALPHA\\lzhamdecomp_x64D.lib;..\\cppkore_libs\\LZHAM_ALPHA\\lzhamlib_x64D.lib;..\\cppkore_libs\\OODLE\\oo2core_x64D.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -143,7 +143,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>$(PropertyPreprocessorDefinitions);NDEBUG;_CONSOLE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>RADA_WRAP=MIRA;$(PropertyPreprocessorDefinitions);NDEBUG;_CONSOLE;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -155,7 +155,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>cppkore.lib;..\\cppkore_libs\\LZHAM_ALPHA\\lzhamcomp_x64.lib;..\\cppkore_libs\\LZHAM_ALPHA\\lzhamdecomp_x64.lib;..\\cppkore_libs\\LZHAM_ALPHA\\lzhamlib_x64.lib;..\\cppkore_libs\\OODLE\\oo2core_x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>radaudio.lib;cppkore.lib;..\\cppkore_libs\\LZHAM_ALPHA\\lzhamcomp_x64.lib;..\\cppkore_libs\\LZHAM_ALPHA\\lzhamdecomp_x64.lib;..\\cppkore_libs\\LZHAM_ALPHA\\lzhamlib_x64.lib;..\\cppkore_libs\\OODLE\\oo2core_x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -195,6 +195,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\bsplib.cpp" />
+    <ClCompile Include="src\RadAudio\RadAudioDecoder.cpp" />
     <ClCompile Include="src\RpakAssetPreview.cpp" />
     <ClCompile Include="src\RpakLib.cpp" />
     <ClCompile Include="src\rtech.cpp" />
@@ -228,6 +229,7 @@
     <ClInclude Include="MdlLib.h" />
     <ClInclude Include="src\Assets\shader.h" />
     <ClInclude Include="src\assets\texture.h" />
+    <ClInclude Include="src\RadAudio\RadAudioDecoder.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="version.h" />
     <ClInclude Include="VpkLib.h" />

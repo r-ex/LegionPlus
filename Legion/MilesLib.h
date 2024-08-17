@@ -6,6 +6,21 @@
 #include "ListBase.h"
 #include "ApexAsset.h"
 
+struct MilesASIDecoder
+{
+	int unk0;
+	int decoderType;
+	void* ASI_stream_parse_metadata; // 8
+	void* ASI_open_stream; // 16
+	void* ASI_notify_seek; // 24
+	void* ASI_stream_seek_to_frame; // 32
+	void* ASI_stream_seek_direct; // 40
+	void* ASI_decode_block; // 48
+	void* ASI_get_block_size; // 56
+	void* ASI_unk_dealloc_maybe; // 64
+};
+
+
 struct FORMATCHUNK
 {
 	int chunkID = 0x20746d66; // fmt

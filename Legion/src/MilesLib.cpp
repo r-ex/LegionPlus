@@ -3,6 +3,7 @@
 #include "Kore.h"
 #include "XXHash.h"
 //#include "BinkAudioEngine.h"
+#include "RadAudio/RadAudioDecoder.h"
 
 #pragma pack(push, 1)
 struct MilesAudioBank
@@ -516,88 +517,18 @@ bool MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 		return false;
 	
 	const auto& Bank = StreamBanks[KeyIndex];
-	auto Reader = IO::BinaryReader(IO::File::OpenRead(Bank.Path));
-	auto ReaderStream = Reader.GetBaseStream();
-
-	static uintptr_t binkawin = 0;
-	if (!binkawin) {
-		if ((binkawin = (uintptr_t)LoadLibraryA("binkawin64.dll")) == 0)
-		{
-			HKEY hKey = HKEY_LOCAL_MACHINE;
-			HKEY resKey;
-			string installDir;
-			char buf[1024]{};
-			DWORD BufferSize = 1025;
-
-			// check origin for the apex installation directory
-			if (RegGetValueA(hKey, "SOFTWARE\\Respawn\\Apex", "Install Dir", RRF_RT_ANY, NULL, (PVOID)&buf, &BufferSize) != ERROR_SUCCESS)
-			{
-				// origin apex was not found; check steam
-				// this is bad. users can have apex installed on steam on a different drive to the steam installation and this won't find it
-				if (RegGetValueA(HKEY_CURRENT_USER, "SOFTWARE\\Valve\\Steam", "SteamPath", RRF_RT_ANY, NULL, (PVOID)&buf, &BufferSize) != ERROR_SUCCESS)
-				{
-					g_Logger.Warning("no apex installation found. please bug this if you have apex and provide your installation path\n");
-					return false;
-				}
-				else {
-					installDir = IO::Path::Combine(buf, "steamapps");
-					installDir = IO::Path::Combine(installDir, "common");
-					installDir = IO::Path::Combine(installDir, "Apex Legends");
-				}
-			}
-			else {
-				installDir = buf;
-			}
-
-			SetDllDirectoryA(installDir.ToCString());
-			binkawin = (uintptr_t)LoadLibraryA("binkawin64.dll");
-
-		}
-	}
-	if (!binkawin)
-	{
-		//throw new std::exception("Failed to load binkawin64.dll!");
-		g_Logger.Warning("!!! - Unable to export audio asset: Failed to load binkawin64.dll (make sure that you have apex installed or the required dlls in the same directory as LegionPlus.exe)\n");
-		return false;
-	}
+	IO::BinaryReader Reader = IO::BinaryReader(IO::File::OpenRead(Bank.Path));
+	IO::Stream* ReaderStream = Reader.GetBaseStream();
 
 	// Dynamically get a table
-	static uintptr_t binka = 0;
-	if (!binka) {
-		const auto proc = uintptr_t(GetProcAddress(HMODULE(binkawin), "MilesDriverRegisterBinkAudio")) + 3;
+	static MilesASIDecoder* decoder = 0;
 
-		if (proc == 3)
-			return false;
-
-		const auto offset = *(uint32_t*)proc;
-		binka = proc + 4 + offset;
-	}
-
-	// Determine if version is supported or not...
-	static bool check = false;
-	static bool version_tf2 = false;
-	static bool version_retail = false;
-	if (!check) {
-		if ((*(uintptr_t*)(binka + 7 * 8) != 0) && (*(uintptr_t*)(binka + 7 * 8) != 0x0A09080605040302)) {
-			version_retail = true;
-			check = true;
-		}
-		else {
-			const auto dosHeader = PIMAGE_DOS_HEADER(binkawin);
-			const auto imageNTHeaders = PIMAGE_NT_HEADERS(binkawin + dosHeader->e_lfanew);
-			version_tf2 = (imageNTHeaders->FileHeader.TimeDateStamp <= 0x57E48A0C);
-			check = true;
-		}
-	}
+	ReaderStream->SetPosition(Asset.PreloadOffset);
 
 	// function types in the table
-	using metadata_f_t = uintptr_t(__fastcall*)(void* data, size_t size, uint16_t* channels, uint32_t* sample_rate, uint32_t* samples_count, uint32_t* adw4);
+	using metadata_f_t = uintptr_t(__fastcall*)(void* data, size_t size, uint16_t* channels, uint32_t* sample_rate, uint32_t* samples_count, uint32_t* adw4, uint32_t* sizeRequired);
 	
-	using open_stream_f_t = uintptr_t(__fastcall*)(void* data, void*, void* reader, void* user_data);
-	using open_stream_tf2_f_t = uintptr_t(__fastcall*)(void* user_data, void* data, void*, void* reader);
-	
-	using decoder_f_t = size_t(__fastcall*)(void* data, void* decoded, size_t size, size_t size2, void* reader, void* user_data);
-	using deocder_tf2_f_t = size_t(__fastcall*)(void* user_data, void* data, void* decoded, size_t size, void* reader);
+	using open_stream_f_t = uintptr_t(__fastcall*)(void* data, size_t* data_size, void* reader, void* user_data);
 
 	using unk20_f_t = size_t(__fastcall*)(void* data, uint32_t a2, uint32_t* a3, uint32_t* a4);
 	using unk18_f_t = size_t(__fastcall*)(void* data);
@@ -606,203 +537,193 @@ bool MilesLib::ExtractAsset(const MilesAudioAsset& Asset, const string& FilePath
 	using gbs_f_t = size_t(__fastcall*)(void* data, void* stream_data, size_t stream_data_size, uint32_t* consumed, uint32_t* block_size, uint32_t* required_size);
 	using decoder_new_f_t = size_t(__fastcall*)(void* data, void* stream_data, size_t stream_data_len, void* out_data, size_t out_data_size, uint32_t* consumed, uint32_t* samples);
 
-	const auto metadata = *(metadata_f_t*)(binka + 8);
-	uint16_t channels;
-	uint32_t sample_rate, samples_count;
-	uint32_t adw4[4];
-	uint8_t header[24];
-	ReaderStream->SetPosition(Asset.PreloadOffset);
-	ReaderStream->Read(header, 0, sizeof(header));
-	metadata(header, sizeof(header), &channels, &sample_rate, &samples_count, adw4);
+	// 0 - data size for opening stream
+	// 1 - max block size
+	// 2 - max number of samples per decode call
+	// 3 - 
+	uint32_t parsedSizeInfo[4]{};
 
-	ReaderStream->SetPosition(Asset.PreloadOffset);
+	// This used to be a minimal header buffer, but Rad Audio requires the buffer to have more than just the
+	// base file header, so we might as well read the whole of the asset's preload data into the buffer
+	uint8_t* preloadDataBuffer = new uint8_t[Asset.PreloadSize];
+	ReaderStream->Read(preloadDataBuffer, 0, Asset.PreloadSize);
 
-	if ((AudioExportFormat_t)ExportManager::Config.Get<System::SettingType::Integer>("AudioFormat") == AudioExportFormat_t::BinkA)
+	if (preloadDataBuffer[0] == 'A' && preloadDataBuffer[1] == 'D' && preloadDataBuffer[2] == 'A' && preloadDataBuffer[3] == 'R')
 	{
-		char* preloadBuf = new char[Asset.PreloadSize];
-		ReaderStream->Read((uint8_t*)preloadBuf, 0, Asset.PreloadSize);
-
-		ReaderStream->SetPosition(Asset.StreamOffset + Bank.StreamDataOffset);
-
-		uint32_t StreamDataSize = *(uint32_t*)(header + 16) - Asset.PreloadSize;
-
-		char* streamDataBuf = new char[StreamDataSize];
-		ReaderStream->Read((uint8_t*)streamDataBuf, 0, StreamDataSize);
-
-		std::ofstream out_file(IO::Path::ChangeExtension(FilePath, "binka").ToCString(), std::ios::out | std::ios::binary);
-		out_file.write(preloadBuf, Asset.PreloadSize);
-		out_file.write(streamDataBuf, StreamDataSize);
-		out_file.close();
-		return true;
+		//printf("Using Rad Audio Decoder\n");
+		decoder = reinterpret_cast<MilesASIDecoder*>(GetRadAudioDecoder());
+	}
+	else
+	{
+		g_Logger.Warning("Failed to decode audio. This build only supports the Rad Audio Codec for audio extraction.\n");
+		return false;
 	}
 
+	uint16_t channels = 0;
+	uint32_t sampleRate = 0;
+	uint32_t numSamples = 0;
 
-	auto allocd = std::vector<uint8_t>(adw4[0], 0);
+	const auto ASI_stream_parse_metadata = static_cast<metadata_f_t>(decoder->ASI_stream_parse_metadata);
+
+	// RadA's decoder also has a 7th argument that contains the same value as parsedSizeInfo[0]
+	size_t metadata_res = ASI_stream_parse_metadata(preloadDataBuffer, Asset.PreloadSize, &channels, &sampleRate, &numSamples, parsedSizeInfo, nullptr);
+
+	// Reset cursor back to the data to be read
+	ReaderStream->SetPosition(Asset.PreloadOffset);
+
+	auto containerData = std::vector<uint8_t>(parsedSizeInfo[0], 0);
 	BinkASIReader UserData{ &Reader, 0, Asset.PreloadSize, Asset.StreamOffset + Bank.StreamDataOffset, 0 };
-	if (version_tf2) {
-		// Let's hope someone won't use some old ass lib which doesn't expect the right header
-		const auto open_stream = *(open_stream_tf2_f_t*)(binka + 16);
-		open_stream(&UserData, allocd.data(), nullptr, MilesReadFileStream_TF2);
-	}
-	else {
-		// we assume it's S3, this is the same that OG Legion uses...
-		const auto open_stream = *(open_stream_f_t*)(binka + 16);
-		// TODO: error check - should return 2
-		open_stream(allocd.data(), nullptr, MilesReadFileStream, &UserData);
+
+	// TODO: error check - should return 2
+	const auto ASI_open_stream = static_cast<open_stream_f_t>(decoder->ASI_open_stream);
+
+	size_t allocatedDataSize = containerData.size();
+	ASI_open_stream(containerData.data(), &allocatedDataSize, MilesReadFileStream, &UserData);
+
+	// not entirely sure what this does
+	const auto ASI_notify_seek = static_cast<unk18_f_t>(decoder->ASI_notify_seek);
+	ASI_notify_seek(containerData.data());
+
+	// offset is to a "file_size" member in the bink audio file header
+	//UserData.DataStreamSize = *(uint32_t*)(containerData.data() + 0x10) - Asset.PreloadSize;
+	UserData.DataStreamSize = *(uint64_t*)(containerData.data() + 0x18) - Asset.PreloadSize;
+
+	std::vector<float> interleavedBuffer = std::vector<float>(channels * numSamples);
+	float* outputBuffer = interleavedBuffer.data();
+
+	std::vector<char> stream_data;
+
+	// Buffer for holding the decoded data for each decode_block call.
+	// parsedSizeInfo[2] is the max number of samples per decode
+	std::vector<float> radDecodedData(channels * parsedSizeInfo[2]);
+
+	size_t totalFramesDecoded = 0;
+	uint32_t minInputBufferSize = 0; // start off with 0 bytes for input buffer so we can ask the decoder what it wants
+
+	while (totalFramesDecoded < numSamples)
+	{
+		// Clear the decode buffer just in case something goes wrong
+		memset(radDecodedData.data(), 0, radDecodedData.size() * 4);
+
+		const auto get_block_size = static_cast<gbs_f_t>(decoder->ASI_get_block_size);
+		const auto decode_block = static_cast<decoder_new_f_t>(decoder->ASI_decode_block);
+
+		uint32_t bytesConsumed = 0;
+		uint32_t blockSize = 0;
+
+		// If we have not yet established the smallest that our input buffer can be, call getblocksize once to find out
+		if (minInputBufferSize == 0)
+		{
+			get_block_size(containerData.data(), stream_data.data(), 0, &bytesConsumed, &blockSize, &minInputBufferSize);
+
+			// Fetch the smallest possible amount of data to populate the input buffer.
+			// Future decode iterations will include this minimum buffer size in their read operation
+			stream_data.resize(minInputBufferSize);
+			MilesReadFileStream(stream_data.data(), stream_data.size(), &UserData);
+		}
+
+		// Make a call to the decoder to find out how much data it wants for the next decode
+		get_block_size(containerData.data(), stream_data.data(), stream_data.size(), &bytesConsumed, &blockSize, &minInputBufferSize);
+
+		if (blockSize == 0xFFFF)
+			break;
+
+		const size_t oldSize = stream_data.size();
+		stream_data.resize(blockSize + minInputBufferSize);
+		MilesReadFileStream(stream_data.data() + oldSize, stream_data.size() - oldSize, &UserData);
+
+		get_block_size(containerData.data(), stream_data.data(), stream_data.size(), &bytesConsumed, &blockSize, &minInputBufferSize);
+
+		// if we have now got a valid decode input buffer
+		if (blockSize != 0xFFFF)
+		{
+			uint32_t decodeBytesConsumed = 0;
+			uint32_t samplesDecoded = 0;
+
+			decode_block(containerData.data(), stream_data.data(), stream_data.size(), radDecodedData.data(), radDecodedData.size() * sizeof(float), &decodeBytesConsumed, &samplesDecoded);
+			
+			if (decodeBytesConsumed == 0)
+			{
+				printf("Finished decoding.\n");
+				//break;
+			}
+
+			// The decoder provides us with a non-interleaved buffer which means that
+			// each channel's data is separate out into separate locations within the decode buffer
+			// before writing to file, the data must be brought back together
+			// e.g.: (L - left channel, R - right channel)
+			// non-interleaved: LLLLLLRRRRRR
+			// interleaved:     LRLRLRLRLRLR
+			// https://stackoverflow.com/a/17883834
+			// 
+			// This may not be valid for other decoders, as miles uses parsedSizeInfo[3] to identify the decoded data format
+			// and decide how to process the audio immediately after decoding
+			for (int channelIdx = 0; channelIdx < channels; ++channelIdx)
+			{
+				const float* const channelSampleBuffer = radDecodedData.data() + (parsedSizeInfo[2] * channelIdx);
+
+				for (uint32_t sampleIdx = 0; sampleIdx < samplesDecoded; ++sampleIdx)
+				{
+					// Index in the output buffer from which the channels of this sample begin
+					const size_t outputIdx = static_cast<size_t>(channels) * (sampleIdx + totalFramesDecoded);
+
+					outputBuffer[outputIdx + channelIdx] = channelSampleBuffer[sampleIdx];
+				}
+			}
+
+			// Add number of samples decoded to the total to keep track of when we are done decoding the whole thing
+			totalFramesDecoded += samplesDecoded;
+			
+			const size_t unconsumedInputBytes = stream_data.size() - decodeBytesConsumed;
+
+			// Allocate temporary buffer to store the unconsumed input bytes until the main input buffer can be resized
+			char* tempBuffer = new char[unconsumedInputBytes];
+
+			// Copy unconsumed bytes to the temporary buffer
+			memcpy(tempBuffer, stream_data.data() + decodeBytesConsumed, unconsumedInputBytes);
+
+			// Resize the input buffer to the size of the temporary buffer
+			stream_data.resize(unconsumedInputBytes);
+
+			// Copy the bytes from the temporary buffer to the actual input buffer
+			memcpy(stream_data.data(), tempBuffer, stream_data.size());
+
+			// Release the temporary buffer
+			delete[] tempBuffer;
+			tempBuffer = nullptr;
+		}
+		else
+		{
+			//printf("Received blockSize = 0xFFFF after %lld decoded samples\n", totalFramesDecoded);
+			break;
+		}
+
 	}
 
-	/*{
-		const auto unk20 = *(unk20_f_t*)(binka + 40);
-		uint32_t tmp;
-		unk20(allocd.data(), 0, &tmp, nullptr);
-	}*/
-	// Reset blending frames
-	if (version_retail) {
-		const auto blend = *(unk18_f_t*)(binka + 24);
-		blend(allocd.data());
-	}
-	else {
-		const auto unk18 = *(unk18_f_t*)(binka + 32);
-		unk18(allocd.data());
-	}
-
-	UserData.DataStreamSize = *(uint32_t*)(allocd.data() + 16ull) - Asset.PreloadSize;
-
-	size_t decoded_size = channels * 64ull;
-	if (version_retail) {
-		// We can't make any mistake in the size...
-		// I think that's the pure max?
-		decoded_size = channels * adw4[2];
-	}
-	auto decoded = std::vector<float>(version_retail ? 0 : decoded_size);
-	auto decoded_desh = std::vector<float>(version_retail ? 0 : decoded_size);
-	auto decoded_short = std::vector<uint16_t>(version_retail ? decoded_size : 0);
-
-	size_t ret = 0;
-	// TODO: potentially break on hitting the required sample count?
-	auto Writer = IO::File::OpenWrite(FilePath);
+	std::unique_ptr<IO::Stream> Writer = IO::File::OpenWrite(FilePath);
 
 	WAVEHEADER hdr;
 
-	uint64_t DataSize = 0;
-
 	Writer->Write((uint8_t*)&hdr, 0, sizeof(WAVEHEADER));
 
-	std::vector<char> stream_data(8);
+	Writer->Write(reinterpret_cast<uint8_t*>(interleavedBuffer.data()), 0, interleavedBuffer.size() * sizeof(float));
 
-	do {
-		if (version_retail) {
-			// Welcome to my cult where we perform this ritual...
-
-			// Read first 8 bytes...
-			MilesReadFileStream(stream_data.data(), 8, &UserData);
-
-			// Get required block size
-			const auto get_block_size = *(gbs_f_t*)(binka + 7*8);
-			uint32_t consumed, block_size, req;
-			get_block_size(allocd.data(), stream_data.data(), 8, &consumed, &block_size, &req);
-
-			if (block_size == 65535) {
-				break;
-			}
-
-			if (block_size > (UserData.HeaderSize + UserData.DataStreamSize - UserData.DataRead)) {
-				break;
-			}
-
-			// Resize and read everything else, allocation will happen ONLY if new_size>capacity
-			stream_data.resize(block_size);
-			MilesReadFileStream(stream_data.data() + 8, block_size - 8, &UserData);
-
-			// Now we can finally decode...
-			const auto decode = *(decoder_new_f_t*)(binka + 6*8);
-			uint32_t consumed_decode, samples;
-			decode(allocd.data(), stream_data.data(), stream_data.size(), decoded_short.data(), decoded_short.size() * 2, &consumed_decode, &samples);
-			ret = samples * channels; // ???
-
-			// Debug assert?
-			assert(consumed_decode == block_size);
-
-			// Resize just to be safe...
-			stream_data.resize(8);
-		}
-		else if (version_tf2) {
-			const auto decode = *(deocder_tf2_f_t*)(binka + 24);
-			ret = decode(&UserData, allocd.data(), decoded.data(), 64, MilesReadFileStream_TF2);
-		}
-		else {
-			const auto decode = *(decoder_f_t*)(binka + 24);
-			ret = decode(allocd.data(), decoded.data(), 64, 64, MilesReadFileStream, &UserData);
-		}
-
-		if (!version_retail) {
-			size_t desh_pos = 0;
-			for (size_t j = 0; j < 4; j++) {
-				for (size_t i = 0; i < 16; i++) {
-					for (size_t chan = 0; chan < channels; chan++) {
-						decoded_desh[desh_pos++] = decoded[(j * 16) + i + (chan * 64)];
-					}
-				}
-			}
-		}
-		else {
-			// Welcome to my another ritual of stereo packed encoding
-			//if (channels > 2) { // remove for stereo
-			if (channels > 1) { // remove for mono
-				// WAV expects all channels at once meanwhile MSS gives us 2 channels per big sample thingie?
-				// Or it just decodes everything in a big chunk?
-				size_t pos = 0;
-				auto decoded_short_copy = decoded_short;
-				auto samples = ret / channels; // E - Effiecency 
-				for (size_t i = 0; i < samples; i++) {
-					//for (size_t chan = 0; chan < (channels / 2); chan++) { // remove for stereo
-					for (size_t chan = 0; chan < channels; chan++) { // remove for mono
-						decoded_short[pos++] = decoded_short_copy[(chan * samples) + i];
-						//decoded_short[pos++] = decoded_short_copy[(chan * samples) + i + 1]; // remove for stereo
-					}
-					// This is stereo related
-					/*
-					if (channels % 2) {
-						assert(false); // ???
-					}
-					*/
-				}
-			}
-		}
-
-		if (ret > 0) {
-			if (version_retail) {
-				DataSize += ret * 2;
-				Writer->Write((uint8_t*)decoded_short.data(), 0, ret * 2);
-			}
-			else {
-				DataSize += decoded_desh.size() * 4;
-				Writer->Write((uint8_t*)decoded_desh.data(), 0, decoded_desh.size() * 4);
-			}
-		}
-	} while ((ret == 64) || (version_retail && ret));
-
+	const uint64_t DataSize = interleavedBuffer.size() * sizeof(float);
 	hdr.size = DataSize + 36;
 
 	hdr.fmt.channels = channels;
-	hdr.fmt.sampleRate = sample_rate;
-	hdr.fmt.blockAlign = DataSize / samples_count;
-	hdr.fmt.bitsPerSample = ((DataSize * 8) / samples_count)/channels;
+	hdr.fmt.sampleRate = sampleRate;
+	hdr.fmt.blockAlign = DataSize / numSamples;
+	hdr.fmt.bitsPerSample = ((DataSize * 8) / numSamples)/channels;
 
 	hdr.data.chunkSize = DataSize;
 
-	if (version_retail) {
-		// Yes, this is required, don't ask me why
-		hdr.fmt.formatTag = 1; // WAVE_FORMAT_PCM
-		hdr.fmt.blockAlign = 2 * channels;
-		hdr.fmt.bitsPerSample = 16;
-	}
-
-	hdr.fmt.avgBytesPerSecond = hdr.fmt.blockAlign * sample_rate;
+	hdr.fmt.avgBytesPerSecond = hdr.fmt.blockAlign * sampleRate;
 
 	Writer->Seek(0, IO::SeekOrigin::Begin);
 
 	Writer->Write((uint8_t*)&hdr, 0, sizeof(WAVEHEADER));
+	Writer->Close();
 	g_Logger.Info("Successfully exported %s\n", FilePath.ToCString());
 	return true;
 }
