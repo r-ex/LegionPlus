@@ -19,6 +19,8 @@ Originally created by DTZxPorter in 2019.
     - [Controls](#controls)
   - [Support](#support)
   - [Known Issues](#known-issues)
+  - [End User License Agreement](#end-user-license-agreement)
+    - [Warranty Disclaimer](#warranty-disclaimer)
 
 ## Installation
 To install Legion+, you may choose to either download the latest pre-compiled release from [the releases page](https://github.com/r-ex/LegionPlus/releases/latest), or compile the source code for yourself using the provided Visual Studio Solution file (.sln)
@@ -106,3 +108,9 @@ We also have a [discord server](https://discord.gg/ADek6fxVGe) where you will be
 ## Known Issues
 
 Full TODO/task list is available [here.](https://github.com/r-ex/LegionPlus/projects/1)
+
+## End User License Agreement
+### Warranty Disclaimer
+
+By using this software, you acknowledge that the software is provided "as is", without any representations, warranties, conditions, or liabilities, to the extent permitted by law.
+
